@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>漢字の冒険</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢字のぼうけん</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    :root {
+        --base-brown: #5C4033;
+        --dark-brown: #3E2723;
+        --panel-bg: #FFF8E7; 
+        --title-gold: #D4AF37;
+        --bg-color: #E6DBC4; 
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Hiragino Maru Gothic ProN", "Kosugi Maru", "Meiryo", sans-serif;
+        background-color: var(--bg-color);
+        color: #333;
+        overflow-y: auto; 
+        min-height: 100vh;
+    }
+
+    .app-container {
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 30px 15px;
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr; 
+        gap: 20px;
+        min-height: 90vh;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .app-container {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto;
+        }
+    }
+
+    .panel-col { display: flex; flex-direction: column; gap: 30px; }
+
+    .panel {
+        background-color: var(--panel-bg);
+        border: 4px solid var(--base-brown);
+        border-radius: 12px;
+        padding: 30px 15px 15px;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .panel-title {
+        position: absolute;
+        top: -18px; left: 50%; transform: translateX(-50%);
+        background-color: var(--base-brown); color: white;
+        padding: 4px 25px; border-radius: 20px; font-size: 1.1rem;
+        font-weight: bold; white-space: nowrap;
+        border: 2px solid var(--title-gold);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .grade-btn {
+        display: flex; justify-content: space-between; align-items: center;
+        background: white; border: 2px solid #ccc; border-radius: 5px;
+        padding: 10px 15px; margin: 8px 0; cursor: pointer;
+        font-weight: bold; transition: 0.2s; font-size: 1.1rem;
+        width: 100%; text-align: left; /* buttonタグ用にスタイル調整 */
+    }
+    .grade-btn:hover:not(:disabled) { background: #f0f8ff; border-color: #4A90E2; }
+    .grade-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .center-col { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
+    .main-title {
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        white-space: nowrap; color: white;
+        text-shadow: 
+            -3px -3px 0 var(--dark-brown), 3px -3px 0 var(--dark-brown),
+            -3px  3px 0 var(--dark-brown), 3px  3px 0 var(--dark-brown),
+             0px  6px 10px rgba(0,0,0,0.4);
+        margin: 10px 0 0 0; font-weight: 900; letter-spacing: 2px;
+    }
+
+    .sub-title {
+        background-color: var(--panel-bg); color: var(--dark-brown);
+        border: 2px solid var(--dark-brown); display: inline-block;
+        padding: 8px 40px; font-weight: bold; font-size: 1.2rem;
+        position: relative; box-shadow: 0 4px 0 var(--dark-brown); margin-bottom: 20px;
+    }
+    .sub-title::before, .sub-title::after {
+        content: ""; position: absolute; top: 5px; bottom: -5px; width: 20px;
+        background-color: var(--panel-bg); border: 2px solid var(--dark-brown); z-index: -1;
+    }
+    .sub-title::before { left: -15px; transform: skewX(-20deg); }
+    .sub-title::after { right: -15px; transform: skewX(20deg); }
+
+    #canvas-wrapper {
+        position: relative; background: white; border: 4px solid #d1d5db;
+        border-radius: 12px; overflow: hidden; margin: 20px auto; touch-action: none;
+    }
+    #drawing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: crosshair; }
+    #canvas-guides { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; z-index: 5; }
+
+    .step-active {
+        background-color: #FFF3E0 !important;
+        border-color: #F97316 !important;
+        color: #EA580C !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 10;
+        border-width: 3px !important;
+    }
+    .step-inactive {
+        background-color: #F3F4F6 !important;
+        border-color: #D1D5DB !important;
+        color: #9CA3AF !important;
+        transform: scale(0.95);
+    }
+
+    @keyframes floatUp {
+        0% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+    }
+    .coin-anim {
+        position: absolute;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #F59E0B;
+        text-shadow: 1px 1px 0 #FFF, -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF;
+        pointer-events: none;
+        animation: floatUp 1.2s ease-out forwards;
+        z-index: 50;
+    }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="panel-col">
+        <div class="panel">
+            <div class="panel-title">アプリの基本機能</div>
+            <div style="font-size: 0.9rem; text-align: center; margin-bottom: 10px; font-weight:bold;">学年を自由に選択してね</div>
+            <div style="background: #EEDCBE; border: 3px solid var(--base-brown); border-radius: 10px; padding: 10px;">
+                <button class="grade-btn" data-grade="grade1"><span>1年生</span> <span style="color:#888;">80文字</span></button>
+                <button class="grade-btn" data-grade="grade2"><span>2年生</span> <span style="color:#888;">160文字</span></button>
+                <button class="grade-btn" data-grade="grade3"><span>3年生</span> <span style="color:#888;">200文字</span></button>
+                <button class="grade-btn" disabled><span>4年生</span> <span style="color:#888;">202文字</span></button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">やる気を引き出す仕組み</div>
+            <div style="font-size: 0.95rem; text-align: center; margin-bottom: 15px; font-weight:bold;">書いてチェック！ポイントゲット</div>
+            <div class="grid grid-cols-2 gap-3 text-center text-sm font-bold relative" id="motivation-steps">
+                <div id="step-1" class="bg-white border-2 border-gray-300 rounded-lg p-3 transition-all duration-300">📝 書く</div>
+                <div id="step-2" class="bg-white border-2 border-gray-300 rounded-lg p-3 transition-all duration-300">✅ チェック</div>
+                <div id="step-3" class="bg-white border-2 border-gray-300 rounded-lg p-3 col-span-2 transition-all duration-300 flex items-center justify-center gap-2">
+                    <span class="text-xl">🪙</span> コインGET！
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="center-col relative">
+        <h1 id="app-title" class="main-title">漢字のぼうけん</h1>
+        <div class="sub-title">漢字は楽しく学ぶのが一番！</div>
+
+        <div id="grade-select-section" class="w-full h-full flex flex-col items-center justify-center min-h-[300px]">
+            <div class="bg-white/40 border-4 border-dashed border-white rounded-2xl p-10 text-center text-gray-700 font-bold w-full h-full flex flex-col items-center justify-center shadow-sm">
+                <span class="text-7xl mb-4">👩‍🏫</span>
+                <p class="text-lg">左のメニューから学年をえらんで<br>学習をスタートしよう！</p>
+            </div>
+        </div>
+
+        <div id="main-app-section" class="hidden w-full bg-white rounded-2xl p-6 shadow-xl border-4 border-orange-200 flex-col items-center relative">
+            
+            <div id="streak-display" class="absolute -top-6 right-4 bg-red-500 text-white font-bold px-4 py-2 rounded-full shadow-lg transform rotate-6 hidden border-2 border-white z-20">
+                🔥 <span id="streak-count">2</span>連続正解！
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center w-full mb-4 gap-2">
+                <button id="back-to-grade-btn" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg font-bold">⬅️ 戻る</button>
+                <div class="flex gap-2 bg-orange-100 p-1 rounded-full">
+                    <button id="mode-kaki-btn" class="mode-btn bg-white text-orange-600 font-bold px-6 py-2 rounded-full shadow-sm transition-all text-sm">かきかた</button>
+                    <button id="mode-yomi-btn" class="mode-btn text-orange-600/70 hover:bg-orange-50 font-bold px-6 py-2 rounded-full transition-all text-sm">よみかた</button>
+                </div>
+                <select id="unit-select" class="border-2 border-orange-300 rounded-lg px-3 py-2 font-bold focus:outline-none"></select>
+            </div>
+
+            <div class="w-full flex justify-between items-end mb-4 border-b-2 border-gray-100 pb-2">
+                <div>
+                    <div id="unit-badge" class="bg-orange-500 text-white text-xs px-2 py-1 rounded mb-1 inline-block"></div>
+                    <div class="font-bold text-gray-500 text-sm">もんだい <span id="question-counter" class="text-lg text-black"></span></div>
+                </div>
+                <div id="cleared-badge" class="hidden bg-green-500 text-white font-bold px-3 py-1 rounded-full text-sm">✨ クリア済 ✨</div>
+            </div>
+
+            <div class="text-center my-6">
+                <div id="instruction-text" class="text-sm md:text-base text-gray-500 mb-2 font-bold"></div>
+                <div id="yomi-text" class="text-sm text-gray-400 font-bold h-5 mb-1"></div>
+                <div class="text-2xl md:text-4xl font-bold flex items-center justify-center flex-wrap leading-relaxed">
+                    <span id="pre-text"></span>
+                    <span id="target-placeholder" class="mx-2 px-1 border-b-[6px] border-orange-400 text-orange-500"></span>
+                    <span id="post-text"></span>
+                </div>
+                <div id="meaning-text" class="mt-4 text-sm md:text-base text-gray-600 bg-gray-50 p-3 rounded-lg inline-block border border-gray-200"></div>
+            </div>
+
+            <div id="canvas-wrapper" class="w-full max-w-[150px] aspect-square">
+                <canvas id="drawing-canvas"></canvas>
+                <div id="canvas-guides"></div>
+            </div>
+            
+            <div id="clear-btn-container" class="w-full max-w-[150px] flex justify-end mt-2">
+                <button id="clear-btn" class="text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm font-bold flex items-center">🗑️ 消す</button>
+            </div>
+
+            <div id="evaluate-section" class="mt-8">
+                <button id="finish-writing-btn" class="bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold py-3 px-12 rounded-full shadow-lg transform transition active:scale-95">書き終わった！</button>
+            </div>
+
+            <div id="grading-section" class="hidden mt-6 w-full max-w-md mx-auto bg-orange-50 p-6 rounded-2xl border-2 border-orange-200 text-center">
+                <div class="text-gray-600 font-bold mb-2">せんせいに見てもらおう</div>
+                <div class="text-sm text-gray-500 mb-1" id="grading-label">正解の漢字</div>
+                <div id="grading-correct-kanji" class="text-5xl font-bold text-orange-600 mb-6"></div>
+                <div class="flex gap-4 justify-center">
+                    <button id="mark-correct-btn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl shadow-md text-lg relative">⭕️ 正解！</button>
+                    <button id="mark-incorrect-btn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-xl shadow-md text-lg">❌ まちがい</button>
+                </div>
+            </div>
+
+            <div id="result-area" class="hidden w-full text-center mt-6 p-6 rounded-2xl border-4">
+                <div id="correct-result" class="hidden text-3xl font-bold text-red-500 mb-4">大正解！🎉</div>
+                <div id="incorrect-result" class="hidden mb-4">
+                    <div class="text-2xl font-bold text-blue-600 mb-2">ざんねん！おぼえよう</div>
+                    <div class="text-gray-600"><span id="result-correct-label"></span>: <span id="correct-kanji" class="text-2xl font-bold text-black ml-2"></span></div>
+                </div>
+                <button id="next-btn" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-10 rounded-full shadow-lg text-lg"><span id="next-btn-text"></span> ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-col">
+        <div class="panel">
+            <div class="panel-title">学習のきろく</div>
+            <div class="mb-4 mt-2">
+                <div class="flex justify-between text-sm font-bold text-gray-600 mb-1">
+                    <span>今の単元</span>
+                    <span id="unit-progress-text">0/0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="unit-progress-bar" class="bg-green-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <div class="flex justify-between text-sm font-bold text-gray-600 mb-1">
+                    <span>学年ぜんたい</span>
+                    <span id="total-progress-text">0/0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="total-progress-bar" class="bg-orange-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                 <button id="reset-progress-btn" class="text-xs text-red-500 hover:text-red-700 underline font-bold">きろくをリセット</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">ペット機能で楽しく継続</div>
+            
+            <div class="text-center text-sm font-bold text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-full py-1 px-4 mx-auto w-max mb-2">
+                所持コイン: <span id="total-coins-display" class="text-lg">0</span> 🪙
+            </div>
+
+            <div class="flex items-center justify-around py-4">
+                <div id="pet-current" class="text-6xl filter drop-shadow-md transition-transform hover:scale-110 cursor-pointer animate-pulse">🥚</div>
+                <div class="text-xl text-blue-500 font-bold">➡️</div>
+                <div id="pet-next" class="text-4xl opacity-70">🐣</div>
+            </div>
+            <div class="text-center text-sm font-bold mt-2">100ポイントで卵が孵化！ <span id="pet-progress-text" class="text-green-600">0/100</span></div>
+            <div class="w-full bg-gray-200 rounded-full h-4 mt-2 border border-gray-300 overflow-hidden relative">
+                 <div id="pet-progress-bar" class="bg-green-500 h-full rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// --- 1年生〜3年生のデータ ---
+// （とても長いので問題データ部分は前回と同じものをそのまま使用します）
+const questionsData = [
+  // === 1年生 ===
+  {grade:"grade1",unit:"レベル1",pre:"",target:"一",post:"まいのおりがみ",yomi:"いち",meaning:"かずの 1。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"一",post:"ぴきのこぶた",yomi:"いっ",meaning:"かずの 1。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"一",post:"つのりんご",yomi:"ひと",meaning:"かずの 1。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"二",post:"このおにぎり",yomi:"に",meaning:"かずの 2。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"二",post:"つのうでどけい",yomi:"ふた",meaning:"かずの 2。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"三",post:"さつのほん",yomi:"さん",meaning:"かずの 3。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"三",post:"つのふくろ",yomi:"みっ",meaning:"かずの 3。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"四",post:"ほんのえんぴつ",yomi:"よん",meaning:"かずの 4。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"四",post:"つのどんぐり",yomi:"よっ",meaning:"かずの 4。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"五",post:"まいのおりがみ",yomi:"ご",meaning:"かずの 5。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"五",post:"ひきのこぶた",yomi:"ご",meaning:"かずの 5。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"五",post:"つのりんご",yomi:"いつ",meaning:"かずの 5。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"六",post:"まいのいろがみ",yomi:"ろく",meaning:"かずの 6。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"六",post:"ぴきのこいぬ",yomi:"ろっ",meaning:"かずの 6。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"六",post:"つのたまご",yomi:"むっ",meaning:"かずの 6。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"七",post:"まいのはがき",yomi:"なな",meaning:"かずの 7。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"七",post:"にんのさむらい",yomi:"しち",meaning:"かずの 7。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"七",post:"つのこ",yomi:"なな",meaning:"かずの 7。"},
+  {grade:"grade1",unit:"レベル2",pre:"おおきな",target:"木",post:"",yomi:"き",meaning:"地面からはえる、大きな植物。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"大",post:"きなかぶ",yomi:"おお",meaning:"サイズがおおきいこと。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"小",post:"さいいぬ",yomi:"ちい",meaning:"サイズがちいさいこと。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"力",post:"をあわせる",yomi:"ちから",meaning:"ものを動かすパワー。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"大",post:"ぜいのひと",yomi:"おお",meaning:"人がたくさんいること。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"山",post:"をのぼる",yomi:"やま",meaning:"地面が高く盛り上がったところ。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"月",post:"のかんさつ",yomi:"つき",meaning:"夜空に光る星。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"文",post:"しょうをかく",yomi:"ぶん",meaning:"言葉を書き記したもの。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"右",post:"にまがる",yomi:"みぎ",meaning:"お箸を持つほうの手の側。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"左",post:"をむく",yomi:"ひだり",meaning:"お茶わんを持つほうの手の側。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"手",post:"をあらう",yomi:"て",meaning:"腕の先にある、物をつかむ部分。"},
+  {grade:"grade1",unit:"レベル3",pre:"きれいな",target:"川",post:"",yomi:"かわ",meaning:"水が流れているところ。"},
+  {grade:"grade1",unit:"レベル3",pre:"りっぱな",target:"王",post:"さま",yomi:"おう",meaning:"国で一番えらい人。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"田",post:"うえをする",yomi:"た",meaning:"お米を育てるところ。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"虫",post:"をつかまえる",yomi:"むし",meaning:"こんちゅうなどの小さな生き物。"},
+  {grade:"grade1",unit:"レベル3",pre:"白い",target:"花",post:"",yomi:"はな",meaning:"植物に咲く、きれいな色の部分。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"火",post:"をけす",yomi:"ひ",meaning:"あかくて、熱くてもえているもの。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"水",post:"をはこぶ",yomi:"みず",meaning:"川や海にある、冷たいえきたい。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"一年",post:"がすぎた",yomi:"いちねん",meaning:"1年のあいだ。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"名",post:"まえをかく",yomi:"な",meaning:"人や物のなまえ。"},
+  {grade:"grade1",unit:"レベル4",pre:"おきなわの",target:"天気",post:"",yomi:"てんき",meaning:"空のようす。晴れや雨など。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"犬",post:"のさんぽ",yomi:"いぬ",meaning:"ワンワンと鳴く動物。"},
+  {grade:"grade1",unit:"レベル4",pre:"きれいな",target:"夕日",post:"",yomi:"ゆうひ",meaning:"夕方に沈んでいく太陽。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"上",post:"をみる",yomi:"うえ",meaning:"たかいほう。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"足",post:"をあらう",yomi:"あし",meaning:"歩くときに使う体の部分。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"男の子",post:"がいる",yomi:"おとこのこ",meaning:"男の子供。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"土",post:"をかぶせる",yomi:"つち",meaning:"地面のつち。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"先生",post:"にきく",yomi:"せんせい",meaning:"学校で勉強を教えてくれる人。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"草",post:"をかる",yomi:"くさ",meaning:"地面にはえる緑の植物。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"竹",post:"とんぼ",yomi:"たけ",meaning:"まっすぐ伸びる、緑色の植物。"},
+  {grade:"grade1",unit:"レベル4",pre:"まいごの",target:"女の子",post:"",yomi:"おんなのこ",meaning:"女の子供。"},
+  {grade:"grade1",unit:"レベル5",pre:"あさ",target:"早",post:"くおきる",yomi:"はや",meaning:"じかんがはやいこと。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"目",post:"をうたがう",yomi:"め",meaning:"ものを見る体の部分。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"耳",post:"をうたがう",yomi:"みみ",meaning:"音を聞く体の部分。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"口",post:"がかたい",yomi:"くち",meaning:"食べたり話したりする体の部分。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"森",post:"の中ですごす",yomi:"もり",meaning:"木がたくさん生えているところ。"},
+  {grade:"grade1",unit:"レベル5",pre:"うつくしい",target:"町",post:"",yomi:"まち",meaning:"家やお店がたくさん集まっているところ。"},
+  {grade:"grade1",unit:"レベル5",pre:"あすは",target:"金曜日",post:"",yomi:"きんようび",meaning:"1週間の曜日のひとつ。"},
+  {grade:"grade1",unit:"レベル5",pre:"だいの上に",target:"立",post:"つ",yomi:"た",meaning:"足でまっすぐ体を支えること。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"足",post:"がはやい",yomi:"あし",meaning:"歩いたり走ったりする体の部分。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"村人",post:"にたずねる",yomi:"むらびと",meaning:"村に住んでいる人。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"大",post:"きなかぶ",yomi:"おお",meaning:"サイズがおおきいこと。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"男",post:"まえな人",yomi:"おとこ",meaning:"男性のこと。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"虫",post:"のかんさつ",yomi:"むし",meaning:"小さな生き物。"},
+  {grade:"grade1",unit:"レベル6",pre:"こん",target:"虫",post:"ずかん",yomi:"ちゅう",meaning:"小さな生き物（昆虫）のこと。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"中",post:"にはいる",yomi:"なか",meaning:"ものの内側。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"草",post:"がしげる",yomi:"くさ",meaning:"地面に生える植物。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"草",post:"げんにむかう",yomi:"くさ",meaning:"草がたくさん生えている広い場所（草原）。"},
+  {grade:"grade1",unit:"レベル6",pre:"れつの",target:"中",post:"かん",yomi:"ちゅう",meaning:"まんなかのあたり。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"川",post:"ぎしをあるく",yomi:"かわ",meaning:"水が流れるところ。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"水中",post:"にもぐる",yomi:"すいちゅう",meaning:"水の中のこと。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"水",post:"べのいきもの",yomi:"みず",meaning:"川や海にある、冷たいえきたい。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"青森",post:"にいく",yomi:"あおもり",meaning:"日本の県のなまえ。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"赤",post:"トンボをみる",yomi:"あか",meaning:"りんごや火のような色。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"石",post:"をひろう",yomi:"いし",meaning:"かたくて小さい岩のかけら。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"石",post:"たんをみつける",yomi:"せき",meaning:"もやすとエネルギーになる黒い石。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"夕",post:"がたになる",yomi:"ゆう",meaning:"日が沈むころの時間。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"夕日",post:"をみつめる",yomi:"ゆうひ",meaning:"夕方に沈んでいく太陽。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"千",post:"ねんごのみらい",yomi:"せん",meaning:"百の１０倍のかず。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"千",post:"ばけんにすむ",yomi:"ち",meaning:"日本の県のなまえ（千葉県）。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"先",post:"にいく",yomi:"さき",meaning:"まえのほう。はじめ。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"天",post:"さいになる",yomi:"てん",meaning:"生まれつきとてもかしこいこと。"},
+  {grade:"grade1",unit:"レベル8",pre:"かくれた",target:"名",post:"てん",yomi:"めい",meaning:"なまえが知られている、すぐれたお店。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"木",post:"ざいをあつめる",yomi:"もく",meaning:"木からとった材料のこと。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"目",post:"ひょうをきめる",yomi:"もく",meaning:"目ざすところ。めじるし。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"目",post:"をみつめる",yomi:"め",meaning:"ものを見る体の部分。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"文",post:"しょうをかく",yomi:"ぶん",meaning:"言葉を書き記したもの。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"力",post:"をつける",yomi:"ちから",meaning:"パワー。また、できる能力。"},
+  {grade:"grade1",unit:"レベル8",pre:"ど",target:"力",post:"をする",yomi:"りょく",meaning:"いっしょうけんめいがんばること。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"立",post:"ぱな木",yomi:"りっ",meaning:"とてもすばらしいようす。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"林",post:"さんにあう",yomi:"はやし",meaning:"人のなまえ。または木がたくさんあるところ。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"森林",post:"がおおい",yomi:"しんりん",meaning:"木がたくさん生えているところ。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"本",post:"をよむ",yomi:"ほん",meaning:"紙をたばねて、文字や絵をかいたもの。"},
+  {grade:"grade1",unit:"レベル8",pre:"こん",target:"本",post:"てきにちがう",yomi:"ぽん",meaning:"おおもと。一番だいじなところ。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"百",post:"もしょうち",yomi:"ひゃく",meaning:"よくわかっていること。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"百足",post:"はきけん",yomi:"むかで",meaning:"足がたくさんある虫。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"土",post:"をかぶせる",yomi:"つち",meaning:"地面のつち。"},
+  {grade:"grade1",unit:"レベル9",pre:"みせに",target:"入",post:"る",yomi:"はい",meaning:"外から中へすすむこと。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"年",post:"に一ど",yomi:"ねん",meaning:"１年のあいだに。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"白",post:"いいき",yomi:"しろ",meaning:"雪のような色。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"白",post:"さいをかう",yomi:"はく",meaning:"葉っぱが白い、冬の野菜。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"人",post:"をみつける",yomi:"ひと",meaning:"にんげんのこと。"},
+  {grade:"grade1",unit:"レベル9",pre:"お",target:"玉",post:"であそぶ",yomi:"だま",meaning:"中に小豆などを入れた丸いおもちゃ。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"空",post:"を見上げる",yomi:"そら",meaning:"頭の上にある、青いところ。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"空気",post:"がおいしい",yomi:"くうき",meaning:"いきをするために必要な、すきとおった気体。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"空",post:"そうのせかい",yomi:"くう",meaning:"頭の中で想像すること。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"月",post:"にいきたい",yomi:"つき",meaning:"夜空に光る星。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"月",post:"めんを見る",yomi:"げつ",meaning:"月の表面のこと。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"犬",post:"をかう",yomi:"いぬ",meaning:"ワンワンと鳴く動物。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"犬",post:"しゅをあてる",yomi:"けん",meaning:"犬のしゅるいのこと。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"一休",post:"さんをよむ",yomi:"いっきゅう",meaning:"昔のえらいお坊さんのなまえ。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"休",post:"みじかん",yomi:"やす",meaning:"体をやすめること。勉強などをおやすみすること。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"音",post:"をかなでる",yomi:"おと",meaning:"耳に聞こえるもの。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"音",post:"いろがここちよい",yomi:"ね",meaning:"楽器などの音の感じ。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"五月雨",post:"",yomi:"さみだれ",meaning:"春の終わりから夏にかけて降る雨。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"円",post:"をかく",yomi:"えん",meaning:"丸い形のこと。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"百円",post:"をあつめる",yomi:"ひゃくえん",meaning:"お金の単位。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"王",post:"さまになりたい",yomi:"おう",meaning:"国で一番えらい人。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"花火",post:"を見る",yomi:"はなび",meaning:"火薬を空に打ち上げて光らせるもの。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"花",post:"をみつける",yomi:"はな",meaning:"植物に咲く、きれいな色の部分。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"草花",post:"にいやされる",yomi:"くさばな",meaning:"草と花のこと。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"貝",post:"がらをひろう",yomi:"かい",meaning:"海や川にいる、かたいカラを持った生き物。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"学",post:"びあう",yomi:"まな",meaning:"勉強して覚えること。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"学力",post:"がたかい",yomi:"がくりょく",meaning:"勉強して身についた力。"},
+  {grade:"grade1",unit:"レベル11",pre:"ことばを",target:"口",post:"にする",yomi:"くち",meaning:"食べたり話したりする体の部分。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"口",post:"かくが上がる",yomi:"こう",meaning:"くちびるの端っこのこと。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"学校",post:"に行く",yomi:"がっこう",meaning:"みんなで勉強や運動をするところ。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"手",post:"をつなぐ",yomi:"て",meaning:"腕の先にある、物をつかむ部分。"},
+  {grade:"grade1",unit:"レベル11",pre:"学校を",target:"出",post:"る",yomi:"で",meaning:"中から外へいくこと。"},
+  {grade:"grade1",unit:"レベル11",pre:"がい",target:"出",post:"をする",yomi:"しゅつ",meaning:"家の外にでかけること。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"小学生",post:"になる",yomi:"しょうがくせい",meaning:"小学校に通う子ども。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"正",post:"しいかんじ",yomi:"ただ",meaning:"まちがいがないこと。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"正",post:"面に行く",yomi:"しょう",meaning:"一番まえの、おもてがわ。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"車",post:"にのる",yomi:"くるま",meaning:"タイヤがついていて、道路を走る乗り物。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"耳",post:"をかたむける",yomi:"みみ",meaning:"音を聞く体の部分。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"耳",post:"びかに行く",yomi:"じ",meaning:"耳や鼻の病気をみるお医者さん。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"金",post:"をあつめる",yomi:"かね",meaning:"ものを買うときに使うもの。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"子",post:"どもの日",yomi:"こ",meaning:"大人の反対。ちいさい人。"},
+  {grade:"grade1",unit:"レベル12",pre:"くもの",target:"糸",post:"",yomi:"いと",meaning:"細くて長い、ヒモのようなもの。"},
+  {grade:"grade1",unit:"レベル12",pre:"でん",target:"車",post:"にのる",yomi:"しゃ",meaning:"電気の力で線路を走る乗り物。"},
+
+  // === 2年生 ===
+  {grade:"grade2",unit:"レベル1",pre:"",target:"引",post:"用する",yomi:"いん",meaning:"人の言葉などを引いて使うこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"じしょを",target:"引",post:"く",yomi:"ひ",meaning:"言葉の意味をさがすこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"羽",post:"をぬく",yomi:"はね",meaning:"鳥のからだにはえているもの。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"羽",post:"ペンを作る",yomi:"はね",meaning:"鳥のはねで作ったペン。"},
+  {grade:"grade2",unit:"レベル1",pre:"どうぶつ",target:"園",post:"に行く",yomi:"えん",meaning:"動物がたくさんいるところ。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"遠",post:"い町に行く",yomi:"とお",meaning:"きょりがはなれていること。"},
+  {grade:"grade2",unit:"レベル1",pre:"花の",target:"園",post:"に行く",yomi:"その",meaning:"花がたくさんさいているところ。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"遠",post:"足に行く",yomi:"えん",meaning:"みんなで遠くまで歩いていくこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"雲",post:"がきれい",yomi:"くも",meaning:"空にうかんでいる白や黒のかたまり。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"雲",post:"海にしずむ",yomi:"うん",meaning:"海のように広がるたくさんの雲。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"何",post:"もできない",yomi:"なに",meaning:"わからないことを聞くときの言葉。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"何",post:"でもそうだん",yomi:"なん",meaning:"どれでも、どんなことでも。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"科",post:"学を学ぶ",yomi:"か",meaning:"しぜんのふしぎを研究する学問。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"夏",post:"を感じる",yomi:"なつ",meaning:"1年の中でいちばん暑いきせつ。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"家",post:"にかえる",yomi:"いえ",meaning:"人がすむたてもの。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"家",post:"ていかを学ぶ",yomi:"か",meaning:"料理やせんたくなどを学ぶ教科。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"歌",post:"手になりたい",yomi:"か",meaning:"歌をうたうことを仕事にする人。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"歌",post:"が大すき",yomi:"うた",meaning:"メロディにのせて声を出すこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"画",post:"数のおおいかんじ",yomi:"かく",meaning:"漢字を書くときの、線の数。"},
+  {grade:"grade2",unit:"レベル1",pre:"絵",target:"画",post:"を見る",yomi:"が",meaning:"えのぐなどでかかれた絵。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"回",post:"数けんをかう",yomi:"かい",meaning:"何回も使えるチケット。"},
+  {grade:"grade2",unit:"レベル2",pre:"帰りの",target:"会",post:"に出る",yomi:"かい",meaning:"学校の帰りに行う集まり。"},
+  {grade:"grade2",unit:"レベル2",pre:"友だちに",target:"会",post:"う",yomi:"あ",meaning:"人と顔をあわせること。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"海",post:"に行く",yomi:"うみ",meaning:"しょっぱい水がひろがっているところ。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"海",post:"水よくに行く",yomi:"かい",meaning:"海のしょっぱい水。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"絵",post:"をかく",yomi:"え",meaning:"えのぐやペンでかいたもの。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"外",post:"を歩く",yomi:"そと",meaning:"家や建物のなかの反対。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"外",post:"出する",yomi:"がい",meaning:"家のそとに出かけること。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"角",post:"をつかう",yomi:"かど",meaning:"道がまがっているところ。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"角",post:"でつつく",yomi:"つの",meaning:"動物の頭にはえているかたいもの。"},
+  {grade:"grade2",unit:"レベル2",pre:"楽しい",target:"学",post:"きゅう",yomi:"がっ",meaning:"学校のクラスのこと。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"楽",post:"園に行きたい",yomi:"らく",meaning:"楽しくてすばらしい場所。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"楽",post:"にする",yomi:"らく",meaning:"心や体を休ませること。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"活",post:"ぱつにすごす",yomi:"かつ",meaning:"元気に動くこと。"},
+  {grade:"grade2",unit:"レベル3",pre:"生",target:"活",post:"がうるおう",yomi:"かつ",meaning:"日々のくらし。"},
+  {grade:"grade2",unit:"レベル3",pre:"さかなが",target:"活",post:"ぱつ",yomi:"かつ",meaning:"いきいきとしているようす。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"間",post:"をあける",yomi:"あいだ",meaning:"物と物のすきま。"},
+  {grade:"grade2",unit:"レベル3",pre:"時",target:"間",post:"をかくにんする",yomi:"かん",meaning:"ときの流れの長さ。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"丸",post:"をつける",yomi:"まる",meaning:"まるい形。"},
+  {grade:"grade2",unit:"レベル3",pre:"いん",target:"石",post:"がおちる",yomi:"せき",meaning:"宇宙から落ちてきた石。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"岩",post:"をもちあげる",yomi:"いわ",meaning:"大きくてかたい石。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"顔",post:"をあらう",yomi:"かお",meaning:"目や鼻や口がある、頭の前の部分。"},
+  {grade:"grade2",unit:"レベル3",pre:"せん",target:"顔",post:"をする",yomi:"がん",meaning:"顔をあらうこと。"},
+  {grade:"grade2",unit:"レベル3",pre:"汽",target:"車",post:"にのる",yomi:"しゃ",meaning:"蒸気で走る昔のれっしゃ。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"記",post:"事にする",yomi:"き",meaning:"新聞などに書かれたニュース。"},
+  {grade:"grade2",unit:"レベル4",pre:"日記に",target:"記",post:"す",yomi:"しる",meaning:"わすれないように文字で書くこと。"},
+  {grade:"grade2",unit:"レベル4",pre:"家に",target:"帰",post:"る",yomi:"かえ",meaning:"自分の家にもどること。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"帰",post:"たくする",yomi:"き",meaning:"自分の家にもどること。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"弓",post:"をいる",yomi:"ゆみ",meaning:"矢を飛ばすための道具。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"弓",post:"道をたしなむ",yomi:"きゅう",meaning:"弓矢を使う日本のスポーツ。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"牛",post:"をかう",yomi:"うし",meaning:"ミルクやお肉をとる大きな動物。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"牛",post:"肉を食べたい",yomi:"ぎゅう",meaning:"牛のお肉のこと。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"魚",post:"を食べる",yomi:"さかな",meaning:"水の中で生きている動物。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"魚",post:"たくを作る",yomi:"ぎょ",meaning:"釣った魚に墨をぬって紙にうつしたもの。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"京",post:"とに行く",yomi:"きょう",meaning:"日本の昔の都があったところ（京都）。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"京",post:"ひん線にのる",yomi:"けい",meaning:"東京と横浜をつなぐ電車の線。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"強",post:"い人とたたかう",yomi:"つよ",meaning:"ちからがあること。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"強",post:"てきとたたかう",yomi:"きょう",meaning:"手ごわい相手（強敵）。"},
+  {grade:"grade2",unit:"レベル5",pre:"先生に",target:"教",post:"わる",yomi:"おそ",meaning:"知らないことを教えてもらうこと。"},
+  {grade:"grade2",unit:"レベル5",pre:"学校が",target:"近",post:"い",yomi:"ちか",meaning:"きょりがみじかいこと。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"近",post:"みらいになる",yomi:"きん",meaning:"もうすぐやってくる未来のこと。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"兄",post:"となかよし",yomi:"あに",meaning:"自分より年上の男のきょうだい。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"兄",post:"だいです",yomi:"きょう",meaning:"おなじ親から生まれた子どもたち。"},
+  {grade:"grade2",unit:"レベル5",pre:"ねんどで",target:"形",post:"づくる",yomi:"かたち",meaning:"もののすがたを作ること。"},
+  {grade:"grade2",unit:"レベル5",pre:"ねんどの",target:"形",post:"せい",yomi:"けい",meaning:"形をつくりあげること（形成）。"},
+  {grade:"grade2",unit:"レベル5",pre:"計",target:"算",post:"を学ぶ",yomi:"さん",meaning:"数をたしたりひいたりすること。"},
+  {grade:"grade2",unit:"レベル5",pre:"おもさを",target:"計",post:"る",yomi:"はか",meaning:"数や量をしらべること。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"元",post:"の国に帰る",yomi:"もと",meaning:"いちばんはじめ。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"元",post:"気にあいさつ",yomi:"げん",meaning:"心や体がひじょうに良い状態。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"言",post:"ばを学ぶ",yomi:"こと",meaning:"人が話す言葉。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"言",post:"うことをきく",yomi:"い",meaning:"声に出して話をすること。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"原",post:"いんをつきとめる",yomi:"げん",meaning:"物事が起きたおおもとの理由。"},
+  {grade:"grade2",unit:"レベル6",pre:"野",target:"原",post:"に行く",yomi:"はら",meaning:"草がたくさん生えている広いところ。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"戸",post:"をあける",yomi:"と",meaning:"家や部屋の出入り口のドア。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"古",post:"い時計",yomi:"ふる",meaning:"昔からあること。新しいの反対。"},
+  {grade:"grade2",unit:"レベル6",pre:"考",target:"古",post:"学者になる",yomi:"こ",meaning:"昔の人が残したものを調べる人。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"午",post:"後のこうちゃ",yomi:"ご",meaning:"お昼の12時から夜の12時まで。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"後",post:"ろを歩く",yomi:"うし",meaning:"背中のほう。前の反対。"},
+  {grade:"grade2",unit:"レベル6",pre:"国",target:"語",post:"のべんきょう",yomi:"ご",meaning:"日本の言葉について学ぶこと。"},
+  {grade:"grade2",unit:"レベル6",pre:"物",target:"語",post:"を読む",yomi:"がたり",meaning:"作られたおはなしのこと。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"工",post:"ふうをする",yomi:"こう",meaning:"よい方法をいろいろと考えること。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"工",post:"じょう見学",yomi:"こう",meaning:"物を作るための大きな建物（工場）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"公",post:"になる",yomi:"おおやけ",meaning:"みんなに知られるようになること。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"公",post:"園に行く",yomi:"こう",meaning:"みんなが遊んだり休んだりする場所。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"広",post:"しまに行きたい",yomi:"ひろ",meaning:"日本の県のなまえ（広島）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"広",post:"大な土地にすむ",yomi:"こう",meaning:"とても広くて大きいこと。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"交",post:"かん日記をする",yomi:"こう",meaning:"おたがいにやり取りすること。"},
+  {grade:"grade2",unit:"レベル7",pre:"せんが",target:"交",post:"わる",yomi:"まじ",meaning:"線と線がクロスすること。"},
+  {grade:"grade2",unit:"レベル7",pre:"まぶしい",target:"光",post:"",yomi:"ひかり",meaning:"あかるく照らすもの。"},
+  {grade:"grade2",unit:"レベル7",pre:"ほたるのはっ",target:"光",post:"",yomi:"こう",meaning:"光をだすこと（発光）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"考",post:"える時間",yomi:"かんが",meaning:"頭をつかって思うこと。"},
+  {grade:"grade2",unit:"レベル7",pre:"話の",target:"考",post:"さつする",yomi:"こう",meaning:"よく考えて調べること（考察）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"行",post:"いのよい人",yomi:"おこな",meaning:"人のふだんの行動や態度のこと。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"行",post:"く時間",yomi:"い",meaning:"目的地にむかってすすむこと。"},
+  {grade:"grade2",unit:"レベル8",pre:"高",target:"校",post:"生になりたい",yomi:"こう",meaning:"中学校の次に行く学校の生徒。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黄",post:"色のくだもの",yomi:"き",meaning:"レモンやバナナのような色。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黄",post:"土色の土",yomi:"おう",meaning:"すこし茶色がかった黄色。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"合",post:"言葉を言う",yomi:"あい",meaning:"仲間どうしで決めておく秘密の言葉。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"合",post:"りゅうする",yomi:"ごう",meaning:"分かれていたものが一つになること。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"国",post:"を作る",yomi:"くに",meaning:"人々が住んでいて、政府がある地域。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"国",post:"道でを走る",yomi:"こく",meaning:"国が管理している大きな道路。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黒",post:"いひとみ",yomi:"くろ",meaning:"夜の空のような色。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黒",post:"えんが上がる",yomi:"こく",meaning:"もえたときに出る黒いけむり（黒煙）。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"今",post:"すぐに行きたい",yomi:"いま",meaning:"この時間。現在。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"今",post:"年のもくひょう",yomi:"こん",meaning:"この一年（今年）のこと。"},
+  {grade:"grade2",unit:"レベル9",pre:"天",target:"才",post:"になりたい",yomi:"さい",meaning:"生まれつきすぐれた能力がある人。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"才",post:"のうにあふれる",yomi:"さい",meaning:"物事をうまくできる能力。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"細",post:"い糸",yomi:"ほそ",meaning:"はばがせまいこと。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"細",post:"心のちゅうい",yomi:"さい",meaning:"細かいところまで気をつけること。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"細",post:"かい字で書く",yomi:"こま",meaning:"とても小さいようす。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"作",post:"ひんをめでる",yomi:"さく",meaning:"作ったもの（作品）。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"作",post:"りたいものがある",yomi:"つく",meaning:"新しくものをうみだすこと。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"算",post:"数の時間",yomi:"さん",meaning:"数や図形の計算を学ぶ教科。"},
+  {grade:"grade2",unit:"レベル9",pre:"車が",target:"止",post:"まる",yomi:"と",meaning:"動いていたものがストップすること。"},
+  {grade:"grade2",unit:"レベル9",pre:"てい",target:"止",post:"線でとまる",yomi:"し",meaning:"車などが止まる場所の線（停止線）。"},
+  {grade:"grade2",unit:"レベル9",pre:"ながれやま",target:"市",post:"にすむ",yomi:"し",meaning:"人がたくさん住んでいるところ。"},
+  {grade:"grade2",unit:"レベル9",pre:"弓",target:"矢",post:"をいる",yomi:"や",meaning:"弓でとばすための細長い道具。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"姉",post:"の友だち",yomi:"あね",meaning:"自分より年上の女のきょうだい。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"姉",post:"まいでおそろい",yomi:"し",meaning:"姉と妹のこと（姉妹）。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"思",post:"いびとをまつ",yomi:"おも",meaning:"心の中で好きだと思っている人。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"思",post:"考がするどい",yomi:"し",meaning:"物事について頭で考えること（思考）。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"紙",post:"にていねいに書く",yomi:"かみ",meaning:"字を書いたり絵を描いたりするもの。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"紙",post:"面にサイン",yomi:"し",meaning:"紙の表面のこと（紙面）。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"寺",post:"でしゅぎょう",yomi:"てら",meaning:"お坊さんがいるところ。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"寺",post:"いんに行く",yomi:"じ",meaning:"お寺のこと（寺院）。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"自",post:"らをまもる",yomi:"みずか",meaning:"自分自身のこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"自",post:"分の家にある",yomi:"じ",meaning:"わたし自身のこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"時",target:"間",post:"に間に合う",yomi:"かん",meaning:"ときの流れの長さ。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"時",post:"を止める",yomi:"とき",meaning:"時間のこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"教",target:"室",post:"に行く",yomi:"しつ",meaning:"学校で勉強する部屋。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"室",post:"町時代のせかい",yomi:"むろ",meaning:"日本の昔の時代のなまえ。"},
+  {grade:"grade2",unit:"レベル10",pre:"会",target:"社",post:"に行く",yomi:"しゃ",meaning:"大人が仕事をする場所。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"弱",post:"い虫にさされる",yomi:"よわ",meaning:"ちからがないこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"弱",post:"しゃをすくう",yomi:"じゃく",meaning:"力が弱い人のこと（弱者）。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"首",post:"がかゆい",yomi:"くび",meaning:"頭と胴体をつなぐ部分。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"首",post:"尾があまい",yomi:"しゅ",meaning:"はじめと終わり。結果のこと（首尾）。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"秋",post:"のサンマ",yomi:"あき",meaning:"夏と冬の間のきせつ。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"秋",post:"分の日",yomi:"しゅう",meaning:"秋のお休みの日のひとつ。"},
+  {grade:"grade2",unit:"レベル11",pre:"一",target:"週",post:"間がたつ",yomi:"しゅう",meaning:"日曜日から土曜日までの７日間。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"春",post:"をかんじる",yomi:"はる",meaning:"冬と夏の間のきせつ。あたたかい。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"春",post:"分の日",yomi:"しゅん",meaning:"春のお休みの日のひとつ。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"書",post:"るいをみる",yomi:"しょ",meaning:"文字が書かれた紙（書類）。"},
+  {grade:"grade2",unit:"レベル11",pre:"文しょうを",target:"書",post:"く",yomi:"か",meaning:"文字をペンなどで記すこと。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"少",post:"年のせいしゅん",yomi:"しょう",meaning:"わかい男の子のこと。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"少",post:"ないおこづかい",yomi:"すく",meaning:"数や量がすこしであること。"},
+  {grade:"grade2",unit:"レベル11",pre:"場",target:"所",post:"をかえる",yomi:"しょ",meaning:"ある物があるところ。"},
+  {grade:"grade2",unit:"レベル11",pre:"うんどう",target:"場",post:"にいく",yomi:"じょう",meaning:"みんなで運動するための広い場所。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"色",post:"とりどりの花",yomi:"いろ",meaning:"赤や青などのカラーのこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"色",post:"紙にサイン",yomi:"しき",meaning:"サインを書くための四角い紙（色紙）。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"心",post:"を読む",yomi:"こころ",meaning:"気持ちや思いのこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"心",post:"ぞうにわるい",yomi:"しん",meaning:"血液を全身におくる体の部分（心臓）。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"新",post:"しいけしゴム",yomi:"あたら",meaning:"できたばかりであること。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"新",post:"入しゃいん",yomi:"しん",meaning:"新しく会社に入った人のこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"親",post:"子ですごす",yomi:"おや",meaning:"親と子どものこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"親",post:"切にする",yomi:"しん",meaning:"相手のためにやさしくすること。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"図",post:"工が大好き",yomi:"ず",meaning:"絵をかいたり工作をする授業。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"数",post:"字がたくさん",yomi:"すう",meaning:"数をあらわす文字（１、２など）。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"西",post:"にすすむ",yomi:"にし",meaning:"太陽が沈む方角。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"声",post:"をかえる",yomi:"こえ",meaning:"口から出るおと。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"音",post:"声のへんかん",yomi:"おん",meaning:"口から出る声（音声）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"声",post:"色をかえる",yomi:"こわ",meaning:"声の感じのこと（声色）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"星",post:"の名前",yomi:"ほし",meaning:"夜空に光る天体。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"星",post:"ざをさがす",yomi:"せい",meaning:"星をつないで形にしたもの（星座）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"晴",post:"れの日にあそぶ",yomi:"は",meaning:"空に雲が少なく太陽が出ていること。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"晴",post:"天の日",yomi:"せい",meaning:"よく晴れた空のこと（晴天）。"},
+  {grade:"grade2",unit:"レベル13",pre:"紙を",target:"切",post:"る",yomi:"き",meaning:"ハサミなどで分けること。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"雪",post:"がふる",yomi:"ゆき",meaning:"冬に空から降ってくる白いもの。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"雪",post:"原が広がる",yomi:"せつ",meaning:"雪が積もった広い野原（雪原）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"船",post:"にのる",yomi:"ふね",meaning:"海や川を移動するための乗り物。"},
+  {grade:"grade2",unit:"レベル13",pre:"紙に",target:"線",post:"を書く",yomi:"せん",meaning:"細長いつながり。ライン。"},
+  {grade:"grade2",unit:"レベル13",pre:"ひまわり",target:"組",post:"",yomi:"ぐみ",meaning:"クラスやグループのこと。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"組",post:"みたてる",yomi:"く",meaning:"バラバラのものを合わせて作ること。"},
+  {grade:"grade2",unit:"レベル14",pre:"ひみつの",target:"組",post:"しき",yomi:"そ",meaning:"人々が集まって作られた団体（組織）。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"走",post:"りたい気分",yomi:"はし",meaning:"足を速く動かしてすすむこと。"},
+  {grade:"grade2",unit:"レベル14",pre:"ぼう",target:"走",post:"きかん車",yomi:"そう",meaning:"あばれて走ること（暴走）。"},
+  {grade:"grade2",unit:"レベル14",pre:"草の",target:"多",post:"い場所",yomi:"おお",meaning:"かずがたくさんあること。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"多",post:"数けつにする",yomi:"た",meaning:"人数の多いほうで決めること。"},
+  {grade:"grade2",unit:"レベル14",pre:"字が",target:"太",post:"い",yomi:"ふと",meaning:"ほそいの反対。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"体",post:"がかたい",yomi:"からだ",meaning:"人間のからだ。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"体",post:"そうをする",yomi:"たい",meaning:"体を動かす運動のこと（体操）。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"台",post:"本を読む",yomi:"だい",meaning:"おしばいのセリフが書かれた本。"},
+  {grade:"grade2",unit:"レベル14",pre:"ぶ",target:"台",post:"に立つ",yomi:"たい",meaning:"おしばいや発表をする場所（舞台）。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"地",post:"元に帰る",yomi:"ち",meaning:"自分が育ったところ。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"地",post:"いきにねづく",yomi:"ち",meaning:"ある一定の場所（地域）。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"池",post:"の水の魚",yomi:"いけ",meaning:"水がたまっているところ。"},
+  {grade:"grade2",unit:"レベル15",pre:"ちょすい",target:"池",post:"",yomi:"ち",meaning:"水をためておく池（貯水池）。"},
+  {grade:"grade2",unit:"レベル15",pre:"物",target:"知",post:"りはかせ",yomi:"し",meaning:"いろんなことを知っている人。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"知",post:"力が高い",yomi:"ち",meaning:"物事を理解する頭のよさ（知力）。"},
+  {grade:"grade2",unit:"レベル15",pre:"お",target:"茶",post:"をのむ",yomi:"ちゃ",meaning:"のどがかわいたときに飲むもの。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"茶",post:"道をたしなむ",yomi:"さ",meaning:"日本の伝統的なお茶の作法（茶道）。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"昼",post:"ごはんを食べる",yomi:"ひる",meaning:"太陽が出ている明るい時間。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"昼",post:"食にする",yomi:"ちゅう",meaning:"お昼ごはんのこと（昼食）。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"長",post:"の言うとおり",yomi:"おさ",meaning:"グループのトップの人。"},
+  {grade:"grade2",unit:"レベル15",pre:"校",target:"長",post:"先生の話し",yomi:"ちょう",meaning:"学校で一番えらい先生。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"鳥",post:"をかんさつする",yomi:"とり",meaning:"羽があって空を飛ぶ動物。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"朝",post:"日を見る",yomi:"あさ",meaning:"夜があけて明るくなる時間。"},
+  {grade:"grade2",unit:"レベル16",pre:"全校",target:"朝",post:"会に出る",yomi:"ちょう",meaning:"朝に行う学校の集まり（朝会）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"直",post:"線を引く",yomi:"ちょく",meaning:"まっすぐな線のこと（直線）。"},
+  {grade:"grade2",unit:"レベル16",pre:"おもちゃを",target:"直",post:"す",yomi:"なお",meaning:"こわれたものを元にもどすこと。"},
+  {grade:"grade2",unit:"レベル16",pre:"道を",target:"通",post:"る",yomi:"とお",meaning:"ある場所をすぎていくこと。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"通",post:"行しょうめいしょ",yomi:"つう",meaning:"通るための許可（通行）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"弟",post:"のせわをする",yomi:"おとうと",meaning:"自分より年下の男のきょうだい。"},
+  {grade:"grade2",unit:"レベル16",pre:"兄",target:"弟",post:"なかがよい",yomi:"だい",meaning:"男のきょうだいのこと（兄弟）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"店",post:"の中に入る",yomi:"みせ",meaning:"物を売っているところ。"},
+  {grade:"grade2",unit:"レベル16",pre:"しょう",target:"店",post:"がい",yomi:"てん",meaning:"お店がたくさん集まった通り（商店街）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"点",post:"をむすぶ",yomi:"てん",meaning:"ちいさいしるし。テストの成績。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"電",post:"気をつける",yomi:"でん",meaning:"あかりをつけたり機械を動かすエネルギー。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"刀",post:"をふる",yomi:"かたな",meaning:"昔の武士がもっていた武器。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"刀",post:"しんがにぶる",yomi:"とう",meaning:"刀の刃の部分（刀身）。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"冬",post:"の時き",yomi:"ふゆ",meaning:"1年の中でいちばん寒い季節。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"冬",post:"きがさる",yomi:"とう",meaning:"冬の季節のこと（冬季）。"},
+  {grade:"grade2",unit:"レベル17",pre:"アイスの",target:"当",post:"たり",yomi:"あ",meaning:"くじなどで良い結果が出ること。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"当",post:"ばんばんごう",yomi:"とう",meaning:"役割にあたること（当番）。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"東",post:"にむかう",yomi:"ひがし",meaning:"太陽が昇る方角。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"答",post:"えを出す",yomi:"こた",meaning:"質問への正解。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"頭",post:"が回る",yomi:"あたま",meaning:"首から上の部分。"},
+  {grade:"grade2",unit:"レベル17",pre:"二",target:"頭",post:"身の体",yomi:"とう",meaning:"頭と体のバランスのこと（頭身）。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"同",post:"じ日に行く",yomi:"おな",meaning:"ちがいがないこと。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"同",post:"るいであつまる",yomi:"どう",meaning:"同じ種類の仲間のこと（同類）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"内",post:"がわを歩く",yomi:"うち",meaning:"もののなかのほう。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"内",post:"心こわいよー",yomi:"ない",meaning:"心の中の気持ち（内心）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"南",post:"にすすむ",yomi:"みなみ",meaning:"北の反対の方角。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"南",post:"国にすむ",yomi:"なん",meaning:"あたたかい南の国（南国）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"馬",post:"にのりたい",yomi:"うま",meaning:"パカパカと走る動物。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"馬",post:"肉を食べる",yomi:"ば",meaning:"馬のお肉のこと（馬肉）。"},
+  {grade:"grade2",unit:"レベル18",pre:"お肉を",target:"売",post:"る",yomi:"う",meaning:"お金と引き換えに品物をわたすこと。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"買",post:"い物に行く",yomi:"か",meaning:"お金をはらって品物をもらうこと。"},
+  {grade:"grade2",unit:"レベル18",pre:"物の",target:"売",post:"買する",yomi:"ばい",meaning:"売ったり買ったりすること（売買）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"麦",post:"をそだてる",yomi:"むぎ",meaning:"パンやうどんの材料になる植物。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"半",post:"そでをきる",yomi:"はん",meaning:"全体の半分。短いこと。"},
+  {grade:"grade2",unit:"レベル18",pre:"春の",target:"半",post:"ば",yomi:"なか",meaning:"ちょうど真ん中ぐらいの時期。"},
+  {grade:"grade2",unit:"レベル19",pre:"交",target:"番",post:"に行く",yomi:"ばん",meaning:"順番や、見張りをするところ。"},
+  {grade:"grade2",unit:"レベル19",pre:"電話",target:"番",post:"ごう",yomi:"ばん",meaning:"電話にかける数字のこと（番号）。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"父",post:"をたずねる",yomi:"ちち",meaning:"自分のおとうさん。"},
+  {grade:"grade2",unit:"レベル19",pre:"そ",target:"父",post:"に会いに行く",yomi:"ふ",meaning:"おじいさんのこと（祖父）。"},
+  {grade:"grade2",unit:"レベル19",pre:"お",target:"父",post:"さんがすき",yomi:"とう",meaning:"おとうさんのこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"風",post:"のながれ",yomi:"かぜ",meaning:"空気が動くこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"風",post:"りんの音",yomi:"ふう",meaning:"風でチリンと鳴るかざり（風鈴）。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"分",post:"けた数",yomi:"わ",meaning:"いくつかに切りはなすこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"新",target:"聞",post:"紙を買う",yomi:"ぶん",meaning:"ニュースが書いてある紙（新聞）。"},
+  {grade:"grade2",unit:"レベル19",pre:"お",target:"米",post:"をたく",yomi:"こめ",meaning:"ごはんになる白い粒。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"歩",post:"くのがはやい",yomi:"ある",meaning:"足をつかってすすむこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"歩",post:"はばが広い",yomi:"ほ",meaning:"歩くときの足の広さ（歩幅）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"方",post:"角があっている",yomi:"ほう",meaning:"東西南北のむき（方角）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"北",post:"の国から",yomi:"きた",meaning:"南の反対の方角。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"毎",post:"日ごはんを食べる",yomi:"まい",meaning:"いつも、いつも。"},
+  {grade:"grade2",unit:"レベル20",pre:"姉",target:"妹",post:"でおそろい",yomi:"まい",meaning:"姉と妹のこと（姉妹）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"妹",post:"がかわいい",yomi:"いもうと",meaning:"自分より年下の女のきょうだい。"},
+  {grade:"grade2",unit:"レベル20",pre:"一",target:"万",post:"円がほしい",yomi:"まん",meaning:"千の10倍の数。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"万",post:"屋をいとなむ",yomi:"よろず",meaning:"いろんな物を売るお店（万屋）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"明",post:"け方に帰る",yomi:"あ",meaning:"夜が終わって朝になるころ。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"明",post:"るいみらい",yomi:"あか",meaning:"光があってよく見えること。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"明",post:"日帰ります",yomi:"みょう",meaning:"次の日のこと（明日）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"鳴",post:"き声がうるさい",yomi:"な",meaning:"動物が声を出すこと。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"毛",post:"がぬける",yomi:"け",meaning:"体にはえている細い糸のようなもの。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"門",post:"の前に行く",yomi:"もん",meaning:"家や学校の大きな入り口。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"門",post:"出をいわう",yomi:"かど",meaning:"新しい出発をすること（門出）。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"夜",post:"のまちなみ",yomi:"よる",meaning:"太陽が沈んで暗い時間。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"夜",post:"食を食べる",yomi:"や",meaning:"夜おそくに食べるごはん（夜食）。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"野",post:"原でねそべる",yomi:"の",meaning:"草がたくさん生えている広い場所。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"友",post:"だちに会いに行く",yomi:"とも",meaning:"なかよしの人のこと。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"曜",post:"日にあそぶ",yomi:"よう",meaning:"月、火、水などの週の日のこと。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"母",post:"が来る",yomi:"はは",meaning:"自分のおかあさん。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"母",post:"校をたずねる",yomi:"ぼ",meaning:"自分が卒業した学校（母校）。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"里",post:"帰りをする",yomi:"さと",meaning:"自分の生まれ故郷に帰ること。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"理",post:"科室でじっけん",yomi:"り",meaning:"自然について学ぶ教科。"},
+  {grade:"grade2",unit:"レベル21",pre:"この世のこ",target:"理",post:"",yomi:"とわり",meaning:"物事のすじみち（ことわり）。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"話",post:"しをすりかえる",yomi:"はな",meaning:"言葉をつたえること。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"話",post:"じゅつがとくい",yomi:"わ",meaning:"上手に話すテクニック（話術）。"},
+  {grade:"grade2",unit:"レベル22",pre:"時",target:"間",post:"をまもる",yomi:"かん",meaning:"ときの流れの長さ。"},
+  {grade:"grade2",unit:"レベル22",pre:"お",target:"寺",post:"のおしょう",yomi:"てら",meaning:"お坊さんがいるところ。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"紙",post:"に書く",yomi:"かみ",meaning:"字を書いたり絵を描いたりするもの。"},
+  {grade:"grade2",unit:"レベル22",pre:"気",target:"分",post:"がわるい",yomi:"ぶん",meaning:"そのときの心や体の状態（気分）。"},
+  {grade:"grade2",unit:"レベル22",pre:"細い",target:"字",post:"を書く",yomi:"じ",meaning:"言葉をあらわすマーク（文字）。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"才",post:"のうのかたまり",yomi:"さい",meaning:"物事をうまくできる能力（才能）。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"今",post:"を生きるわかもの",yomi:"いま",meaning:"この時間。現在。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"今",post:"年はもうおわり",yomi:"こん",meaning:"この一年（今年）のこと。"},
+  {grade:"grade2",unit:"レベル22",pre:"高いお",target:"金",post:"をはらう",yomi:"かね",meaning:"ものを買うときに使うもの。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"教",post:"えをこう",yomi:"おし",meaning:"先生などが伝えてくれる大切なこと。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"顔",post:"にどろをぬる",yomi:"かお",meaning:"目や鼻や口がある、頭の前の部分。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"外",post:"からのけしき",yomi:"そと",meaning:"家や建物のなかの反対。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"絵",post:"をかくしごと",yomi:"え",meaning:"えのぐやペンでかいたもの。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"画",post:"数の多いかんじ",yomi:"かく",meaning:"漢字を書くときの、線の数。"},
+  {grade:"grade2",unit:"レベル23",pre:"さおを",target:"引",post:"く",yomi:"ひ",meaning:"自分の方へ引っ張ること。"},
+  {grade:"grade2",unit:"レベル23",pre:"ほいく",target:"園",post:"ですごす",yomi:"えん",meaning:"子どもがあつまって過ごす場所。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"雲",post:"ひとつないけしき",yomi:"くも",meaning:"空にうかんでいる白や黒のかたまり。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"回",post:"想する",yomi:"かい",meaning:"昔のことを思い出すこと（回想）。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"角",post:"をまがる",yomi:"かど",meaning:"道がまがっているところ。"},
+  {grade:"grade2",unit:"レベル23",pre:"ごく",target:"楽",post:"おんせん",yomi:"らく",meaning:"楽しくてすばらしい場所（極楽）。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"間",post:"をあける",yomi:"ま",meaning:"物と物のすきま。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"京",post:"とに行こう！",yomi:"きょう",meaning:"日本の昔の都があったところ（京都）。"},
+
+  // === 3年生 ===
+  { grade: "grade3", unit: "白い花びら", pre: "つぼみが ", target: "開", post: "く", yomi: "ひら", meaning: "とじていたものが、あくこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "戸を ", target: "開", post: "ける", yomi: "あ", meaning: "とまっているものを、あけること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "開花", post: " する", yomi: "かいか", meaning: "花がさくこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "一年をふり", target: "返", post: "る", yomi: "かえ", meaning: "むかしのことを、思いだすこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "返事", post: " をする", yomi: "へんじ", meaning: "よばれたときに、こたえること。" },
+  { grade: "grade3", unit: "大切な ", target: "事", post: "がら", yomi: "こと", meaning: "ものごと、できごと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "行動", post: " する", yomi: "こうどう", meaning: "なにかをすること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "電車が ", target: "動", post: "く", yomi: "うご", meaning: "とまっていたものが、すすんだり、かわったりすること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "動物", post: " が好き", yomi: "どうぶつ", meaning: "生き物のうち、動くことができるもの。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "乗", post: "り物がある", yomi: "の", meaning: "車や電車など、人がのるもの。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "乗用車", post: " がある", yomi: "じょうようしゃ", meaning: "人がのるための、ふつうの自動車。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "登場", post: " する", yomi: "とうじょう", meaning: "おはなしや舞台に、人がでてくること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "登山", post: " をする", yomi: "とざん", meaning: "山にのぼること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "物語", post: " の主人公", yomi: "ものがたり", meaning: "おはなしのこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "もち", target: "主", post: " がいた", yomi: "ぬし", meaning: "それを持っている人。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "橋", post: " をわたる", yomi: "はし", meaning: "川などをわたるために、かけられたもの。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "歩道橋", post: " がある", yomi: "ほどうきょう", meaning: "人が安全に道をわたるための、高いところにある橋。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "海岸", post: " に行く", yomi: "かいがん", meaning: "海と陸のさかいめのところ。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "川岸", post: " を歩く", yomi: "かわぎし", meaning: "川のよこの、陸のところ。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "茶", post: " つみ", yomi: "ちゃ", meaning: "お茶の葉をつむこと。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "海", post: " びらき", yomi: "うみ", meaning: "夏の海水浴場がオープンすること。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "水の ", target: "週間", post: "", yomi: "しゅうかん", meaning: "水について考える一週間のこと。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "秋", post: " まつり", yomi: "あき", meaning: "秋に行われるおまつり。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "新米", post: " がおいしい", yomi: "しんまい", meaning: "その年にとれた、あたらしいお米。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "雪", post: " がっせん", yomi: "ゆき", meaning: "雪を丸めてなげあう遊び。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "春一番", post: " が来る", yomi: "はるいちばん", meaning: "春の初めにふく、強い南風。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "花", post: " めぐり", yomi: "はな", meaning: "いろいろな花を見てまわること。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "入道雲", post: " がある", yomi: "にゅうどうぐも", meaning: "夏によくできる、モクモクとした大きな雲。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "夕立", post: " がふる", yomi: "ゆうだち", meaning: "夏の夕方に、急にふる強い雨。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "名月", post: "", yomi: "めいげつ", meaning: "とても美しく見える、秋の満月のこと。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "秋晴れ", post: "", yomi: "あきばれ", meaning: "秋の、空がすっきりと晴れたお天気。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "北風", post: "", yomi: "きたかぜ", meaning: "北のほうからふいてくる、つめたい風。" },
+  { grade: "grade3", unit: "発見ノート", pre: "星を", target: "発見", post: "する", yomi: "はっけん", meaning: "まだ知られていなかったものを、新しく見つけること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "発音", post: "する", yomi: "はつおん", meaning: "声に出して言葉を言うこと。" },
+  { grade: "grade3", unit: "発見ノート", pre: "五時に", target: "出発", post: "する", yomi: "しゅっぱつ", meaning: "目的地にむかって、そこを出ること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "予定", post: "を立てる", yomi: "よてい", meaning: "前もって決めておく、これからの計画。" },
+  { grade: "grade3", unit: "発見ノート", pre: "国語の", target: "予習", post: "", yomi: "よしゅう", meaning: "学校で習う前に、自分で勉強しておくこと。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "予想", post: "が当たる", yomi: "よそう", meaning: "これからどうなるか、前もって考えること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "空想", post: "の生き物", yomi: "くうそう", meaning: "実際にはないことを、頭の中で想像すること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "地図", post: "で調べる", yomi: "ちず", meaning: "土地の様子を、記号などを使ってかいた図。" },
+  { grade: "grade3", unit: "発見ノート", pre: "温度の", target: "調節", post: "", yomi: "ちょうせつ", meaning: "ちょうどいい具合に、合わせること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "せわをする", target: "時", post: "", yomi: "とき", meaning: "時間。または、あることをするその瞬間。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "言葉", post: "でつたえる", yomi: "ことば", meaning: "思っていることを表す、音声や文字。" },
+  { grade: "grade3", unit: "発見ノート", pre: "朝顔の", target: "子葉", post: "", yomi: "しよう", meaning: "種から芽が出たときに、最初に出る葉っぱ（ふたば）。" },
+  { grade: "grade3", unit: "発見ノート", pre: "気持ちを", target: "表", post: "す", yomi: "あらわ", meaning: "心の中にあるものを、外に見えるようにすること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "発表", post: "会に行く", yomi: "はっぴょう", meaning: "みんなの前で、自分の意見や作品を知らせること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "表", post: "を作る", yomi: "ひょう", meaning: "わかりやすいように、線で区切って文字や数字をまとめたもの。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "理由", post: "を聞く", yomi: "りゆう", meaning: "なぜそうなるのか、というわけ。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "体温", post: "をはかる", yomi: "たいおん", meaning: "体の温度。" },
+  { grade: "grade3", unit: "発見ノート", pre: "水を", target: "温", post: "める", yomi: "あたた", meaning: "冷たいものを、熱くすること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "毎日の", target: "生活", post: "", yomi: "せいかつ", meaning: "毎日をいきていくこと。くらし。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "温", post: "かな心", yomi: "あたた", meaning: "おもいやりのある、やさしい様子。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "漢字", post: "の学習", yomi: "かんじ", meaning: "中国から伝わり、日本でも使われている文字。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "漢数字", post: "で書く", yomi: "かんすうじ", meaning: "一、二、三などの、数を表す漢字。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "意見", post: "をつたえる", yomi: "いけん", meaning: "あることについての、自分の考え。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "紙を", target: "用意", post: "する", yomi: "ようい", meaning: "必要なものを、前もってそろえておくこと。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "意味", post: "を調べる", yomi: "いみ", meaning: "言葉が表している、中身やわけ。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "味", post: "わう", yomi: "あじ", meaning: "食べ物のあじを感じること。または、よさをじっくり感じること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "地図記号", post: "", yomi: "ちずきごう", meaning: "地図の中で、建物や土地の様子を表すしるし。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "電話番号", post: "", yomi: "でんわばんごう", meaning: "電話をかけるための、決められた数字。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "重", post: "い本", yomi: "おも", meaning: "目方が多いこと。ずっしりしていること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "重複", post: "する", yomi: "ちょうふく", meaning: "同じ物事が、もう一度かさなること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "紙を", target: "重", post: "ねる", yomi: "かさ", meaning: "物の上に、さらに物をのせること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "名前を", target: "問", post: "う", yomi: "と", meaning: "わからないことを、人に聞くこと。たずねること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "学問", post: "を学ぶ", yomi: "がくもん", meaning: "勉強して、知識を身につけること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "問屋", post: "で買う", yomi: "とんや", meaning: "品物をまとめて仕入れ、お店に売る会社。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "八重", post: "さくら", yomi: "やえ", meaning: "花びらが何まいも重なってさくこと。" },
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"実",post:"がなる",yomi:"み",meaning:"草や木にできる実（フルーツや種など）。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"実",post:"力がある",yomi:"じつ",meaning:"ほんとうの力。中身。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"作物が",target:"実",post:"る",yomi:"みの",meaning:"実ができること。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"消",post:"ぼう車",yomi:"しょう",meaning:"火事をけすための車。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"消",post:"しゴムがある",yomi:"け",meaning:"書いたものをなくすこと。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"消",post:"化のよいもの",yomi:"しょう",meaning:"食べたものを体にとりこみやすくすること。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"化",post:"け物がいる",yomi:"ば",meaning:"すがたをかえた、あやしいもの。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"水",target:"面",post:"にうかぶ",yomi:"めん",meaning:"水のひょうめん。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"物語の場",target:"面",post:"",yomi:"めん",meaning:"おはなしの、そのときのようすや場所。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"面",post:"白い顔",yomi:"おも",meaning:"たのしい、または、かわったようす。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"水",target:"泳",post:"をする",yomi:"えい",meaning:"水の中をおよぐこと。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"泳",post:"ぎたい気分",yomi:"およ",meaning:"水の中をすすむこと。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"身",post:"体のうりょく",yomi:"しん",meaning:"人間のからだ。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"身",post:"を守る",yomi:"み",meaning:"自分のからだや、いのち。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"守",post:"りがかたい",yomi:"まも",meaning:"がいから身をふせぐこと。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"次",post:"の日になる",yomi:"つぎ",meaning:"あとにくるもの。"},
+  {grade:"grade3",unit:"めだか",pre:"本の目",target:"次",post:"",yomi:"じ",meaning:"本の内容がどのページにあるかまとめたもの。"},
+  {grade:"grade3",unit:"めだか",pre:"電話を取り",target:"次",post:"ぐ",yomi:"つ",meaning:"間に入って、人につなぐこと。"},
+  {grade:"grade3",unit:"めだか",pre:"虫が",target:"死",post:"ぬ",yomi:"し",meaning:"いのちがなくなること。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"死",post:"をかなしむ",yomi:"し",meaning:"いのちがなくなること。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"三十度",post:"の気温",yomi:"さんじゅうど",meaning:"温度の高さ。"},
+  {grade:"grade3",unit:"めだか",pre:"もう",target:"一度",post:"",yomi:"いちど",meaning:"もういっかい。"},
+  {grade:"grade3",unit:"めだか",pre:"この",target:"度",post:"は",yomi:"たび",meaning:"今回のこと。この機会。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"一流",post:"のシェフ",yomi:"いちりゅう",meaning:"一番すぐれていること。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"流",post:"れがはやい",yomi:"なが",meaning:"水などが動いていくこと。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"研究",post:"をする",yomi:"けんきゅう",meaning:"よく調べて、深く考えること。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"究",post:"きょくの料理",yomi:"きゅう",meaning:"いちばん最後、これ以上ないところまで行きつくこと。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"問題を",target:"究明",post:"する",yomi:"きゅうめい",meaning:"深く調べて、はっきりとさせること。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"一秒",post:"の長さ",yomi:"いちびょう",meaning:"時計のいちばん短い時間のたんい。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"研修",post:"をする",yomi:"けんしゅう",meaning:"勉強して、知識や技術を身につけること。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"昭和",post:"の時代",yomi:"しょうわ",meaning:"日本の昔の年号のひとつ。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"和食",post:"を食べる",yomi:"わしょく",meaning:"日本ふうの料理。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"図書館",post:"に行く",yomi:"としょかん",meaning:"本がたくさん置いてあるところ。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"大きな",target:"館",post:"",yomi:"やかた",meaning:"大きくてりっぱな家やたてもの。"}
+];
+
+questionsData.forEach((q, index) => { q.id = `kanji_q_${q.grade}_${index}`; });
+
+const gradeTitles = { grade1: "１年生の漢字", grade2: "２年生の漢字", grade3: "３年生の漢字" };
+
+let currentGrade = null;
+let currentUnit = 'all';
+let gradeQuestions = [];
+let filteredQuestions = [];
+let currentQuestionIndex = 0;
+let isDrawing = false;
+let appState = 'gradeSelect'; 
+let studyMode = 'kaki'; 
+let evaluationResult = 'none';
+
+let progressData = JSON.parse(localStorage.getItem('kanjiDrillProgressV3')) || { kaki: [], yomi: [] };
+let totalPoints = parseInt(localStorage.getItem('kanjiDrillPointsV3') || '0');
+let currentStreak = 0; 
+
+// キャラクターを追加し、カンマ区切りを正しく修正しました
+const petStages = ['🥚', '🐣', '🐥', '🐢', '🦖', '🐉', '🦄', '🌟', '🐳', '🐙', '🦑', '🐢', '👀']; 
+
+const canvas = document.getElementById('drawing-canvas');
+const ctx = canvas.getContext('2d');
+const canvasWrapper = document.getElementById('canvas-wrapper');
+const clearBtnContainer = document.getElementById('clear-btn-container');
+const unitSelect = document.getElementById('unit-select');
+
+function setMotivationStep(stepNum) {
+    const s1 = document.getElementById('step-1');
+    const s2 = document.getElementById('step-2');
+    const s3 = document.getElementById('step-3');
+    [s1, s2, s3].forEach(el => {
+        el.classList.remove('step-active');
+        el.classList.add('step-inactive');
+    });
+
+    if(stepNum === 1) { s1.classList.add('step-active'); s1.classList.remove('step-inactive'); }
+    if(stepNum === 2) { s2.classList.add('step-active'); s2.classList.remove('step-inactive'); }
+    if(stepNum === 3) { s3.classList.add('step-active'); s3.classList.remove('step-inactive'); }
+}
+
+function addPoints(pts) {
+    totalPoints += pts;
+    localStorage.setItem('kanjiDrillPointsV3', totalPoints);
+    updatePetUI();
+}
+
+function updatePetUI() {
+    const level = Math.floor(totalPoints / 100);
+    const currentProgress = totalPoints % 100;
+    
+    const currentPet = petStages[Math.min(level, petStages.length - 1)];
+    let nextPet = petStages[Math.min(level + 1, petStages.length - 1)];
+    
+    document.getElementById('pet-current').textContent = currentPet;
+    document.getElementById('total-coins-display').textContent = totalPoints;
+
+    if (level >= petStages.length - 1) {
+        document.getElementById('pet-next').textContent = '👑';
+        document.getElementById('pet-progress-text').textContent = 'MAX';
+        document.getElementById('pet-progress-bar').style.width = '100%';
+    } else {
+        document.getElementById('pet-next').textContent = nextPet;
+        document.getElementById('pet-progress-text').textContent = `${currentProgress}/100`;
+        document.getElementById('pet-progress-bar').style.width = `${currentProgress}%`;
+    }
+}
+
+function triggerCoinAnimation() {
+    const btn = document.getElementById('mark-correct-btn');
+    const rect = btn.getBoundingClientRect();
+    
+    const anim = document.createElement('div');
+    anim.textContent = "+20 🪙";
+    anim.className = 'coin-anim';
+    anim.style.left = `${rect.width / 2 - 30}px`; 
+    anim.style.top = `-20px`;
+    
+    btn.appendChild(anim);
+    setTimeout(() => { if(anim.parentNode) anim.parentNode.removeChild(anim); }, 1200);
+}
+
+function updateStreakDisplay() {
+    const streakEl = document.getElementById('streak-display');
+    if (currentStreak >= 2) {
+        document.getElementById('streak-count').textContent = currentStreak;
+        streakEl.classList.remove('hidden');
+    } else {
+        streakEl.classList.add('hidden');
+    }
+}
+
+document.querySelectorAll('.grade-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    if(e.currentTarget.dataset.grade) {
+        currentGrade = e.currentTarget.dataset.grade;
+        startGrade();
+    }
+  });
+});
+
+document.getElementById('back-to-grade-btn').addEventListener('click', () => {
+  appState = 'gradeSelect';
+  updateUI();
+});
+
+document.getElementById('mode-kaki-btn').addEventListener('click', () => setMode('kaki'));
+document.getElementById('mode-yomi-btn').addEventListener('click', () => setMode('yomi'));
+
+function setMode(mode) {
+  studyMode = mode;
+  const kakiBtn = document.getElementById('mode-kaki-btn');
+  const yomiBtn = document.getElementById('mode-yomi-btn');
+  if (mode === 'kaki') {
+    kakiBtn.className = "mode-btn bg-white text-orange-600 font-bold px-6 py-2 rounded-full shadow-sm transition-all text-sm";
+    yomiBtn.className = "mode-btn text-orange-600/70 hover:bg-orange-50 font-bold px-6 py-2 rounded-full transition-all text-sm";
+  } else {
+    yomiBtn.className = "mode-btn bg-white text-orange-600 font-bold px-6 py-2 rounded-full shadow-sm transition-all text-sm";
+    kakiBtn.className = "mode-btn text-orange-600/70 hover:bg-orange-50 font-bold px-6 py-2 rounded-full transition-all text-sm";
+  }
+  currentQuestionIndex = 0;
+  clearCanvas();
+  renderQuestion();
+}
+
+function startGrade() {
+  document.getElementById('app-title').textContent = gradeTitles[currentGrade];
+  gradeQuestions = questionsData.filter(q => q.grade === currentGrade);
+  
+  const units = [...new Set(gradeQuestions.map(q => q.unit))];
+  unitSelect.innerHTML = '<option value="all">すべての単元</option>';
+  units.forEach(unit => { unitSelect.innerHTML += `<option value="${unit}">${unit}</option>`; });
+  
+  currentUnit = 'all'; unitSelect.value = 'all';
+  filteredQuestions = [...gradeQuestions];
+  currentQuestionIndex = 0;
+  currentStreak = 0;
+  
+  appState = 'writing';
+  clearCanvas();
+  renderQuestion();
+  updateUI();
+  updatePetUI();
+}
+
+unitSelect.addEventListener('change', (e) => {
+  currentUnit = e.target.value;
+  filteredQuestions = currentUnit === 'all' ? [...gradeQuestions] : gradeQuestions.filter(q => q.unit === currentUnit);
+  currentQuestionIndex = 0;
+  clearCanvas();
+  renderQuestion();
+});
+
+function saveProgress() {
+  localStorage.setItem('kanjiDrillProgressV3', JSON.stringify(progressData));
+  updateProgressUI();
+}
+
+function updateProgressUI() {
+  if (appState === 'gradeSelect') return;
+  const q = filteredQuestions[currentQuestionIndex];
+  const solvedList = progressData[studyMode];
+  
+  let unitTotal = filteredQuestions.length;
+  let unitSolved = filteredQuestions.filter(question => solvedList.includes(question.id)).length;
+  const unitPercent = unitTotal === 0 ? 0 : Math.round((unitSolved / unitTotal) * 100);
+  document.getElementById('unit-progress-bar').style.width = `${unitPercent}%`;
+  document.getElementById('unit-progress-text').textContent = `${unitSolved}/${unitTotal}`;
+
+  const totalQuestions = gradeQuestions.length;
+  const totalSolved = gradeQuestions.filter(question => solvedList.includes(question.id)).length;
+  const totalPercent = totalQuestions === 0 ? 0 : Math.round((totalSolved / totalQuestions) * 100);
+  document.getElementById('total-progress-bar').style.width = `${totalPercent}%`;
+  document.getElementById('total-progress-text').textContent = `${totalSolved}/${totalQuestions}`;
+
+  if (q && solvedList.includes(q.id)) document.getElementById('cleared-badge').classList.remove('hidden');
+  else document.getElementById('cleared-badge').classList.add('hidden');
+}
+
+document.getElementById('reset-progress-btn').addEventListener('click', () => {
+  if(confirm(`ほんとうに今まで覚えたきろくやポイントを全部リセットしますか？`)) {
+    progressData = { kaki: [], yomi: [] };
+    totalPoints = 0;
+    currentStreak = 0;
+    saveProgress();
+    addPoints(0); 
+    updateStreakDisplay();
+  }
+});
+
+function renderQuestion() {
+  const q = filteredQuestions[currentQuestionIndex];
+  if (!q) return;
+  
+  setMotivationStep(1); 
+
+  document.getElementById('question-counter').textContent = `${currentQuestionIndex + 1} / ${filteredQuestions.length}`;
+  document.getElementById('unit-badge').textContent = `単元：${q.unit}`;
+  document.getElementById('pre-text').textContent = q.pre;
+  document.getElementById('post-text').textContent = q.post;
+  document.getElementById('meaning-text').textContent = q.meaning;
+
+  const targetPlaceholderEl = document.getElementById('target-placeholder');
+  const yomiTextEl = document.getElementById('yomi-text');
+  const instructionEl = document.getElementById('instruction-text');
+  
+  let canvasCharLength = 1;
+
+  if (studyMode === 'kaki') {
+    instructionEl.textContent = "つぎの「〇」に入る漢字を書いてね";
+    yomiTextEl.textContent = q.yomi;
+    targetPlaceholderEl.textContent = "〇".repeat(q.target.length);
+    targetPlaceholderEl.className = "mx-2 px-1 border-b-[6px] border-orange-400 text-orange-500";
+    canvasCharLength = q.target.length;
+  } else {
+    instructionEl.innerHTML = "赤色の漢字の<span class='text-orange-500 font-bold'>「よみかた」</span>をひらがなで書いてね";
+    yomiTextEl.textContent = "";
+    targetPlaceholderEl.textContent = q.target;
+    targetPlaceholderEl.className = "mx-2 px-1 text-red-500";
+    canvasCharLength = q.yomi.length;
+  }
+
+  const maxWidthStr = `${canvasCharLength * 150}px`;
+  canvasWrapper.style.maxWidth = maxWidthStr;
+  canvasWrapper.style.aspectRatio = `${canvasCharLength} / 1`;
+  clearBtnContainer.style.maxWidth = maxWidthStr;
+
+  const guidesContainer = document.getElementById('canvas-guides');
+  guidesContainer.innerHTML = '';
+  for (let i = 0; i < canvasCharLength; i++) {
+    const isLast = i === canvasCharLength - 1;
+    const rightBorder = isLast ? '' : 'border-r-2 border-dashed';
+    guidesContainer.innerHTML += `
+      <div class="flex-1 border-gray-200 ${rightBorder} flex items-center justify-center relative">
+        <div class="absolute w-full h-[2px] border-t-2 border-gray-100 border-dashed top-1/2"></div>
+        <div class="absolute h-full w-[2px] border-l-2 border-gray-100 border-dashed left-1/2"></div>
+      </div>
+    `;
+  }
+
+  resizeCanvas();
+  updateProgressUI();
+  updateUI();
+}
+
+function resizeCanvas() {
+  const rect = canvasWrapper.getBoundingClientRect();
+  if (rect.width === 0) return;
+  canvas.width = rect.width * 2; canvas.height = rect.height * 2;
+  ctx.scale(2, 2); ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.lineWidth = 6; ctx.strokeStyle = "#1f2937";
+  ctx.clearRect(0, 0, rect.width, rect.height);
+}
+window.addEventListener('resize', resizeCanvas);
+
+function clearCanvas() {
+  const rect = canvasWrapper.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  if (appState !== 'gradeSelect') {
+    appState = 'writing';
+    evaluationResult = 'none';
+    setMotivationStep(1);
+    updateUI();
+  }
+}
+
+function updateUI() {
+  const gradeSelectSection = document.getElementById('grade-select-section');
+  const mainAppSection = document.getElementById('main-app-section');
+  const evalSection = document.getElementById('evaluate-section');
+  const gradingSection = document.getElementById('grading-section');
+  const resultArea = document.getElementById('result-area');
+  const clearBtn = document.getElementById('clear-btn');
+  const q = filteredQuestions[currentQuestionIndex];
+
+  if (appState === 'gradeSelect') {
+    document.getElementById('app-title').textContent = "漢字のぼうけん";
+    gradeSelectSection.classList.remove('hidden');
+    mainAppSection.classList.add('hidden');
+    mainAppSection.classList.remove('flex');
+    setMotivationStep(0); 
+    return;
+  } else {
+    gradeSelectSection.classList.add('hidden');
+    mainAppSection.classList.remove('hidden');
+    mainAppSection.classList.add('flex');
+  }
+
+  evalSection.classList.add('hidden');
+  gradingSection.classList.add('hidden');
+  resultArea.classList.add('hidden');
+  clearBtn.disabled = false; unitSelect.disabled = false;
+  canvas.style.pointerEvents = 'auto';
+
+  if (appState === 'writing') {
+    evalSection.classList.remove('hidden');
+  } else if (appState === 'grading') {
+    gradingSection.classList.remove('hidden');
+    const gradingLabel = document.getElementById('grading-label');
+    const gradingCorrectKanji = document.getElementById('grading-correct-kanji');
+    gradingLabel.textContent = studyMode === 'kaki' ? "正解の漢字" : "正解のよみかた";
+    gradingCorrectKanji.textContent = q ? (studyMode === 'kaki' ? q.target : q.yomi) : "";
+    canvas.style.pointerEvents = 'none';
+    clearBtn.disabled = true; unitSelect.disabled = true;
+  } else if (appState === 'result') {
+    resultArea.classList.remove('hidden');
+    unitSelect.disabled = false; canvas.style.pointerEvents = 'none';
+    
+    resultArea.className = `mt-6 p-6 md:p-8 rounded-2xl text-center border-4 w-full ${
+      evaluationResult === 'correct' ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'
+    }`;
+    
+    if (evaluationResult === 'correct') {
+      document.getElementById('correct-result').classList.remove('hidden');
+      document.getElementById('incorrect-result').classList.add('hidden');
+    } else {
+      document.getElementById('correct-result').classList.add('hidden');
+      document.getElementById('incorrect-result').classList.remove('hidden');
+      document.getElementById('result-correct-label').textContent = studyMode === 'kaki' ? "正解の漢字" : "正解のよみかた";
+      document.getElementById('correct-kanji').textContent = studyMode === 'kaki' ? q.target : q.yomi;
+    }
+    document.getElementById('next-btn-text').textContent = currentQuestionIndex < filteredQuestions.length - 1 ? "次の問題へ" : "さいしょから";
+  }
+}
+
+function getCoordinates(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: clientX - rect.left, y: clientY - rect.top };
+}
+function startDrawing(e) {
+  if (appState !== 'writing') return;
+  if (e.cancelable) e.preventDefault();
+  const { x, y } = getCoordinates(e);
+  ctx.beginPath(); ctx.moveTo(x, y); isDrawing = true;
+}
+function draw(e) {
+  if (!isDrawing) return;
+  if (e.cancelable) e.preventDefault();
+  const { x, y } = getCoordinates(e);
+  ctx.lineTo(x, y); ctx.stroke();
+}
+function stopDrawing() {
+  if (!isDrawing) return;
+  isDrawing = false; ctx.closePath();
+}
+canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing); canvas.addEventListener('mouseleave', stopDrawing);
+canvas.addEventListener('touchstart', startDrawing, { passive: false });
+canvas.addEventListener('touchmove', draw, { passive: false });
+canvas.addEventListener('touchend', stopDrawing);
+
+document.getElementById('clear-btn').addEventListener('click', clearCanvas);
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  if (currentQuestionIndex < filteredQuestions.length - 1) currentQuestionIndex++;
+  else currentQuestionIndex = 0;
+  clearCanvas(); renderQuestion();
+});
+
+document.getElementById('finish-writing-btn').addEventListener('click', () => {
+  appState = 'grading';
+  setMotivationStep(2); 
+  updateUI();
+});
+
+document.getElementById('mark-correct-btn').addEventListener('click', () => {
+  evaluationResult = 'correct';
+  appState = 'result';
+  setMotivationStep(3); 
+  
+  currentStreak++;
+  addPoints(20); 
+  triggerCoinAnimation();
+  updateStreakDisplay();
+
+  const q = filteredQuestions[currentQuestionIndex];
+  if (!progressData[studyMode].includes(q.id)) {
+    progressData[studyMode].push(q.id);
+    saveProgress();
+  }
+  updateUI();
+});
+
+document.getElementById('mark-incorrect-btn').addEventListener('click', () => {
+  evaluationResult = 'incorrect';
+  appState = 'result';
+  
+  currentStreak = 0;
+  updateStreakDisplay();
+  
+  updateUI();
+});
+
+updatePetUI();
+updateUI();
+setTimeout(resizeCanvas, 100);
+
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>

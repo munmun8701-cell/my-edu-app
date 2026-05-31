@@ -1,0 +1,214 @@
+:root {
+  --primary: #00796b;
+  --secondary: #f57c00;
+  --bg-color: #f0f4c3;
+  --bar-color: #ef5350;
+  --grid-line: #b0bec5;
+  --grid-major: #546e7a;
+}
+
+body {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  background-color: var(--bg-color);
+  color: #333;
+  margin: 0;
+  padding: 20px;
+}
+
+.app-container {
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+header h1 {
+  text-align: center;
+  color: var(--primary);
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.step-card {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: opacity 0.5s;
+}
+
+.hidden { display: none !important; }
+
+.step-header {
+  background: #e0f2f1;
+  padding: 15px 20px;
+  border-bottom: 3px solid #b2dfdb;
+}
+
+.step-header h2 { margin: 0; font-size: 1.4rem; color: #004d40; }
+
+.step-content { padding: 25px 20px; }
+
+/* 表のスタイル */
+.table-container { display: flex; justify-content: center; margin-bottom: 20px; }
+.tally-table {
+  border-collapse: collapse;
+  font-size: 1.2rem;
+  width: 90%;
+}
+.tally-table th, .tally-table td {
+  border: 2px solid #cfd8dc;
+  padding: 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+.tally-table th { background: #fff8e1; color: #f57f17; }
+.tally-area { display: flex; justify-content: center; align-items: center; gap: 5px; }
+.num-input {
+  width: 70px;
+  font-size: 1.3rem;
+  padding: 5px;
+  text-align: center;
+  border: 2px solid #90a4ae;
+  border-radius: 6px;
+}
+.total-row { background: #fafafa; font-weight: bold; }
+
+/* グラフモジュール全体（ズレ防止の徹底） */
+.graph-module {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 10px;
+}
+
+/* グラフの描画エリア */
+.graph-visual-area {
+  display: flex;
+  height: 300px; /* 15マス × 20pxの想定 */
+}
+
+/* Y軸（縦の数字） */
+.y-axis {
+  position: relative;
+  width: 40px;
+  margin-right: 10px;
+}
+.y-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%); /* 線と文字の中心を完璧に合わせる */
+  font-weight: bold;
+  color: #455a64;
+  line-height: 1;
+}
+
+/* グラフのマス目と棒の親要素 */
+.graph-grid {
+  position: relative;
+  flex-grow: 1;
+  border-left: 2px solid var(--grid-major);
+  border-bottom: 2px solid var(--grid-major);
+}
+
+/* 背景のマス目 */
+.grid-background {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  /* 15マスを正確に描画 */
+  background-image: 
+    repeating-linear-gradient(to top, transparent, transparent calc(100% / 15 - 1px), var(--grid-line) calc(100% / 15 - 1px), var(--grid-line) calc(100% / 15));
+}
+/* 5マスごとの太線 */
+.grid-background::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    repeating-linear-gradient(to top, transparent, transparent calc(100% / 3 - 2px), var(--grid-major) calc(100% / 3 - 2px), var(--grid-major) calc(100% / 3));
+  pointer-events: none;
+}
+
+/* 棒の配置レイヤー */
+.bars-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+}
+.bar-slot {
+  flex: 1; /* 4等分 */
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.bar {
+  position: absolute;
+  bottom: 0; /* ベースラインに完全固定 */
+  width: 36px;
+  background-color: var(--bar-color);
+  border: 2px solid #c62828;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  height: 0%; /* 初期値 */
+  transition: height 0.3s ease-out;
+  z-index: 10;
+}
+
+/* X軸のラベル（棒の真下に配置） */
+.x-axis-labels {
+  display: flex;
+  margin-left: 50px; /* Y軸の幅+余白分ズラす */
+  margin-top: 5px;
+}
+.label-slot {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+/* 操作ボタン（グラフ領域から完全分離） */
+.graph-controls {
+  display: flex;
+  margin-left: 50px;
+  margin-top: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px 0;
+}
+.control-slot {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.control-slot button {
+  width: 36px; height: 36px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 6px;
+  background: #e0e0e0;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #9e9e9e;
+}
+.control-slot button:active { transform: translateY(2px); box-shadow: none; }
+
+/* 共通パーツ */
+.instruction { text-align: center; font-weight: bold; font-size: 1.1rem; color: #555; }
+.action-area { text-align: center; margin-top: 25px; }
+.primary-btn {
+  background: var(--secondary); color: white;
+  border: none; padding: 12px 30px; font-size: 1.3rem; font-weight: bold;
+  border-radius: 30px; cursor: pointer; box-shadow: 0 4px 0 #e65100;
+}
+.primary-btn:active { transform: translateY(4px); box-shadow: none; }
+.feedback { font-weight: bold; font-size: 1.2rem; min-height: 24px; margin-top: 10px; }
+.correct-txt { color: #2e7d32; }
+.error-txt { color: #c62828; }
+
+/* 問題エリア */
+.q-box { background: #f9fbe7; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #afb42b; }
+.q-text { font-weight: bold; font-size: 1.2rem; margin-top: 0; }
+.hint-btn { background: #81c784; color: white; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+.hint-text { margin-top: 10px; background: white; padding: 10px; border-radius: 5px; font-size: 1.1rem; border: 1px dashed #81c784; }

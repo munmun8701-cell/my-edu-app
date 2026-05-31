@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>むんむんタイピングアプリ　</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピング練習道場 - アルティメット・フィーバー版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-hira: #FF6B6B; 
+            --c-eng: #4A90E2;  
+            --c-kanji: #2ECC71; 
+            --c-math: #F39C12;  
+            --bg-color: #F4F7F9;
+            --text-main: #333;
+            --score-color: #FF5A5F;
+            --fever-color: #F1C40F;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* --- ヘッダー（プレイヤー情報） --- */
+        .app-header {
+            background: #fff;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title { font-size: 1.5rem; font-weight: bold; color: var(--text-main); }
+        .header-title span { color: var(--c-hira); }
+
+        .player-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .level-badge {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(253, 160, 133, 0.4);
+        }
+        .exp-container {
+            width: 200px;
+            background: #eee;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .exp-bar {
+            height: 100%;
+            background: var(--c-kanji);
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .player-title {
+            font-weight: bold;
+            color: #555;
+            min-width: 120px;
+        }
+
+        /* --- カテゴリメニュー --- */
+        .category-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .cat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-left: 8px solid #ccc;
+        }
+        .cat-card.hira { border-left-color: var(--c-hira); }
+        .cat-card.eng { border-left-color: var(--c-eng); }
+        .cat-card.kanji { border-left-color: var(--c-kanji); }
+        .cat-card.math { border-left-color: var(--c-math); }
+
+        .cat-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .cat-card.hira h3 { color: var(--c-hira); border-bottom-color: #ffe0e0; }
+        .cat-card.eng h3 { color: var(--c-eng); border-bottom-color: #e0eeff; }
+        .cat-card.kanji h3 { color: var(--c-kanji); border-bottom-color: #e0ffe8; }
+        .cat-card.math h3 { color: var(--c-math); border-bottom-color: #ffeed0; }
+
+        .cat-list { list-style: none; padding: 0; margin: 0; font-size: 0.95rem; color: #555; }
+        .cat-list li { 
+            margin-bottom: 8px; 
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .cat-list li::before { content: "▶ "; color: #ccc; font-size: 0.8em; margin-right: 8px; transition: color 0.2s; }
+        
+        .cat-list li:hover { background: #f0f4f8; transform: translateX(5px); color: #000; font-weight: bold; }
+        .cat-list li:hover::before { color: #FACA15; }
+        .cat-list li.active { background: #eef5ff; color: var(--c-eng); font-weight: bold; border-left: 4px solid var(--c-eng); }
+
+        /* --- メインコンテンツ配置 --- */
+        .main-layout {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        /* --- ゲームエリア --- */
+        .game-area {
+            flex: 1;
+            background: #fff;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* フィーバーモード＆ミスエフェクト */
+        @keyframes flashShake {
+            0% { background-color: #ffcccc; transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { background-color: #fff; transform: translateX(0); }
+        }
+        .error-flash { animation: flashShake 0.3s; }
+
+        @keyframes feverGlow {
+            0% { box-shadow: inset 0 0 20px rgba(241, 196, 15, 0.2); background-color: #fff; border: 2px solid transparent;}
+            50% { box-shadow: inset 0 0 60px rgba(241, 196, 15, 0.6); background-color: #fffdeb; border: 2px solid var(--fever-color);}
+            100% { box-shadow: inset 0 0 20px rgba(241, 196, 15, 0.2); background-color: #fff; border: 2px solid transparent;}
+        }
+        .fever-active {
+            animation: feverGlow 1s infinite alternate !important;
+        }
+
+        .combo-text {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 2rem;
+            font-family: 'Fredoka One', cursive;
+            color: #bbb;
+            transition: all 0.2s;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        .combo-active { opacity: 1; transform: scale(1); color: var(--c-eng); }
+        .combo-fever { opacity: 1; transform: scale(1.2) rotate(-5deg); color: var(--fever-color); text-shadow: 2px 2px 0px #e67e22; }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-val { font-size: 1.5rem; color: var(--c-eng); font-family: 'Fredoka One', cursive; transition: color 0.3s;}
+
+        .target-text { font-size: 48px; font-weight: bold; margin-bottom: 10px; color: #222; position: relative; z-index: 2;}
+        .target-romaji { font-size: 28px; color: #888; letter-spacing: 2px; position: relative; z-index: 2;}
+        .typed { color: var(--c-hira); }
+
+        .start-btn {
+            background: var(--c-hira);
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            margin-top: 20px;
+            transition: transform 0.1s;
+            position: relative;
+            z-index: 2;
+        }
+        .start-btn:active { transform: scale(0.95); }
+
+        /* リザルト画面 */
+        #result-screen { display: none; position: relative; z-index: 2; }
+        .rank-badge {
+            font-size: 6rem;
+            font-family: 'Fredoka One', cursive;
+            margin: 0;
+            text-shadow: 3px 3px 0 #ccc;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { 0% {transform: scale(0);} 100% {transform: scale(1);} }
+        .rank-S { color: #F1C40F; text-shadow: 4px 4px 0 #e67e22; }
+        .rank-A { color: #E74C3C; }
+        .rank-B { color: #3498DB; }
+        .rank-C { color: #2ECC71; }
+        .exp-gain-text { font-size: 1.2rem; color: #f39c12; font-weight: bold; margin-top: 10px; animation: slideUpFade 1s forwards; }
+
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 紙吹雪エフェクト */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            top: -10px;
+            z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        /* --- ランキングエリア --- */
+        .ranking-wrapper {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .best-score-display {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .best-score-display .score-val { color: var(--score-color); font-size: 1.5rem; }
+
+        .ranking-panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            flex: 1;
+        }
+
+        .ranking-panel h3 { margin: 0; color: #333; text-align: center; font-size: 1.2rem; }
+        .ranking-subtitle { text-align: center; font-size: 0.9rem; color: var(--c-eng); font-weight: bold; margin-bottom: 15px; border-bottom: 2px dashed #eee; padding-bottom: 10px; margin-top: 5px;}
+
+        .rank-list { list-style: none; padding: 0; margin: 0; }
+        .rank-item {
+            display: flex; align-items: center; padding: 12px 5px;
+            border-bottom: 1px dashed #eee; font-size: 1rem;
+        }
+        .rank-item:last-child { border-bottom: none; }
+
+        .rank-num { font-weight: bold; width: 35px; text-align: center; color: #888; }
+        .rank-item:nth-child(1) .rank-num { color: #F1C40F; font-size: 1.3rem; }
+        .rank-item:nth-child(2) .rank-num { color: #BDC3C7; font-size: 1.2rem; }
+        .rank-item:nth-child(3) .rank-num { color: #D35400; font-size: 1.2rem; }
+
+        .rank-details { flex: 1; display: flex; flex-direction: column; margin-left: 10px; }
+        .rank-date { font-size: 0.9rem; color: #888; }
+        .rank-score { font-weight: bold; color: var(--score-color); font-size: 1.2rem; }
+        
+        .no-record { text-align: center; color: #999; padding: 20px 0; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="app-header">
+            <div class="header-title">⌨️ タイピング<span>道場</span></div>
+            <div class="player-profile">
+                <div class="player-title" id="player-title">ひよこタイパー</div>
+                <div class="exp-container" title="経験値バー">
+                    <div class="exp-bar" id="exp-bar"></div>
+                </div>
+                <div class="level-badge">Lv.<span id="player-lvl">1</span></div>
+            </div>
+        </header>
+
+        <div class="category-nav">
+            <div class="cat-card hira">
+                <h3>ひらがな・カタカナ</h3>
+                <ul class="cat-list">
+                    <li onclick="setMode('hira_1', 'ひらがな初級 (2〜3文字)', this)" class="active">ひらがな初級 (2〜3文字)</li>
+                    <li onclick="setMode('hira_2', 'ひらがな中級 (4〜6文字)', this)">ひらがな中級 (4〜6文字)</li>
+                    <li onclick="setMode('hira_3', 'ひらがな上級 (濁音・促音)', this)">ひらがな上級 (濁音・促音)</li>
+                    <li onclick="setMode('kata_1', 'カタカナ初級 (身の回り)', this)">カタカナ初級 (身の回り)</li>
+                    <li onclick="setMode('kata_2', 'カタカナ上級 (外来語長文)', this)">カタカナ上級 (外来語長文)</li>
+                </ul>
+            </div>
+            <div class="cat-card eng">
+                <h3>英単語・文章</h3>
+                <ul class="cat-list">
+                    <li onclick="setMode('eng_5', '英検5級レベル (中学1年)', this)">英検5級レベル (中学1年)</li>
+                    <li onclick="setMode('eng_4', '英検4級レベル (中学2年)', this)">英検4級レベル (中学2年)</li>
+                    <li onclick="setMode('eng_3', '英検3級レベル (中学卒業)', this)">英検3級レベル (中学卒業)</li>
+                    <li onclick="setMode('eng_phrase', '日常英会話フレーズ', this)">日常英会話フレーズ</li>
+                </ul>
+            </div>
+            <div class="cat-card kanji">
+                <h3>漢字・四字熟語</h3>
+                <ul class="cat-list">
+                    <li onclick="setMode('kanji_10', '漢検10級 (小学1年)', this)">漢検10級 (小学1年)</li>
+                    <li onclick="setMode('kanji_9', '漢検9級 (小学2年)', this)">漢検9級 (小学2年)</li>
+                    <li onclick="setMode('kanji_8', '漢検8級 (小学3年)', this)">漢検8級 (小学3年)</li>
+                    <li onclick="setMode('yoji_1', '四字熟語 (初級)', this)">四字熟語 (初級)</li>
+                    <li onclick="setMode('yoji_2', '四字熟語 (上級)', this)">四字熟語 (上級)</li>
+                </ul>
+            </div>
+            <div class="cat-card math">
+                <h3>計算タイピング</h3>
+                <ul class="cat-list">
+                    <li onclick="setMode('math_add1', '足し算 Lv.1 (1桁+1桁)', this)">足し算 Lv.1 (1桁+1桁)</li>
+                    <li onclick="setMode('math_add2', '足し算 Lv.2 (2桁+2桁)', this)">足し算 Lv.2 (2桁+2桁)</li>
+                    <li onclick="setMode('math_sub1', '引き算 Lv.1', this)">引き算 Lv.1</li>
+                    <li onclick="setMode('math_mul', '掛け算 (九九マスター)', this)">掛け算 (九九マスター)</li>
+                    <li onclick="setMode('math_div', '割り算 (あまりなし)', this)">割り算 (あまりなし)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="game-area" id="game-area">
+                
+                <div id="combo-display" class="combo-text">0 COMBO!</div>
+
+                <div id="start-screen">
+                    <h2 style="font-size: 2.2rem; margin-top:0; color: #333;" id="mode-title">ひらがな初級 (2〜3文字)</h2>
+                    <p style="color:#666; font-size:1.1rem; margin-bottom: 5px;">「si」でも「shi」でも打てる！柔軟なタイピングエンジン搭載</p>
+                    <p style="color:#f39c12; font-weight: bold; margin-bottom: 5px;">🔥 15コンボ達成でスコア2倍のフィーバーモード！ 🔥</p>
+                    <p style="color:#e74c3c; font-weight: bold;">制限時間：60秒</p>
+                    <button class="start-btn" onclick="startGame()">練習スタート</button>
+                    <p style="font-size: 0.9rem; color: #aaa; margin-top: 15px;">※Spaceキーを押しても開始できます</p>
+                </div>
+
+                <div id="play-screen" style="display: none;">
+                    <div class="game-info">
+                        <div class="stat-box">⏳ 残り時間 <span id="time-left" class="stat-val" style="color:#e74c3c;">60</span></div>
+                        <div class="stat-box">⭐ スコア <span id="current-score" class="stat-val">0</span></div>
+                        <div class="stat-box">🎯 正確率 <span id="current-acc" class="stat-val" style="color:#2ECC71;">100%</span></div>
+                        <div class="stat-box">⚡ スピード <span id="current-kpm" class="stat-val" style="color:#9B59B6;">0</span><span style="font-size:0.7rem;">KPM</span></div>
+                    </div>
+                    <div class="target-text" id="target-text">あいうえお</div>
+                    <div class="target-romaji" id="target-romaji">aiueo</div>
+                    <div style="margin-top:40px; font-size:1.4rem; color:#888; background: #f0f0f0; padding: 15px; border-radius: 10px; display: inline-block; min-width: 300px;">
+                        入力: <span id="typed-text" class="typed" style="font-weight:bold; font-size:2.2rem; letter-spacing: 2px;"></span>
+                    </div>
+                </div>
+
+                <div id="result-screen">
+                    <h2 style="font-size: 1.8rem; margin-top:0; color: #333;">結果発表</h2>
+                    <div id="res-rank" class="rank-badge rank-S">S</div>
+                    <div style="font-size: 1.2rem; margin-bottom: 10px;">
+                        <p>スコア: <strong id="res-score" style="color:var(--score-color); font-size:1.8rem;">0</strong> 点</p>
+                        <p>正確率: <strong id="res-acc" style="color:#2ECC71;">100</strong> %</p>
+                        <p>スピード: <strong id="res-kpm" style="color:#9B59B6;">0</strong> KPM</p>
+                    </div>
+                    <div id="exp-gain" class="exp-gain-text">+ 0 EXP 獲得！</div>
+                    <button class="start-btn" style="margin-top:20px;" onclick="returnToTitle()">タイトルに戻る</button>
+                </div>
+            </div>
+
+            <div class="ranking-wrapper">
+                <div class="best-score-display">
+                    <span>🏆 自己ベスト</span>
+                    <span class="score-val"><span id="my-best">0</span>点</span>
+                </div>
+                <div class="ranking-panel">
+                    <h3>🎖️ マイ・レコード</h3>
+                    <div id="ranking-subtitle" class="ranking-subtitle">ひらがな初級 (2〜3文字)</div>
+                    <ul class="rank-list" id="my-record-list">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 特大辞書データ (前回のものをそのまま利用) ---
+        const dictionary = {
+            hira_1: [ {k:"あお", r:"ao"}, {k:"いぬ", r:"inu"}, {k:"ねこ", r:"neko"}, {k:"はな", r:"hana"}, {k:"やま", r:"yama"}, {k:"かわ", r:"kawa"}, {k:"うみ", r:"umi"}, {k:"そら", r:"sora"}, {k:"あさ", r:"asa"}, {k:"よる", r:"yoru"}, {k:"いち", r:"ichi"}, {k:"はち", r:"hachi"}, {k:"くも", r:"kumo"}, {k:"ほし", r:"hoshi"}, {k:"ゆき", r:"yuki"}, {k:"あめ", r:"ame"}, {k:"いす", r:"isu"}, {k:"かさ", r:"kasa"}, {k:"くつ", r:"kutsu"}, {k:"ほん", r:"hon"}, {k:"もも", r:"momo"}, {k:"なし", r:"nashi"}, {k:"かき", r:"kaki"}, {k:"さる", r:"saru"}, {k:"しか", r:"shika"}, {k:"とり", r:"tori"}, {k:"むし", r:"mushi"}, {k:"ぼく", r:"boku"}, {k:"きみ", r:"kimi"}, {k:"ゆめ", r:"yume"}, {k:"むら", r:"mura"}, {k:"まち", r:"machi"}, {k:"くに", r:"kuni"}, {k:"かお", r:"kao"}, {k:"ゆび", r:"yubi"}, {k:"あし", r:"ashi"}, {k:"うで", r:"ude"}, {k:"かみ", r:"kami"}, {k:"みみ", r:"mimi"}, {k:"くち", r:"kuchi"} ],
+            hira_2: [ {k:"さくら", r:"sakura"}, {k:"くるま", r:"kuruma"}, {k:"かばん", r:"kaban"}, {k:"つくえ", r:"tsukue"}, {k:"めがね", r:"megane"}, {k:"とけい", r:"tokei"}, {k:"おにぎり", r:"onigiri"}, {k:"あさがお", r:"asagao"}, {k:"ひまわり", r:"himawari"}, {k:"らいおん", r:"raion"}, {k:"えんぴつ", r:"enpitsu"}, {k:"けしごむ", r:"keshigomu"}, {k:"じてんしゃ", r:"jitensha"}, {k:"ひこうき", r:"hikouki"}, {k:"せんせい", r:"sensei"}, {k:"こくばん", r:"kokuban"}, {k:"ともだち", r:"tomodachi"}, {k:"ゆうえんち", r:"yuuenchi"}, {k:"かくれんぼ", r:"kakurenbo"}, {k:"おつかい", r:"otsukai"}, {k:"だいこん", r:"daikon"}, {k:"にんじん", r:"ninjin"}, {k:"たまねぎ", r:"tamanegi"}, {k:"かぼちゃ", r:"kabocha"}, {k:"ふでばこ", r:"fudebako"}, {k:"しんかんせん", r:"shinkansen"}, {k:"かみなり", r:"kaminari"}, {k:"たいふう", r:"taifuu"} ],
+            hira_3: [ {k:"がっこう", r:"gakkou"}, {k:"ぎゅうにゅう", r:"gyuunyuu"}, {k:"ざっし", r:"zasshi"}, {k:"きっぷ", r:"kippu"}, {k:"ろけっと", r:"roketto"}, {k:"びょういん", r:"byouin"}, {k:"きょうりゅう", r:"kyouryuu"}, {k:"じどうしゃ", r:"jidousha"}, {k:"しょうぼうしゃ", r:"shoubousha"}, {k:"きゅうきゅうしゃ", r:"kyuukyuusha"}, {k:"はっぴょうかい", r:"happyoukai"}, {k:"うんどうかい", r:"undoukai"}, {k:"しゅくだい", r:"shukudai"}, {k:"げんかん", r:"genkan"}, {k:"せんたくき", r:"sentakuki"}, {k:"れいぞうこ", r:"reizouko"}, {k:"しゃしん", r:"shashin"}, {k:"じしょ", r:"jisho"}, {k:"しゅんかしゅうとう", r:"shunkashuutou"}, {k:"びっくり", r:"bikkuri"}, {k:"がっかり", r:"gakkari"}, {k:"きらきら", r:"kirakira"}, {k:"どきどき", r:"dokidoki"}, {k:"しゅっぱつ", r:"shuppatsu"}, {k:"とっきゅう", r:"tokkyuu"}, {k:"だいぼうけん", r:"daibouken"}, {k:"すいぞくかん", r:"suizokukan"} ],
+            kata_1: [ {k:"カメラ", r:"kamera"}, {k:"ピアノ", r:"piano"}, {k:"トマト", r:"tomato"}, {k:"バス", r:"basu"}, {k:"パン", r:"pan"}, {k:"スマホ", r:"sumaho"}, {k:"テレビ", r:"terebi"}, {k:"ドア", r:"doa"}, {k:"コップ", r:"koppu"}, {k:"ベッド", r:"beddo"}, {k:"ソファ", r:"sofa"}, {k:"メロン", r:"meron"}, {k:"バナナ", r:"banana"}, {k:"リンゴ", r:"ringo"}, {k:"ペン", r:"pen"}, {k:"ノート", r:"no-to"}, {k:"シャツ", r:"shatsu"}, {k:"ズボン", r:"zubon"}, {k:"マウス", r:"mausu"}, {k:"クラス", r:"kurasu"} ],
+            kata_2: [ {k:"コンピューター", r:"konpyu-ta-"}, {k:"インターネット", r:"inta-netto"}, {k:"スマートフォン", r:"suma-tofon"}, {k:"アイスクリーム", r:"aisukuri-mu"}, {k:"ハンバーグ", r:"hanba-gu"}, {k:"スパゲッティ", r:"supagetti"}, {k:"オムライス", r:"omuraisu"}, {k:"チョコレート", r:"chokore-to"}, {k:"ケーキ", r:"ke-ki"}, {k:"プレゼント", r:"purezento"}, {k:"クリスマス", r:"kurisumasu"}, {k:"プログラミング", r:"puroguramingu"}, {k:"アプリケーション", r:"apurike-shon"}, {k:"コミュニケーション", r:"komyunike-shon"}, {k:"イルミネーション", r:"irumine-shon"} ],
+            eng_5:  [ {k:"apple", r:"apple"}, {k:"dog", r:"dog"}, {k:"cat", r:"cat"}, {k:"school", r:"school"}, {k:"friend", r:"friend"}, {k:"book", r:"book"}, {k:"desk", r:"desk"}, {k:"pen", r:"pen"}, {k:"chair", r:"chair"}, {k:"boy", r:"boy"}, {k:"girl", r:"girl"}, {k:"mother", r:"mother"}, {k:"father", r:"father"}, {k:"brother", r:"brother"}, {k:"sister", r:"sister"}, {k:"morning", r:"morning"}, {k:"night", r:"night"}, {k:"water", r:"water"}, {k:"fire", r:"fire"}, {k:"tree", r:"tree"} ],
+            eng_4:  [ {k:"beautiful", r:"beautiful"}, {k:"tomorrow", r:"tomorrow"}, {k:"important", r:"important"}, {k:"different", r:"different"}, {k:"yesterday", r:"yesterday"}, {k:"interesting", r:"interesting"}, {k:"difficult", r:"difficult"}, {k:"everyone", r:"everyone"}, {k:"together", r:"together"}, {k:"practice", r:"practice"}, {k:"question", r:"question"}, {k:"answer", r:"answer"}, {k:"picture", r:"picture"}, {k:"history", r:"history"}, {k:"science", r:"science"}, {k:"hospital", r:"hospital"} ],
+            eng_3:  [ {k:"experience", r:"experience"}, {k:"knowledge", r:"knowledge"}, {k:"language", r:"language"}, {k:"environment", r:"environment"}, {k:"communication", r:"communication"}, {k:"information", r:"information"}, {k:"technology", r:"technology"}, {k:"society", r:"society"}, {k:"education", r:"education"}, {k:"government", r:"government"}, {k:"culture", r:"culture"}, {k:"traditional", r:"traditional"}, {k:"international", r:"international"}, {k:"successful", r:"successful"}, {k:"comfortable", r:"comfortable"} ],
+            eng_phrase: [ {k:"Thank you.", r:"thank you."}, {k:"How are you?", r:"how are you?"}, {k:"Good morning.", r:"good morning."}, {k:"See you later.", r:"see you later."}, {k:"Nice to meet you.", r:"nice to meet you."}, {k:"Have a good day.", r:"have a good day."}, {k:"I am sorry.", r:"i am sorry."}, {k:"Excuse me.", r:"excuse me."}, {k:"You are welcome.", r:"you are welcome."}, {k:"What time is it?", r:"what time is it?"}, {k:"Let's go.", r:"let's go."}, {k:"Please wait.", r:"please wait."} ],
+            kanji_10: [ {k:"一月", r:"ichigatsu"}, {k:"右と左", r:"migitohidari"}, {k:"大きい", r:"ookii"}, {k:"学校", r:"gakkou"}, {k:"先生", r:"sensei"}, {k:"赤い花", r:"akaihana"}, {k:"青い空", r:"aoisora"}, {k:"白い雲", r:"shiroikumo"}, {k:"右手", r:"migite"}, {k:"左足", r:"hidariashi"}, {k:"山と川", r:"yamatokawa"}, {k:"雨の日", r:"amenohi"}, {k:"車に乗る", r:"kurumaninoru"}, {k:"本を読む", r:"honwoyomu"}, {k:"目と耳", r:"metomimi"}, {k:"早起き", r:"hayaoki"}, {k:"王様", r:"ousama"}, {k:"女の子", r:"onnanoko"}, {k:"男の子", r:"otokonoko"} ],
+            kanji_9:  [ {k:"新しい", r:"atarashii"}, {k:"明るい", r:"akarui"}, {k:"春休み", r:"haruyasumi"}, {k:"元気", r:"genki"}, {k:"夏祭り", r:"natsumatsuri"}, {k:"秋の風", r:"akinokaze"}, {k:"冬の雪", r:"fuyunoyuki"}, {k:"毎日", r:"mainichi"}, {k:"時計", r:"tokei"}, {k:"楽しい", r:"tanoshii"}, {k:"音楽", r:"ongaku"}, {k:"家族", r:"kazoku"}, {k:"兄弟", r:"kyoudai"}, {k:"図工", r:"zukou"}, {k:"算数", r:"sansuu"}, {k:"国語", r:"kokugo"}, {k:"朝ごはん", r:"asagohan"}, {k:"公園", r:"kouen"} ],
+            kanji_8:  [ {k:"準備", r:"junbi"}, {k:"世界", r:"sekai"}, {k:"旅行", r:"ryokou"}, {k:"動物園", r:"doubutsuen"}, {k:"植物", r:"shokubutsu"}, {k:"太陽", r:"taiyou"}, {k:"地球", r:"chikyuu"}, {k:"宇宙", r:"uchuu"}, {k:"勉強", r:"benkyou"}, {k:"宿題", r:"shukudai"}, {k:"教室", r:"kyoushitsu"}, {k:"階段", r:"kaidan"}, {k:"登る", r:"noboru"}, {k:"泳ぐ", r:"oyogu"}, {k:"科学", r:"kagaku"}, {k:"発明", r:"hatsumei"}, {k:"助ける", r:"tasukeru"}, {k:"命", r:"inochi"}, {k:"守る", r:"mamoru"} ],
+            yoji_1:   [ {k:"一期一会", r:"ichigoichie"}, {k:"十人十色", r:"juunintoiro"}, {k:"以心伝心", r:"ishindenshin"}, {k:"一石二鳥", r:"issekinichou"}, {k:"悪戦苦闘", r:"akusenkutou"}, {k:"意気投合", r:"ikitougou"}, {k:"異口同音", r:"ikudouon"}, {k:"一刀両断", r:"ittouryoudan"}, {k:"温故知新", r:"onkochishin"}, {k:"花鳥風月", r:"kachoufuugetsu"}, {k:"喜怒哀楽", r:"kidoairaku"}, {k:"大器晩成", r:"taikibansei"}, {k:"電光石火", r:"denkousekka"}, {k:"有言実行", r:"yuugenjikkou"} ],
+            yoji_2:   [ {k:"質実剛健", r:"shitsujitsugouken"}, {k:"臥薪嘗胆", r:"gashinshoutan"}, {k:"荒唐無稽", r:"koutoumukei"}, {k:"呉越同舟", r:"goetsudoushuu"}, {k:"孤軍奮闘", r:"kogunfuntou"}, {k:"切磋琢磨", r:"sessatakuma"}, {k:"絶体絶命", r:"zettaizetsumei"}, {k:"泰然自若", r:"taizenjijaku"}, {k:"日進月歩", r:"nisshingeppo"}, {k:"粉骨砕身", r:"funkotsusaishin"}, {k:"明鏡止水", r:"meikyoushisui"} ]
+        };
+
+        // --- 変数 ---
+        let currentModeId = 'hira_1';
+        let currentModeName = 'ひらがな初級 (2〜3文字)';
+        let isPlaying = false;
+        
+        let score = 0;
+        let timeLeft = 60;
+        let totalKeystrokes = 0;
+        let missKeystrokes = 0;
+        let timer;
+        
+        // 新機能用変数
+        let currentCombo = 0;
+        let isFever = false;
+        const FEVER_THRESHOLD = 15;
+        let playerExp = parseInt(localStorage.getItem('typing_dojo_exp')) || 0;
+        
+        let currentWord = {};
+        let typedRomaji = "";
+        let validPaths = []; 
+
+        // 初期化処理
+        window.onload = () => {
+            updateRankingUI();
+            updatePlayerProfile();
+        };
+
+        // --- プレイヤー成長システム ---
+        const TITLES = [
+            { minLvl: 1, name: "ひよこタイパー" },
+            { minLvl: 5, name: "見習いタイパー" },
+            { minLvl: 10, name: "一人前の指使い" },
+            { minLvl: 20, name: "キーボードの達人" },
+            { minLvl: 30, name: "音速のタイパー" },
+            { minLvl: 50, name: "タイピング神" }
+        ];
+
+        function updatePlayerProfile() {
+            // レベル計算 (簡易的な平方根ベースの必要EXP)
+            let currentLevel = Math.floor(Math.sqrt(playerExp / 50)) + 1;
+            let currentLevelExp = 50 * Math.pow(currentLevel - 1, 2);
+            let nextLevelExp = 50 * Math.pow(currentLevel, 2);
+            let expProgress = ((playerExp - currentLevelExp) / (nextLevelExp - currentLevelExp)) * 100;
+
+            document.getElementById('player-lvl').innerText = currentLevel;
+            document.getElementById('exp-bar').style.width = expProgress + '%';
+
+            let title = TITLES[0].name;
+            for(let i=TITLES.length-1; i>=0; i--){
+                if(currentLevel >= TITLES[i].minLvl) {
+                    title = TITLES[i].name;
+                    break;
+                }
+            }
+            document.getElementById('player-title').innerText = title;
+        }
+
+        // メニュー選択
+        function setMode(modeId, modeName, element) {
+            if(isPlaying) return;
+            currentModeId = modeId;
+            currentModeName = modeName;
+            document.getElementById('mode-title').innerText = modeName;
+            
+            document.querySelectorAll('.cat-list li').forEach(li => li.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            updateRankingUI();
+        }
+
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        // ローマ字自動最適化エンジン
+        function generateValidPaths(baseRomaji) {
+            if (currentModeId.startsWith('math_') || currentModeId.startsWith('eng_')) return [baseRomaji];
+            let res = new Set([baseRomaji]);
+            const patterns = {
+                'shi': ['si'], 'chi': ['ti'], 'tsu': ['tu'], 'fu': ['hu'], 'ji': ['zi'],
+                'sha': ['sya'], 'shu': ['syu'], 'sho': ['syo'],
+                'cha': ['tya','cya'], 'chu': ['tyu','cyu'], 'cho': ['tyo','cyo'],
+                'ja': ['zya','jya'], 'ju': ['zyu','jyu'], 'jo': ['zyo','jyo'],
+                'ka': ['ca'], 'ku': ['cu'], 'ko': ['co']
+            };
+            let expandedN = Array.from(res);
+            for (let str of expandedN) {
+                let nnStr = str.replace(/n(?![aiueoyn])/g, "nn").replace(/n$/, "nn");
+                if (nnStr !== str) res.add(nnStr);
+            }
+            let changed = true;
+            while(changed) {
+                changed = false;
+                let current = Array.from(res);
+                for(let str of current) {
+                    for(let key in patterns) {
+                        let idx = 0;
+                        while((idx = str.indexOf(key, idx)) !== -1) {
+                            patterns[key].forEach(alt => {
+                                let newStr = str.substring(0, idx) + alt + str.substring(idx + key.length);
+                                if(!res.has(newStr)) { res.add(newStr); changed = true; }
+                            });
+                            idx += 1;
+                        }
+                    }
+                }
+            }
+            return Array.from(res);
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('play-screen').style.display = 'block';
+            
+            score = 0;
+            timeLeft = 60;
+            totalKeystrokes = 0;
+            missKeystrokes = 0;
+            currentCombo = 0;
+            isFever = false;
+            isPlaying = true;
+            
+            updateComboUI();
+            updateStatsUI();
+            nextWord();
+
+            timer = setInterval(() => {
+                timeLeft--;
+                updateStatsUI();
+                if(timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function nextWord() {
+            typedRomaji = "";
+            document.getElementById('typed-text').innerText = "";
+            document.getElementById('game-area').classList.remove('error-flash');
+
+            if(currentModeId.startsWith('math_')) {
+                let a, b, q, ans;
+                switch(currentModeId) {
+                    case 'math_add1': a = rand(1,9); b = rand(1,9); q = `${a} + ${b} = ?`; ans = a + b; break;
+                    case 'math_add2': a = rand(10,99); b = rand(10,99); q = `${a} + ${b} = ?`; ans = a + b; break;
+                    case 'math_sub1': a = rand(10,20); b = rand(1,9); if(a <= b) a += 10; q = `${a} - ${b} = ?`; ans = a - b; break;
+                    case 'math_mul':  a = rand(2,9); b = rand(2,9); q = `${a} × ${b} = ?`; ans = a * b; break;
+                    case 'math_div':  b = rand(2,9); ans = rand(2,9); a = b * ans; q = `${a} ÷ ${b} = ?`; break;
+                }
+                currentWord = { k: q, r: ans.toString() };
+                document.getElementById('target-text').innerText = currentWord.k;
+                validPaths = [currentWord.r];
+                document.getElementById('target-romaji').innerText = ""; 
+            } else {
+                const list = dictionary[currentModeId];
+                currentWord = list[Math.floor(Math.random() * list.length)];
+                document.getElementById('target-text').innerText = currentWord.k;
+                validPaths = generateValidPaths(currentWord.r);
+                document.getElementById('target-romaji').innerText = validPaths[0]; 
+            }
+        }
+
+        function updateStatsUI() {
+            document.getElementById('time-left').innerText = timeLeft;
+            document.getElementById('current-score').innerText = score;
+            let acc = totalKeystrokes === 0 ? 100 : Math.floor((totalKeystrokes / (totalKeystrokes + missKeystrokes)) * 100);
+            document.getElementById('current-acc').innerText = acc + "%";
+            let timeElapsed = 60 - timeLeft;
+            let kpm = timeElapsed === 0 ? 0 : Math.floor((totalKeystrokes / timeElapsed) * 60);
+            document.getElementById('current-kpm').innerText = kpm;
+        }
+
+        function updateComboUI() {
+            const display = document.getElementById('combo-display');
+            const gameArea = document.getElementById('game-area');
+
+            if(currentCombo > 1) {
+                display.innerText = currentCombo + " COMBO!";
+                display.className = "combo-text combo-active";
+            } else {
+                display.className = "combo-text";
+            }
+
+            // フィーバーチェック
+            if(currentCombo >= FEVER_THRESHOLD) {
+                if(!isFever) {
+                    isFever = true;
+                    gameArea.classList.add('fever-active');
+                    document.getElementById('current-score').style.color = 'var(--fever-color)';
+                }
+                display.className = "combo-text combo-fever";
+            } else {
+                if(isFever) {
+                    isFever = false;
+                    gameArea.classList.remove('fever-active');
+                    document.getElementById('current-score').style.color = 'var(--c-eng)';
+                }
+            }
+        }
+
+        // --- 紙吹雪エフェクト関数 ---
+        function shootConfetti() {
+            const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+            for(let i=0; i<80; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.width = (Math.random() * 10 + 5) + 'px';
+                conf.style.height = (Math.random() * 10 + 5) + 'px';
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                conf.style.animationDelay = (Math.random() * 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 4000);
+            }
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            isPlaying = false;
+            
+            let timeElapsed = 60 - timeLeft;
+            let finalKPM = timeElapsed === 0 ? 0 : Math.floor((totalKeystrokes / timeElapsed) * 60);
+            let finalAcc = totalKeystrokes === 0 ? 0 : Math.floor((totalKeystrokes / (totalKeystrokes + missKeystrokes)) * 100);
+            
+            let rank = "C"; let rankColor = "rank-C";
+            if (score >= 1500 && finalAcc >= 90) { rank = "S"; rankColor = "rank-S"; shootConfetti(); }
+            else if (score >= 1000) { rank = "A"; rankColor = "rank-A"; shootConfetti(); }
+            else if (score >= 500) { rank = "B"; rankColor = "rank-B"; }
+
+            // 経験値付与 (スコアの1/10をEXPとする)
+            let gainedExp = Math.floor(score / 10);
+            playerExp += gainedExp;
+            localStorage.setItem('typing_dojo_exp', playerExp);
+            updatePlayerProfile();
+
+            document.getElementById('res-rank').innerText = rank;
+            document.getElementById('res-rank').className = "rank-badge " + rankColor;
+            document.getElementById('res-score').innerText = score;
+            document.getElementById('res-acc').innerText = finalAcc;
+            document.getElementById('res-kpm').innerText = finalKPM;
+            document.getElementById('exp-gain').innerText = `+ ${gainedExp} EXP 獲得！`;
+
+            document.getElementById('play-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+
+            // フィーバーリセット
+            document.getElementById('game-area').classList.remove('fever-active');
+            document.getElementById('current-score').style.color = 'var(--c-eng)';
+            document.getElementById('combo-display').className = "combo-text";
+
+            saveMyRecord(score);
+        }
+
+        function returnToTitle() {
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'block';
+        }
+
+        // --- 種目別ランキング保存システム ---
+        function saveMyRecord(newScore) {
+            if(newScore === 0) return; 
+            let allRecords = JSON.parse(localStorage.getItem('my_typing_records_v2')) || {};
+            if(!allRecords[currentModeName]) allRecords[currentModeName] = [];
+            
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            allRecords[currentModeName].push({ score: newScore, date: dateStr });
+            allRecords[currentModeName].sort((a, b) => b.score - a.score);
+            allRecords[currentModeName] = allRecords[currentModeName].slice(0, 10);
+            
+            localStorage.setItem('my_typing_records_v2', JSON.stringify(allRecords));
+            updateRankingUI();
+        }
+
+        function updateRankingUI() {
+            let allRecords = JSON.parse(localStorage.getItem('my_typing_records_v2')) || {};
+            let records = allRecords[currentModeName] || [];
+            
+            const listEl = document.getElementById('my-record-list');
+            const bestEl = document.getElementById('my-best');
+            const subtitleEl = document.getElementById('ranking-subtitle');
+            
+            subtitleEl.innerText = currentModeName;
+            listEl.innerHTML = '';
+            
+            if(records.length === 0) {
+                bestEl.innerText = '0';
+                listEl.innerHTML = '<li class="no-record">まだ記録がありません。<br>練習をスタートして記録を残そう！</li>';
+                return;
+            }
+            
+            bestEl.innerText = records[0].score; 
+
+            records.forEach((rec, index) => {
+                let rankLabel = (index + 1) + "位";
+                listEl.innerHTML += `
+                    <li class="rank-item">
+                        <span class="rank-num">${rankLabel}</span>
+                        <div class="rank-details">
+                            <span class="rank-date">${rec.date}</span>
+                        </div>
+                        <span class="rank-score">${rec.score}点</span>
+                    </li>
+                `;
+            });
+        }
+
+        // --- キーボード入力判定 ---
+        window.addEventListener('keydown', (e) => {
+            if(!isPlaying) {
+                if(e.code === 'Space') {
+                    e.preventDefault();
+                    if(document.getElementById('start-screen').style.display !== 'none') startGame();
+                }
+                return;
+            }
+            
+            if(e.key.length > 1) return;
+
+            let k = e.key.toLowerCase();
+            let nextTyped = typedRomaji + k;
+            let valid = validPaths.filter(p => p.startsWith(nextTyped));
+
+            if (valid.length > 0) {
+                totalKeystrokes++;
+                currentCombo++;
+                typedRomaji = nextTyped;
+                validPaths = valid; 
+                
+                document.getElementById('typed-text').innerText = typedRomaji;
+                
+                if (!currentModeId.startsWith('math_')) {
+                    document.getElementById('target-romaji').innerText = validPaths[0];
+                }
+
+                // フィーバー中はスコア2倍
+                score += isFever ? 20 : 10;
+                
+                updateComboUI();
+                updateStatsUI();
+
+                if(typedRomaji === validPaths[0]) {
+                    score += isFever ? 100 : 50; // クリアボーナスも倍
+                    updateStatsUI();
+                    nextWord();
+                }
+            } else {
+                missKeystrokes++;
+                currentCombo = 0; // ミスでコンボリセット
+                updateComboUI();
+                updateStatsUI();
+
+                const gameArea = document.getElementById('game-area');
+                gameArea.classList.remove('error-flash');
+                void gameArea.offsetWidth; 
+                gameArea.classList.add('error-flash');
+            }
+        });
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>わり算２時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>わり算と九九 - ゼリーをわけよう</title>
+<style>
+    :root {
+        --primary: #22c55e;
+        --primary-light: #dcfce7;
+        --secondary: #3b82f6;
+        --secondary-light: #eff6ff;
+        --text: #334155;
+        --bg: #f8fafc;
+    }
+
+    body {
+        font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .app-container {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        max-width: 800px;
+        width: 100%;
+    }
+
+    /* 問題文エリア */
+    .problem-box {
+        border: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 20px;
+        position: relative;
+        margin-bottom: 30px;
+        background-color: white;
+        font-size: 20px;
+        line-height: 1.6;
+    }
+
+    .problem-badge {
+        position: absolute;
+        top: -15px;
+        left: -15px;
+        background: var(--primary);
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+    /* 操作エリア（ステップ1） */
+    .interactive-area {
+        background: var(--primary-light);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+
+    .instruction {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #15803d;
+    }
+
+    /* ゼリー置き場 */
+    .jelly-pool {
+        min-height: 80px;
+        background: white;
+        border: 2px dashed #86efac;
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .jelly {
+        width: 40px;
+        height: 40px;
+        background: radial-gradient(circle at 30% 30%, #ff9a9e, #fecfef);
+        border: 2px solid #ff758c;
+        border-radius: 50% 50% 40% 40%;
+        cursor: grab;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        user-select: none;
+        transition: transform 0.1s;
+    }
+
+    .jelly:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+    }
+
+    /* お皿エリア */
+    .plates-container {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .plate-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 120px;
+    }
+
+    .plate {
+        width: 100px;
+        height: 100px;
+        background: white;
+        border: 3px solid #cbd5e1;
+        border-radius: 50%;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 10px;
+        box-shadow: inset 0 4px 10px rgba(0,0,0,0.05);
+        transition: background-color 0.2s;
+    }
+
+    .plate.drag-over {
+        background-color: #fef08a;
+        border-color: #eab308;
+    }
+
+    .person-icon {
+        font-size: 24px;
+        margin-top: 10px;
+    }
+
+    /* 式の入力エリア */
+    .equation-area {
+        margin-top: 20px;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .eq-label {
+        color: var(--primary);
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    .input-box {
+        width: 60px;
+        height: 50px;
+        font-size: 24px;
+        text-align: center;
+        border: 3px solid #cbd5e1;
+        border-radius: 8px;
+        outline: none;
+    }
+
+    .input-box:focus {
+        border-color: var(--primary);
+    }
+
+    .eq-desc {
+        font-size: 14px;
+        color: #64748b;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    /* ボタン */
+    .btn-check {
+        display: block;
+        width: 200px;
+        margin: 20px auto;
+        padding: 15px;
+        background: var(--primary);
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #16a34a;
+        transition: transform 0.1s;
+    }
+
+    .btn-check:active {
+        transform: translateY(4px);
+        box-shadow: none;
+    }
+
+    /* ステップ2（九九を使った考え方）エリア */
+    #step2-area {
+        display: none;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 3px dashed #cbd5e1;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .step2-title {
+        color: var(--secondary);
+        font-size: 22px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .kuku-container {
+        background: var(--secondary-light);
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .kuku-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 24px;
+    }
+
+    .kuku-equation {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 280px;
+    }
+
+    .kuku-box {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #94a3b8;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .kuku-labels {
+        display: flex;
+        gap: 10px;
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: -15px;
+        width: 280px;
+    }
+    .kuku-labels span {
+        display: inline-block;
+        background: #fef08a;
+        padding: 2px 5px;
+        border: 1px solid #eab308;
+        border-radius: 4px;
+    }
+
+    .visual-dots-area {
+        display: flex;
+        gap: 10px;
+    }
+
+    .dot-column {
+        width: 30px;
+        min-height: 80px;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 5px 0;
+        gap: 5px;
+    }
+
+    .dot {
+        width: 16px;
+        height: 16px;
+        background: #ef4444;
+        border-radius: 50%;
+    }
+
+    .btn-increase {
+        padding: 10px 20px;
+        font-size: 18px;
+        font-weight: bold;
+        background: var(--secondary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #2563eb;
+    }
+    .btn-increase:active {
+        transform: translateY(4px);
+        box-shadow: none;
+    }
+    .btn-increase:disabled {
+        background: #94a3b8;
+        box-shadow: 0 4px 0 #64748b;
+        cursor: not-allowed;
+    }
+
+    /* ふりかえり・気づきエリア */
+    .reflection-area {
+        display: none;
+        background: #fffbeb;
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid #fde047;
+        margin-top: 20px;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .character-chat {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .bubble {
+        background: white;
+        border: 2px solid #cbd5e1;
+        border-radius: 15px;
+        padding: 15px;
+        position: relative;
+        flex: 1;
+        line-height: 1.6;
+    }
+
+    .bubble::before {
+        content: '';
+        position: absolute;
+        right: -10px;
+        bottom: 15px;
+        border-width: 10px 0 10px 10px;
+        border-style: solid;
+        border-color: transparent transparent transparent #cbd5e1;
+    }
+
+    .highlight {
+        color: #ef4444;
+        font-weight: bold;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- ステップ1：操作によるわり算の理解 -->
+    <div id="step1-area">
+        <div class="problem-box">
+            <div class="problem-badge">2</div>
+            ゼリーが <strong>20 こ</strong> あります。<br>
+            <strong>5 人</strong> で同じ数ずつ分けると、<br>
+            1 人分は 何こ になりますか。
+        </div>
+
+        <div class="interactive-area">
+            <div class="instruction">👇 ステップ1：ゼリーをドラッグして、5つのお皿に同じ数ずつ分けてみよう！</div>
+            
+            <div class="jelly-pool" id="jelly-pool" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <!-- JavaScriptでゼリーを20個生成 -->
+            </div>
+
+            <div class="plates-container">
+                <div class="plate-wrapper"><div class="plate" id="plate-1" ondrop="drop(event)" ondragover="allowDrop(event)"></div><div class="person-icon">👦🏻</div></div>
+                <div class="plate-wrapper"><div class="plate" id="plate-2" ondrop="drop(event)" ondragover="allowDrop(event)"></div><div class="person-icon">👧🏻</div></div>
+                <div class="plate-wrapper"><div class="plate" id="plate-3" ondrop="drop(event)" ondragover="allowDrop(event)"></div><div class="person-icon">👦🏽</div></div>
+                <div class="plate-wrapper"><div class="plate" id="plate-4" ondrop="drop(event)" ondragover="allowDrop(event)"></div><div class="person-icon">👧🏽</div></div>
+                <div class="plate-wrapper"><div class="plate" id="plate-5" ondrop="drop(event)" ondragover="allowDrop(event)"></div><div class="person-icon">👦🏼</div></div>
+            </div>
+        </div>
+
+        <div class="equation-area">
+            <span class="eq-label">式</span>
+            <div>
+                <input type="number" id="input-total" class="input-box">
+                <div class="eq-desc">ぜんぶの数</div>
+            </div>
+            <span>÷</span>
+            <div>
+                <input type="number" id="input-people" class="input-box">
+                <div class="eq-desc">人数</div>
+            </div>
+            <span>=</span>
+            <div>
+                <input type="number" id="input-answer" class="input-box">
+                <div class="eq-desc">1人分</div>
+            </div>
+        </div>
+
+        <button class="btn-check" id="btn-check1" onclick="checkAnswer1()">わけられた！</button>
+    </div>
+
+    <!-- ステップ2：九九を使った考え方 -->
+    <div id="step2-area">
+        <h2 class="step2-title">💡 ステップ2：いつもゼリーを動かすのはたいへん。<br>かけ算の「九九」を使って答えを見つけてみよう！</h2>
+        
+        <div class="kuku-container">
+            <div class="instruction">「1人分をふやす」ボタンを押して、ぜんぶで20こになる時をさがそう。</div>
+            
+            <div class="kuku-labels">
+                <span style="margin-left: 20px;">1人分</span>
+                <span style="margin-left: 20px;">人数</span>
+                <span style="margin-left: 10px;">ぜんぶの数</span>
+            </div>
+            
+            <div class="kuku-row">
+                <div class="kuku-equation">
+                    <div class="kuku-box" id="kuku-per-person">1</div>
+                    <span>×</span>
+                    <div class="kuku-box">5</div>
+                    <span>=</span>
+                    <div class="kuku-box" id="kuku-total" style="width: 50px;">5</div>
+                </div>
+                
+                <div class="visual-dots-area" id="dots-area">
+                    <div class="dot-column"><div class="dot"></div></div>
+                    <div class="dot-column"><div class="dot"></div></div>
+                    <div class="dot-column"><div class="dot"></div></div>
+                    <div class="dot-column"><div class="dot"></div></div>
+                    <div class="dot-column"><div class="dot"></div></div>
+                </div>
+            </div>
+
+            <button class="btn-increase" id="btn-increase" onclick="increaseAmount()">＋ 1人分をふやす</button>
+        </div>
+
+        <!-- 最終まとめエリア -->
+        <div class="reflection-area" id="reflection-area">
+            <h3 style="color: #d97706; margin-top: 0;">🎉 ぜんぶの数が「20こ」になったね！</h3>
+            <p style="font-size: 18px;">
+                20 ÷ 5 の答えは、<strong><span class="kuku-box" style="display:inline-flex; width:30px; height:30px;">4</span> × 5 = 20</strong> の <br>
+                □ にあてはまる数だったんだね。<br><br>
+                式： 20 ÷ 5 = 4　　<u>答え： 4こ</u>
+            </p>
+            
+            <div class="character-chat">
+                <div class="bubble">
+                    「 <strong>□ × 5 = 5 × □</strong> だから… 」<br><br>
+                    💡 わり算の答えは、<strong>5の段の九九（5×1=5, 5×2=10...）</strong> を言っていくと、かんたんに見つけられるんだね！
+                </div>
+                <div style="font-size: 60px; display:flex; flex-direction:column; align-items:center;">
+                    👧🏻
+                    <span style="font-size: 14px; font-weight:bold;">あみ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- ステップ1（わり算の操作）の処理 ---
+    const TOTAL_JELLIES = 20;
+    const pool = document.getElementById('jelly-pool');
+
+    // ゼリーを20個生成
+    for (let i = 0; i < TOTAL_JELLIES; i++) {
+        const jelly = document.createElement('div');
+        jelly.classList.add('jelly');
+        jelly.innerText = '🍮';
+        jelly.draggable = true;
+        jelly.id = 'jelly-' + i;
+        jelly.ondragstart = drag;
+        pool.appendChild(jelly);
+    }
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+        if(ev.target.classList.contains('plate') || ev.target.id === 'jelly-pool') {
+            ev.target.classList.add('drag-over');
+        }
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        document.querySelectorAll('.plate').forEach(p => p.classList.remove('drag-over'));
+        document.getElementById('jelly-pool').classList.remove('drag-over');
+
+        const data = ev.dataTransfer.getData("text");
+        const draggedElement = document.getElementById(data);
+        
+        if (ev.target.classList.contains('plate') || ev.target.id === 'jelly-pool') {
+            ev.target.appendChild(draggedElement);
+        } else if (ev.target.classList.contains('jelly')) {
+            ev.target.parentElement.appendChild(draggedElement);
+        }
+    }
+
+    document.addEventListener('dragleave', (ev) => {
+        if(ev.target.classList.contains('plate') || ev.target.id === 'jelly-pool') {
+            ev.target.classList.remove('drag-over');
+        }
+    });
+
+    function checkAnswer1() {
+        const plates = [
+            document.getElementById('plate-1').children.length,
+            document.getElementById('plate-2').children.length,
+            document.getElementById('plate-3').children.length,
+            document.getElementById('plate-4').children.length,
+            document.getElementById('plate-5').children.length,
+        ];
+        const isEquallyDivided = plates.every(count => count === 4);
+        const total = document.getElementById('input-total').value;
+        const people = document.getElementById('input-people').value;
+        const answer = document.getElementById('input-answer').value;
+
+        if (!isEquallyDivided) {
+            alert('お皿の上のゼリーが同じ数になっていないか、配り忘れているゼリーがあるみたい！もう一度確かめてみよう。');
+            return;
+        }
+
+        if (total != 20 || people != 5 || answer != 4) {
+            alert('操作はバッチリ！でも式の数字がちがうみたい。「ぜんぶの数 ÷ 人数 = 1人分」になっているか確認しよう。');
+            return;
+        }
+
+        // 正解時、ボタンを無効化してステップ2を表示
+        const btn = document.getElementById('btn-check1');
+        btn.innerText = "大正解！";
+        btn.style.background = "#94a3b8";
+        btn.style.boxShadow = "none";
+        btn.disabled = true;
+        
+        document.getElementById('step2-area').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('step2-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+    }
+
+    // --- ステップ2（九九の考え方）の処理 ---
+    let currentPerPerson = 1;
+
+    function increaseAmount() {
+        if (currentPerPerson >= 4) return; // 4でストップ
+
+        currentPerPerson++;
+        const totalAmount = currentPerPerson * 5;
+
+        // 数字の更新
+        document.getElementById('kuku-per-person').innerText = currentPerPerson;
+        document.getElementById('kuku-total').innerText = totalAmount;
+
+        // ドットの描画更新
+        const columns = document.querySelectorAll('.dot-column');
+        columns.forEach(col => {
+            // 現在のドットをクリア
+            col.innerHTML = '';
+            // 新しい数だけドットを追加
+            for(let i=0; i<currentPerPerson; i++){
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                col.appendChild(dot);
+            }
+        });
+
+        // 4に達したら終了処理
+        if (currentPerPerson === 4) {
+            const btn = document.getElementById('btn-increase');
+            btn.innerText = "ぴったり 20こ！";
+            btn.disabled = true;
+
+            // 文字を赤くハイライト
+            document.getElementById('kuku-per-person').style.borderColor = "#ef4444";
+            document.getElementById('kuku-per-person').style.color = "#ef4444";
+            document.getElementById('kuku-total').style.color = "#ef4444";
+            document.getElementById('kuku-total').style.fontWeight = "bold";
+
+            // まとめエリアを表示
+            document.getElementById('reflection-area').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('reflection-area').scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 300);
+        }
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>

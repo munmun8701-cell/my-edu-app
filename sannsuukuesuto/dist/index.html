@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>算数クエスト　9</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <div id="game-container">
+  <h1 class="retro-title">三年算数 クエスト</h1>
+  
+  <div id="status-window" class="retro-window">
+    <div class="status-row"><span>LV:<span id="player-level">1</span></span><span>HP:<span id="player-hp-value">5</span>/<span id="max-hp-value">5</span></span></div>
+    <div class="status-row"><span>お金:<span id="gold-value">0</span></span><span>EXP:<span id="player-exp">0</span>/<span id="next-exp">10</span></span></div>
+    <div class="status-row" style="margin-top: 2px;">
+      <span style="color: #ffeb3b;">そうび:<span id="equip-name" style="font-size:14px;">木のえだ、ふく</span></span>
+      <span style="color: #4CAF50;">🌿やくそう:<span id="potion-count">0</span>個</span>
+    </div>
+    <div style="font-size: 15px; color: #ccc; margin-top: 5px; background: #222; padding: 5px; border-radius: 4px;">
+      アイテム ▷ 💧:<span id="mat-shizuku">0</span> / 🦴:<span id="mat-hone">0</span> / 🔸:<span id="mat-kouseki">0</span> / 🔮:<span id="mat-maseki">0</span> / ⏳:<span id="mat-hoshisuna">0</span> / 🌙:<span id="mat-tsukiishi">0</span>
+    </div>
+    <div style="margin-top: 5px;">なかま: <span id="companions-list">なし</span></div>
+  </div>
+
+  <div id="town-screen">
+    <div class="retro-window">
+      <p style="color: #4CAF50; font-weight: bold; text-align: center;">【 はじまりの 町 】</p>
+      <p id="shop-message" style="text-align: center; color: #ff9800; font-size: 14px;">「ゆっくり 休んで いきな！」</p>
+      <div class="facility-container">
+        <div class="facility">
+          <p>🛏️ やど屋</p><button onclick="stayInn()">休む(10円)</button>
+        </div>
+        <div class="facility">
+          <p>🧴 どうぐ屋</p><button onclick="buyPotion()" style="background-color: #2e7d32;">やくそう(30円)</button>
+        </div>
+        <div class="facility">
+          <p>🔭 てんもんだい</p><button onclick="checkTelescope()" style="background-color: #3f51b5;">星を見る</button>
+        </div>
+        <div class="facility">
+          <p>🎰 なかまガチャ</p><button onclick="playGacha()" style="background-color: #e91e63;">回す(100円)</button>
+        </div>
+        <div class="facility" style="grid-column: span 2;">
+          <p>⚒️ ぶき・ぼうぐ屋</p>
+          <div style="display:flex; gap:5px;">
+            <button id="btn-craft-weapon" onclick="craftWeapon()">ぶきを きたえる</button>
+            <button id="btn-craft-armor" onclick="craftArmor()">ぼうぐを きたえる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="retro-window" style="padding-right: 0;">
+      <p>どこへ たんけんに いく？</p>
+      <div id="dungeon-list">
+        
+        <div class="unit-box">
+          <div class="unit-title">【1】 九九（くく）と かけ算</div>
+          <div class="stage-buttons">
+            <button class="req-lv-0" onclick="tryStartGame('kuku_boss', 1, 3, 0)">1〜3の段</button>
+            <button class="req-lv-0" onclick="tryStartGame('kuku_boss', 4, 6, 0)">4〜6の段</button>
+            <button class="req-lv-1 locked" onclick="tryStartGame('kuku_boss', 7, 9, 1)">7〜9の段</button>
+            <button class="req-lv-1 locked" onclick="tryStartGame('kuku_all', 1, 9, 1)">九九 全段</button>
+            <button class="req-lv-2 locked" onclick="tryStartGame('kuku_puzzle', 0, 0, 2)">九九表パズル</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【2】 たし算の 筆算（ひっさん）</div>
+          <div class="stage-buttons">
+            <button class="req-lv-1 locked" onclick="tryStartGame('add23', 0, 0, 1)" style="background-color: #8bc34a; color: #000;">2〜3けた</button>
+            <button class="req-lv-2 locked" onclick="tryStartGame('add3x3_carry1', 0, 0, 2)" style="width: 48%; padding: 4px; background-color: #8bc34a; color: #000;">3けた(一→十 くり上がり)</button>
+            <button class="req-lv-2 locked" onclick="tryStartGame('add3x3_carry10', 0, 0, 2)" style="width: 48%; padding: 4px; background-color: #8bc34a; color: #000;">3けた(十→百 くり上がり)</button>
+            <button class="req-lv-3 locked" onclick="tryStartGame('add3x3_carry2', 0, 0, 3)" style="width: 48%; padding: 4px; background-color: #8bc34a; color: #000;">3けた(くり上がり 2回)</button>
+            <button class="req-lv-3 locked" onclick="tryStartGame('add3x3_over1000', 0, 0, 3)" style="width: 48%; padding: 4px; background-color: #8bc34a; color: #000;">答えが 4けた</button>
+            <button class="req-lv-4 locked" onclick="tryStartGame('add_large', 0, 0, 4)" style="background-color: #8bc34a; color: #000;">大きな数</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【3】 ひき算の 筆算（ひっさん）</div>
+          <div class="stage-buttons">
+            <button class="req-lv-1 locked" onclick="tryStartGame('sub23', 0, 0, 1)" style="width: 48%; padding: 4px; background-color: #ff9800; color: #000;">2〜3けた</button>
+            <button class="req-lv-2 locked" onclick="tryStartGame('sub3x3_borrow1', 0, 0, 2)" style="width: 48%; padding: 4px; background-color: #ff9800; color: #000;">3けた(くり下がり 1回)</button>
+            <button class="req-lv-3 locked" onclick="tryStartGame('sub3x3_borrow2', 0, 0, 3)" style="width: 48%; padding: 4px; background-color: #ff9800; color: #000;">3けた(くり下がり 2回)</button>
+            <button class="req-lv-3 locked" onclick="tryStartGame('sub34', 0, 0, 3)" style="width: 48%; padding: 4px; background-color: #ff9800; color: #000;">3〜4けた</button>
+            <button class="req-lv-4 locked" onclick="tryStartGame('sub_large', 0, 0, 4)" style="width: 98%; padding: 4px; background-color: #ff9800; color: #000;">大きな数(4けた)</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【4】 時こくと 時間</div>
+          <div class="stage-buttons">
+            <button class="req-lv-2 locked" onclick="tryStartGame('time_seconds', 0, 0, 2)">時間と 秒</button>
+            <button class="req-lv-3 locked" onclick="tryStartGame('time_calc', 0, 0, 3)">時こく(前・後)</button>
+            <button class="req-lv-3 locked" onclick="tryStartGame('time_calc_minutes', 0, 0, 3)">時間の計算(＋・－)</button>
+            <button class="req-lv-4 locked" onclick="tryStartGame('time_conversion', 0, 0, 4)">たんい(分・秒→秒)</button>
+            <button class="req-lv-4 locked" onclick="tryStartGame('time_conversion2', 0, 0, 4)">たんい(秒→分・秒)</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【5】 長さと 重さ</div>
+          <div class="stage-buttons">
+            <button class="req-lv-3 locked" onclick="tryStartGame('weight', 0, 0, 3)">重さ (g, kg, t)</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【6】 わり算</div>
+          <div class="stage-buttons">
+            <button class="req-lv-4 locked" onclick="tryStartGame('div_rem', 0, 0, 4)">あまりのある わり算</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【7】 かけ算の 筆算</div>
+          <div class="stage-buttons">
+            <button class="req-lv-4 locked" onclick="tryStartGame('hissan2x1', 0, 0, 4)">2けた×1けた</button>
+            <button class="req-lv-5 locked" onclick="tryStartGame('hissan2x2', 0, 0, 5)">2けた×2けた</button>
+            <button class="req-lv-6 locked" onclick="tryStartGame('hissan3x2', 0, 0, 6)">3けた×2けた</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【8】 小数（しょう数）と 分数（ぶん数）</div>
+          <div class="stage-buttons">
+            <button class="req-lv-5 locked" onclick="tryStartGame('decimal', 0, 0, 5)">小数の たし・ひき</button>
+            <button class="req-lv-6 locked" onclick="tryStartGame('dec_multdiv', 0, 0, 6)">小数のかけ・わり</button>
+            <button class="req-lv-6 locked" onclick="tryStartGame('fraction', 0, 0, 6)">分数の計算</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【9】 図形（ずけい）と 太陽</div>
+          <div class="stage-buttons">
+            <button class="req-lv-4 locked" onclick="tryStartGame('sun_shadow', 0, 0, 4)">太陽と かげ</button>
+            <button class="req-lv-7 locked" onclick="tryStartGame('area_calc', 0, 0, 7)">広さ(めんせき)</button>
+          </div>
+        </div>
+
+        <div class="unit-box">
+          <div class="unit-title">【10】 まほうの しれん</div>
+          <div class="stage-buttons">
+            <button class="req-lv-8 locked" onclick="tryStartGame('missing_multdiv', 0, 0, 8)">虫食い算(×・÷)</button>
+            <button class="req-lv-8 locked" onclick="tryStartGame('mixed_hard', 0, 0, 8)" style="background-color:#000; border-color:#ffeb3b; color:#ffeb3b;">さいごの しれん</button>
+            <button class="req-lv-9 locked" onclick="tryStartGame('large_mental', 0, 0, 9)" style="background-color:#4a148c; color:#fff;">大数の あんざん</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="explore-screen" style="display: none;">
+    <div class="retro-window" style="text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="dungeon-info" style="color: #ffeb3b; font-weight: bold; font-size: 14px;"></span>
+        <div>
+          <button onclick="usePotion()" style="margin:0; padding: 2px 5px; font-size:12px; background-color:#2e7d32;">🌿やくそう</button>
+          <button onclick="escapeDungeon()" style="margin:0; padding: 2px 5px; font-size:12px; background-color:#555;">にげる</button>
+        </div>
+      </div>
+      <div id="map-message" style="color: #4CAF50; font-weight: bold; min-height: 40px; margin: 5px 0; display: flex; align-items: center; justify-content: center;"></div>
+      <div id="mini-map" class="theme-cave"></div>
+    </div>
+  </div>
+
+  <div id="battle-screen" style="display: none;">
+    <div class="retro-window" style="position: relative;">
+      <div id="combo-display" style="display: none; position: absolute; top: 5px; right: 5px; color: #ff5722; font-weight: bold; z-index: 20;"></div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; min-height: 160px;">
+        <div style="flex-grow: 1; text-align: left;">
+          <p id="battle-message" style="margin-bottom: 10px; font-size: 14px;">モンスターが あらわれた！</p>
+          
+          <div id="battle-area">
+            <div id="timer-display" style="display: none; color: #ff5252; font-weight: bold; font-size: 20px; text-align: center; margin-bottom: 5px;"></div>
+
+            <div id="math-horizontal" style="font-size: 18px; margin-bottom: 5px; text-align: center; white-space: pre-wrap; font-family: 'DotGothic16', monospace;">
+              <span id="q-text" style="display: inline-block; text-align: left;"></span>
+              <br>
+              <input type="number" step="any" id="h-answer" class="hissan-input" style="width: 80px; text-align: center;" onkeypress="if(event.key === 'Enter') checkAnswer();" onfocus="setFocus(this)">
+              <span id="q-suffix"></span>
+              <span id="rem-area" style="display: none; font-size: 16px; margin-left: 5px;">
+                <span id="rem-label">あまり</span> <input type="number" id="h-answer-rem" class="hissan-input" style="width: 60px; text-align: center;" onkeypress="if(event.key === 'Enter') checkAnswer();" onfocus="setFocus(this)"> <span id="rem-suffix"></span>
+              </span>
+            </div>
+
+            <div id="math-vertical-addsub" style="display: none; font-family: 'DotGothic16', monospace; font-size: 26px; width: 190px; margin: 0 auto; text-align: right; line-height: 1.3;">
+              <div style="display: flex; justify-content: flex-end; gap: 7px; margin-bottom: 2px; padding-right: 4px;">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+              </div>
+              <div id="va-num1" style="letter-spacing: 6px;"></div>
+              <div style="border-bottom: 2px solid #fff; padding-bottom: 2px; margin-bottom: 5px;">
+                <span id="va-sign" style="float: left;">＋</span>
+                <span id="va-num2" style="letter-spacing: 6px;"></span>
+              </div>
+              <div id="va-ans-area">
+                <input type="number" id="va-answer" class="hissan-input" style="width: 160px; text-align: right; color: #ffeb3b; font-weight:bold;" placeholder="こたえ" onkeypress="if(event.key === 'Enter') checkAnswer();" onfocus="setFocus(this)">
+              </div>
+            </div>
+
+            <div id="math-vertical" style="display: none; font-family: 'DotGothic16', monospace; font-size: 26px; width: 150px; margin: 0 auto; text-align: right; line-height: 1.3;">
+              <div style="display: flex; justify-content: flex-end; gap: 7px; margin-bottom: 2px; padding-right: 4px;">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+                <input type="text" class="memo-input" maxlength="2" placeholder="" onfocus="setFocus(this)">
+              </div>
+              <div id="v-num1" style="letter-spacing: 6px;"></div>
+              <div style="border-bottom: 2px solid #fff; padding-bottom: 2px; margin-bottom: 5px;">
+                <span style="float: left;">×</span>
+                <span id="v-num2" style="letter-spacing: 6px;"></span>
+              </div>
+              <div id="v-step1-area">
+                <input type="number" id="v-step1" class="hissan-input" style="width: 90px; text-align: right;" placeholder="1だんめ" onkeypress="if(event.key === 'Enter') { let n = document.getElementById('v-step2-area').style.display !== 'none' ? 'v-step2' : 'v-answer'; document.getElementById(n).focus(); setFocus(document.getElementById(n)); }" onfocus="setFocus(this)">
+              </div>
+              <div id="v-step2-area" style="padding-right: 16px; margin-top: 2px;"> 
+                <input type="number" id="v-step2" class="hissan-input" style="width: 90px; text-align: right;" placeholder="2だんめ" onkeypress="if(event.key === 'Enter') { document.getElementById('v-answer').focus(); setFocus(document.getElementById('v-answer')); }" onfocus="setFocus(this)">
+              </div>
+              <div id="v-line2" style="border-top: 2px solid #fff; margin: 5px 0;"></div>
+              <div id="v-ans-area">
+                <input type="number" id="v-answer" class="hissan-input" style="width: 110px; text-align: right; color: #ffeb3b; font-weight:bold;" placeholder="こたえ" onkeypress="if(event.key === 'Enter') checkAnswer();" onfocus="setFocus(this)">
+              </div>
+            </div>
+
+            <div id="numpad-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 10px; background: #333; padding: 10px; border-radius: 8px;">
+              <button onclick="numIn(1)">1</button>
+              <button onclick="numIn(2)">2</button>
+              <button onclick="numIn(3)">3</button>
+              <button onclick="numIn(4)">4</button>
+              <button onclick="numIn(5)">5</button>
+              <button onclick="useMagic('hint')" style="background:#4a148c; font-size:12px; border-color:#ea80fc; white-space: nowrap;">🔮<br>みやぶる</button>
+
+              <button onclick="numIn(6)">6</button>
+              <button onclick="numIn(7)">7</button>
+              <button onclick="numIn(8)">8</button>
+              <button onclick="numIn(9)">9</button>
+              <button onclick="numIn(0)">0</button>
+              <button onclick="numIn('.')" style="font-size: 20px;">.</button>
+
+              <button onclick="numIn('BS')" style="background:#555; grid-column: span 2;">消す</button>
+              <button onclick="checkAnswer()" style="grid-column: span 2; background:#ffeb3b; color:#000; font-weight:bold; font-size:14px;">けってい</button>
+              <button onclick="usePotion()" style="background: #2e7d32; font-size:12px; grid-column: span 2;">🌿やくそう</button>
+            </div>
+            </div>
+          
+          <div id="clear-area" style="display: none;">
+             <button onclick="goToTown()">町へ もどる</button>
+          </div>
+        </div>
+        
+        <div id="monster-container" style="position: relative; margin-left: 5px; min-width: 90px; text-align: center; display: flex; align-items: center; justify-content: center;">
+          <div id="monster-img" style="font-size: 70px; z-index: 1;">👾</div>
+          <div id="effect-layer" style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 10;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls-area" style="display: none;">
+    <div class="d-pad-layout">
+      <button class="up-btn" onclick="movePlayer(0, -1)">⬆️</button>
+      <button class="left-btn" onclick="movePlayer(-1, 0)">⬅️</button>
+      <button class="down-btn" onclick="movePlayer(0, 1)">⬇️</button>
+      <button class="right-btn" onclick="movePlayer(1, 0)">➡️</button>
+    </div>
+  </div>
+
+  <div id="backup-area" class="retro-window" style="margin-top: 15px; text-align: center;">
+    <p style="font-size: 14px; color: #03a9f4; font-weight: bold; margin-bottom: 5px;">【 ふっかつの じゅもん 】</p>
+    <p style="font-size: 11px; color: #ccc; margin-bottom: 5px;">タブレットがかわる時は、ノートに メモしてね！<br>※アイテムは なくなります。お金は最大1000円になります。</p>
+    <div id="password-display" style="font-size: 24px; color: #ffeb3b; letter-spacing: 5px; margin: 10px 0; font-weight: bold;">--------</div>
+    <div style="display: flex; justify-content: center; gap: 10px;">
+      <button onclick="exportData()" style="font-size: 12px; padding: 5px 10px; background-color: #3f51b5;">じゅもん を 見る</button>
+    </div>
+    <hr style="border-color: #555; margin: 10px 0;">
+    <p style="font-size: 11px; color: #ccc; margin-bottom: 5px;">つづきから遊ぶ時は、ここに じゅもん を入力してね</p>
+    <input type="text" id="backup-input" style="width: 150px; font-size: 18px; text-align: center; margin-bottom: 5px; padding: 5px; background: #111; color: #fff; border: 1px solid #777;" placeholder="ひらがな8もじ">
+    <div style="display: flex; justify-content: center; gap: 10px;">
+      <button onclick="importData()" style="font-size: 12px; padding: 5px 10px; background-color: #ff9800; color: #000;">じゅもんを となえる</button>
+    </div>
+  </div>
+
+  <div style="text-align: right; margin-top: 10px;">
+    <button onclick="resetData()" style="font-size: 12px; background-color: #d32f2f; padding: 5px;">データを けす</button>
+  </div>
+</div>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
