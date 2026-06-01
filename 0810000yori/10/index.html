@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>０９　10000より大きな数　たしかめよう</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第10時：学習のしあげ（たしかめよう・算数の目）</title>
+<style>
+    /* === 基本設定 === */
+    :root {
+        --primary: #8e44ad; /* しあげのテーマカラー（紫系） */
+        --secondary: #27ae60;
+        --accent-blue: #3498db;
+        --accent-orange: #f39c12;
+        --accent-red: #e74c3c;
+        --bg-color: #f9ebf9; /* うすい紫背景 */
+        --box-bg: #ffffff;
+        --text: #333333;
+        --border: #bdc3c7;
+    }
+    body {
+        font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text);
+        line-height: 1.6;
+        padding: 20px;
+        margin: 0;
+    }
+    .app-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--box-bg);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+        text-align: center;
+        color: var(--primary);
+        border-bottom: 3px dashed var(--primary);
+        padding-bottom: 15px;
+        font-size: 26px;
+    }
+
+    /* === セクションデザイン === */
+    .section {
+        margin: 45px 0 20px;
+        padding: 30px 20px 20px;
+        border: 3px solid #d2b4de;
+        border-radius: 10px;
+        position: relative;
+        background-color: #fff;
+    }
+    .section-badge {
+        position: absolute;
+        top: -20px;
+        left: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 6px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        font-size: 16px;
+    }
+    /* 適応問題（右ページ）用デザイン */
+    .section.challenge { border-color: var(--secondary); background-color: #f4fdf8; }
+    .section.challenge .section-badge { background: var(--secondary); }
+
+    /* === 共通パーツ（入力・ボタン） === */
+    input[type="text"] {
+        padding: 6px;
+        font-size: 18px;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        text-align: center;
+        width: 100px;
+        transition: 0.2s;
+        margin: 0 5px;
+    }
+    input[type="text"]:focus { border-color: var(--primary); outline: none; }
+    input.small-input { width: 50px; }
+    input.large-input { width: 140px; }
+
+    .btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
+        background-color: var(--primary);
+        box-shadow: 0 4px 0 #732d91;
+        transition: 0.1s;
+        margin: 5px;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: none; }
+    .btn-hint { background-color: var(--accent-orange); box-shadow: 0 4px 0 #d35400; }
+    
+    .feedback { font-weight: bold; font-size: 16px; display: inline-block; margin-left: 10px; min-height: 24px; }
+    .correct { color: var(--accent-red); }
+    .incorrect { color: var(--accent-blue); }
+
+    .hint-box {
+        display: none;
+        background: #fef5e7;
+        border-left: 5px solid var(--accent-orange);
+        padding: 12px;
+        margin-top: 15px;
+        border-radius: 4px;
+        font-size: 15px;
+        font-weight: bold;
+        color: #d35400;
+    }
+
+    /* === 数直線 (完全なズレ防止設計) === */
+    .nl-wrap {
+        position: relative;
+        width: 100%;
+        height: 120px;
+        background: #fdfae7;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    .nl-line {
+        position: absolute;
+        bottom: 30px; left: 5%; right: 5%;
+        height: 2px; background: #333;
+    }
+    .nl-tick {
+        position: absolute; bottom: 30px;
+        width: 2px; background: #333;
+        transform: translateX(-50%);
+    }
+    .nl-tick.major { height: 18px; }
+    .nl-tick.minor { height: 8px; }
+    .nl-label {
+        position: absolute; bottom: 50px;
+        transform: translateX(-50%); font-weight: bold; font-size: 14px;
+    }
+    .nl-input-group {
+        position: absolute; bottom: 50px;
+        transform: translateX(-50%); text-align: center;
+    }
+    .nl-arrow { color: var(--accent-red); font-size: 18px; line-height: 0.8; margin-top: 2px;}
+
+    /* === 不等号ボタン === */
+    .symbol-btn {
+        display: inline-block;
+        padding: 5px 15px; font-size: 20px; font-weight: bold;
+        color: var(--accent-blue); background: #fff;
+        border: 2px solid var(--accent-blue); border-radius: 8px;
+        cursor: pointer; user-select: none; transition: 0.2s;
+    }
+    .symbol-btn:hover { background: #ebf5fb; }
+    .symbol-btn.selected { background: var(--accent-blue); color: #fff; }
+
+    /* === 位取り表 (右ページ用) === */
+    .place-table {
+        margin: 20px auto; border-collapse: collapse; text-align: center; font-size: 18px; background: #fff;
+    }
+    .place-table th { background: #d5f5e3; padding: 8px 15px; border: 2px solid #abebc6; color: #1e8449; }
+    .place-table td { padding: 8px 15px; border: 2px solid #abebc6; font-weight: bold; font-size: 22px; }
+    
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>第10時：学習のしあげ</h1>
+    
+    <div class="section">
+        <div class="section-badge">1. 位のしくみ</div>
+        <p>① 417526の 一万の位の数字は <input type="text" id="q1_1" class="small-input"> 、十万の位の数字は <input type="text" id="q1_2" class="small-input"> です。</p>
+        <p>② 1000を295こ集めた数は、<input type="text" id="q1_3" class="large-input"> です。</p>
+        
+        <button class="btn" onclick="checkMulti(['q1_1', 'q1_2', 'q1_3'], ['1', '4', '295000'], 'fb1')">かくにん</button>
+        <button class="btn btn-hint" onclick="toggleHint('hint1')">ヒント</button>
+        <span id="fb1" class="feedback"></span>
+        <div id="hint1" class="hint-box">②：295のうしろに、1000の「0」がいくつ付くか考えてみよう。</div>
+    </div>
+
+    <div class="section">
+        <div class="section-badge">2. 数直線</div>
+        <p>□にあてはまる数を書きましょう。</p>
+        
+        <div class="nl-wrap">
+            <div class="nl-line"></div>
+            <div id="nl1-ticks"></div>
+        </div>
+
+        <div class="nl-wrap" style="margin-top: 40px;">
+            <div class="nl-line"></div>
+            <div id="nl2-ticks"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 15px;">
+            <button class="btn" onclick="checkPractice2()">かくにん</button>
+            <button class="btn btn-hint" onclick="toggleHint('hint2')">ヒント</button>
+            <br><span id="fb2" class="feedback"></span>
+            <div id="hint2" class="hint-box">上の数直線は1めもりが2000、下の数直線は1めもりが10万だよ。1億＝10000万 と書いても正解だよ！</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-badge">3. 大きさくらべ</div>
+        <p>□にあてはまる等号（＝）、不等号（＞、＜）をタップして選びましょう。</p>
+        
+        <p style="font-size: 20px; font-weight: bold; text-align: center;">
+            ① 47000 <span id="sym1" class="symbol-btn" onclick="selectSymbol('sym1', ['＝', '＞', '＜'])">？</span> 40000 ＋ 7000
+        </p>
+        <p style="font-size: 20px; font-weight: bold; text-align: center;">
+            ② 800万 － 300万 <span id="sym2" class="symbol-btn" onclick="selectSymbol('sym2', ['＝', '＞', '＜'])">？</span> 400万
+        </p>
+
+        <div style="text-align: center;">
+            <button class="btn" onclick="checkSymbols()">かくにん</button>
+            <span id="fb3" class="feedback"></span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-badge">4. いろいろな見方</div>
+        <p><strong>38000</strong> はどんな数ですか。□にあてはまる数を書きましょう。</p>
+        
+        <p>① 40000より <input type="text" id="q4_1"> 小さい数</p>
+        <p>② 30000と <input type="text" id="q4_2"> をあわせた数</p>
+        <p>③ 1000を <input type="text" id="q4_3" class="small-input"> こ集めた数</p>
+
+        <button class="btn" onclick="checkMulti(['q4_1', 'q4_2', 'q4_3'], ['2000', '8000', '38'], 'fb4')">かくにん</button>
+        <span id="fb4" class="feedback"></span>
+    </div>
+
+    <div class="section">
+        <div class="section-badge">5. 10倍、10でわった数</div>
+        <p><strong>420</strong> をもとにして、計算しましょう。</p>
+        
+        <p>・10倍した数：<input type="text" id="q5_10"></p>
+        <p>・100倍した数：<input type="text" id="q5_100"></p>
+        <p>・1000倍した数：<input type="text" id="q5_1000" class="large-input"></p>
+        <p>・10でわった数：<input type="text" id="q5_div" class="small-input"></p>
+
+        <button class="btn" onclick="checkMulti(['q5_10', 'q5_100', 'q5_1000', 'q5_div'], ['4200', '42000', '420000', '42'], 'fb5')">かくにん</button>
+        <span id="fb5" class="feedback"></span>
+    </div>
+
+    <div class="section challenge">
+        <div class="section-badge">適応問題：つないでいこう 算数の目</div>
+        
+        <h3 style="color: var(--secondary);">【1】位に注目して、大きい数を表そう</h3>
+        <p>下の表を見て、あみさんの考えの□にあてはまる数を答えましょう。</p>
+        
+        <table class="place-table">
+            <tr><th>千万</th><th>百万</th><th>十万</th><th>一万</th><th>千</th><th>百</th><th>十</th><th>一</th></tr>
+            <tr><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>3</td><td>9</td></tr>
+            <tr>
+                <td style="font-size:12px; font-weight:normal; color:#e74c3c;">②の3</td>
+                <td></td><td></td><td></td><td></td><td></td>
+                <td style="font-size:12px; font-weight:normal; color:#e74c3c;">⑦の3</td>
+                <td></td>
+            </tr>
+        </table>
+        
+        <p>① ⑦の3 は何が3こあることを表していますか？ 👉 <input type="text" id="app1_1" class="small-input"> が 3こ</p>
+        <p>　 ②の3 は何が3こあることを表していますか？ 👉 <input type="text" id="app1_2" class="large-input"> が 3こ</p>
+        
+        <p>② 百の位に数が何こ集まると、千の位に上がりますか？ 👉 <input type="text" id="app1_3" class="small-input"> こ</p>
+        <p>　 百万の位に数が何こ集まると、千万の位に上がりますか？ 👉 <input type="text" id="app1_4" class="small-input"> こ</p>
+        
+        <div style="background: #fff; border: 2px dashed var(--secondary); padding: 10px; text-align: center; margin: 15px 0;">
+            💡 ほかのどの位でも、数が <input type="text" id="app1_5" class="small-input"> こ集まると、1つ上の位に上がります。
+        </div>
+
+        <button class="btn" style="background: var(--secondary);" onclick="checkApp1()">かくにん</button>
+        <span id="fb_app1" class="feedback"></span>
+
+        <hr style="border:1px solid #d5f5e3; margin: 30px 0;">
+
+        <h3 style="color: var(--secondary);">【2】もとにする数に注目して、計算しよう</h3>
+        <p>下の計算は、どんな数をもとにすると、「9 － 7」の計算で考えることができますか。</p>
+
+        <div style="background: #eafaf1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <p>① 900000 － 700000</p>
+            👉 <input type="text" id="app2_1" class="large-input"> をもとにすると、9 － 7 ＝ 2 だから <input type="text" id="app2_2" class="large-input">
+        </div>
+
+        <div style="background: #eafaf1; padding: 15px; border-radius: 8px;">
+            <p>② 900万 － 700万</p>
+            👉 <input type="text" id="app2_3" class="large-input"> をもとにすると、9 － 7 ＝ 2 だから <input type="text" id="app2_4" class="large-input">
+        </div>
+
+        <div style="margin-top: 15px;">
+            <button class="btn" style="background: var(--secondary);" onclick="checkApp2()">かくにん</button>
+            <button class="btn btn-hint" onclick="toggleHint('hint_app2')">ヒント</button>
+            <span id="fb_app2" class="feedback"></span>
+            <div id="hint_app2" class="hint-box">①は「十万（100000）」のかたまりが何こあるか考えてみてね。②は「100万」のかたまりだよ！漢字を使っても正解になるよ。</div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // --- 汎用：全角→半角・空白除去 ---
+    function normalize(str) {
+        if (!str) return "";
+        return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        }).replace(/[\s,，、。]/g, '');
+    }
+
+    // --- 数直線の描画 (CSS absolute定位で絶対にズレない) ---
+    function drawNumberLines() {
+        // NL1: 0 to 30000
+        const nl1 = document.getElementById('nl1-ticks');
+        const min1 = 0, max1 = 30000, range1 = 30000;
+        
+        for (let i = 0; i <= max1; i += 2000) {
+            const pct = (i / range1) * 90 + 5; // 左右5%余白
+            // 目盛り
+            const tick = document.createElement('div');
+            tick.className = 'nl-tick ' + (i % 10000 === 0 ? 'major' : 'minor');
+            tick.style.left = pct + '%';
+            nl1.appendChild(tick);
+            
+            // ラベル (0, 10000, 20000, 30000)
+            if (i % 10000 === 0) {
+                const lbl = document.createElement('div');
+                lbl.className = 'nl-label';
+                lbl.style.left = pct + '%';
+                lbl.innerText = i;
+                nl1.appendChild(lbl);
+            }
+            
+            // 入力欄 (4000, 26000)
+            if (i === 4000 || i === 26000) {
+                const wrap = document.createElement('div');
+                wrap.className = 'nl-input-group';
+                wrap.style.left = pct + '%';
+                wrap.innerHTML = `<input type="text" id="nl1_ans_${i}" style="width: 70px; border-color:var(--accent-red); color:var(--accent-red);"><br><div class="nl-arrow">↓</div>`;
+                nl1.appendChild(wrap);
+            }
+        }
+
+        // NL2: 9600万 to 1億 (10000万)
+        const nl2 = document.getElementById('nl2-ticks');
+        const min2 = 9600, max2 = 10000, range2 = 400; // 単位:万
+        
+        for (let i = min2; i <= max2; i += 10) {
+            const pct = ((i - min2) / range2) * 90 + 5;
+            
+            const tick = document.createElement('div');
+            tick.className = 'nl-tick ' + (i % 100 === 0 ? 'major' : 'minor');
+            tick.style.left = pct + '%';
+            nl2.appendChild(tick);
+
+            // ラベル
+            if (i === 9600 || i === 9800 || i === 9900) {
+                const lbl = document.createElement('div');
+                lbl.className = 'nl-label';
+                lbl.style.left = pct + '%';
+                lbl.innerText = i + '万';
+                nl2.appendChild(lbl);
+            }
+            
+            // 入力欄 (9700, 10000)
+            if (i === 9700 || i === 10000) {
+                const wrap = document.createElement('div');
+                wrap.className = 'nl-input-group';
+                wrap.style.left = pct + '%';
+                wrap.innerHTML = `<input type="text" id="nl2_ans_${i}" style="width: 80px; border-color:var(--accent-red); color:var(--accent-red);"><br><div class="nl-arrow">↓</div>`;
+                nl2.appendChild(wrap);
+            }
+        }
+    }
+    window.onload = drawNumberLines;
+
+    // --- 数直線 (Q2) の正誤判定 ---
+    function checkPractice2() {
+        const a1 = normalize(document.getElementById('nl1_ans_4000').value);
+        const a2 = normalize(document.getElementById('nl1_ans_26000').value);
+        const a3 = normalize(document.getElementById('nl2_ans_9700').value);
+        const a4 = normalize(document.getElementById('nl2_ans_10000').value);
+
+        const check = (val, correctArr, id) => {
+            const el = document.getElementById(id);
+            if (correctArr.includes(val)) {
+                el.style.backgroundColor = "#eafaf1";
+                return true;
+            } else {
+                el.style.backgroundColor = "#fdedec";
+                return false;
+            }
+        };
+
+        let ok = true;
+        ok &= check(a1, ['4000', '四千'], 'nl1_ans_4000');
+        ok &= check(a2, ['26000', '二万六千', '2万6千', '2万6000'], 'nl1_ans_26000');
+        ok &= check(a3, ['9700万', '九千七百万', '97000000'], 'nl2_ans_9700');
+        ok &= check(a4, ['1億', '一億', '10000万', '100000000'], 'nl2_ans_10000');
+
+        const fb = document.getElementById('fb2');
+        if (a1==="" || a2==="" || a3==="" || a4==="") {
+            fb.innerText = "ぜんぶ入力してね。";
+            fb.className = "feedback";
+        } else if (ok) {
+            fb.innerText = "⭕ ばっちり！数直線の読み方が完璧だね！";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ 赤いところをもういちど見直そう。";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    // --- 複数入力判定 (汎用) ---
+    function checkMulti(inputIds, correctValues, fbId) {
+        let allCorrect = true;
+        let anyEmpty = false;
+
+        for (let i = 0; i < inputIds.length; i++) {
+            const input = document.getElementById(inputIds[i]);
+            const val = normalize(input.value);
+            
+            if (val === "") {
+                anyEmpty = true;
+                input.style.backgroundColor = "#fff";
+            } else if (val === correctValues[i]) {
+                input.style.backgroundColor = "#eafaf1";
+            } else {
+                input.style.backgroundColor = "#fdedec";
+                allCorrect = false;
+            }
+        }
+
+        const fb = document.getElementById(fbId);
+        if (anyEmpty) {
+            fb.innerText = "ぜんぶ入力してね。";
+            fb.className = "feedback";
+        } else if (allCorrect) {
+            fb.innerText = "⭕ 大正解！";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ まちがっているところがあるよ。";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    // --- 記号の切り替えと判定 (Q3) ---
+    function selectSymbol(btnId, options) {
+        const btn = document.getElementById(btnId);
+        let currentIndex = options.indexOf(btn.innerText);
+        let nextIndex = (currentIndex + 1) % options.length;
+        btn.innerText = options[nextIndex];
+        btn.classList.add('selected');
+    }
+
+    function checkSymbols() {
+        const s1 = document.getElementById('sym1').innerText;
+        const s2 = document.getElementById('sym2').innerText;
+        const fb = document.getElementById('fb3');
+        
+        if (s1 === '？' || s2 === '？') {
+            fb.innerText = "記号をタップして選んでね。";
+            fb.className = "feedback";
+            return;
+        }
+
+        if (s1 === '＝' && s2 === '＞') {
+            fb.innerText = "⭕ ばっちり！式を正しく計算できたね。";
+            fb.className = "feedback correct";
+            document.getElementById('sym1').style.borderColor = "var(--secondary)";
+            document.getElementById('sym2').style.borderColor = "var(--secondary)";
+        } else {
+            fb.innerText = "❌ どちらかがちがうみたい。左右の計算をしてみよう。";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    // --- 適応問題の特殊判定 (複数の正解を許容) ---
+    function checkApp1() {
+        const a1 = normalize(document.getElementById('app1_1').value);
+        const a2 = normalize(document.getElementById('app1_2').value);
+        const a3 = normalize(document.getElementById('app1_3').value);
+        const a4 = normalize(document.getElementById('app1_4').value);
+        const a5 = normalize(document.getElementById('app1_5').value);
+
+        const check = (val, corrects, id) => {
+            const el = document.getElementById(id);
+            if(corrects.includes(val)) { el.style.backgroundColor = "#eafaf1"; return true; }
+            else { el.style.backgroundColor = "#fdedec"; return false; }
+        };
+
+        let ok = true;
+        ok &= check(a1, ['10', '十'], 'app1_1');
+        ok &= check(a2, ['1000000', '100万', '百万', '1000000万'], 'app1_2'); // "100万" 等もOK
+        ok &= check(a3, ['10', '十'], 'app1_3');
+        ok &= check(a4, ['10', '十'], 'app1_4');
+        ok &= check(a5, ['10', '十'], 'app1_5');
+
+        const fb = document.getElementById('fb_app1');
+        if (ok) {
+            fb.innerText = "⭕ すばらしい！位のしくみが完璧だね！";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ 赤いところをもういちど考えてみよう。";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    function checkApp2() {
+        const a1 = normalize(document.getElementById('app2_1').value);
+        const a2 = normalize(document.getElementById('app2_2').value);
+        const a3 = normalize(document.getElementById('app2_3').value);
+        const a4 = normalize(document.getElementById('app2_4').value);
+
+        const check = (val, corrects, id) => {
+            const el = document.getElementById(id);
+            if(corrects.includes(val)) { el.style.backgroundColor = "#eafaf1"; return true; }
+            else { el.style.backgroundColor = "#fdedec"; return false; }
+        };
+
+        let ok = true;
+        ok &= check(a1, ['100000', '10万', '十万'], 'app2_1');
+        ok &= check(a2, ['200000', '20万', '二十万'], 'app2_2');
+        ok &= check(a3, ['1000000', '100万', '百万'], 'app2_3');
+        ok &= check(a4, ['2000000', '200万', '二百万'], 'app2_4');
+
+        const fb = document.getElementById('fb_app2');
+        if (ok) {
+            fb.innerText = "⭕ 大正解！もとにする数を考えると、大きな数もかんたんに計算できるね！";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ 赤いところをもういちど考えてみよう。";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    function toggleHint(hintId) {
+        const el = document.getElementById(hintId);
+        el.style.display = (el.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>０９　10000より大きな数　５時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10000より大きい数のならび方</title>
+<style>
+    /* ベーススタイル */
+    :root {
+        --main-green: #27ae60;
+        --light-green: #eafaf1;
+        --text-color: #333;
+        --accent-orange: #f39c12;
+        --accent-red: #e74c3c;
+        --border-color: #bdc3c7;
+        --box-bg: #fffde7;
+    }
+    body {
+        font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+        background-color: #f4f6f7;
+        color: var(--text-color);
+        line-height: 1.6;
+        padding: 20px;
+        margin: 0;
+    }
+    .app-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    h1 {
+        text-align: center;
+        color: var(--main-green);
+        border-bottom: 3px dashed var(--main-green);
+        padding-bottom: 15px;
+        font-size: 26px;
+    }
+    
+    /* セクションのデザイン */
+    .section {
+        margin-top: 40px;
+        padding: 30px 20px 20px;
+        border: 2px solid #a9dfbf;
+        border-radius: 10px;
+        position: relative;
+        background: #fff;
+    }
+    .section.orange { border-color: var(--accent-orange); }
+    .section.red { border-color: var(--accent-red); }
+    .section-badge {
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        background-color: var(--main-green);
+        color: white;
+        padding: 4px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .section.orange .section-badge { background-color: var(--accent-orange); }
+    .section.red .section-badge { background-color: var(--accent-red); }
+
+    /* 数直線の描画コンテナ */
+    .nl-wrapper {
+        padding: 60px 40px 40px 40px; /* 文字や入力欄がはみ出ないよう余白を確保 */
+        background-color: var(--box-bg);
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    .nl-track {
+        position: relative;
+        width: 100%;
+        height: 3px;
+        background-color: var(--text-color);
+    }
+    .nl-tick {
+        position: absolute;
+        width: 2px;
+        background-color: var(--text-color);
+        bottom: 0; /* 軸に接する */
+        transform: translateX(-50%);
+    }
+    .nl-tick.major { height: 22px; }
+    .nl-tick.mid { height: 14px; }
+    .nl-tick.minor { height: 8px; }
+    
+    .nl-label {
+        position: absolute;
+        top: 30px;
+        transform: translateX(-50%);
+        font-size: 14px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+    
+    /* インタラクティブ・練習問題用 */
+    .nl-hitbox {
+        position: absolute;
+        width: 16px;
+        height: 45px;
+        bottom: 0;
+        transform: translateX(-50%);
+        cursor: pointer;
+        z-index: 10;
+        border-radius: 4px;
+        transition: 0.2s;
+    }
+    .nl-hitbox:hover { background-color: rgba(243, 156, 18, 0.3); }
+    
+    .nl-arrow-label {
+        position: absolute;
+        top: -45px;
+        transform: translateX(-50%);
+        color: var(--accent-red);
+        font-weight: bold;
+        text-align: center;
+        line-height: 1.2;
+        font-size: 15px;
+    }
+    .nl-arrow { display: block; font-size: 18px; margin-bottom: 2px; }
+
+    .nl-input-wrap {
+        position: absolute;
+        top: -55px;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 5;
+    }
+    .box-input {
+        width: 85px;
+        padding: 4px;
+        font-size: 14px;
+        border: 2px solid var(--border-color);
+        border-radius: 4px;
+        text-align: center;
+        transition: 0.2s;
+    }
+    .box-input:focus { border-color: var(--main-green); outline: none; }
+    .down-arrow { color: var(--accent-red); font-size: 18px; margin-top: 2px; }
+
+    /* UIパーツ（ボタン・ヒントなど） */
+    .q-row { margin-bottom: 25px; }
+    .q-text { font-weight: bold; margin-bottom: 10px; font-size: 17px; }
+    
+    input[type="text"].inline-input {
+        padding: 6px 10px;
+        font-size: 16px;
+        border: 2px solid var(--border-color);
+        border-radius: 6px;
+        width: 120px;
+        margin-right: 10px;
+    }
+    input.small-input { width: 70px; }
+
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
+        background-color: var(--main-green);
+        box-shadow: 0 4px 0 #1e8449;
+        transition: 0.1s;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: none; }
+    .btn-hint { background-color: #3498db; box-shadow: 0 4px 0 #217dbb; margin-left: 5px; }
+    .btn-check { background-color: var(--accent-red); box-shadow: 0 4px 0 #c0392b; font-size: 18px; padding: 12px 30px; margin-top: 20px;}
+
+    .feedback { font-weight: bold; margin-left: 10px; font-size: 16px; }
+    .correct { color: var(--accent-red); } /* 丸付けの赤 */
+    .incorrect { color: #2980b9; }
+
+    .hint-box {
+        display: none;
+        background: #ebf5fb;
+        border-left: 4px solid #3498db;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 4px;
+        font-size: 15px;
+        color: #2c3e50;
+    }
+
+    /* まとめの枠 */
+    .summary-box {
+        background: #e8f8f5;
+        border: 3px solid var(--main-green);
+        border-radius: 12px;
+        padding: 15px 25px;
+        margin: 30px 0;
+        font-weight: bold;
+        text-align: center;
+        font-size: 17px;
+    }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>10000より大きい数のならび方を調べましょう</h1>
+    <p>下の数直線を使いながら、大きい数のヒミツをさぐっていこう！👩‍🏫</p>
+
+    <div class="section">
+        <div class="section-badge">ステップ 1</div>
+        <div class="q-text">㋐ の数直線の、いちばん小さい1めもりは、いくつを表していますか？</div>
+        
+        <div class="nl-wrapper">
+            <div id="track-a" class="nl-track"></div>
+        </div>
+
+        <div class="q-row">
+            <p>① いちばん小さい1めもりは、いくつですか。</p>
+            <input type="text" id="ans1" class="inline-input" placeholder="数字を入力">
+            <button class="btn" onclick="checkAnswer('ans1', ['1000', '千'], 'fb1')">こたえる</button>
+            <button class="btn btn-hint" onclick="toggleHint('hint1')">ヒントを見る</button>
+            <span id="fb1" class="feedback"></span>
+            <div id="hint1" class="hint-box">💡 0から10000の間が、何こに分けられているか数えてみよう。10こに分けられているから、10000を10でわると...？</div>
+        </div>
+
+        <div class="q-row">
+            <p>② イ、ウ、エ のめもりが表している数を書きましょう。</p>
+            イ：<input type="text" id="ans_i" class="inline-input small-input">
+            ウ：<input type="text" id="ans_u" class="inline-input small-input">
+            エ：<input type="text" id="ans_e" class="inline-input small-input">
+            <button class="btn" onclick="checkMulti(['ans_i', 'ans_u', 'ans_e'], ['5000', '21000', '69000'], 'fb2')">こたえる</button>
+            <span id="fb2" class="feedback"></span>
+        </div>
+    </div>
+
+    <div class="section orange">
+        <div class="section-badge">ステップ 2 (さわってみよう！)</div>
+        <div class="q-row">
+            <p class="q-text">③ 29000、87000 を表すめもりを、下の数直線から探してタップ（クリック）しよう！</p>
+            <div class="nl-wrapper">
+                <div id="track-click" class="nl-track"></div>
+            </div>
+            <div id="click-feedback" style="text-align:center; font-weight:bold; font-size:18px; color:var(--accent-orange); min-height: 25px;">
+                👆 2つの場所を見つけてね！
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-badge">ステップ 3</div>
+        <div class="q-row">
+            <p class="q-text">④ 38000より 3000大きい数 はいくつですか。</p>
+            <input type="text" id="ans4" class="inline-input">
+            <button class="btn" onclick="checkAnswer('ans4', ['41000'], 'fb4')">こたえる</button>
+            <button class="btn btn-hint" onclick="toggleHint('hint4')">ヒント</button>
+            <span id="fb4" class="feedback"></span>
+            <div id="hint4" class="hint-box">💡 38000から、右に3めもり進むよ。38の次は39、40...</div>
+        </div>
+        <div class="q-row">
+            <p class="q-text">⑤ 93000より 4000小さい数 はいくつですか。</p>
+            <input type="text" id="ans5" class="inline-input">
+            <button class="btn" onclick="checkAnswer('ans5', ['89000'], 'fb5')">こたえる</button>
+            <button class="btn btn-hint" onclick="toggleHint('hint5')">ヒント</button>
+            <span id="fb5" class="feedback"></span>
+            <div id="hint5" class="hint-box">💡 93000から、左に4めもりもどるよ。93の4つ前を計算してみよう！</div>
+        </div>
+    </div>
+
+    <div class="summary-box">
+        📝 まとめ<br>
+        数が大きくなっても、<strong>1めもりが表す大きさに注目</strong>して数直線を使うと、<br>数のならび方などがわかりやすくなるね！
+    </div>
+
+    <div class="section">
+        <div class="section-badge">ステップ 4 (さらに大きい数)</div>
+        <div class="nl-wrapper" style="background-color: #fdf2e9;">
+            <div id="track-i" class="nl-track"></div>
+        </div>
+        
+        <div class="q-row">
+            <p class="q-text">⑥ ㋑の数直線の、いちばん小さい1めもりはいくつですか。</p>
+            <input type="text" id="ans6" class="inline-input">
+            <button class="btn" onclick="checkAnswer('ans6', ['1000万', '10000000', '一千万'], 'fb6')">こたえる</button>
+            <span id="fb6" class="feedback"></span>
+        </div>
+        
+        <div class="q-row">
+            <p class="q-text">⑦ 「キ」のめもりは、1000万を何こ集めた数を表していますか。</p>
+            <input type="text" id="ans7" class="inline-input small-input"> こ
+            <button class="btn" onclick="checkAnswer('ans7', ['10', '十'], 'fb7')">こたえる</button>
+            <span id="fb7" class="feedback"></span>
+        </div>
+
+        <div style="background:#fff; padding:15px; border:2px dashed #bdc3c7; border-radius:8px; text-align:center;">
+            千万を 10こ 集めた数を <strong>一億 (いちおく)</strong> といい、<br>
+            <strong style="color:var(--accent-red); font-size:20px;">100000000</strong> と書きます。（0が8こ！）
+        </div>
+    </div>
+
+    <div class="section red">
+        <div class="section-badge">練習問題</div>
+        <p class="q-text">□にあてはまる数を書きましょう。</p>
+        
+        <p>①</p>
+        <div class="nl-wrapper"><div id="prac1" class="nl-track"></div></div>
+        
+        <p>②</p>
+        <div class="nl-wrapper"><div id="prac2" class="nl-track"></div></div>
+        
+        <p>③</p>
+        <div class="nl-wrapper"><div id="prac3" class="nl-track"></div></div>
+
+        <div style="text-align: center;">
+            <button class="btn btn-check" onclick="checkAllPractice()">練習問題の答え合わせをする！</button>
+            <div id="prac-fb" class="feedback" style="display:block; margin-top:15px; font-size:18px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 汎用：文字列を正規化する関数（全角→半角、カンマ・空白削除） ---
+    function normalize(str) {
+        if (!str) return "";
+        let s = str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(c) {
+            return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+        });
+        s = s.replace(/[\s,，、。]/g, '');
+        return s;
+    }
+
+    // --- 数直線描画エンジン（絶対ズレないJS制御） ---
+    function drawLine(trackId, min, max, minorStep, midStep, majorStep, labels) {
+        const track = document.getElementById(trackId);
+        track.innerHTML = '';
+        const range = max - min;
+
+        for (let v = min; v <= max; v += minorStep) {
+            const pct = ((v - min) / range) * 100;
+            
+            // 目盛りの生成
+            const tick = document.createElement('div');
+            tick.className = 'nl-tick';
+            tick.style.left = `${pct}%`;
+            
+            if (v % majorStep === 0) {
+                tick.classList.add('major');
+                // ラベルの生成
+                if (labels[v] !== undefined) {
+                    const lbl = document.createElement('div');
+                    lbl.className = 'nl-label';
+                    lbl.style.left = `${pct}%`;
+                    lbl.innerHTML = labels[v];
+                    track.appendChild(lbl);
+                }
+            } else if (v % midStep === 0) {
+                tick.classList.add('mid');
+            } else {
+                tick.classList.add('minor');
+            }
+            track.appendChild(tick);
+        }
+    }
+
+    // --- 数直線（クリックイベント付き） ---
+    let clickTargets = { 29000: false, 87000: false };
+    function drawClickableLine(trackId, min, max, minorStep, midStep, majorStep, labels) {
+        drawLine(trackId, min, max, minorStep, midStep, majorStep, labels);
+        const track = document.getElementById(trackId);
+        const range = max - min;
+
+        for (let v = min; v <= max; v += minorStep) {
+            const pct = ((v - min) / range) * 100;
+            const hit = document.createElement('div');
+            hit.className = 'nl-hitbox';
+            hit.style.left = `${pct}%`;
+            hit.onclick = () => {
+                const fb = document.getElementById('click-feedback');
+                if (v === 29000 || v === 87000) {
+                    if (!clickTargets[v]) {
+                        clickTargets[v] = true;
+                        // 矢印と文字の生成
+                        const arrow = document.createElement('div');
+                        arrow.className = 'nl-arrow-label';
+                        arrow.style.left = `${pct}%`;
+                        arrow.innerHTML = `<span class="nl-arrow">↓</span>${v}`;
+                        track.appendChild(arrow);
+                        
+                        if (clickTargets[29000] && clickTargets[87000]) {
+                            fb.innerHTML = "🎉 すごい！2つとも見つけられたね！";
+                            fb.style.color = "var(--main-green)";
+                        } else {
+                            fb.innerHTML = `⭕ 正解！ ${v} を見つけたよ。あと1つ！`;
+                            fb.style.color = "var(--main-green)";
+                        }
+                    }
+                } else {
+                    fb.innerHTML = `❌ そこは ${v} だよ。めもりをよく数えてみて！`;
+                    fb.style.color = "var(--accent-red)";
+                }
+            };
+            track.appendChild(hit);
+        }
+    }
+
+    // --- 練習問題用の入力ボックス配置エンジン ---
+    function drawPracticeLine(trackId, min, max, minorStep, majorStep, labels, inputs) {
+        // midStepは使わないのでmajorStepと同じにしておく
+        drawLine(trackId, min, max, minorStep, majorStep, majorStep, labels);
+        const track = document.getElementById(trackId);
+        const range = max - min;
+
+        inputs.forEach(inp => {
+            const pct = ((inp.val - min) / range) * 100;
+            const wrap = document.createElement('div');
+            wrap.className = 'nl-input-wrap';
+            wrap.style.left = `${pct}%`;
+            wrap.innerHTML = `
+                <input type="text" id="${inp.id}" class="box-input" placeholder="入力">
+                <div class="down-arrow">↓</div>
+            `;
+            track.appendChild(wrap);
+        });
+    }
+
+    // --- 正誤判定システム ---
+    function checkAnswer(inputId, correctArr, fbId) {
+        const input = document.getElementById(inputId);
+        const fb = document.getElementById(fbId);
+        const val = normalize(input.value);
+        
+        if (val === "") {
+            fb.innerText = "答えを入力してね。";
+            fb.className = "feedback";
+            return;
+        }
+        if (correctArr.includes(val)) {
+            fb.innerText = "⭕ 正解！";
+            fb.className = "feedback correct";
+            input.style.borderColor = "var(--main-green)";
+            input.style.backgroundColor = "var(--light-green)";
+        } else {
+            fb.innerText = "❌ もういちど考えてみよう！";
+            fb.className = "feedback incorrect";
+            input.style.borderColor = "var(--accent-red)";
+            input.style.backgroundColor = "#fdedec";
+        }
+    }
+
+    function checkMulti(inputIds, correctArrs, fbId) {
+        let allCorrect = true;
+        let anyEmpty = false;
+
+        for (let i = 0; i < inputIds.length; i++) {
+            const input = document.getElementById(inputIds[i]);
+            const val = normalize(input.value);
+            if (val === "") anyEmpty = true;
+            
+            // correctArrs[i] can be array or single string. handle array logic:
+            const corrects = Array.isArray(correctArrs[i]) ? correctArrs[i] : [correctArrs[i]];
+
+            if (corrects.includes(val)) {
+                input.style.borderColor = "var(--main-green)";
+                input.style.backgroundColor = "var(--light-green)";
+            } else {
+                input.style.borderColor = "var(--accent-red)";
+                input.style.backgroundColor = "#fdedec";
+                allCorrect = false;
+            }
+        }
+        
+        const fb = document.getElementById(fbId);
+        if (anyEmpty) {
+            fb.innerText = "ぜんぶ入力してね。";
+            fb.className = "feedback";
+        } else if (allCorrect) {
+            fb.innerText = "⭕ ばっちり！すべて正解です。";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ 色が変わったところを直してみよう。";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    function toggleHint(hintId) {
+        const el = document.getElementById(hintId);
+        el.style.display = (el.style.display === "block") ? "none" : "block";
+    }
+
+    // --- 練習問題一括判定 ---
+    const pracData = [
+        { id: 'p1_1', ans: ['10万', '十万', '100000'] },
+        { id: 'p1_2', ans: ['70万', '七十万', '700000'] },
+        { id: 'p2_1', ans: ['9200万', '九千二百万', '92000000'] },
+        { id: 'p2_2', ans: ['9500万', '九千五百万', '95000000'] },
+        { id: 'p2_3', ans: ['9900万', '九千九百万', '99000000'] },
+        { id: 'p3_1', ans: ['7400万', '七千四百万', '74000000'] },
+        { id: 'p3_2', ans: ['1億', '一億', '100000000', '10000万', '一千万十こ'] } // 1億の様々な表記を許容
+    ];
+
+    function checkAllPractice() {
+        let allCorrect = true;
+        pracData.forEach(item => {
+            const input = document.getElementById(item.id);
+            const val = normalize(input.value);
+            if (item.ans.includes(val)) {
+                input.style.borderColor = "var(--main-green)";
+                input.style.backgroundColor = "var(--light-green)";
+            } else {
+                input.style.borderColor = "var(--accent-red)";
+                input.style.backgroundColor = "#fdedec";
+                allCorrect = false;
+            }
+        });
+
+        const fb = document.getElementById('prac-fb');
+        if (allCorrect) {
+            fb.innerText = "🎊 全問大正解！！数直線マスターだね！ 🎊";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ 赤くなっているところがあるよ。もう一度見直してみよう！";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    // --- 初期化描画処理 ---
+    window.onload = () => {
+        // ① ㋐の数直線 (0〜100000)
+        drawLine('track-a', 0, 100000, 1000, 5000, 10000, {
+            0: '0', 10000: '10000', 20000: '20000', 30000: '30000', 
+            40000: '40000', 50000: '50000', 100000: '100000'
+        });
+        
+        // ラベルの追加（イ、ウ、エ）
+        const addSubLabel = (trackId, val, text) => {
+            const track = document.getElementById(trackId);
+            const lbl = document.createElement('div');
+            lbl.className = 'nl-arrow-label';
+            lbl.style.top = '55px'; // 下に配置
+            lbl.style.color = '#333';
+            lbl.style.left = `${(val / 100000) * 100}%`;
+            lbl.innerHTML = `↑<br>${text}`;
+            track.appendChild(lbl);
+        };
+        addSubLabel('track-a', 5000, 'イ');
+        addSubLabel('track-a', 21000, 'ウ');
+        addSubLabel('track-a', 69000, 'エ');
+
+        // ② クリック用数直線
+        drawClickableLine('track-click', 0, 100000, 1000, 5000, 10000, {
+            0: '0', 50000: '50000', 100000: '100000'
+        });
+
+        // ④ ㋑の数直線 (0〜10000万)
+        drawLine('track-i', 0, 10000, 1000, 5000, 10000, {
+            0: '0', 5000: '5000万', 10000: 'キ'
+        });
+
+        // ⑤ 練習問題 ① (0〜100万)
+        drawPracticeLine('prac1', 0, 100, 10, 50, { 0: '0', 50: '50万', 100: '100万' }, [
+            { id: 'p1_1', val: 10 }, { id: 'p1_2', val: 70 }
+        ]);
+
+        // ⑤ 練習問題 ② (9000万〜10000万/1億)
+        drawPracticeLine('prac2', 9000, 10000, 100, 1000, { 9000: '9000万', 10000: '1億' }, [
+            { id: 'p2_1', val: 9200 }, { id: 'p2_2', val: 9500 }, { id: 'p2_3', val: 9900 }
+        ]);
+
+        // ⑤ 練習問題 ③ (6000万〜10000万/1億)
+        drawPracticeLine('prac3', 6000, 10000, 100, 1000, 
+            { 6000: '6000万', 7000: '7000万', 8000: '8000万', 9000: '9000万' }, [
+            { id: 'p3_1', val: 7400 }, { id: 'p3_2', val: 10000 }
+        ]);
+    };
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>

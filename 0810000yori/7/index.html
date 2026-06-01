@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>０９　10000より大きな数　7時間</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第7時：いろいろな数の見方</title>
+<style>
+    /* --- 基本設定 --- */
+    :root {
+        --primary: #16a085;
+        --secondary: #27ae60;
+        --accent-orange: #e67e22;
+        --accent-pink: #e74c3c;
+        --bg-color: #f4f9f9;
+        --box-bg: #ffffff;
+        --text: #333333;
+        --border: #bdc3c7;
+    }
+    body {
+        font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text);
+        line-height: 1.6;
+        padding: 20px;
+        margin: 0;
+    }
+    .app-container {
+        max-width: 850px;
+        margin: 0 auto;
+        background: var(--box-bg);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    h1 {
+        text-align: center;
+        color: var(--primary);
+        border-bottom: 3px dashed var(--primary);
+        padding-bottom: 15px;
+        font-size: 24px;
+    }
+
+    /* --- セクションデザイン --- */
+    .section {
+        margin: 40px 0 20px;
+        padding: 25px 20px 20px;
+        border: 3px solid #a2d9ce;
+        border-radius: 10px;
+        position: relative;
+        background-color: #fff;
+    }
+    .section-badge {
+        position: absolute;
+        top: -18px;
+        left: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 5px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .section.orange { border-color: #f8c471; }
+    .section.orange .section-badge { background: var(--accent-orange); }
+    .section.pink { border-color: #f5b7b1; }
+    .section.pink .section-badge { background: var(--accent-pink); }
+
+    /* --- 数直線の完全修正版 --- */
+    .nl-container {
+        position: relative;
+        width: 100%;
+        height: 110px; /* 文字がはみ出ないように高さをしっかり確保 */
+        margin: 20px 0;
+        background-color: #fef9e7;
+        border-radius: 8px;
+    }
+    .nl-line {
+        position: absolute;
+        bottom: 30px; /* 下から30pxを基準線にする */
+        left: 5%;
+        right: 5%;
+        height: 2px;
+        background-color: #333;
+    }
+    .nl-tick {
+        position: absolute;
+        bottom: 30px; /* 基準線にピタッと合わせる */
+        width: 2px;
+        background-color: #333;
+        transform: translateX(-50%);
+    }
+    .nl-tick.major { height: 16px; } /* 長いめもり */
+    .nl-tick.minor { height: 8px; }  /* 短いめもり */
+    
+    .nl-label {
+        position: absolute;
+        bottom: 50px; /* 長いめもりの少し上に配置 */
+        transform: translateX(-50%);
+        font-size: 15px;
+        font-weight: bold;
+        color: #333;
+    }
+    .nl-arrow-wrap {
+        position: absolute;
+        bottom: 50px; /* 赤い矢印と文字のグループ */
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--accent-pink);
+        font-weight: bold;
+    }
+    .nl-arrow-text {
+        font-size: 16px;
+        margin-bottom: -2px;
+    }
+    .nl-arrow-icon {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    /* --- キャラクターカード --- */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .char-card {
+        background: #f8f9fa;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .char-card h3 {
+        margin: 0 0 10px 0;
+        color: var(--primary);
+        font-size: 18px;
+    }
+    .char-card p { margin: 10px 0; font-size: 16px; font-weight: bold; }
+
+    /* --- 入力・ボタン --- */
+    input[type="text"] {
+        padding: 6px;
+        font-size: 16px;
+        border: 2px solid var(--border);
+        border-radius: 5px;
+        text-align: center;
+        width: 70px;
+        transition: 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--secondary); outline: none; }
+    input.large-input { width: 100px; }
+
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
+        background-color: var(--secondary);
+        box-shadow: 0 4px 0 #1e8449;
+        transition: 0.1s;
+        margin: 5px;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: none; }
+    .btn-hint { background-color: #3498db; box-shadow: 0 4px 0 #217dbb; }
+    
+    /* 志保さんの選択ボタン */
+    .btn-choice {
+        background-color: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        box-shadow: 0 4px 0 var(--border);
+        font-size: 16px;
+        padding: 10px 20px;
+    }
+    .btn-choice:active { transform: translateY(4px); box-shadow: none; }
+    .btn-choice.selected { background-color: var(--primary); color: white; border-color: var(--primary); }
+
+    /* --- フィードバック --- */
+    .feedback { font-weight: bold; font-size: 15px; display: block; margin-top: 8px; min-height: 24px; }
+    .correct { color: var(--accent-pink); }
+    .incorrect { color: #2980b9; }
+
+    .hint-box {
+        display: none;
+        background: #ebf5fb;
+        border-left: 4px solid #3498db;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    /* --- まとめボックス --- */
+    .summary-box {
+        background: #e8f8f5;
+        border: 3px solid var(--secondary);
+        border-radius: 10px;
+        padding: 20px;
+        margin: 30px 0;
+        font-weight: bold;
+        text-align: center;
+        font-size: 18px;
+    }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>第7時：16000は、どのような数といえるかな？</h1>
+    
+    <div class="section">
+        <div class="section-badge">ステップ 1：ことばで表そう</div>
+        <p>下の数直線を見て、3人の見方の <strong>□</strong> にあてはまる数を書きましょう。</p>
+        
+        <div class="nl-container" id="nl-16000"></div>
+
+        <div class="card-grid">
+            <div class="char-card">
+                <h3>👦 りくさんの見方</h3>
+                <p>16000は、<br>10000 と <input type="text" id="ans_riku"> を<br>あわせた数です。</p>
+                <button class="btn" onclick="checkAnswer('ans_riku', ['6000', '六千'], 'fb_riku')">かくにん</button>
+                <button class="btn btn-hint" onclick="toggleHint('hint_riku')">ヒント</button>
+                <span id="fb_riku" class="feedback"></span>
+                <div id="hint_riku" class="hint-box">数直線で、10000から16000まで いくつ進んでいるか数えてみよう！</div>
+            </div>
+            
+            <div class="char-card">
+                <h3>👧 あみさんの見方</h3>
+                <p>16000は、<br>20000 より <input type="text" id="ans_ami"> <br>小さい数です。</p>
+                <button class="btn" onclick="checkAnswer('ans_ami', ['4000', '四千'], 'fb_ami')">かくにん</button>
+                <button class="btn btn-hint" onclick="toggleHint('hint_ami')">ヒント</button>
+                <span id="fb_ami" class="feedback"></span>
+                <div id="hint_ami" class="hint-box">20000から16000まで、左にいくつ もどっているかな？</div>
+            </div>
+
+            <div class="char-card">
+                <h3>👱‍♀️ みさきさんの見方</h3>
+                <p>16000は、<br>1000 を <input type="text" id="ans_misaki"> こ<br>集めた数です。</p>
+                <button class="btn" onclick="checkAnswer('ans_misaki', ['16', '十六'], 'fb_misaki')">かくにん</button>
+                <button class="btn btn-hint" onclick="toggleHint('hint_misaki')">ヒント</button>
+                <span id="fb_misaki" class="feedback"></span>
+                <div id="hint_misaki" class="hint-box">いちばん小さい1めもりが1000だよ。0から16000まで、めもりは何こある？</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section orange">
+        <div class="section-badge">ステップ 2：式で表そう</div>
+        <p>ことばで表した見方を、<strong>式</strong> にしてみましょう。</p>
+        
+        <div style="background: #fdf2e9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <p>👧 <strong>あみさん</strong>「20000より 4000 小さい数」<br>
+               👉 式にすると... <strong>16000 ＝ 20000 － 4000</strong></p>
+        </div>
+
+        <div style="background: #ebf5fb; padding: 15px; border-radius: 8px;">
+            <p>👦 <strong>りくさん</strong>「10000 と 6000 をあわせた数」<br>
+               👉 式にしてみよう！</p>
+            <div style="font-size: 20px; font-weight: bold; text-align: center; margin: 15px 0;">
+                16000 ＝ <input type="text" id="ans_riku_eq1" class="large-input"> ＋ <input type="text" id="ans_riku_eq2" class="large-input">
+            </div>
+            <div style="text-align: center;">
+                <button class="btn" onclick="checkEquationAnyOrder('ans_riku_eq1', 'ans_riku_eq2', ['10000', '6000'], 'fb_riku_eq')">かくにん</button>
+                <span id="fb_riku_eq" class="feedback"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-badge">ステップ 3：だれと同じ見方？</div>
+        <p>👩‍𱈖 <strong>しほさん</strong>は、4200という数を 下のような式で表しました。</p>
+        <div style="font-size: 22px; font-weight: bold; text-align: center; margin: 15px 0; border: 2px dashed #95a5a6; padding: 10px; border-radius: 10px; display: inline-block; background: #fff;">
+            4200 ＝ 5000 － 800
+        </div>
+        <p>上の3人（りく、あみ、みさき）のうち、<strong>だれと同じ見方</strong> をしていますか？</p>
+        
+        <div style="text-align: center; margin-top: 15px;">
+            <button class="btn-choice" id="btn_riku" onclick="selectChoice('btn_riku', false)">👦 りく</button>
+            <button class="btn-choice" id="btn_ami" onclick="selectChoice('btn_ami', true)">👧 あみ</button>
+            <button class="btn-choice" id="btn_misaki" onclick="selectChoice('btn_misaki', false)">👱‍♀️ みさき</button>
+            <br>
+            <span id="fb_choice" class="feedback" style="margin-top: 15px; font-size: 18px;"></span>
+        </div>
+    </div>
+
+    <div class="summary-box">
+        💡 まとめ<br>
+        1つの数でも <strong>いろいろな見方</strong> ができるね。<br>
+        数の見方は、ことばだけでなく <strong>式</strong> でも表すことができるよ！
+    </div>
+
+    <div class="section pink">
+        <div class="section-badge">適応問題（練習）</div>
+        <p><strong>73000</strong> は、どのような数といえるでしょうか。3つの見方で表してみよう！</p>
+        
+        <div style="margin-bottom: 20px;">
+            <p>① たし算の見方</p>
+            <input type="text" id="p1_1" class="large-input"> と <input type="text" id="p1_2" class="large-input"> をあわせた数
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <p>② ひき算の見方</p>
+            <input type="text" id="p2_1" class="large-input"> より <input type="text" id="p2_2" class="large-input"> 小さい数
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <p>③ かけ算（集める）の見方</p>
+            1000 を <input type="text" id="p3"> こ 集めた数
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn" style="background-color: var(--accent-pink); padding: 10px 30px; font-size: 18px;" onclick="checkPractice()">ぜんぶ かくにん！</button>
+            <button class="btn btn-hint" onclick="toggleHint('hint_prac')">ヒント</button>
+            <span id="fb_prac" class="feedback"></span>
+            <div id="hint_prac" class="hint-box" style="width: 80%; margin: 10px auto;">
+                ① 70000 と あといくつかな？<br>
+                ② 次の大きな数は 80000 だね。80000より いくつ小さい？<br>
+                ③ 73000 の 0 を3つ取ると...？
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- 修正版：数直線の自動描画 ---
+    function drawNumberLine() {
+        const container = document.getElementById('nl-16000');
+        container.innerHTML = '<div class="nl-line"></div>';
+        
+        const min = 0;
+        const max = 20000;
+        const range = max - min;
+
+        for (let i = min; i <= max; i += 1000) {
+            const pct = (i / range) * 90 + 5; // 左右に5%ずつ余白を持たせる
+            
+            // めもり線の生成
+            const tick = document.createElement('div');
+            tick.className = 'nl-tick ' + (i % 10000 === 0 ? 'major' : 'minor');
+            tick.style.left = pct + '%';
+            container.appendChild(tick);
+
+            // 0, 10000, 20000 のラベル
+            if (i % 10000 === 0) {
+                const lbl = document.createElement('div');
+                lbl.className = 'nl-label';
+                lbl.style.left = pct + '%';
+                lbl.innerText = i;
+                container.appendChild(lbl);
+            }
+            
+            // 16000の矢印と文字の生成
+            if (i === 16000) {
+                const arrow = document.createElement('div');
+                arrow.className = 'nl-arrow-wrap';
+                arrow.style.left = pct + '%';
+                arrow.innerHTML = '<div class="nl-arrow-text">16000</div><div class="nl-arrow-icon">↓</div>';
+                container.appendChild(arrow);
+            }
+        }
+    }
+    window.onload = drawNumberLine;
+
+    // --- 汎用：全角→半角・空白除去 ---
+    function normalize(str) {
+        if (!str) return "";
+        return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        }).replace(/[\s,，、。]/g, '');
+    }
+
+    // --- 単一入力の正誤判定 ---
+    function checkAnswer(inputId, validAnswers, fbId) {
+        const input = document.getElementById(inputId);
+        const fb = document.getElementById(fbId);
+        const val = normalize(input.value);
+        
+        if (val === "") {
+            fb.innerText = "答えを入力してね。";
+            fb.className = "feedback";
+            return;
+        }
+
+        if (validAnswers.includes(val)) {
+            fb.innerText = "⭕ 大正解！";
+            fb.className = "feedback correct";
+            input.style.borderColor = "var(--secondary)";
+            input.style.backgroundColor = "#eafaf1";
+        } else {
+            fb.innerText = "❌ もういちど考えてみよう！";
+            fb.className = "feedback incorrect";
+            input.style.borderColor = "var(--accent-pink)";
+            input.style.backgroundColor = "#fdedec";
+        }
+    }
+
+    // --- 順不同の2つ入力枠の判定（りくの式用） ---
+    function checkEquationAnyOrder(id1, id2, targetValues, fbId) {
+        const input1 = document.getElementById(id1);
+        const input2 = document.getElementById(id2);
+        const fb = document.getElementById(fbId);
+        
+        const val1 = normalize(input1.value);
+        const val2 = normalize(input2.value);
+
+        if (val1 === "" || val2 === "") {
+            fb.innerText = "2つとも入力してね。";
+            fb.className = "feedback";
+            return;
+        }
+
+        const isCorrect = (val1 === targetValues[0] && val2 === targetValues[1]) || 
+                          (val1 === targetValues[1] && val2 === targetValues[0]);
+
+        if (isCorrect) {
+            fb.innerText = "⭕ ばっちり！たし算の式ができたね！";
+            fb.className = "feedback correct";
+            input1.style.backgroundColor = "#eafaf1";
+            input2.style.backgroundColor = "#eafaf1";
+        } else {
+            fb.innerText = "❌ 数字をもういちど確認してみよう。";
+            fb.className = "feedback incorrect";
+            input1.style.backgroundColor = "#fdedec";
+            input2.style.backgroundColor = "#fdedec";
+        }
+    }
+
+    // --- 志保さんの問題（3択ボタン） ---
+    function selectChoice(btnId, isCorrect) {
+        document.getElementById('btn_riku').classList.remove('selected');
+        document.getElementById('btn_ami').classList.remove('selected');
+        document.getElementById('btn_misaki').classList.remove('selected');
+        
+        document.getElementById(btnId).classList.add('selected');
+        
+        const fb = document.getElementById('fb_choice');
+        if (isCorrect) {
+            fb.innerHTML = "⭕ 大正解！<br><span style='font-size:15px; color:#333;'>「ひき算（〜より〜小さい）」を使って表しているから、あみさんと同じだね！</span>";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ しほさんは「ひき算」を使っているよ。だれと同じかな？";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    // --- 適応問題（練習）の判定 ---
+    function checkPractice() {
+        const v1_1 = normalize(document.getElementById('p1_1').value);
+        const v1_2 = normalize(document.getElementById('p1_2').value);
+        const isQ1Correct = (v1_1 === '70000' && v1_2 === '3000') || (v1_1 === '3000' && v1_2 === '70000');
+        
+        const v2_1 = normalize(document.getElementById('p2_1').value);
+        const v2_2 = normalize(document.getElementById('p2_2').value);
+        const isQ2Correct = (v2_1 === '80000' && v2_2 === '7000');
+
+        const v3 = normalize(document.getElementById('p3').value);
+        const isQ3Correct = (v3 === '73' || v3 === '七十三');
+
+        const styleInput = (id, isRight) => {
+            const el = document.getElementById(id);
+            if(normalize(el.value) === "") {
+                el.style.backgroundColor = "#fff";
+                el.style.borderColor = "var(--border)";
+            } else if (isRight) {
+                el.style.backgroundColor = "#eafaf1";
+                el.style.borderColor = "var(--secondary)";
+            } else {
+                el.style.backgroundColor = "#fdedec";
+                el.style.borderColor = "var(--accent-pink)";
+            }
+        };
+
+        styleInput('p1_1', isQ1Correct); styleInput('p1_2', isQ1Correct);
+        styleInput('p2_1', v2_1==='80000'); styleInput('p2_2', v2_2==='7000');
+        styleInput('p3', isQ3Correct);
+
+        const fb = document.getElementById('fb_prac');
+        if (v1_1==="" || v1_2==="" || v2_1==="" || v2_2==="" || v3==="") {
+            fb.innerText = "ぜんぶの□に入力してみてね！";
+            fb.className = "feedback";
+        } else if (isQ1Correct && isQ2Correct && isQ3Correct) {
+            fb.innerText = "🎉 全問大正解！いろいろな見方がマスターできたね！";
+            fb.className = "feedback correct";
+        } else {
+            fb.innerText = "❌ 赤くなっているところを直してみよう！";
+            fb.className = "feedback incorrect";
+        }
+    }
+
+    // --- ヒント表示切替 ---
+    function toggleHint(hintId) {
+        const el = document.getElementById(hintId);
+        el.style.display = (el.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
