@@ -4,12 +4,110 @@
   <head>
     <meta charset="UTF-8">
     <title>大きな数の筆算　３時間目　②　適応問題</title>
-    <link rel="stylesheet" href="./style.css">
+    
 
   </head>
     
   <body>
-  <div class="app-container">
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ひき算の筆算れんしゅう</title>
+    <style>
+        :root {
+            --primary: #10b981; --primary-dark: #059669;
+            --text: #334155; --bg: #f8fafc;
+            --col-1: #fce7f3; --col-1-border: #f9a8d4; /* ピンク */
+            --col-10: #fef9c3; --col-10-border: #fde047; /* 黄色 */
+            --col-100: #e0f2fe; --col-100-border: #7dd3fc; /* 水色 */
+            --active-border: #f472b6; --active-shadow: rgba(244, 114, 182, 0.4); 
+        }
+
+        body { font-family: 'Hiragino Maru Gothic ProN', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+        .app-container { background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 850px; }
+        .header-title { font-size: 22px; font-weight: bold; color: var(--primary-dark); text-align: center; margin-bottom: 20px; }
+
+        /* 問題選択 */
+        .problem-selector { background: #eff6ff; padding: 12px; border-radius: 10px; border: 2px solid #93c5fd; font-weight: bold; margin-bottom: 20px; text-align: center; color: #1e3a8a; }
+        select { font-size: 16px; padding: 5px; border-radius: 5px; font-weight: bold; outline: none; border: 1px solid #93c5fd; cursor: pointer;}
+
+        /* ナビボード */
+        .nav-board { border: 3px solid var(--primary); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: 0.3s; }
+        .nav-title { background: var(--primary); color: white; font-weight: bold; padding: 10px 15px; font-size: 16px; }
+        .nav-msg { padding: 15px; font-size: 16px; font-weight: bold; line-height: 1.6; background: #fff; }
+
+        /* 2カラムレイアウト */
+        .split-layout { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .calc-workspace { flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
+        .blocks-workspace { flex: 1.5; min-width: 320px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; }
+
+        /* 筆算グリッド */
+        .grid-paper { 
+            display: grid; grid-template-columns: 45px 65px 65px 65px; gap: 0; 
+            border: 2px solid #94a3b8; border-radius: 15px; padding: 15px 20px 25px; background: #fff; 
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); 
+            background-size: 100% 65px, 65px 100%; 
+        }
+        .cell { width: 100%; height: 65px; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: bold; position: relative; }
+        .cell.blank { border: none; }
+        .cell.sign { font-size: 32px; justify-content: flex-end; padding-right: 5px; }
+        .line { border-bottom: 4px solid #1e293b; padding-bottom: 2px; }
+
+        /* くり下がり斜線とメモ */
+        .crossed-out::after { content: ''; position: absolute; width: 70%; height: 4px; background: #e11d48; top: 50%; left: 15%; transform: rotate(-25deg); border-radius: 2px; pointer-events: none; z-index: 5;}
+        .small-ten { position: absolute; top: -15px; right: -5px; font-size: 16px; font-weight: bold; color: #e11d48; background: white; border-radius: 4px; padding: 0 3px; z-index: 5; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid #fca5a5;}
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .carry-wrapper { display: flex; justify-content: flex-end; align-items: flex-end; padding-bottom: 5px; padding-right: 5px; }
+        .carry-input { width: 40px; height: 40px; font-size: 18px; font-weight: bold; color: #e11d48; border: 2px dashed #fca5a5; border-radius: 50%; text-align: center; background: #fef2f2; outline: none; transition: 0.2s; }
+        .carry-input:focus { border-color: #ef4444; background: #fff; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1.1); z-index: 10;}
+
+        /* 入力マス */
+        .input-wrapper { padding: 4px; transition: 0.3s; position: relative; }
+        .ans-input { width: 100%; height: 100%; font-size: 36px; font-weight: bold; text-align: center; border: 3px solid #cbd5e1; border-radius: 8px; outline: none; background: #fff; color: #334155; }
+        .ans-input:disabled { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+
+        .active-col { transform: scale(1.05); z-index: 10; }
+        .active-col .ans-input { border-color: var(--active-border); box-shadow: 0 0 12px var(--active-shadow); }
+        .active-col.wrap-1 .ans-input { border-color: var(--col-1-border); box-shadow: 0 0 12px var(--col-1-border); background: var(--col-1); }
+        .active-col.wrap-10 .ans-input { border-color: var(--col-10-border); box-shadow: 0 0 12px var(--col-10-border); background: var(--col-10); }
+        .active-col.wrap-100 .ans-input { border-color: var(--col-100-border); box-shadow: 0 0 12px var(--col-100-border); background: var(--col-100); }
+
+        .correct-input { background: #fff !important; color: #047857 !important; border-color: #10b981 !important; box-shadow: none !important; }
+        .wrong-input { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+
+        /* ブロック（お金）エリア */
+        .blocks-title { font-weight: bold; text-align: center; margin-bottom: 15px; color: #475569; font-size: 16px; }
+        .block-row { display: flex; align-items: center; margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); min-height: 50px;}
+        .block-label { width: 55px; font-weight: bold; font-size: 14px; color: #64748b; }
+        .block-area { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+
+        .coin { width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; color: #1e293b; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 0 rgba(0,0,0,0.1);}
+        .coin-100 { background: #e0f2fe; border: 2px solid #7dd3fc; }
+        .coin-10 { background: #fef9c3; border: 2px solid #fde047; }
+        .coin-1 { background: #fce7f3; border: 2px solid #f9a8d4; }
+        .coin.used { opacity: 0.2; transform: scale(0.8); filter: grayscale(1); box-shadow: none;}
+        .coin.new-coin { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        .btn-action { width: 100%; background: #f59e0b; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #d97706; margin-top: auto; font-size: 16px; animation: pulse 2s infinite; }
+        .btn-action:active { transform: translateY(4px); box-shadow: none; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        /* ボタン類 */
+        .btn-check { width: 100%; background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 var(--primary-dark); transition: 0.1s; }
+        .btn-check:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+        .btn-check:disabled { background: #cbd5e1; box-shadow: 0 4px 0 #94a3b8; cursor: not-allowed; }
+        .btn-reset { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .mt-15 { margin-top: 15px; }
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
     <div class="header-title">🌟 ひき算の筆算れんしゅう 🌟</div>
 
     <div class="problem-selector">
@@ -101,8 +199,310 @@
 
     <button class="btn-reset" onclick="resetApp()">最初からやりなおす</button>
 </div>
-    <script  src="./script.js"></script>
 
+<script>
+    // 全角数字を半角にするサポート機能
+    window.toHalfWidth = function(str) {
+        if (!str) return "";
+        return str.replace(/[０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+    };
+
+    // 問題データ
+    const problems = {
+        1: { op1: "765", op2: "413" },
+        2: { op1: "587", op2: "324" },
+        3: { op1: "693", op2: "365" },
+        4: { op1: "432", op2: "126" },
+        5: { op1: "920", op2: "914" },
+        6: { op1: "710", op2:   "5" },
+        7: { op1: "638", op2: "271" },
+        8: { op1: "349", op2:  "73" },
+        9: { op1: "507", op2:  "86" },
+        10:{ op1: "734", op2: "258" },
+        11:{ op1: "865", op2: "287" },
+        12:{ op1: "642", op2:  "49" }
+    };
+
+    let currentProb = 1;
+    let phase = 'setup'; // setup, memoCheck, input, done
+    let targetPlace = 1; // 1, 10, 100
+    let coinsCount = { 100: 0, 10: 0, 1: 0 };
+    let op1Vals = { 100: 0, 10: 0, 1: 0 };
+    let op2Vals = { 100: 0, 10: 0, 1: 0 };
+    let borrowed = { 10: false, 100: false };
+    let actualMemoVals = { 100: 0, 10: 0 };
+    let currentData = { op1Arr: [], op2Arr: [], ansArr: [] };
+
+    function updateNav(title, msg, color) {
+        document.getElementById('nav-title').innerText = title;
+        document.getElementById('nav-msg').innerHTML = msg;
+        document.getElementById('nav-board').style.borderColor = color;
+        document.getElementById('nav-title').style.backgroundColor = color;
+    }
+
+    function flashError(elId) {
+        const el = document.getElementById(elId);
+        el.classList.add('wrong-input');
+        setTimeout(() => el.classList.remove('wrong-input'), 600);
+    }
+
+    function renderCoins() {
+        [100, 10, 1].forEach(place => {
+            const area = document.getElementById(`blocks-${place}`);
+            area.innerHTML = '';
+            for(let i=0; i<coinsCount[place]; i++) {
+                const coin = document.createElement('div');
+                coin.className = `coin coin-${place}`;
+                coin.innerText = place;
+                area.appendChild(coin);
+            }
+        });
+    }
+
+    function updateCoins(place, count) {
+        const area = document.getElementById(`blocks-${place}`);
+        const coins = area.querySelectorAll(`.coin-${place}:not(.used)`);
+        let numToGray = Math.min(count, coins.length);
+        for(let i=0; i<numToGray; i++) {
+            // 後ろのコインから暗くしていく
+            coins[coins.length - 1 - i].classList.add('used');
+        }
+    }
+
+    function loadProblem() {
+        currentProb = parseInt(document.getElementById('prob-select').value);
+        const data = problems[currentProb];
+        
+        const pad = (s) => s.toString().padStart(3, ' ').split('');
+        currentData.op1Arr = pad(data.op1);
+        currentData.op2Arr = pad(data.op2);
+        
+        const total = parseInt(data.op1.trim()) - parseInt(data.op2.trim());
+        currentData.ansArr = pad(total);
+
+        op1Vals = { 
+            100: parseInt(currentData.op1Arr[0]) || 0, 
+            10:  parseInt(currentData.op1Arr[1]) || 0, 
+            1:   parseInt(currentData.op1Arr[2]) || 0 
+        };
+        op2Vals = { 
+            100: parseInt(currentData.op2Arr[0]) || 0, 
+            10:  parseInt(currentData.op2Arr[1]) || 0, 
+            1:   parseInt(currentData.op2Arr[2]) || 0 
+        };
+        
+        coinsCount = { 100: op1Vals[100], 10: op1Vals[10], 1: op1Vals[1] };
+        borrowed = { 10: false, 100: false };
+        actualMemoVals = { 100: op1Vals[100], 10: op1Vals[10] };
+
+        renderCoins();
+
+        // UIリセット
+        ['100','10','1'].forEach(pl => {
+            ['op1','op2','ans'].forEach(type => {
+                const el = document.getElementById(`${type}-${pl}`);
+                el.value = '';
+                el.classList.remove('correct-input', 'wrong-input', 'crossed-out');
+                el.disabled = type === 'ans';
+            });
+            document.getElementById(`wrap-op1-${pl}`).classList.remove('active-col', `wrap-${pl}`);
+            document.getElementById(`wrap-ans-${pl}`).classList.remove('active-col', `wrap-${pl}`);
+            
+            const ten = document.getElementById(`ten-${pl}`);
+            if(ten) ten.classList.add('hidden');
+        });
+        
+        ['100', '10'].forEach(pl => {
+            const memo = document.getElementById(`memo-${pl}`);
+            if (memo) {
+                memo.value = '';
+                memo.classList.add('hidden');
+                memo.classList.remove('correct-input', 'wrong-input');
+                memo.disabled = true;
+            }
+        });
+
+        document.getElementById('btn-borrow').classList.add('hidden');
+        document.getElementById('btn-calc').innerText = "かくにん";
+        document.getElementById('btn-calc').disabled = false;
+
+        phase = 'setup';
+        targetPlace = 1;
+        updateNav("ステップ ①：式をたてよう", "上の問題を見て、マスに数字を入れよう。<br><strong>右はし（一の位）をピタッとそろえる</strong>のがポイントだよ！<br>何もない位は空っぽのままにしてね。", "#10b981");
+    }
+
+    function checkSetup() {
+        let isCorrect = true;
+        const getV = (id) => toHalfWidth(document.getElementById(id).value) || ' ';
+        
+        ['100','10','1'].forEach((pl, idx) => {
+            if(getV(`op1-${pl}`) !== currentData.op1Arr[idx]) { flashError(`op1-${pl}`); isCorrect = false; }
+            if(getV(`op2-${pl}`) !== currentData.op2Arr[idx]) { flashError(`op2-${pl}`); isCorrect = false; }
+        });
+
+        if (isCorrect) {
+            ['100','10','1'].forEach(pl => {
+                document.getElementById(`op1-${pl}`).classList.add('correct-input'); document.getElementById(`op1-${pl}`).disabled = true;
+                document.getElementById(`op2-${pl}`).classList.add('correct-input'); document.getElementById(`op2-${pl}`).disabled = true;
+            });
+            startCalcPhase(1);
+        } else {
+            updateNav("ステップ ①：式をたてよう", "ちがうみたい。数字を入れる場所に気をつけて！<br><strong>右はしをそろえて</strong>、何もない所は空っぽにするよ。", "#ef4444");
+        }
+    }
+
+    function startCalcPhase(place) {
+        targetPlace = place;
+        if (place > 100) {
+            phase = 'done';
+            document.getElementById('btn-calc').innerText = "クリア！";
+            document.getElementById('btn-calc').disabled = true;
+            const finalAns = parseInt(currentData.ansArr.join(''));
+            updateNav("✨ 大正解！ ✨", `ぜんぶ計算できたね！答えは「${finalAns}」だ！<br>よくできました！`, "#10b981");
+            return;
+        }
+
+        const colors = { 1: '#f472b6', 10: '#eab308', 100: '#0ea5e9' };
+        const names = { 1: '一', 10: '十', 100: '百' };
+        
+        document.getElementById(`wrap-ans-${place}`).classList.add('active-col', `wrap-${place}`);
+        document.getElementById(`wrap-op1-${place}`).classList.add('active-col', `wrap-${place}`);
+
+        // くり下がりが必要かチェックする
+        let currentTop = op1Vals[place] - (borrowed[place] ? 1 : 0);
+        
+        if (currentTop < op2Vals[place] && place < 100) {
+            phase = 'borrowWait';
+            document.getElementById('btn-borrow').classList.remove('hidden');
+            document.getElementById('btn-calc').disabled = true;
+            updateNav(`ステップ ②：${names[place]}の位の計算`, `<strong>${currentTop} － ${op2Vals[place]} は、引けないね！</strong><br>右のボタンをおして、となりの位から「10」かりてこよう。`, colors[place]);
+        } else {
+            phase = 'input';
+            document.getElementById(`ans-${place}`).disabled = false;
+            document.getElementById(`ans-${place}`).focus();
+            
+            let equationTop = currentTop + (borrowed[place * 10] ? 10 : 0);
+            updateNav(`ステップ ②：${names[place]}の位の計算`, `<strong>${equationTop} － ${op2Vals[place]} ＝ ？</strong><br>計算して答えのマスに入れよう。`, colors[place]);
+        }
+    }
+
+    function doBorrow() {
+        const higher = targetPlace * 10;
+        const names = { 1: '一', 10: '十', 100: '百' };
+        
+        // ブロックアニメーション処理
+        const blocksHigher = document.getElementById(`blocks-${higher}`);
+        const usableBlock = blocksHigher.querySelector(`.coin-${higher}:not(.used)`);
+        if (usableBlock) usableBlock.classList.add('used'); // 1つ使う
+        
+        const blocksCurrent = document.getElementById(`blocks-${targetPlace}`);
+        for(let i=0; i<10; i++) {
+            const coin = document.createElement('div');
+            coin.className = `coin coin-${targetPlace} new-coin`;
+            coin.innerText = targetPlace;
+            blocksCurrent.appendChild(coin);
+        }
+        
+        // 状態の更新
+        borrowed[higher] = true;
+        actualMemoVals[higher] -= 1;
+        
+        // UIの表示切り替え
+        document.getElementById('btn-borrow').classList.add('hidden');
+        document.getElementById(`op1-${higher}`).classList.add('crossed-out');
+        
+        const memoHigher = document.getElementById(`memo-${higher}`);
+        memoHigher.classList.remove('hidden');
+        memoHigher.disabled = false;
+        memoHigher.focus();
+        
+        const tenCurrent = document.getElementById(`ten-${targetPlace}`);
+        if(tenCurrent) tenCurrent.classList.remove('hidden');
+        
+        document.getElementById('btn-calc').disabled = false;
+        document.getElementById('btn-calc').innerText = "メモをかくにん";
+        phase = 'memoCheck';
+        
+        updateNav("ステップ ③：くり下がりのメモ", `となりの位からかりたから、${names[higher]}の位が 1 ヘったよ。<br>赤いてんせんのマスに、<strong>へったあとの数字</strong>を書こう！`, "#e11d48");
+    }
+
+    function processCalc() {
+        if (phase === 'setup') {
+            checkSetup();
+            return;
+        }
+        
+        const getV = (id) => toHalfWidth(document.getElementById(id).value.trim());
+
+        if (phase === 'memoCheck') {
+            const higher = targetPlace * 10;
+            const expected = actualMemoVals[higher].toString();
+            const v = getV(`memo-${higher}`);
+            
+            if (v === expected) {
+                const el = document.getElementById(`memo-${higher}`);
+                el.classList.add('correct-input');
+                el.disabled = true;
+                
+                phase = 'input';
+                document.getElementById('btn-calc').innerText = "かくにん";
+                document.getElementById(`ans-${targetPlace}`).disabled = false;
+                document.getElementById(`ans-${targetPlace}`).focus();
+                
+                const names = { 1: '一', 10: '十', 100: '百' };
+                let currentTop = op1Vals[targetPlace] - (borrowed[targetPlace] ? 1 : 0) + 10; 
+                updateNav(`ステップ ④：${names[targetPlace]}の位の計算`, `メモが書けたね！<br><strong>${currentTop} － ${op2Vals[targetPlace]} ＝ ？</strong><br>計算して答えのマスに入れよう。`, "#3b82f6");
+            } else {
+                flashError(`memo-${higher}`);
+                updateNav("ステップ ③：くり下がりのメモ", "数がちがうみたい。かりたから「1」へるよ！", "#ef4444");
+            }
+        }
+        else if (phase === 'input') {
+            const ansIdx = { 100: 0, 10: 1, 1: 2 }[targetPlace];
+            const expected = currentData.ansArr[ansIdx]; // ' '（空欄）になる場合もある
+            const v = getV(`ans-${targetPlace}`) || ' '; 
+            
+            let isCorrect = false;
+            // 答えが空欄(上の桁の0)になる場合、'0'を入力しても正解扱いにする
+            if (expected === ' ') {
+                if (v === ' ' || v === '0') isCorrect = true;
+            } else {
+                if (v === expected) isCorrect = true;
+            }
+
+            if (isCorrect) {
+                const el = document.getElementById(`ans-${targetPlace}`);
+                el.classList.add('correct-input');
+                if(v === ' ') el.value = ''; // 見た目をスッキリさせる
+                el.disabled = true;
+                
+                document.getElementById(`wrap-op1-${targetPlace}`).classList.remove('active-col', `wrap-${targetPlace}`);
+                document.getElementById(`wrap-ans-${targetPlace}`).classList.remove('active-col', `wrap-${targetPlace}`);
+                
+                // 計算に使った分のコインを暗くする
+                updateCoins(targetPlace, op2Vals[targetPlace]);
+                
+                startCalcPhase(targetPlace * 10);
+            } else {
+                flashError(`ans-${targetPlace}`);
+                const names = { 1: '一', 10: '十', 100: '百' };
+                updateNav("もう一度！", `計算をたしかめよう。${names[targetPlace]}の位のひき算だよ。`, "#ef4444");
+            }
+        }
+    }
+
+    function resetApp() {
+        location.reload(); 
+    }
+
+    // 最初から1問目をロード
+    window.onload = loadProblem;
+</script>
+</body>
+</html>
+    
   </body>
   
 </html>

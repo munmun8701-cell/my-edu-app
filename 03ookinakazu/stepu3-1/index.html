@@ -4,12 +4,110 @@
   <head>
     <meta charset="UTF-8">
     <title>大きな数の筆算　３時間目　①</title>
-    <link rel="stylesheet" href="./style.css">
+    
 
   </head>
     
   <body>
-  <div class="app-container">
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筆算のしかたを考えよう</title>
+    <style>
+        :root {
+            --primary: #10b981; --primary-dark: #059669;
+            --col-1: #fce7f3; --col-1-border: #f9a8d4; /* 一の位：ピンク */
+            --col-10: #fef9c3; --col-10-border: #fde047; /* 十の位：黄色 */
+            --col-100: #e0f2fe; --col-100-border: #7dd3fc; /* 百の位：水色 */
+            --text: #334155; --bg: #f8fafc;
+        }
+
+        body { font-family: 'Hiragino Maru Gothic ProN', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+        .app-container { background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 800px; }
+        .header-title { font-size: 22px; font-weight: bold; color: var(--primary-dark); text-align: center; margin-bottom: 20px; }
+
+        .question-box { background: #f0fdf4; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 18px; font-weight: bold; border-left: 6px solid var(--primary); line-height: 1.5; }
+        .section-card { border: 2px solid #e2e8f0; border-radius: 15px; padding: 20px; margin-bottom: 20px; background: #fff; animation: fadeIn 0.5s; }
+        .hidden { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ナビボード */
+        .nav-board { border: 3px solid var(--primary); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: 0.3s; }
+        .nav-title { background: var(--primary); color: white; font-weight: bold; padding: 8px 15px; font-size: 16px; }
+        .nav-msg { padding: 15px; font-size: 16px; font-weight: bold; line-height: 1.5; background: #fff; }
+        .highlight-text { color: #e11d48; font-weight: bold; }
+
+        /* 入力とボタン */
+        .calc-row { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: bold; }
+        .justify-center { justify-content: center; }
+        .num-input { padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 20px; font-weight: bold; outline: none; transition: 0.2s; }
+        .num-input:focus { border-color: var(--primary); }
+        .correct-input { background: #dcfce7 !important; color: #047857 !important; border-color: #10b981 !important; box-shadow: none !important; }
+        .wrong-input { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+
+        .btn-check { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 var(--primary-dark); transition: 0.1s; }
+        .btn-check:active { transform: translateY(4px); box-shadow: none; }
+        .btn-check:disabled { background: #cbd5e1; box-shadow: 0 4px 0 #94a3b8; cursor: not-allowed; }
+        .btn-reset { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* 2カラムレイアウト（筆算とブロック） */
+        .split-layout { display: flex; gap: 20px; flex-wrap: wrap; }
+        .calc-workspace { flex: 1; min-width: 250px; display: flex; flex-direction: column; align-items: center; }
+        .blocks-workspace { flex: 1.5; min-width: 300px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 15px; }
+
+        /* 筆算グリッド */
+        .grid-paper { display: grid; grid-template-columns: 40px 60px 60px 60px; gap: 0; border: 2px solid #94a3b8; border-radius: 15px; padding: 10px 20px 20px; background: #fff; background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 100% 60px, 60px 100%; }
+        .cell { width: 100%; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 32px; font-weight: bold; position: relative; }
+        .cell.blank { border: none; }
+        .cell.sign { font-size: 28px; justify-content: flex-end; padding-right: 5px; }
+        .num-cell { color: #1e293b; }
+        .line { border-bottom: 4px solid #1e293b; padding-bottom: 2px; }
+        .crossed-out::after { content: ''; position: absolute; width: 80%; height: 4px; background: #e11d48; top: 50%; left: 10%; transform: rotate(-25deg); border-radius: 2px; }
+
+        /* くり下がりメモマス */
+        .carry-wrapper { display: flex; justify-content: flex-end; align-items: flex-end; padding-bottom: 5px; padding-right: 5px; }
+        .carry-input { width: 35px; height: 35px; font-size: 18px; font-weight: bold; color: #e11d48; border: 2px dashed #fca5a5; border-radius: 50%; text-align: center; background: #fef2f2; outline: none; transition: 0.2s; }
+        .carry-input:focus { border-color: #ef4444; background: #fff; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); transform: scale(1.1); }
+
+        /* 筆算入力マス */
+        .input-wrapper { padding: 4px; transition: 0.3s; }
+        .ans-input { width: 100%; height: 100%; font-size: 32px; font-weight: bold; text-align: center; border: 3px solid #cbd5e1; border-radius: 8px; outline: none; background: #fff; color: #334155; }
+        .ans-input:disabled { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+
+        .active-col { transform: scale(1.05); z-index: 10; }
+        .active-col .col-1 { border-color: var(--col-1-border); box-shadow: 0 0 10px var(--col-1-border); }
+        .active-col .col-10 { border-color: var(--col-10-border); box-shadow: 0 0 10px var(--col-10-border); }
+        .active-col .col-100 { border-color: var(--col-100-border); box-shadow: 0 0 10px var(--col-100-border); }
+        .mt-15 { margin-top: 15px; }
+
+        /* ブロック（お金）エリア */
+        .blocks-title { font-weight: bold; text-align: center; margin-bottom: 15px; color: #475569; }
+        .block-row { display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .block-label { width: 60px; font-weight: bold; font-size: 14px; color: #64748b; }
+        .block-area { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+
+        .coin { width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; color: #334155; box-shadow: 0 2px 0 rgba(0,0,0,0.1); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .coin-100 { background: #e0f2fe; border: 2px solid #7dd3fc; }
+        .coin-10 { background: #fef9c3; border: 2px solid #fde047; }
+        .coin-1 { background: #fce7f3; border: 2px solid #f9a8d4; }
+        .coin.used { opacity: 0.2; transform: scale(0.8); filter: grayscale(1); box-shadow: none; }
+
+        .btn-action { width: 100%; background: #f59e0b; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #d97706; margin-top: 10px; font-size: 15px; animation: pulse 1.5s infinite; }
+        .btn-action:active { transform: translateY(4px); box-shadow: none; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        /* キャラクターヒント */
+        .character-hint { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .avatar { font-size: 18px; font-weight: bold; }
+        .bubble { background: #f1f5f9; padding: 12px 15px; border-radius: 15px; font-size: 15px; line-height: 1.5; position: relative; font-weight: bold; }
+        .bubble::before { content: ''; position: absolute; left: -10px; top: 15px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 12px solid #f1f5f9; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
     <div class="header-title">🌟 筆算のしかたを考えよう 🌟</div>
 
     <div class="question-box">
@@ -52,7 +150,7 @@
                     <div class="cell sign">－</div>
                     <div class="cell num-cell col-100 line">1</div>
                     <div class="cell num-cell col-10 line">9</div>
-                    <div class="cell num-cell col-1 line">4</div>
+                    <div class="cell num-cell col-1" id="op2-1" style="border-bottom: 4px solid #1e293b; padding-bottom: 2px;">4</div>
 
                     <div class="cell blank"></div>
                     <div class="cell input-wrapper" id="wrap-100"><input type="text" id="ans-100" class="ans-input col-100" maxlength="1" disabled></div>
@@ -108,8 +206,206 @@
 
     <button class="btn-reset" onclick="resetApp()">最初からやりなおす</button>
 </div>
-    <script  src="./script.js"></script>
 
+<script>
+    window.toHalfWidth = function(str) {
+        if (!str) return "";
+        return str.replace(/[０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+    };
+
+    function updateNav(title, msg, color) {
+        document.getElementById('nav-title').innerText = title;
+        document.getElementById('nav-msg').innerHTML = msg;
+        document.getElementById('nav-board').style.borderColor = color;
+        document.getElementById('nav-title').style.backgroundColor = color;
+    }
+
+    function flashError(elId) {
+        const el = document.getElementById(elId);
+        el.classList.add('wrong-input');
+        setTimeout(() => el.classList.remove('wrong-input'), 800);
+    }
+
+    // 状態管理
+    let phase = 'formula'; // formula -> calc1 -> borrow -> calc10 -> calc100 -> check
+
+    function checkFormula() {
+        const op1 = toHalfWidth(document.getElementById('f-op1').value);
+        const op2 = toHalfWidth(document.getElementById('f-op2').value);
+        
+        if (op1 === "315" && op2 === "194") {
+            document.getElementById('f-op1').classList.add('correct-input');
+            document.getElementById('f-op2').classList.add('correct-input');
+            document.getElementById('btn-formula').disabled = true;
+            
+            // 次のフェーズへ
+            document.getElementById('section-calc').classList.remove('hidden');
+            phase = 'calc1';
+            document.getElementById('ans-1').disabled = false;
+            document.getElementById('wrap-1').classList.add('active-col');
+            document.getElementById('ans-1').focus();
+            
+            updateNav("ステップ ②：一の位のひき算", "右はしの「一の位」から計算するよ。<br><strong>5 － 4 ＝ ？</strong> ピンクのマスに入れよう。", "#f472b6");
+        } else {
+            flashError('f-op1'); flashError('f-op2');
+            updateNav("ステップ ①：式", "もえさんが持っているお金から、のりのお金を引くよ。数字をたしかめよう。", "#ef4444");
+        }
+    }
+
+    function updateCoins(type, usedCount) {
+        const area = document.getElementById(`blocks-${type}`);
+        const coins = area.querySelectorAll('.coin');
+        // 後ろから指定数だけグレーアウトさせる
+        let count = 0;
+        for(let i = coins.length - 1; i >= 0; i--) {
+            if(count < usedCount) {
+                coins[i].classList.add('used');
+                count++;
+            }
+        }
+    }
+
+    function doBorrow() {
+        // ブロックのアニメーション（100が1個消えて、10が10個増える）
+        const blocks100 = document.getElementById('blocks-100');
+        blocks100.querySelector('.coin-100:not(.used)').classList.add('used'); // 1つ使う
+        
+        const blocks10 = document.getElementById('blocks-10');
+        for(let i=0; i<10; i++) {
+            const coin = document.createElement('div');
+            coin.className = 'coin coin-10';
+            coin.innerText = '10';
+            blocks10.appendChild(coin);
+        }
+        
+        // UIの更新
+        document.getElementById('btn-borrow').classList.add('hidden');
+        document.getElementById('op1-100').classList.add('crossed-out');
+        
+        // メモ欄の解放
+        document.getElementById('memo-100').classList.remove('hidden');
+        document.getElementById('memo-10').classList.remove('hidden');
+        document.getElementById('memo-100').disabled = false;
+        document.getElementById('memo-10').disabled = false;
+        document.getElementById('memo-100').focus();
+        
+        // ボタンを再び押せるようにする
+        document.getElementById('btn-calc').disabled = false;
+        
+        phase = 'memo';
+        document.getElementById('btn-calc').innerText = "メモをかくにん";
+        updateNav("ステップ ③：くり下がりのメモを書こう", "両がえしたから、百の位は「3」から<strong>「2」</strong>になったね。<br>十の位は「1」に「10」が来て<strong>「11」</strong>になったよ。<br>赤いてんせんのマスにメモを書こう！", "#e11d48");
+    }
+
+    function processCalc() {
+        const btn = document.getElementById('btn-calc');
+
+        if (phase === 'calc1') {
+            const v = toHalfWidth(document.getElementById('ans-1').value);
+            if (v === "1") {
+                document.getElementById('ans-1').classList.add('correct-input');
+                document.getElementById('ans-1').disabled = true;
+                document.getElementById('wrap-1').classList.remove('active-col');
+                updateCoins(1, 4); // 4つ使う
+                
+                phase = 'borrowWait';
+                document.getElementById('wrap-10').classList.add('active-col');
+                document.getElementById('btn-borrow').classList.remove('hidden');
+                btn.disabled = true; // 両替するまでボタンは押せない
+                
+                updateNav("ステップ ③：十の位のひき算", "次は黄色のマスだね。<br><strong>1 － 9 は、引けないね！</strong><br>右の「両がえボタン」をおして、百の位からかりてこよう。", "#eab308");
+            } else {
+                flashError('ans-1');
+                updateNav("ステップ ②：一の位", "5 － 4 をもう一度計算してね。", "#ef4444");
+            }
+        }
+        else if (phase === 'memo') {
+            const m100 = toHalfWidth(document.getElementById('memo-100').value);
+            const m10 = toHalfWidth(document.getElementById('memo-10').value);
+            
+            // 十の位のメモは「10」と書く子と、合わせて「11」と書く子がいるので両方正解にする
+            if (m100 === "2" && (m10 === "10" || m10 === "11")) {
+                document.getElementById('memo-100').classList.add('correct-input');
+                document.getElementById('memo-100').disabled = true;
+                document.getElementById('memo-10').classList.add('correct-input');
+                document.getElementById('memo-10').disabled = true;
+                
+                phase = 'calc10';
+                document.getElementById('ans-10').disabled = false;
+                document.getElementById('ans-10').focus();
+                btn.innerText = "十の位をかくにん";
+                
+                updateNav("ステップ ③：十の位のひき算（つづき）", "メモが書けたね！<br>十の位は全部で11あるから、<strong>11 － 9 ＝ ？</strong><br>黄色のマスに入れよう。", "#eab308");
+            } else {
+                if(m100 !== "2") flashError('memo-100');
+                if(m10 !== "10" && m10 !== "11") flashError('memo-10');
+                updateNav("ステップ ③：メモ", "百の位は3から1つ減ったよ。十の位には10が来たよ！", "#ef4444");
+            }
+        }
+        else if (phase === 'calc10') {
+            const v = toHalfWidth(document.getElementById('ans-10').value);
+            if (v === "2") {
+                document.getElementById('ans-10').classList.add('correct-input');
+                document.getElementById('ans-10').disabled = true;
+                document.getElementById('wrap-10').classList.remove('active-col');
+                updateCoins(10, 9); // 9つ使う
+                
+                phase = 'calc100';
+                document.getElementById('wrap-100').classList.add('active-col');
+                document.getElementById('ans-100').disabled = false;
+                document.getElementById('ans-100').focus();
+                btn.innerText = "百の位をかくにん";
+                
+                updateNav("ステップ ④：百の位のひき算", "さいごは水色のマス！<br>百の位は両がえして 2 になっているから、<strong>2 － 1 ＝ ？</strong>", "#0ea5e9");
+            } else {
+                flashError('ans-10');
+                updateNav("ステップ ③：十の位", "11 － 9 をもう一度計算してね。", "#ef4444");
+            }
+        }
+        else if (phase === 'calc100') {
+            const v = toHalfWidth(document.getElementById('ans-100').value);
+            if (v === "1") {
+                document.getElementById('ans-100').classList.add('correct-input');
+                document.getElementById('ans-100').disabled = true;
+                document.getElementById('wrap-100').classList.remove('active-col');
+                updateCoins(100, 1); // 1つ使う
+                
+                phase = 'check';
+                btn.innerText = "筆算クリア！";
+                btn.disabled = true;
+                
+                document.getElementById('section-check').classList.remove('hidden');
+                document.getElementById('check-ans').focus();
+                
+                updateNav("✨ 筆算クリア！ ✨", "くり下がりのひき算ができたね！<br>さいごに、下の「たしかめ算」をやってみよう。", "#10b981");
+            } else {
+                flashError('ans-100');
+                updateNav("ステップ ④：百の位", "2 － 1 をもう一度計算してね。3 － 1 じゃないよ！", "#ef4444");
+            }
+        }
+    }
+
+    function checkFinal() {
+        const v = toHalfWidth(document.getElementById('check-ans').value);
+        if (v === "121") {
+            document.getElementById('check-ans').classList.add('correct-input');
+            document.getElementById('btn-check-ans').disabled = true;
+            updateNav("🎉 ぜんぶ大正解！ 🎉", "たしかめ算もバッチリだね！<br>「引けないときは、となりの位からかりてくる」これでもうカンペキだ！", "#10b981");
+        } else {
+            flashError('check-ans');
+            updateNav("ステップ ⑤：たしかめ算", "筆算で出た答え（121）を入れてみよう。", "#ef4444");
+        }
+    }
+
+    function resetApp() {
+        location.reload(); // 手軽に全体を初期状態に戻すためリロード
+    }
+</script>
+</body>
+</html>
+    
   </body>
   
 </html>
