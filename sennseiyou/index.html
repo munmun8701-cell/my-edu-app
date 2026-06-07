@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>先生用 管理ダッシュボード - 学習クエスト</title>
+  
+  <script>
+    const password = prompt('【先生専用ページ】\nアクセス用パスワードを入力してください:');
+    if (password !== '0113') {
+      alert('パスワードが違います。メインポータルに戻ります。');
+      // パスワードが違う場合はポータルへ強制送還
+      window.location.href = '../portal.html';
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-header: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+      --text: #334155;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+      --card-bg: #ffffff;
+      --shadow: 0 6px 20px rgba(100, 110, 140, 0.1);
+      --shadow-hover: 0 10px 28px rgba(100, 110, 140, 0.18);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-btn: 999px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Yu Gothic UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 50%, rgba(203, 213, 225, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(226, 232, 240, 0.4) 0%, transparent 50%);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* —— ヘッダー —— */
+    .header {
+      background: var(--bg-header);
+      padding: 3rem 1.5rem 2.5rem;
+      text-align: center;
+      border-bottom: 3px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 16px rgba(148, 163, 184, 0.15);
+      position: relative;
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #334155;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-btn);
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: #ffffff;
+    }
+
+    .header-badge {
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      background: #475569;
+      padding: 0.35rem 1rem;
+      border-radius: var(--radius-btn);
+      margin-bottom: 0.75rem;
+      box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
+    }
+
+    .header h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      color: var(--text-dark);
+      letter-spacing: 0.03em;
+      line-height: 1.35;
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 .emoji {
+      display: block;
+      font-size: clamp(2.5rem, 7vw, 3.5rem);
+      margin-bottom: 0.25rem;
+    }
+
+    .header-desc {
+      max-width: 580px;
+      margin: 0 auto;
+      font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* —— メイン —— */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    /* —— カードグリッド —— */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 1.75rem 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    @keyframes bounce-icon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .card:hover .card-icon {
+      animation: bounce-icon 0.5s ease;
+    }
+
+    .card-icon {
+      font-size: 3.5rem;
+      line-height: 1;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      flex: 1;
+      line-height: 1.6;
+    }
+
+    .card-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      width: 100%;
+      max-width: 220px;
+      padding: 0.8rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card-btn:focus-visible {
+      outline: 3px solid #64748b;
+      outline-offset: 4px;
+    }
+
+    /* 先生用ボタンカラー（少し落ち着いたトーン） */
+    .card-btn--indigo { background: linear-gradient(135deg, #6366f1, #818cf8); }
+    .card-btn--teal   { background: linear-gradient(135deg, #14b8a6, #2dd4bf); }
+    .card-btn--rose   { background: linear-gradient(135deg, #f43f5e, #fb7185); }
+
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="../portal.html" class="back-btn">◀ ポータルへもどる</a>
+    <span class="header-badge">Teacher's Dashboard</span>
+    <h1>
+      <span class="emoji">🍎✨</span>
+      先生用 管理ダッシュボード
+    </h1>
+    <p class="header-desc">
+      児童の学習状況の確認や、クラス運営に必要な各種管理アプリへアクセスします。
+    </p>
+  </header>
+
+  <main class="main">
+    <div class="card-grid">
+      
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">📝</div>
+        <h3 class="card-title">宿題管理</h3>
+        <p class="card-desc">毎日の宿題の提出状況や、ドリル・プリントのチェックを行います。</p>
+        <a href="./sukudaikannnri/index.html" class="card-btn card-btn--indigo">アプリを開く ▶</a>
+      </article>
+
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">🤝</div>
+        <h3 class="card-title">引き渡し訓練</h3>
+        <p class="card-desc">災害時や訓練時の、保護者への児童引き渡し状況をリアルタイムで記録・確認します。</p>
+        <a href="./hikiwatasikunnrenn/index.html" class="card-btn card-btn--teal">アプリを開く ▶</a>
+      </article>
+
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">🕊️</div>
+        <h3 class="card-title">緑と赤の羽根募金</h3>
+        <p class="card-desc">クラスごとの募金集計や、集まった金額の記録・管理を行います。</p>
+        <a href="./bokin/index.html" class="card-btn card-btn--rose">アプリを開く ▶</a>
+      </article>
+
+    </div>
+  </main>
+
+</body>
+</html>

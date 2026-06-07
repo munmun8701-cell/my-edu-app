@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>緑の羽募金集計アプリ</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>緑・赤の羽募金 集計・放送原稿作成アプリ</title>
+<style>
+    :root {
+        --main-color: #2e8b57; /* シーグリーン（緑の羽をイメージ） */
+        --bg-color: #f4fff4;
+    }
+    body {
+        font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+        background-color: var(--bg-color);
+        color: #333;
+        line-height: 1.6;
+        padding: 20px;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+        text-align: center;
+        color: var(--main-color);
+        border-bottom: 2px solid var(--main-color);
+        padding-bottom: 10px;
+    }
+    .grand-total-box {
+        background-color: #e8f5e9;
+        text-align: center;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: var(--main-color);
+        border: 2px solid var(--main-color);
+    }
+    .grade-group {
+        margin-bottom: 15px;
+        padding: 15px;
+        background: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .grade-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--main-color);
+        width: 120px;
+    }
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    .input-group label {
+        margin-right: 5px;
+        font-weight: bold;
+    }
+    input[type="number"] {
+        width: 90px;
+        padding: 8px;
+        font-size: 16px;
+        text-align: right;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .subtotal {
+        margin-left: auto;
+        font-size: 1.2em;
+        font-weight: bold;
+        background: #fff;
+        padding: 5px 15px;
+        border-radius: 4px;
+        border: 1px dashed #ccc;
+    }
+    .btn-area {
+        text-align: center;
+        margin: 30px 0;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+    button {
+        background-color: var(--main-color);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    button:hover {
+        background-color: #246b43;
+    }
+    .btn-reset {
+        background-color: #666;
+    }
+    .btn-reset:hover {
+        background-color: #444;
+    }
+    #script-preview {
+        display: none;
+        margin-top: 30px;
+        padding: 30px;
+        border: 2px dashed var(--main-color);
+        background: #fff;
+    }
+    #script-content {
+        font-size: 1.2em;
+        white-space: pre-wrap;
+    }
+
+    /* 印刷時の設定 */
+    @media print {
+        body { background: none; padding: 0; }
+        .container { box-shadow: none; padding: 0; margin: 0; }
+        h1, .grand-total-box, .grade-group, .btn-area { display: none; }
+        #script-preview {
+            display: block !important;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+        #script-content {
+            font-size: 16pt;
+            line-height: 2;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>緑・赤の羽募金 集計・原稿作成アプリ</h1>
+
+    <div class="grand-total-box">
+        全校合計: <span id="grand-total-display">0</span> 円
+    </div>
+
+    <div id="form-area">
+        <!-- 学年ごとの入力ブロックを生成 -->
+        <script>
+            const grades = [
+                { id: 'g1', name: '1年生' },
+                { id: 'g2', name: '2年生' },
+                { id: 'g3', name: '3年生' },
+                { id: 'g4', name: '4年生' },
+                { id: 'g5', name: '5年生' },
+                { id: 'g6', name: '6年生' },
+                { id: 'gS', name: '特別支援学級' }
+            ];
+
+            grades.forEach(grade => {
+                document.write(`
+                    <div class="grade-group">
+                        <div class="grade-title">${grade.name}</div>
+                        <div class="input-group">
+                            <label>1日目:</label>
+                            <input type="number" id="${grade.id}-d1" class="calc-input" min="0" value="0"> 円
+                        </div>
+                        <div class="input-group">
+                            <label>2日目:</label>
+                            <input type="number" id="${grade.id}-d2" class="calc-input" min="0" value="0"> 円
+                        </div>
+                        <div class="subtotal">
+                            小計: <span id="${grade.id}-total">0</span> 円
+                        </div>
+                    </div>
+                `);
+            });
+        </script>
+    </div>
+
+    <div class="btn-area">
+        <button onclick="generateAndPrint()">集計して印刷する</button>
+        <button class="btn-reset" onclick="resetData()">データをリセット</button>
+    </div>
+
+    <div id="script-preview">
+        <h2 style="text-align:center; border-bottom: 1px solid #ccc; padding-bottom:10px;">【放送原稿】</h2>
+        <div id="script-content"></div>
+    </div>
+</div>
+
+<script>
+    // 数字をカンマ区切りにする関数
+    function formatNumber(num) {
+        return num.toLocaleString();
+    }
+
+    // 値を取得する関数（空欄は0とする）
+    function getVal(id) {
+        return parseInt(document.getElementById(id).value) || 0;
+    }
+
+    // 計算と保存を行うメイン関数
+    function calculateAndSave() {
+        let grandTotal = 0;
+        const dataToSave = {};
+
+        grades.forEach(grade => {
+            const d1 = getVal(`${grade.id}-d1`);
+            const d2 = getVal(`${grade.id}-d2`);
+            const subtotal = d1 + d2;
+            
+            // 小計の表示を更新
+            document.getElementById(`${grade.id}-total`).textContent = formatNumber(subtotal);
+            grandTotal += subtotal;
+
+            // 保存用のデータを作成
+            dataToSave[`${grade.id}-d1`] = d1;
+            dataToSave[`${grade.id}-d2`] = d2;
+        });
+
+        // 総合計の表示を更新
+        document.getElementById('grand-total-display').textContent = formatNumber(grandTotal);
+
+        // ローカルストレージに保存（ブラウザを閉じても消えないようにする）
+        localStorage.setItem('midoriBokinData', JSON.stringify(dataToSave));
+    }
+
+    // ページ読み込み時に保存されたデータを復元する関数
+    function loadSavedData() {
+        const savedData = localStorage.getItem('midoriBokinData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            grades.forEach(grade => {
+                if (data[`${grade.id}-d1`] !== undefined) {
+                    document.getElementById(`${grade.id}-d1`).value = data[`${grade.id}-d1`];
+                }
+                if (data[`${grade.id}-d2`] !== undefined) {
+                    document.getElementById(`${grade.id}-d2`).value = data[`${grade.id}-d2`];
+                }
+            });
+        }
+        calculateAndSave(); // 読み込み後に再計算
+    }
+
+    // データを完全に消去する関数（来年度用など）
+    function resetData() {
+        if (confirm("入力したデータをすべて消去しますか？（この操作は取り消せません）")) {
+            localStorage.removeItem('midoriBokinData');
+            grades.forEach(grade => {
+                document.getElementById(`${grade.id}-d1`).value = 0;
+                document.getElementById(`${grade.id}-d2`).value = 0;
+            });
+            calculateAndSave();
+        }
+    }
+
+    // 入力欄の値が変わるたびに「calculateAndSave」を実行
+    document.querySelectorAll('.calc-input').forEach(input => {
+        input.addEventListener('input', calculateAndSave);
+    });
+
+    // ページが開かれたときに保存データを読み込む
+    window.onload = loadSavedData;
+
+    // 原稿を作成して印刷
+    function generateAndPrint() {
+        // 最新の状態で再計算
+        calculateAndSave();
+
+        // 各学年の小計を取得
+        const g1 = getVal('g1-d1') + getVal('g1-d2');
+        const g2 = getVal('g2-d1') + getVal('g2-d2');
+        const g3 = getVal('g3-d1') + getVal('g3-d2');
+        const g4 = getVal('g4-d1') + getVal('g4-d2');
+        const g5 = getVal('g5-d1') + getVal('g5-d2');
+        const g6 = getVal('g6-d1') + getVal('g6-d2');
+        const gS = getVal('gS-d1') + getVal('gS-d2');
+        const total = g1 + g2 + g3 + g4 + g5 + g6 + gS;
+
+        const script = `皆さん、おはようございます。（または、こんにちは）
+
+先日行われました「緑の羽募金」の集計が終わりましたので、結果をご報告します。
+
+１年生は、${formatNumber(g1)}円
+２年生は、${formatNumber(g2)}円
+３年生は、${formatNumber(g3)}円
+４年生は、${formatNumber(g4)}円
+５年生は、${formatNumber(g5)}円
+６年生は、${formatNumber(g6)}円
+特別支援学級からは、${formatNumber(gS)}円が集まりました。
+
+流山北小の全校での合計金額は、なんと「${formatNumber(total)}円」です！
+
+皆さんの温かい気持ちが、たくさんの木を育て、私たちの住む地球を元気にしてくれます。
+小さな思いやりも、みんなで集めれば、こんなに大きな力になるんですね。
+
+これからも、身の回りの自然や緑を大切にする気持ちを一緒に持ち続けていきましょう。
+たくさんのご協力、本当にありがとうございました！`;
+
+        document.getElementById('script-content').textContent = script;
+        document.getElementById('script-preview').style.display = 'block';
+
+        setTimeout(function() {
+            window.print();
+        }, 300);
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>

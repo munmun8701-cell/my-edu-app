@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>宿題管理ツール</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>宿題提出管理ツール - 総合カスタマイズ版</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 15px; color: #333; background-color: #f4f7f6; }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { border-left: 5px solid #4CAF50; padding-left: 15px; margin-bottom: 20px; }
+        
+        /* 表示切り替えパネル */
+        .toggle-panel { background-color: #fff3e0; padding: 12px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ffe0b2; font-weight: bold; }
+        .toggle-panel label { margin-right: 15px; cursor: pointer; user-select: none; }
+        
+        /* 設定パネル */
+        .control-panel { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+        .config-group { background: #fff; padding: 12px; border-radius: 4px; border: 1px solid #c8e6c9; min-width: 250px; flex: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .config-group.basic { background-color: #e3f2fd; border-color: #bbdefb; }
+        .config-group h4 { margin: 0 0 8px 0; color: #2e7d32; font-size: 1em; border-bottom: 1px solid #eee; padding-bottom: 4px;}
+        
+        /* ＋－ボタン周りのデザイン */
+        .setting-adjust-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 0.95em; }
+        .btn-adjust {
+            width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+            background: #fff; border: 1px solid #aaa; border-radius: 4px; font-size: 1.1em; font-weight: bold; cursor: pointer; color: #555; padding: 0;
+        }
+        .max-num-display { display: inline-block; width: 40px; text-align: center; font-size: 1.2em; font-weight: bold; color: #1976d2; }
+
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-print-list { background-color: #673ab7; color: white; padding: 8px 15px; font-size: 0.9em; border-radius: 4px; cursor: pointer;}
+
+        .chart-container { width: 100%; height: 200px; margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #fff; }
+        
+        /* テーブル */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.85em; min-width: 900px; }
+        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
+        th { background-color: #4CAF50; color: white; position: sticky; top: 0; z-index: 10; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        tr.has-missing { background-color: #fff0f0; }
+        
+        /* 日付タグ */
+        .date-tag { display: inline-block; background: #eee; padding: 1px 5px; margin: 1px; border-radius: 10px; font-size: 0.8em; }
+        .delete-btn { color: #ff5252; cursor: pointer; margin-left: 4px; font-weight: bold; }
+        
+        .name-input { width: 75px; padding: 4px; border: 1px solid #ccc; border-radius: 3px; }
+        
+        /* 操作用ボタン */
+        button { border: none; cursor: pointer; border-radius: 3px; font-weight: bold; font-size: 0.8em; padding: 4px 8px;}
+        .btn-today { background-color: #2196F3; color: white; margin-right: 2px;}
+        .btn-add-past { background-color: #fff; border: 1px solid #2196F3; color: #2196F3; }
+        .btn-save { background-color: #ff9800; color: white; }
+        .reset-btn { background-color: #9e9e9e; color: white; margin-top: 20px; }
+
+        /* バッジ */
+        .drill-container { display: flex; flex-wrap: wrap; gap: 2px; }
+        .drill-badge { 
+            width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; 
+            font-size: 0.75em; border-radius: 2px; background: #e0e0e0; color: #555; cursor: pointer; user-select: none;
+        }
+        .drill-badge.done { background: #4CAF50; color: white; font-weight: bold; }
+        .drill-badge.missing { background: #ff5252; color: white; border: 1px solid #b71c1c; }
+
+        .missing-text { color: #d32f2f; font-size: 0.8em; font-weight: bold; line-height: 1.3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>宿題提出管理ツール</h2>
+
+    <div class="toggle-panel">
+        <span style="margin-right: 15px; color: #e65100;">▼ 表示項目:</span>
+        <label><input type="checkbox" id="show-kanjiNote" onchange="toggleModule()"> 漢字ノート</label>
+        <label><input type="checkbox" id="show-reading" onchange="toggleModule()"> 音読カード</label>
+        <label><input type="checkbox" id="show-kanjiDrill" onchange="toggleModule()"> 漢字ドリル</label>
+        <label><input type="checkbox" id="show-calcDrill" onchange="toggleModule()"> 計算ドリル</label>
+        <label><input type="checkbox" id="show-print" onchange="toggleModule()"> プリント</label>
+    </div>
+
+    <div class="control-panel" id="main-config-area">
+        <div class="config-group basic" style="background-color: #e3f2fd;">
+            <h4 style="color: #1565c0;">【基本設定】</h4>
+            クラスの人数: 
+            <input type="number" id="student-count-input" min="1" max="50" style="width:45px;"> 人
+            <button class="btn-save" onclick="updateStudentCount()" style="background-color: #1976d2;">変更</button>
+        </div>
+        <div id="dynamic-config-panel" style="display: contents;"></div>
+    </div>
+
+    <div class="action-bar">
+        <div style="font-weight: bold; color: #333;">提出状況一覧</div>
+        <button class="btn-print-list" onclick="printMissingList()">🖨️ 未提出者リストを印刷</button>
+    </div>
+
+    <div class="chart-container" id="chart-wrapper">
+        <canvas id="submissionChart"></canvas>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead id="table-head"></thead>
+            <tbody id="student-list"></tbody>
+        </table>
+    </div>
+
+    <button class="reset-btn" onclick="clearAllData()">データをすべて初期化する</button>
+</div>
+
+<script>
+    let students = [];
+    let chartInstance = null;
+    const DEFAULT_STUDENT_COUNT = 30;
+
+    const modules = {
+        kanjiNote: { id: 'kanjiNote', name: '漢字ノート', type: 'date', active: true },
+        reading: { id: 'reading', name: '音読カード', type: 'date', active: true },
+        kanjiDrill: { id: 'kanjiDrill', name: '漢字ドリル', type: 'badge', active: true, nums: [], prefix: '漢' },
+        calcDrill: { id: 'calcDrill', name: '計算ドリル', type: 'badge', active: true, nums: [], prefix: '計' },
+        print: { id: 'print', name: 'プリント', type: 'badge', active: true, nums: [], prefix: 'プ' }
+    };
+
+    function initData() {
+        const savedModules = JSON.parse(localStorage.getItem('modules9'));
+        if (savedModules) {
+            Object.keys(modules).forEach(k => {
+                if(savedModules[k]) {
+                    modules[k].active = savedModules[k].active;
+                    if(modules[k].type === 'badge') modules[k].nums = savedModules[k].nums;
+                }
+            });
+        } else {
+            modules.kanjiDrill.nums = [1,2,3,4,5];
+            modules.calcDrill.nums = [1,2,3,4,5];
+            modules.print.nums = [1,2,3];
+        }
+
+        const savedData = localStorage.getItem('homeworkData9');
+        if (savedData) {
+            students = JSON.parse(savedData);
+        } else {
+            for (let i = 1; i <= DEFAULT_STUDENT_COUNT; i++) students.push(createNewStudent(i));
+        }
+
+        document.getElementById('student-count-input').value = students.length;
+        Object.keys(modules).forEach(k => {
+            document.getElementById(`show-${k}`).checked = modules[k].active;
+        });
+
+        renderAll();
+    }
+
+    function createNewStudent(id) {
+        return {
+            id: id, name: "",
+            kanjiNoteDates: [], readingDates: [],
+            kanjiDrillDone: [], calcDrillDone: [], printDone: []
+        };
+    }
+
+    function updateStudentCount() {
+        const newCount = parseInt(document.getElementById('student-count-input').value);
+        if (isNaN(newCount) || newCount < 1) return;
+        const currentCount = students.length;
+        if (newCount > currentCount) {
+            for (let i = currentCount + 1; i <= newCount; i++) students.push(createNewStudent(i));
+        } else if (newCount < currentCount) {
+            if (confirm(`出席番号 ${newCount + 1} 番以降のデータを削除しますか？`)) {
+                students = students.slice(0, newCount);
+            } else {
+                document.getElementById('student-count-input').value = currentCount;
+                return;
+            }
+        }
+        saveData(); renderAll();
+    }
+
+    function toggleModule() {
+        Object.keys(modules).forEach(k => {
+            modules[k].active = document.getElementById(`show-${k}`).checked;
+        });
+        saveData(); renderAll();
+    }
+
+    function renderAll() {
+        renderConfig();
+        renderTable();
+    }
+
+    function renderConfig() {
+        const panel = document.getElementById('dynamic-config-panel');
+        panel.innerHTML = '';
+
+        Object.keys(modules).forEach(k => {
+            const mod = modules[k];
+            if (!mod.active) return;
+            const div = document.createElement('div');
+            div.className = 'config-group';
+
+            if (mod.type === 'date') {
+                const totalKey = `total-${k}9`;
+                const currentVal = localStorage.getItem(totalKey) || 0;
+                div.innerHTML = `<h4>${mod.name}</h4>目標総回数: <input type="number" id="${totalKey}" value="${currentVal}" min="0" onchange="saveConfig('${totalKey}', this.value)" style="width:40px;"> 回`;
+            } else {
+                const targetKey = `target-${k}9`;
+                const currentTarget = localStorage.getItem(targetKey) || 0;
+                let selectHtml = `<select id="${targetKey}" onchange="saveConfig('${targetKey}', this.value)"><option value="0">なし</option>`;
+                mod.nums.forEach(n => selectHtml += `<option value="${n}" ${n == currentTarget ? 'selected' : ''}>${n}番</option>`);
+                selectHtml += `</select>`;
+                const maxNum = mod.nums.length > 0 ? Math.max(...mod.nums) : 0;
+                div.innerHTML = `
+                    <h4>${mod.name}</h4>
+                    <div class="setting-adjust-row">出題範囲: <button class="btn-adjust" onclick="adjustNums('${k}', -1)">－</button><span class="max-num-display">${maxNum}</span><button class="btn-adjust" onclick="adjustNums('${k}', 1)">＋</button></div>
+                    目標: ${selectHtml}まで
+                `;
+            }
+            panel.appendChild(div);
+        });
+    }
+
+    function adjustNums(key, delta) {
+        const mod = modules[key];
+        if (delta === 1) {
+            const nextNum = mod.nums.length > 0 ? Math.max(...mod.nums) + 1 : 1;
+            mod.nums.push(nextNum);
+        } else if (delta === -1) {
+            if (mod.nums.length > 0) mod.nums.pop();
+        }
+        saveData(); renderAll();
+    }
+
+    function saveConfig(key, val) {
+        localStorage.setItem(key, val);
+        renderTable();
+    }
+
+    function saveData() {
+        const moduleSettingsToSave = {};
+        Object.keys(modules).forEach(k => {
+            moduleSettingsToSave[k] = { active: modules[k].active, nums: modules[k].nums || [] };
+        });
+        localStorage.setItem('modules9', JSON.stringify(moduleSettingsToSave));
+        localStorage.setItem('homeworkData9', JSON.stringify(students));
+    }
+
+    function renderTable() {
+        const thead = document.getElementById('table-head');
+        const tbody = document.getElementById('student-list');
+        let headHtml = `<tr><th style="width: 8%;">氏名</th>`;
+        Object.keys(modules).forEach(k => { if (modules[k].active) headHtml += `<th>${modules[k].name}</th>`; });
+        headHtml += `<th style="width: 15%;">未提出まとめ</th></tr>`;
+        thead.innerHTML = headHtml;
+        tbody.innerHTML = '';
+
+        students.forEach((s, idx) => {
+            const tr = document.createElement('tr');
+            let missingTexts = [];
+            let html = `<td><span style="font-size:0.75em;color:#777;">${s.id}.</span><br><input type="text" class="name-input" value="${s.name}" placeholder="名前" onchange="updateName(${idx},this.value)"></td>`;
+
+            Object.keys(modules).forEach(k => {
+                if (!modules[k].active) return;
+                const mod = modules[k];
+                if (mod.type === 'date') {
+                    const total = parseInt(localStorage.getItem(`total-${k}9`)) || 0;
+                    const list = k === 'kanjiNote' ? s.kanjiNoteDates : s.readingDates;
+                    const missed = Math.max(0, total - list.length);
+                    if (missed > 0) missingTexts.push(`${mod.name.substring(0,2)}未:${missed}回`);
+                    html += `<td>
+                        <button class="btn-today" onclick="addDate(${idx}, '${k}')">今日</button>
+                        <button class="btn-add-past" onclick="addPastDate(${idx}, '${k}')" title="日付を指定して記録">＋</button>
+                        <span style="font-size:0.8em;margin-left:4px;">(済:${list.length})</span>
+                        <div>${list.map((d,di)=>`<span class="date-tag">${d}<span class="delete-btn" onclick="delDate(${idx},${di},'${k}')">×</span></span>`).join('')}</div>
+                    </td>`;
+                } else {
+                    const target = parseInt(localStorage.getItem(`target-${k}9`)) || 0;
+                    const listKey = k + 'Done';
+                    const list = s[listKey];
+                    let missedNums = [];
+                    let bHtml = '<div class="drill-container">';
+                    mod.nums.forEach(n => {
+                        const isDone = list.includes(n);
+                        if (!isDone && n <= target) missedNums.push(n);
+                        const badgeClass = isDone ? 'done' : (!isDone && n <= target ? 'missing' : '');
+                        bHtml += `<span class="drill-badge ${badgeClass}" onclick="toggleBadge(${idx}, ${n}, '${listKey}')">${n}</span>`;
+                    });
+                    bHtml += '</div>';
+                    if (missedNums.length > 0) missingTexts.push(`${mod.prefix}:${missedNums.join(',')}`);
+                    html += `<td>${bHtml}</td>`;
+                }
+            });
+
+            if (missingTexts.length > 0) {
+                tr.className = 'has-missing';
+                html += `<td class="missing-text">${missingTexts.join('<br>')}</td>`;
+            } else {
+                html += `<td><span style="color:#388e3c;font-weight:bold;">提出完了</span></td>`;
+            }
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        });
+        updateChart();
+    }
+
+    // ★ 修正：今日以外の日付を後から追加する機能
+    function addPastDate(idx, type) {
+        const val = window.prompt("提出した日付を入力してください（例: 4/25）", "");
+        if (val) {
+            const list = type === 'kanjiNote' ? students[idx].kanjiNoteDates : students[idx].readingDates;
+            if (!list.includes(val)) {
+                list.push(val);
+                // 月日の順に簡易ソート
+                list.sort((a, b) => {
+                    const [am, ad] = a.split('/').map(Number);
+                    const [bm, bd] = b.split('/').map(Number);
+                    return am !== bm ? am - bm : ad - bd;
+                });
+                saveData(); renderTable();
+            }
+        }
+    }
+
+    function addDate(idx, type) {
+        const d = new Date(); const f = `${d.getMonth()+1}/${d.getDate()}`;
+        const list = type === 'kanjiNote' ? students[idx].kanjiNoteDates : students[idx].readingDates;
+        if (!list.includes(f)) { list.push(f); saveData(); renderTable(); }
+    }
+
+    function delDate(sIdx, dIdx, type) {
+        if(confirm('この記録を削除しますか？')){
+            const list = type === 'kanjiNote' ? students[sIdx].kanjiNoteDates : students[sIdx].readingDates;
+            list.splice(dIdx,1); saveData(); renderTable();
+        }
+    }
+
+    function toggleBadge(sIdx, num, listKey) {
+        const list = students[sIdx][listKey];
+        const index = list.indexOf(num);
+        if (index > -1) list.splice(index, 1); else { list.push(num); list.sort((a,b)=>a-b); }
+        saveData(); renderTable();
+    }
+
+    function updateName(i, v) { students[i].name = v; saveData(); renderTable(); }
+
+    function updateChart() {
+        const wrapper = document.getElementById('chart-wrapper');
+        const ctx = document.getElementById('submissionChart').getContext('2d');
+        if (!modules.kanjiNote.active && !modules.reading.active) { wrapper.style.display = 'none'; return; }
+        wrapper.style.display = 'block';
+        const labels = students.map(s => s.name || s.id+'番');
+        let datasets = [];
+        if (modules.kanjiNote.active) datasets.push({ label: '漢字ノート', data: students.map(s => s.kanjiNoteDates.length), backgroundColor: '#4CAF50' });
+        if (modules.reading.active) datasets.push({ label: '音読カード', data: students.map(s => s.readingDates.length), backgroundColor: '#2196F3' });
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: datasets },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y:{beginAtZero:true, ticks:{stepSize:1}} } }
+        });
+    }
+
+    function printMissingList() {
+        let missingData = [];
+        students.forEach((s) => {
+            let missingTexts = [];
+            Object.keys(modules).forEach(k => {
+                if (!modules[k].active) return;
+                const mod = modules[k];
+                if (mod.type === 'date') {
+                    const total = parseInt(localStorage.getItem(`total-${k}9`)) || 0;
+                    const list = k === 'kanjiNote' ? s.kanjiNoteDates : s.readingDates;
+                    const missed = Math.max(0, total - list.length);
+                    if (missed > 0) missingTexts.push(`【${mod.name}】あと ${missed} 回`);
+                } else {
+                    const target = parseInt(localStorage.getItem(`target-${k}9`)) || 0;
+                    const listKey = k + 'Done';
+                    const list = s[listKey];
+                    let missedNums = [];
+                    mod.nums.forEach(n => { if (!list.includes(n) && n <= target) missedNums.push(`${n}番`); });
+                    if (missedNums.length > 0) missingTexts.push(`【${mod.name}】${missedNums.join(', ')}`);
+                }
+            });
+            if (missingTexts.length > 0) missingData.push({ id: s.id, name: s.name || '', missing: missingTexts });
+        });
+        if (missingData.length === 0) { alert("未提出の児童はいません。"); return; }
+        const printWindow = window.open('', '_blank');
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+        let printHtml = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>未提出者リスト</title><style>body { font-family: sans-serif; padding: 20px; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #000; padding: 8px; text-align: left; } th { background: #eee; }</style></head><body><h1>宿題 未提出者リスト (${dateStr})</h1><table><thead><tr><th>番号</th><th>氏名</th><th>内容</th></tr></thead><tbody>`;
+        missingData.forEach(d => { printHtml += `<tr><td>${d.id}</td><td>${d.name}</td><td>${d.missing.join('<br>')}</td></tr>`; });
+        printHtml += `</tbody></table><script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>`;
+        printWindow.document.write(printHtml); printWindow.document.close();
+    }
+
+    function clearAllData() { if (confirm('全データを消去しますか？')) { localStorage.clear(); location.reload(); } }
+    window.onload = initData;
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>

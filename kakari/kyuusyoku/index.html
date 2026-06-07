@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>給食係　仕事チェック表</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>給食係のおしごとチェック</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: #fff9e6; 
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff9800;
+      font-size: 1.8rem;
+    }
+    
+    /* メイン画面のスタイル */
+    #main-screen {
+      display: block;
+    }
+    #date-display {
+      font-size: 1.3rem;
+      color: #555;
+      margin-bottom: 20px;
+      font-weight: bold;
+      background: #ffe082;
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+    }
+    #task-list {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .task-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 8px solid #ccc;
+      transition: all 0.3s ease;
+    }
+    .task-card.done-card {
+      border-left-color: #4caf50;
+      background-color: #f9fff9;
+    }
+    .task-info {
+      text-align: left;
+      flex-grow: 1;
+    }
+    .task-name {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .task-person {
+      font-size: 1.2rem;
+      color: #000;
+      background-color: #e1f5fe;
+      display: inline-block;
+      padding: 6px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    /* ボタン群 */
+    .check-btn {
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.1s, background-color 0.3s;
+      min-width: 140px;
+    }
+    .check-btn:active {
+      transform: scale(0.95);
+    }
+    .btn-not-done {
+      background-color: #f44336;
+      color: white;
+    }
+    .btn-done {
+      background-color: #4caf50;
+      color: white;
+      box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
+    }
+
+    .record-area {
+      max-width: 600px;
+      margin: 40px auto 0;
+      padding-top: 20px;
+      border-top: 2px dashed #ccc;
+    }
+    .save-btn {
+      background-color: #2196f3;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .save-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 設定画面を開くボタン */
+    .open-settings-btn {
+      background-color: transparent;
+      color: #888;
+      border: 1px solid #ccc;
+      padding: 8px 15px;
+      border-radius: 20px;
+      margin-top: 30px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    /* 履歴エリア */
+    #history-box {
+      background: #ffeeee;
+      border: 2px solid #ffcccc;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: left;
+    }
+    #history-box h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      color: #d32f2f;
+    }
+    .history-item {
+      font-size: 1rem;
+      color: #333;
+      padding: 8px 0;
+      border-bottom: 1px solid #ffcccc;
+    }
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 設定画面（先生用）のスタイル */
+    #settings-screen {
+      display: none;
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    #settings-screen h2 {
+      color: #333;
+      font-size: 1.4rem;
+      border-bottom: 2px solid #ff9800;
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+    .settings-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .settings-table th, .settings-table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .settings-table th {
+      background-color: #f5f5f5;
+    }
+    .settings-input {
+      width: 90%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .action-btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-apply {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .btn-cancel {
+      background-color: #9e9e9e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= メイン画面 ================= -->
+  <div id="main-screen">
+    <h1>🥛 給食係（きゅうしょくがかり）のおしごと 🍽️</h1>
+    <div id="date-display"></div>
+    
+    <div id="task-list"></div>
+
+    <div class="record-area">
+      <button class="save-btn" onclick="saveAndReset()">きょうのおしごとを 終わる（記録する）</button>
+      
+      <div id="history-box">
+        <h2>⚠️ 忘れていた おしごとの記録</h2>
+        <div id="history-list"></div>
+      </div>
+    </div>
+
+    <!-- 先生用の設定画面を開くボタン -->
+    <button class="open-settings-btn" onclick="toggleScreen('settings')">⚙️ 1週間のとうばん設定（先生用）</button>
+  </div>
+
+  <!-- ================= 設定画面（先生用） ================= -->
+  <div id="settings-screen">
+    <h2>⚙️ 1週間のとうばん設定</h2>
+    <p style="font-size: 0.9rem; color: #666; text-align: left;">月曜日〜金曜日の担当者の名前を入力して「ほぞんする」を押してください。</p>
+    
+    <table class="settings-table">
+      <thead>
+        <tr>
+          <th>曜日</th>
+          <th>① 牛乳パック</th>
+          <th>② はいぜん台</th>
+          <th>③ 声かけ</th>
+        </tr>
+      </thead>
+      <tbody id="settings-tbody">
+        <!-- JavaScriptで入力欄を生成します -->
+      </tbody>
+    </table>
+
+    <div class="action-btn-group">
+      <button class="btn-apply" onclick="saveScheduleSettings()">💾 ほぞんする</button>
+      <button class="btn-cancel" onclick="toggleScreen('main')">もどる</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // ---------------------------------------------------
+    // おしごとの種類
+    // ---------------------------------------------------
+    const taskNames = {
+      task1: "① 牛乳（ぎゅうにゅう）パックたんとう",
+      task2: "② はいぜん台をふく",
+      task3: "③ 「いただきます」の声かけ"
+    };
+
+    const daysList = ["月", "火", "水", "木", "金"];
+
+    // ---------------------------------------------------
+    // スケジュールデータの読み込み（localStorageを使用）
+    // ---------------------------------------------------
+    // 保存されたデータがなければ、空欄の初期データをセットします
+    const defaultSchedule = {
+      "月": { task1: "", task2: "", task3: "" },
+      "火": { task1: "", task2: "", task3: "" },
+      "水": { task1: "", task2: "", task3: "" },
+      "木": { task1: "", task2: "", task3: "" },
+      "金": { task1: "", task2: "", task3: "" },
+      "土": { task1: "おやすみ", task2: "おやすみ", task3: "おやすみ" },
+      "日": { task1: "おやすみ", task2: "おやすみ", task3: "おやすみ" }
+    };
+
+    let scheduleData = JSON.parse(localStorage.getItem('lunchDutySchedule')) || defaultSchedule;
+    let historyData = JSON.parse(localStorage.getItem('lunchDutyHistory')) || [];
+
+    // 今日の日付と曜日を取得
+    const today = new Date();
+    const days = ["日", "月", "火", "水", "木", "金", "土"];
+    const dayOfWeek = days[today.getDay()];
+    const dateString = `${today.getMonth() + 1}月${today.getDate()}日（${dayOfWeek}）`;
+    
+    document.getElementById('date-display').innerText = `きょうは ${dateString} です`;
+
+    // 今日の担当者をスケジュールから取得（設定されていなければ「未設定」と表示）
+    let todaysAssigns = scheduleData[dayOfWeek];
+    
+    let currentTasks = {
+      task1: { name: taskNames.task1, person: todaysAssigns.task1 || "未設定", isDone: false },
+      task2: { name: taskNames.task2, person: todaysAssigns.task2 || "未設定", isDone: false },
+      task3: { name: taskNames.task3, person: todaysAssigns.task3 || "未設定", isDone: false }
+    };
+
+    // ---------------------------------------------------
+    // メイン画面の描画処理
+    // ---------------------------------------------------
+    function renderTasks() {
+      const taskListDiv = document.getElementById('task-list');
+      taskListDiv.innerHTML = ""; 
+
+      for (const [taskId, task] of Object.entries(currentTasks)) {
+        const card = document.createElement('div');
+        card.className = `task-card ${task.isDone ? 'done-card' : ''}`;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'task-info';
+        
+        const nameLabel = document.createElement('div');
+        nameLabel.className = 'task-name';
+        nameLabel.innerText = task.name;
+
+        const personDisplay = document.createElement('div');
+        personDisplay.className = 'task-person';
+        personDisplay.innerText = `たんとう： ${task.person}`;
+
+        infoDiv.appendChild(nameLabel);
+        infoDiv.appendChild(personDisplay);
+
+        const btn = document.createElement('button');
+        btn.className = `check-btn ${task.isDone ? 'btn-done' : 'btn-not-done'}`;
+        btn.innerText = task.isDone ? '✨おわった！' : 'これから';
+        
+        btn.onclick = () => {
+          if(task.person === "おやすみ") return; 
+          currentTasks[taskId].isDone = !task.isDone;
+          renderTasks(); 
+        };
+
+        card.appendChild(infoDiv);
+        card.appendChild(btn);
+        taskListDiv.appendChild(card);
+      }
+      
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const historyListDiv = document.getElementById('history-list');
+      if (historyData.length === 0) {
+        historyListDiv.innerHTML = '<div class="history-item" style="color: #888;">まだ 記録はありません。</div>';
+        return;
+      }
+
+      historyListDiv.innerHTML = "";
+      [...historyData].reverse().forEach(record => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = record.replace(/\n/g, '<br>');
+        historyListDiv.appendChild(item);
+      });
+    }
+
+    // ---------------------------------------------------
+    // 記録を残す処理
+    // ---------------------------------------------------
+    window.saveAndReset = function() {
+      if (todaysAssigns.task1 === "おやすみ") {
+        alert("きょうは おやすみ です。");
+        return;
+      }
+
+      let missedTasks = [];
+      for (const [taskId, task] of Object.entries(currentTasks)) {
+        if (!task.isDone) {
+          missedTasks.push(`・${task.name} （たんとう：${task.person}）`);
+        }
+      }
+
+      if (missedTasks.length > 0) {
+        const recordString = `<strong>【${dateString}】</strong>\n` + missedTasks.join('\n');
+        historyData.push(recordString);
+      } else {
+        historyData.push(`<strong>【${dateString}】</strong>\n🎉ぜんいん できました！`);
+      }
+
+      // 履歴を保存
+      localStorage.setItem('lunchDutyHistory', JSON.stringify(historyData));
+
+      for (const taskId in currentTasks) {
+        currentTasks[taskId].isDone = false;
+      }
+
+      alert("きょうの 記録を のこしました！");
+      renderTasks();
+    };
+
+    // ---------------------------------------------------
+    // 画面の切り替え処理
+    // ---------------------------------------------------
+    window.toggleScreen = function(screen) {
+      if (screen === 'settings') {
+        document.getElementById('main-screen').style.display = 'none';
+        document.getElementById('settings-screen').style.display = 'block';
+        buildSettingsTable();
+      } else {
+        document.getElementById('main-screen').style.display = 'block';
+        document.getElementById('settings-screen').style.display = 'none';
+      }
+    };
+
+    // ---------------------------------------------------
+    // 設定画面のテーブル生成と保存処理
+    // ---------------------------------------------------
+    function buildSettingsTable() {
+      const tbody = document.getElementById('settings-tbody');
+      tbody.innerHTML = "";
+
+      daysList.forEach(day => {
+        const tr = document.createElement('tr');
+        
+        // 曜日のセル
+        const tdDay = document.createElement('td');
+        tdDay.innerText = day;
+        tdDay.style.fontWeight = "bold";
+        tr.appendChild(tdDay);
+
+        // 各タスクの入力セル
+        ["task1", "task2", "task3"].forEach(taskId => {
+          const td = document.createElement('td');
+          const input = document.createElement('input');
+          input.type = "text";
+          input.className = "settings-input";
+          input.id = `input-${day}-${taskId}`;
+          input.value = scheduleData[day][taskId] || "";
+          td.appendChild(input);
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.saveScheduleSettings = function() {
+      // 入力された値を scheduleData に反映
+      daysList.forEach(day => {
+        ["task1", "task2", "task3"].forEach(taskId => {
+          const inputVal = document.getElementById(`input-${day}-${taskId}`).value;
+          scheduleData[day][taskId] = inputVal;
+        });
+      });
+
+      // ブラウザにデータを保存
+      localStorage.setItem('lunchDutySchedule', JSON.stringify(scheduleData));
+      
+      alert("1週間のとうばんを 保存しました！");
+
+      // メイン画面の今日の担当者を更新して再描画
+      todaysAssigns = scheduleData[dayOfWeek];
+      currentTasks.task1.person = todaysAssigns.task1 || "未設定";
+      currentTasks.task2.person = todaysAssigns.task2 || "未設定";
+      currentTasks.task3.person = todaysAssigns.task3 || "未設定";
+      
+      toggleScreen('main');
+      renderTasks();
+    };
+
+    // 初回描画
+    renderTasks();
+  </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
