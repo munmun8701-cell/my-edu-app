@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>１０　たしかめよう</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>算数クエスト：かけ算ダンジョン 最終試練</title>
+<style>
+  /* ==========================================
+     ベース・全体レイアウト
+     ========================================== */
+  :root {
+    --primary: #2C3E50;      /* ダンジョン風ダークブルー */
+    --secondary: #D84315;    /* 炎のオレンジ */
+    --accent: #FFD54F;       /* ゴールド */
+    --bg-color: #ECEFF1;
+    --text-color: #333;
+    --box-bg: #FFFFFF;
+  }
+  
+  body {
+    font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'Meiryo', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.8;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--box-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--primary), #455A64);
+    color: #FFF;
+    padding: 35px 20px;
+    text-align: center;
+    border-bottom: 6px solid var(--secondary);
+  }
+
+  h1 { margin: 0; font-size: 2.4rem; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);}
+  .goal { font-weight: bold; background: rgba(0,0,0,0.3); display: inline-block; padding: 10px 25px; border-radius: 30px; margin-top: 15px; font-size: 1.2rem;}
+
+  .section {
+    padding: 40px;
+    border-bottom: 4px dashed #CFD8DC;
+  }
+  .section:last-child { border-bottom: none; }
+
+  h2 {
+    color: #FFF;
+    background: var(--secondary);
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-size: 1.6rem;
+    margin-top: 0;
+    box-shadow: 0 4px 0 #BF360C;
+  }
+
+  .subtitle { font-size: 1.15rem; color: #555; margin-bottom: 25px; font-weight: bold; }
+
+  /* ==========================================
+     汎用UIパーツ・入力欄
+     ========================================== */
+  .q-input { width: 90px; padding: 10px; font-size: 1.4rem; border-radius: 8px; border: 2px solid #B0BEC5; text-align: center; font-family: monospace;}
+  .eq-input { width: 220px; padding: 10px; font-size: 1.4rem; border-radius: 8px; border: 2px solid #B0BEC5; text-align: center; font-family: monospace;}
+  .q-input:focus, .eq-input:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 5px rgba(216, 67, 21, 0.4); }
+
+  .btn {
+    background-color: var(--secondary); color: #FFF; border: none; padding: 10px 20px;
+    font-size: 1.2rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
+    box-shadow: 0 4px 0 #BF360C; margin: 5px;
+  }
+  .btn:hover { transform: translateY(2px); box-shadow: 0 2px 0 #BF360C;}
+  .btn:active { transform: translateY(4px); box-shadow: none; }
+  
+  .btn-blue { background-color: #0288D1; box-shadow: 0 4px 0 #0277BD; }
+  .btn-blue:hover { box-shadow: 0 2px 0 #0277BD; }
+  
+  .feedback { font-weight: bold; margin-left: 15px; font-size: 1.4rem; display: inline-block; vertical-align: middle; min-width: 40px;}
+  .correct { color: #4CAF50; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .error { color: #F44336; }
+
+  @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .hint-box { display: none; background: #E1F5FE; padding: 20px; border-radius: 8px; margin-top: 15px; border: 2px solid #81D4FA; font-size: 1.1rem;}
+
+  /* ==========================================
+     ① 計算のしあげ（15問グリッド）
+     ========================================== */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    background: #FAFAFA;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #EEEEEE;
+  }
+  .calc-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFF;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .calc-num { color: #78909C; font-weight: bold; margin-right: 10px; font-size: 1.2rem;}
+  .calc-eq { font-size: 1.4rem; font-weight: bold; width: 100px; }
+
+  /* ==========================================
+     ② 文章題＆具体物操作エリア
+     ========================================== */
+  .quest-card {
+    background: #FFF8E1;
+    border: 3px solid #FFE082;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+  }
+  .quest-text { font-size: 1.3rem; font-weight: bold; color: #5D4037; margin-bottom: 20px; line-height: 1.6;}
+  
+  /* チューリップの具体物ブロック */
+  .tulip-visual { display: none; background: #E8F5E9; border: 2px solid #A5D6A7; padding: 20px; border-radius: 10px; margin-top: 15px;}
+  .tulip-row { display: flex; gap: 5px; margin-bottom: 5px; align-items: center;}
+  .t-block-10 { width: 40px; height: 15px; background: #4CAF50; border-radius: 3px; border: 1px solid #2E7D32;}
+  .t-block-1 { width: 15px; height: 15px; background: #81C784; border-radius: 3px; border: 1px solid #2E7D32;}
+
+  /* ==========================================
+     ③ まちがいさがし＆筆算UI
+     ========================================== */
+  .mistake-container { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 40px;}
+  .mistake-box { flex: 1; min-width: 300px; background: #FFEBEE; border: 3px solid #EF9A9A; border-radius: 12px; padding: 25px;}
+  
+  .bad-hissan {
+    background: #FFF; padding: 15px; border-radius: 8px; border: 2px dashed #EF5350;
+    font-family: monospace; font-size: 2rem; width: fit-content; margin: 0 auto 20px auto; text-align: right;
+    letter-spacing: 5px; line-height: 1.2; color: #C62828;
+  }
+
+  /* 修正用 筆算グリッド */
+  .hissan-grid {
+    display: grid;
+    grid-template-columns: 45px 45px 45px 45px;
+    grid-template-rows: 45px 45px 12px 60px;
+    align-items: center;
+    justify-items: center;
+    font-size: 2.2rem;
+    font-family: 'Courier New', Courier, monospace;
+    background: #FFF; padding: 20px; border-radius: 8px; border: 2px solid #B0BEC5;
+    width: fit-content; margin: 0 auto;
+  }
+  .hg-t100 { grid-column: 2; grid-row: 1; line-height: 1; }
+  .hg-t10  { grid-column: 3; grid-row: 1; line-height: 1; }
+  .hg-t1   { grid-column: 4; grid-row: 1; line-height: 1; }
+  .hg-op   { grid-column: 1; grid-row: 2; line-height: 1; }
+  .hg-carry{ grid-column: 2; grid-row: 2; width: 35px; height: 35px; border: 2px solid #BDBDBD; border-radius: 6px; font-size: 1.2rem; text-align: center; }
+  .hg-b1   { grid-column: 4; grid-row: 2; line-height: 1; }
+  .hg-line { grid-column: 1 / 5; grid-row: 3; width: 100%; height: 4px; background: #333; border-radius: 2px; }
+  .hg-ans  { width: 40px; height: 50px; border: 2px solid #9E9E9E; border-radius: 6px; text-align: center; font-size: 1.8rem;}
+  
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>かけ算ダンジョン 最終試練</h1>
+    <div class="goal">目標：2けた・3けたのかけ算の「たしかめ」をして、ダンジョンをクリアしよう！</div>
+  </header>
+
+  <div class="section" id="sec1">
+    <h2>第1の試練：計算のしあげ</h2>
+    <div class="subtitle">かけられる数が2けたや3けたのかけ算が、正しくできるかな？</div>
+    
+    <div class="calc-grid" id="calc-area">
+      </div>
+    <div style="text-align: center; margin-top: 25px;">
+      <button class="btn" style="font-size: 1.4rem; padding: 15px 40px;" onclick="checkAllCalc()">ぜんぶ判定する</button>
+      <div id="fb-calc-all" class="feedback" style="display: block; margin-top: 15px;"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec2">
+    <h2>第2の試練：村人からの依頼（文章題）</h2>
+    <div class="subtitle">場面を式に表して、答えをもとめることができるかな？</div>
+
+    <div class="quest-card">
+      <div class="quest-text">① チューリップの球根（きゅうこん）を、1列に 25こ ずつ、6列 植えます。<br>球根は、全部で何こあればよいでしょうか。</div>
+      
+      <div>
+        <span style="font-weight:bold; font-size:1.3rem;">式：</span><input type="text" id="w1-eq" class="eq-input"> 
+        <span style="font-weight:bold; font-size:1.3rem; margin-left:15px;">答え：</span><input type="text" id="w1-ans" class="q-input"> こ
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <button class="btn" onclick="checkWord1()">こたえあわせ</button>
+        <button class="btn btn-blue" onclick="toggleVisual()">図をかく（ヒント）</button>
+        <span id="fb-w1" class="feedback"></span>
+      </div>
+
+      <div id="tulip-visual" class="tulip-visual">
+        <p style="font-weight:bold; color:#2E7D32; margin-top:0;">25こ を「20」と「5」に分けて考えると…</p>
+        <div id="tulip-blocks"></div>
+        <p style="font-weight:bold; color:#2E7D32; margin-bottom:0; text-align:right;">20×6＝120、 5×6＝30。あわせて 150こだ！</p>
+      </div>
+    </div>
+
+    <div class="quest-card">
+      <div class="quest-text">② 280mL入りのジュースを 4本 買います。1本 136円 です。<br>
+      (1) 代金はいくらですか。<br>
+      (2) 全部で何mLですか。</div>
+      
+      <div style="margin-bottom: 15px;">
+        <span style="font-weight:bold; font-size:1.2rem; color:#1565C0;">(1)の式：</span><input type="text" id="w2-1-eq" class="eq-input"> 
+        <span style="font-weight:bold; font-size:1.2rem; margin-left:10px;">答え：</span><input type="text" id="w2-1-ans" class="q-input"> 円
+      </div>
+      <div>
+        <span style="font-weight:bold; font-size:1.2rem; color:#1565C0;">(2)の式：</span><input type="text" id="w2-2-eq" class="eq-input"> 
+        <span style="font-weight:bold; font-size:1.2rem; margin-left:10px;">答え：</span><input type="text" id="w2-2-ans" class="q-input"> mL
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <button class="btn" onclick="checkWord2()">まとめてこたえあわせ</button>
+        <span id="fb-w2" class="feedback"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="sec3">
+    <h2>第3の試練：まちがいさがし</h2>
+    <div class="subtitle">答えの見当（けんとう）をつけて、筆算のまちがいを見つけよう。そして正しく計算し直そう！</div>
+
+    <div class="mistake-container">
+      <div class="mistake-box">
+        <div class="bad-hissan">
+          82<br><u>× 6</u><br>4812
+        </div>
+        <div style="background:#FFF; padding:15px; border-radius:8px; margin-bottom:15px;">
+          <p style="font-weight:bold; color:#D84315; margin-top:0;">👦 りくさんの見当（だいたいの数）</p>
+          「80 × 6 ＝ <input type="text" id="est1" class="q-input" style="width:70px;"> だから、答えはだいたい…」
+        </div>
+        <button class="btn btn-blue" onclick="checkEst1()">見当をたしかめる</button>
+        <span id="fb-est1" class="feedback"></span>
+        
+        <div id="fix1-area" style="display:none; margin-top:20px;">
+          <p style="font-weight:bold;">正しい筆算をしよう！</p>
+          <div class="hissan-grid">
+            <div class="hg-t10">8</div><div class="hg-t1">2</div>
+            <div class="hg-op">×</div><input type="text" id="c1" class="hg-carry" placeholder="繰" maxlength="1"><div class="hg-b1">6</div>
+            <div class="hg-line"></div>
+            <input type="text" id="a1-100" class="hg-ans" style="grid-area: 4/2;" maxlength="1">
+            <input type="text" id="a1-10"  class="hg-ans" style="grid-area: 4/3;" maxlength="1">
+            <input type="text" id="a1-1"   class="hg-ans" style="grid-area: 4/4;" maxlength="1">
+          </div>
+          <button class="btn" style="margin-top:10px;" onclick="checkFix1()">筆算をとく</button>
+          <span id="fb-fix1" class="feedback"></span>
+        </div>
+      </div>
+
+      <div class="mistake-box">
+        <div class="bad-hissan">
+          703<br><u>× 2</u><br>146
+        </div>
+        <div style="background:#FFF; padding:15px; border-radius:8px; margin-bottom:15px;">
+          <p style="font-weight:bold; color:#D84315; margin-top:0;">👧 しほさんの見当</p>
+          「答えは <input type="text" id="est2-1" class="q-input" style="width:70px;"> × 2 ＝ <input type="text" id="est2-2" class="q-input" style="width:70px;"> に近い数だね。」
+        </div>
+        <button class="btn btn-blue" onclick="checkEst2()">見当をたしかめる</button>
+        <span id="fb-est2" class="feedback"></span>
+
+        <div id="fix2-area" style="display:none; margin-top:20px;">
+          <p style="font-weight:bold;">正しい筆算をしよう！</p>
+          <div class="hissan-grid">
+            <div class="hg-t100">7</div><div class="hg-t10">0</div><div class="hg-t1">3</div>
+            <div class="hg-op">×</div><input type="text" id="c2" class="hg-carry" placeholder="繰" maxlength="1" disabled style="background:#eee;"><div class="hg-b1">2</div>
+            <div class="hg-line"></div>
+            <input type="text" id="a2-1000" class="hg-ans" style="grid-area: 4/1;" maxlength="1">
+            <input type="text" id="a2-100"  class="hg-ans" style="grid-area: 4/2;" maxlength="1">
+            <input type="text" id="a2-10"   class="hg-ans" style="grid-area: 4/3;" maxlength="1">
+            <input type="text" id="a2-1"    class="hg-ans" style="grid-area: 4/4;" maxlength="1">
+          </div>
+          <button class="btn" style="margin-top:10px;" onclick="checkFix2()">筆算をとく</button>
+          <span id="fb-fix2" class="feedback"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="sec4">
+    <h2>第4の試練：かけ算のきまり</h2>
+    <div class="subtitle">かけ算のきまり <strong>( )</strong> を使って、かんたんに計算できるかな？</div>
+    
+    <div style="background:#FFF; padding:25px; border-radius:12px; border:2px solid #E0E0E0;">
+      <div style="margin-bottom: 20px;">
+        <span style="font-size:1.4rem; font-weight:bold; display:inline-block; width:40px;">①</span>
+        <span style="font-size:1.4rem; font-weight:bold;">90 × 3 × 2</span> ＝ 
+        <input type="text" id="k1-eq" class="eq-input" placeholder="( )を使う"> ＝ 
+        <input type="text" id="k1-ans" class="q-input" placeholder="答え">
+      </div>
+      <div style="margin-bottom: 20px;">
+        <span style="font-size:1.4rem; font-weight:bold; display:inline-block; width:40px;">②</span>
+        <span style="font-size:1.4rem; font-weight:bold;">29 × 2 × 5</span> ＝ 
+        <input type="text" id="k2-eq" class="eq-input"> ＝ 
+        <input type="text" id="k2-ans" class="q-input">
+      </div>
+      <div>
+        <span style="font-size:1.4rem; font-weight:bold; display:inline-block; width:40px;">③</span>
+        <span style="font-size:1.4rem; font-weight:bold;">600 × 3 × 3</span> ＝ 
+        <input type="text" id="k3-eq" class="eq-input"> ＝ 
+        <input type="text" id="k3-ans" class="q-input">
+      </div>
+
+      <div style="margin-top: 25px;">
+        <button class="btn" onclick="checkRules()">判定する</button>
+        <span id="fb-rules" class="feedback"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // --- 全角→半角変換 ---
+  function toHalf(str) {
+    return str.replace(/[０-９（）]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+              .replace(/\s+/g, '').replace(/[×ｘ✖*＊]/g, '*');
+  }
+
+  // ================= ① 計算のしあげ（15問） =================
+  const calcData = [
+    { q: "30 × 5", a: "150" }, { q: "300 × 5", a: "1500" }, { q: "14 × 2", a: "28" },
+    { q: "13 × 5", a: "65" }, { q: "53 × 4", a: "212" }, { q: "79 × 7", a: "553" },
+    { q: "34 × 6", a: "204" }, { q: "25 × 8", a: "200" }, { q: "342 × 2", a: "684" },
+    { q: "204 × 6", a: "1224" }, { q: "613 × 4", a: "2452" }, { q: "380 × 7", a: "2660" },
+    { q: "345 × 6", a: "2070" }, { q: "975 × 8", a: "7800" }, { q: "558 × 9", a: "5022" }
+  ];
+
+  function renderCalc() {
+    const container = document.getElementById('calc-area');
+    let html = '';
+    calcData.forEach((item, i) => {
+      html += `
+        <div class="calc-item">
+          <div><span class="calc-num">①${i+1}</span> <span class="calc-eq">${item.q} ＝</span></div>
+          <div><input type="text" id="ca-${i}" class="q-input" style="width: 70px;">
+          <span id="cfb-${i}" style="margin-left:5px; font-weight:bold;"></span></div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+  renderCalc();
+
+  function checkAllCalc() {
+    let allCorrect = true;
+    calcData.forEach((item, i) => {
+      const input = toHalf(document.getElementById(`ca-${i}`).value);
+      const fb = document.getElementById(`cfb-${i}`);
+      if(input === item.a) {
+        fb.innerHTML = '⭕'; fb.style.color = '#4CAF50';
+      } else {
+        fb.innerHTML = '❌'; fb.style.color = '#F44336';
+        allCorrect = false;
+      }
+    });
+    const mainFb = document.getElementById('fb-calc-all');
+    if(allCorrect) {
+      mainFb.innerHTML = '🎉 15問ぜんぶ正解！すばらしい！'; mainFb.className = 'feedback correct';
+    } else {
+      mainFb.innerHTML = '🔺 まちがっているところがあるよ。なおしてみよう！'; mainFb.className = 'feedback error';
+    }
+  }
+
+  // ================= ② 文章題 =================
+  function toggleVisual() {
+    const el = document.getElementById('tulip-visual');
+    if (el.style.display === 'block') { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    
+    // ブロック描画
+    let html = '';
+    for(let i=0; i<6; i++) {
+      html += `<div class="tulip-row">
+        <div class="t-block-10"></div><div class="t-block-10"></div>
+        <div class="t-block-1"></div><div class="t-block-1"></div><div class="t-block-1"></div><div class="t-block-1"></div><div class="t-block-1"></div>
+      </div>`;
+    }
+    document.getElementById('tulip-blocks').innerHTML = html;
+  }
+
+  function checkWord1() {
+    const eq = toHalf(document.getElementById('w1-eq').value);
+    const ans = toHalf(document.getElementById('w1-ans').value);
+    const fb = document.getElementById('fb-w1');
+    if((eq === '25*6' || eq === '6*25') && ans === '150') {
+      fb.innerHTML = '⭕ 大正解！'; fb.className = 'feedback correct';
+    } else {
+      fb.innerHTML = '❌ 式か答えをたしかめよう。'; fb.className = 'feedback error';
+    }
+  }
+
+  function checkWord2() {
+    const eq1 = toHalf(document.getElementById('w2-1-eq').value);
+    const ans1 = toHalf(document.getElementById('w2-1-ans').value);
+    const eq2 = toHalf(document.getElementById('w2-2-eq').value);
+    const ans2 = toHalf(document.getElementById('w2-2-ans').value);
+    const fb = document.getElementById('fb-w2');
+    
+    let isQ1 = (eq1 === '136*4' || eq1 === '4*136') && ans1 === '544';
+    let isQ2 = (eq2 === '280*4' || eq2 === '4*280') && ans2 === '1120';
+
+    if(isQ1 && isQ2) {
+      fb.innerHTML = '⭕ 完璧！代金もかさも正しく求められたね！'; fb.className = 'feedback correct';
+    } else {
+      fb.innerHTML = '❌ もう一度ちょうせんだ！何をかけたらいいか考えよう。'; fb.className = 'feedback error';
+    }
+  }
+
+  // ================= ③ 間違い探し＆見積もり =================
+  function checkEst1() {
+    const val = toHalf(document.getElementById('est1').value);
+    const fb = document.getElementById('fb-est1');
+    if(val === '480') {
+      fb.innerHTML = '⭕ 正解！480になるはずだから、4812はおかしいね。'; fb.className = 'feedback correct';
+      document.getElementById('fix1-area').style.display = 'block';
+    } else {
+      fb.innerHTML = '❌ 8×6 はいくつかな？'; fb.className = 'feedback error';
+    }
+  }
+
+  function checkFix1() {
+    const a100 = toHalf(document.getElementById('a1-100').value);
+    const a10 = toHalf(document.getElementById('a1-10').value);
+    const a1 = toHalf(document.getElementById('a1-1').value);
+    const fb = document.getElementById('fb-fix1');
+    if(a100 === '4' && a10 === '9' && a1 === '2') {
+      fb.innerHTML = '⭕ 筆算クリア！繰り上がりの1を正しく足せたね！'; fb.className = 'feedback correct';
+    } else {
+      fb.innerHTML = '❌ 十の位の計算で、繰り上がりを足したかな？'; fb.className = 'feedback error';
+    }
+  }
+
+  function checkEst2() {
+    const v1 = toHalf(document.getElementById('est2-1').value);
+    const v2 = toHalf(document.getElementById('est2-2').value);
+    const fb = document.getElementById('fb-est2');
+    if(v1 === '700' && v2 === '1400') {
+      fb.innerHTML = '⭕ 正解！1400に近いから、146はおかしいね。'; fb.className = 'feedback correct';
+      document.getElementById('fix2-area').style.display = 'block';
+    } else {
+      fb.innerHTML = '❌ 703は、だいたいどれくらいかな？'; fb.className = 'feedback error';
+    }
+  }
+
+  function checkFix2() {
+    const a1000 = toHalf(document.getElementById('a2-1000').value);
+    const a100 = toHalf(document.getElementById('a2-100').value);
+    const a10 = toHalf(document.getElementById('a2-10').value);
+    const a1 = toHalf(document.getElementById('a2-1').value);
+    const fb = document.getElementById('fb-fix2');
+    if(a1000 === '1' && a100 === '4' && a10 === '0' && a1 === '6') {
+      fb.innerHTML = '⭕ 筆算クリア！十の位の「0×2」も正しく計算できたね！'; fb.className = 'feedback correct';
+    } else {
+      fb.innerHTML = '❌ 十の位の計算(0×2)に気をつけてね。'; fb.className = 'feedback error';
+    }
+  }
+
+  // ================= ④ 計算のきまり =================
+  function checkRules() {
+    const eq1 = toHalf(document.getElementById('k1-eq').value);
+    const a1 = toHalf(document.getElementById('k1-ans').value);
+    const eq2 = toHalf(document.getElementById('k2-eq').value);
+    const a2 = toHalf(document.getElementById('k2-ans').value);
+    const eq3 = toHalf(document.getElementById('k3-eq').value);
+    const a3 = toHalf(document.getElementById('k3-ans').value);
+    const fb = document.getElementById('fb-rules');
+
+    let ok1 = (eq1 === '90*(3*2)' || eq1 === '90*6') && a1 === '540';
+    let ok2 = (eq2 === '29*(2*5)' || eq2 === '29*10') && a2 === '290';
+    let ok3 = (eq3 === '600*(3*3)' || eq3 === '600*9') && a3 === '5400';
+
+    if(ok1 && ok2 && ok3) {
+      fb.innerHTML = '🎉 すべてクリア！かけ算のきまりをマスターしたね！'; fb.className = 'feedback correct';
+    } else {
+      fb.innerHTML = '❌ どこかちがうみたい。( ) を使って工夫してみてね。'; fb.className = 'feedback error';
+    }
+  }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
