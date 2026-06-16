@@ -109,6 +109,14 @@
       margin-bottom: 0.5rem;
       filter: drop-shadow(0 6px 8px rgba(0,0,0,0.15));
     }
+    .header-desc {
+      max-width: 580px;
+      margin: 0 auto;
+      font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+      font-weight: 700;
+      color: #5a6578;
+      line-height: 1.7;
+    }
 
     /* —— メイン —— */
     .main {
@@ -126,7 +134,6 @@
     .portal-section {
       border-radius: var(--radius-lg);
       padding: 2rem 1.5rem;
-      /* ふっくらとした立体の土台 */
       background: #ffffff;
       box-shadow: 
         10px 10px 20px var(--shadow-dark), 
@@ -148,6 +155,22 @@
       margin-bottom: 1.5rem;
     }
 
+    /* セクション別カラー設定 */
+    .portal-section--math { background: linear-gradient(160deg, #eef7fc 0%, #e8f5f0 100%); border: 3px solid #b8dce8; }
+    .portal-section--math .section-heading { color: #2d5e7a; }
+    .portal-section--japanese { background: linear-gradient(160deg, #fff5e8 0%, #fff0e0 100%); border: 3px solid #f0c898; }
+    .portal-section--japanese .section-heading { color: #7a4d2d; }
+    .portal-section--social { background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%); border: 3px solid #86efac; }
+    .portal-section--social .section-heading { color: #166534; }
+    .portal-section--game { background: linear-gradient(160deg, #f5eeff 0%, #ffeef5 100%); border: 3px solid #d4b8e8; }
+    .portal-section--game .section-heading { color: #5e3d7a; }
+    .portal-section--duty { background: linear-gradient(160deg, #fefce8 0%, #fef08a 100%); border: 3px solid #fde047; }
+    .portal-section--duty .section-heading { color: #854d0e; }
+    .portal-section--class { background: linear-gradient(160deg, #fdfced 0%, #f4f8e1 100%); border: 3px solid #dceb9c; }
+    .portal-section--class .section-heading { color: #5c6b1e; }
+    .portal-section--teacher { background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 100%); border: 3px solid #cbd5e1; display: none; }
+    .portal-section--teacher .section-heading { color: #334155; }
+
     /* —— カードグリッド —— */
     .card-grid {
       display: grid;
@@ -160,7 +183,6 @@
       background: var(--card-bg);
       border-radius: var(--radius-md);
       padding: 1.5rem;
-      /* カード自体のふっくら感 */
       box-shadow: 
         6px 6px 12px var(--shadow-dark), 
         -6px -6px 12px var(--shadow-light),
@@ -171,6 +193,10 @@
       text-align: center;
       position: relative;
       border: 1px solid rgba(255,255,255,0.8);
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
     }
 
     /* —— 🌟 クリアバッジ 🌟 —— */
@@ -221,6 +247,7 @@
       color: var(--text-muted);
       margin-bottom: 1.5rem;
       flex: 1;
+      line-height: 1.65;
     }
 
     /* —— ボタン（押し込める3D仕様） —— */
@@ -239,15 +266,12 @@
       cursor: pointer;
       position: relative;
       transition: all 0.1s ease;
-      /* デフォルトの厚み */
       box-shadow: 0 6px 0 var(--btn-shadow), 0 10px 15px rgba(0,0,0,0.1);
       transform: translateY(0);
     }
-    /* ホバー時の発光エフェクト */
     .card-btn:hover {
       filter: brightness(1.1);
     }
-    /* クリック時の沈み込み */
     .card-btn:active {
       transform: translateY(6px);
       box-shadow: 0 0px 0 var(--btn-shadow), 0 2px 5px rgba(0,0,0,0.1);
@@ -273,6 +297,14 @@
       position: relative;
       z-index: 1;
     }
+    #teacher-login {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    #teacher-login:hover {
+      opacity: 1;
+    }
 
     /* —— クリックパーティクル（JS用） —— */
     .particle {
@@ -286,6 +318,13 @@
       0% { transform: scale(1) translate(0, 0); opacity: 1; }
       100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
     }
+
+    @media (max-width: 480px) {
+      .header { padding: 3rem 1rem 2rem; }
+      .main { padding: 0 1rem 3rem; gap: 2rem; }
+      .portal-section { padding: 1.5rem 1rem; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -293,147 +332,213 @@
   <div class="floating-bg" id="floating-bg"></div>
 
   <header class="header">
-    <span class="header-badge">プレミアムポータル</span>
+    <span class="header-badge">学習クエスト ポータル</span>
     <h1>
       <span class="emoji">📚✨</span>
       樋渡先生の学習クエスト
     </h1>
     <p class="header-desc">
-      算数ドリル・学習ゲーム・国語など、いろいろな学習アプリがここから使えます。<br>
-      好きなコーナーをえらんで、楽しく学習をはじめましょう！
+      算数ドリル・学習ゲーム・国語など、いろいろな学習アプリが ここから 使えます。<br>
+      好きなコーナーを えらんで、自分のペースで 学習を はじめましょう！
     </p>
   </header>
 
   <main class="main">
 
-    <section class="portal-section" aria-labelledby="section-math">
+    <section class="portal-section portal-section--math" aria-labelledby="section-math">
       <h2 class="section-heading" id="section-math">📝 3年生 算数ドリル</h2>
       <p class="section-desc">3年生の 算数単元を 順番に 練習できる ドリルコーナーです。</p>
       <div class="card-grid">
         
         <article class="card">
           <div class="clear-badge">👑 クリア!</div>
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Divide.png" alt="わり算">
           </div>
           <h3 class="card-title">わり算</h3>
           <p class="card-desc">あまりのない わり算を 練習しよう！</p>
-          <a href="./01warikireruwarizann/index.html" class="card-btn card-btn--green">学習をはじめる</a>
+          <a href="./01warikireruwarizann/index.html" class="card-btn card-btn--green">学習をはじめる ▶</a>
         </article>
 
         <article class="card">
           <div class="clear-badge" style="background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);">🌸 たいへんよくできました</div>
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Eleven%20O%E2%80%99Clock.png" alt="時計と時間">
           </div>
           <h3 class="card-title">時計と時間</h3>
           <p class="card-desc">時こくと 時間の 計算を 覚えよう！</p>
-          <a href="./02tokei/index.html" class="card-btn card-btn--blue">学習をはじめる</a>
+          <a href="./02tokei/index.html" class="card-btn card-btn--blue">学習をはじめる ▶</a>
         </article>
 
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Input%20Numbers.png" alt="大きな数">
           </div>
           <h3 class="card-title">大きな数</h3>
           <p class="card-desc">1000より 大きい数の 筆算を 練習しよう！</p>
-          <a href="./03ookinakazu/index.html" class="card-btn card-btn--pink">学習をはじめる</a>
+          <a href="./03ookinakazu/index.html" class="card-btn card-btn--pink">学習をはじめる ▶</a>
         </article>
 
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Straight%20Ruler.png" alt="きょりと長さ">
           </div>
           <h3 class="card-title">きょりと長さ</h3>
           <p class="card-desc">kmとmの 関係を 学ぼう！</p>
-          <a href="./04kyoritongasa/index.html" class="card-btn card-btn--orange">学習をはじめる</a>
+          <a href="./04kyoritongasa/index.html" class="card-btn card-btn--orange">学習をはじめる ▶</a>
         </article>
 
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" alt="表とグラフ">
           </div>
           <h3 class="card-title">表とグラフ</h3>
-          <p class="card-desc">きろくを整理して 調べよう！</p>
-          <a href="./05kirokuwoseirisitesirabeyou/index.html" class="card-btn card-btn--teal">学習をはじめる</a>
+          <p class="card-desc">きろくを <ruby>整理<rt>せいり</rt></ruby>して 調べよう！</p>
+          <a href="./05kirokuwoseirisitesirabeyou/index.html" class="card-btn card-btn--teal">学習をはじめる ▶</a>
         </article>
 
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/High%20Voltage.png" alt="暗算で計算しよう">
           </div>
           <h3 class="card-title">暗算で計算しよう</h3>
           <p class="card-desc">頭の中で パッと 計算する 練習だよ！</p>
-          <a href="./06annzanndekeisannsiyou/index.html" class="card-btn card-btn--purple">学習をはじめる</a>
+          <a href="./06annzanndekeisannsiyou/index.html" class="card-btn card-btn--purple">学習をはじめる ▶</a>
         </article>
 
         <article class="card">
-          <div class="card-icon">
-            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Divide.png" alt="わり算2">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Heavy%20Division%20Sign.png" alt="わり算 2">
           </div>
           <h3 class="card-title">わり算 2</h3>
-          <p class="card-desc">わり算の筆算や、少し難しい計算に挑戦しよう！</p>
-          <a href="./07warizann2/index.html" class="card-btn card-btn--blue">学習をはじめる</a>
+          <p class="card-desc">わり算の筆算や、少し難しい計算に<ruby>挑戦<rt>ちょうせん</rt></ruby>しよう！</p>
+          <a href="./07warizann2/index.html" class="card-btn card-btn--blue">学習をはじめる ▶</a>
+        </article>
+
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Hundred%20Points.png" alt="10000より大きい数">
+          </div>
+          <h3 class="card-title">10000より大きい数</h3>
+          <p class="card-desc">大きな数の仕組みや、読み方・書き方をマスターしよう！</p>
+          <a href="./08a10000yori/index.html" class="card-btn card-btn--blue">学習をはじめる ▶</a>
+        </article>
+
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Multiply.png" alt="大きな数のかけ算の仕方">
+          </div>
+          <h3 class="card-title">大きな数のかけ算の仕方</h3>
+          <p class="card-desc">大きな数のかけ算の仕方をマスターしよう！</p>
+          <a href="./09ookiikazunokakezannnosikata/index.html" class="card-btn card-btn--blue">学習をはじめる ▶</a>
         </article>
       </div>
     </section>
 
-    <section class="portal-section" aria-labelledby="section-japanese">
+    <section class="portal-section portal-section--japanese" aria-labelledby="section-japanese">
       <h2 class="section-heading" id="section-japanese">📖 国語・漢字</h2>
+      <p class="section-desc">漢字や 国語の 学習アプリは こちらです。</p>
       <div class="card-grid">
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Crossed%20Swords.png" alt="漢字の冒険">
           </div>
           <h3 class="card-title">漢字の冒険</h3>
-          <p class="card-desc">冒険しながら 漢字を 覚えていこう！</p>
-          <a href="./kannzinoboukenn/dist/index.html" class="card-btn card-btn--amber">学習をはじめる</a>
+          <p class="card-desc"><ruby>冒険<rt>ぼうけん</rt></ruby>しながら 漢字を 覚えていこう！</p>
+          <a href="./kannzinoboukenn/dist/index.html" class="card-btn card-btn--amber">学習をはじめる ▶</a>
         </article>
       </div>
     </section>
 
-    <section class="portal-section" aria-labelledby="section-game">
-      <h2 class="section-heading" id="section-game">🎮 楽しく学ぶ！学習ゲーム</h2>
+    <section class="portal-section portal-section--social" aria-labelledby="section-social">
+      <h2 class="section-heading" id="section-social">🗺️ 社会用アプリ</h2>
+      <p class="section-desc">地図や 町の ようすを 調べる アプリです。</p>
       <div class="card-grid">
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Tractor.png" alt="社会科ポータル">
+          </div>
+          <h3 class="card-title">社会科ポータル</h3>
+          <p class="card-desc">「農家と工場」など、社会科のアプリをここから選ぼう！</p>
+          <a href="./syakai/index.html" class="card-btn card-btn--green">コーナーを開く ▶</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="portal-section portal-section--game" aria-labelledby="section-game">
+      <h2 class="section-heading" id="section-game">🎮 楽しく学ぶ！学習ゲーム</h2>
+      <p class="section-desc">ゲーム感覚で 楽しく 学べる コーナーです。遊びながら 力を つけよう！</p>
+      <div class="card-grid">
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Shield.png" alt="算数クエスト">
           </div>
           <h3 class="card-title">算数クエスト</h3>
-          <p class="card-desc">冒険の世界で 算数の 問題に挑戦しよう！</p>
-          <a href="./sannsuukuesuto/dist/index.html" class="card-btn card-btn--purple">冒険に出発する</a>
+          <p class="card-desc"><ruby>冒険<rt>ぼうけん</rt></ruby>の世界で 算数の 問題に <ruby>挑戦<rt>ちょうせん</rt></ruby>しよう！</p>
+          <a href="./sannsuukuesuto/dist/index.html" class="card-btn card-btn--purple">学習をはじめる ▶</a>
         </article>
         
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Keyboard.png" alt="むんむんタイピング">
           </div>
           <h3 class="card-title">むんむんタイピング</h3>
           <p class="card-desc">文字を 打つ 練習で タイピングが 上手くなるよ！</p>
-          <a href="./munmuntaipinngu/dist/index.html" class="card-btn card-btn--red">練習をはじめる</a>
+          <a href="./munmuntaipinngu/dist/index.html" class="card-btn card-btn--red">学習をはじめる ▶</a>
         </article>
       </div>
     </section>
 
-    <section class="portal-section" aria-labelledby="section-class">
-      <h2 class="section-heading" id="section-class">🤝 係とクラス活動</h2>
+    <section class="portal-section portal-section--duty" aria-labelledby="section-duty">
+      <h2 class="section-heading" id="section-duty">⭐ 係用アプリ</h2>
+      <p class="section-desc">クラスの 係の お仕事を 記録したり 発表したりする アプリです。</p>
       <div class="card-grid">
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Clipboard.png" alt="係の活動ボード">
           </div>
           <h3 class="card-title">係の活動ボード</h3>
-          <p class="card-desc">「学習係」「給食係」の活動はこちらから！</p>
-          <a href="./kakari/index.html" class="card-btn card-btn--orange">ボードを開く</a>
+          <p class="card-desc">「学習係」「給食係」「窓・電気係」の活動はこちらから！</p>
+          <a href="./kakari/index.html" class="card-btn card-btn--orange">コーナーを開く ▶</a>
         </article>
+      </div>
+    </section>
 
+    <section class="portal-section portal-section--class" aria-labelledby="section-class">
+      <h2 class="section-heading" id="section-class">🤝 クラス用アプリ</h2>
+      <p class="section-desc">友だちと 一緒に 意見をまとめたり、お絵かきができる ツールです。</p>
+      <div class="card-grid">
         <article class="card">
-          <div class="card-icon">
+          <div class="card-icon" aria-hidden="true">
             <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Crayon.png" alt="話し合いボード">
           </div>
           <h3 class="card-title">話し合いボード</h3>
-          <p class="card-desc">みんなでホワイトボードを使って意見をまとめよう！</p>
-          <a href="https://whiteboard-app-uigp.onrender.com" target="_blank" class="card-btn card-btn--teal">ホワイトボードを開く</a>
+          <p class="card-desc">グループの「あいことば」を入れて、みんなでホワイトボードを使おう！</p>
+          <a href="https://whiteboard-app-uigp.onrender.com" target="_blank" class="card-btn card-btn--teal">ボードを開く ▶</a>
+        </article>
+
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People%20with%20activities/Person%20Raising%20Hand.png" alt="クラス活動メニュー">
+          </div>
+          <h3 class="card-title">クラス活動メニュー</h3>
+          <p class="card-desc">「挙手シート」など、みんなで協力して使うツールの一覧です。</p>
+          <a href="./kurasuyou/index.html" class="card-btn card-btn--teal">コーナーを開く ▶</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="portal-section portal-section--teacher" id="section-teacher">
+      <h2 class="section-heading">🍎 先生用アプリ (管理画面)</h2>
+      <p class="section-desc">宿題管理、引き渡し訓練、募金集計などを行う先生専用のメニューです。</p>
+      <div class="card-grid">
+        <article class="card">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Wrench.png" alt="管理ダッシュボード">
+          </div>
+          <h3 class="card-title">管理ダッシュボード</h3>
+          <p class="card-desc">先生用の各種管理アプリのポータル画面を開きます。</p>
+          <a href="./sennseiyou/index.html" class="card-btn card-btn--gray">管理画面へ ▶</a>
         </article>
       </div>
     </section>
@@ -443,10 +548,28 @@
   <footer class="footer">
     <p>
       © 樋渡先生の学習クエスト — 小学校 学習 Webアプリ
+      <span id="teacher-login" title="先生専用メニュー">🔒</span>
     </p>
   </footer>
 
   <script>
+    // --- 先生ログイン機能 ---
+    document.getElementById('teacher-login').addEventListener('click', function() {
+      const teacherSection = document.getElementById('section-teacher');
+      if (teacherSection.style.display === 'block') return;
+
+      const password = prompt('先生専用メニューを開きます。\nパスワードを入力してください:');
+      
+      if (password === '0113') {
+        teacherSection.style.display = 'block';
+        setTimeout(() => {
+          teacherSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      } else if (password !== null) {
+        alert('パスワードが間違っています。');
+      }
+    });
+
     // --- フワフワ背景記号の生成 ---
     const bgContainer = document.getElementById('floating-bg');
     const symbols = ['➕', '➖', '✖️', '➗', '✨', '⭐'];
@@ -462,7 +585,6 @@
 
     // --- クリック時の紙吹雪パーティクル ---
     document.addEventListener('click', function(e) {
-      // ボタンかカードをクリックした時だけ発動
       if(!e.target.closest('.card') && !e.target.closest('.card-btn')) return;
 
       const colors = ['#FFD700', '#FF8C00', '#4ADE80', '#60A5FA', '#F472B6'];
@@ -470,17 +592,14 @@
         const particle = document.createElement('div');
         particle.className = 'particle';
         
-        // ランダムな色とサイズ
         particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
         const size = Math.random() * 8 + 6;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
         
-        // クリックした位置
         particle.style.left = `${e.pageX - size/2}px`;
         particle.style.top = `${e.pageY - size/2}px`;
         
-        // 飛んでいく方向
         const angle = Math.random() * Math.PI * 2;
         const velocity = 30 + Math.random() * 60;
         particle.style.setProperty('--tx', `${Math.cos(angle) * velocity}px`);
@@ -488,7 +607,6 @@
         
         document.body.appendChild(particle);
         
-        // アニメーション終了後に削除
         setTimeout(() => particle.remove(), 600);
       }
     });
