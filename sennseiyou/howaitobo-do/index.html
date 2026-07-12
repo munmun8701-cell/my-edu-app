@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>ホワイトボード</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<div id="whiteboard-screen">
+    <div class="toolbar">
+        <select id="bgSelect" onchange="changeBackground()">
+            <option value="white">⬜ 白紙</option>
+            <option value="grid">▦ 方眼</option>
+            <option value="ruled">⏸ 縦罫線</option>
+        </select>
+
+        <select id="textDirection">
+            <option value="h">➡ 横書き</option>
+            <option value="v">⬇ 縦書き</option>
+        </select>
+
+        <select id="fontSizeSelect" onchange="changeFontSize()">
+            <option value="16">小文字(16)</option>
+            <option value="24" selected>中文字(24)</option>
+            <option value="36">大文字(36)</option>
+        </select>
+
+        <select id="tool" onchange="changeTool()">
+            <option value="select">👆 えらぶ</option>
+            <option value="draw">✎ ペン</option>
+            <option value="highlight">🖍 蛍光ペン</option>
+            <option value="text">A もじ</option>
+            <option value="stamp">💮 スタンプ</option>
+            <option value="line">📏 直線</option>
+            <option value="rect">▭ 四角</option>
+            <option value="circle">◯ 丸</option>
+        </select>
+
+        <span style="display:inline-flex; align-items:center; gap:2px; margin:0 5px;">
+            <span class="color-btn active" style="background:#000000;" onclick="setColor('#000000', this)"></span>
+            <span class="color-btn" style="background:#dc3545;" onclick="setColor('#dc3545', this)"></span>
+            <span class="color-btn" style="background:#007bff;" onclick="setColor('#007bff', this)"></span>
+        </span>
+        
+        <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
+        
+        <span style="font-weight: bold; font-size: 13px; color: #333;">ページ:</span>
+        <div id="page-list-container"><span id="page-list"></span></div>
+        <button id="addPageBtn" class="btn-base btn-green" style="background-color: #20c997;">＋1枚</button>
+
+        <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
+
+        <span style="font-size: 13px; color: #333; display: flex; align-items: center; gap: 2px;">
+            ⏱ <input type="number" id="timerMin" value="3" style="width: 40px; text-align: right; border: 1px solid #ccc; border-radius: 4px;" min="1">分
+            <button id="startTimerBtn" class="btn-base btn-orange" onclick="startTimer()" style="padding: 2px 8px; margin-left: 4px;">▶</button>
+            <span id="timerDisplay" style="font-weight: bold; width: 45px; text-align: center; font-family: monospace;">03:00</span>
+        </span>
+
+        <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
+        
+        <input type="file" id="cameraInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+        <button class="btn-base btn-yellow" onclick="document.getElementById('cameraInput').click()">📸 画像</button>
+        <button id="addStickyBtn" class="btn-base btn-yellow">📝 ふせん</button>
+        <button id="addBiLingualBtn" class="btn-base btn-blue">📝 多言語ふせん(日/モ)</button>
+        
+        <button id="deleteObjBtn" class="btn-base btn-red">けす</button>
+        <button class="btn-base btn-gray" onclick="restoreDeleted()">🗑️ 戻す</button>
+
+        <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
+        <button id="addMonBtn" class="btn-base btn-dark" onclick="createBoardFrame('問')">問 枠</button>
+        <button id="addGakuBtn" class="btn-base btn-blue" onclick="createBoardFrame('学')">学 枠</button>
+        <button id="addMeBtn" class="btn-base btn-red" onclick="createBoardFrame('め')">め 枠</button>
+        <button id="addMaBtn" class="btn-base btn-red" onclick="createBoardFrame('ま')">ま 枠</button>
+        <button id="addPoBtn" class="btn-base btn-red" onclick="createBoardFrame('ポ')">ポ 枠</button>
+        
+        <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
+        <button id="viewGalleryBtn" class="btn-base btn-blue">👀 一覧</button>
+        <button id="saveDataBtn" class="btn-base btn-green">💾 名前をつけて保存</button>
+        <button id="loadDataBtn" class="btn-base btn-orange">📂 履歴を開く</button>
+        <button id="exportPdfBtn" class="btn-base btn-purple">PDF</button>
+        <button id="fullScreenBtn" class="btn-base btn-dark">全画面</button>
+        <button id="clearBtn" class="btn-base btn-gray">全消去</button>
+    </div>
+
+    <div id="canvas-wrapper">
+        <canvas id="canvas" width="2000" height="1500"></canvas>
+    </div>
+</div>
+
+<div id="gallery-modal">
+    <div style="display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 20px;">
+        <h2>👀 全ページ一覧</h2>
+        <button id="closeGalleryBtn" class="btn-base btn-gray" style="font-size:20px; padding:10px 20px;">閉じる</button>
+    </div>
+    <div id="gallery-grid" style="text-align: center;"></div>
+</div>
+
+<div id="save-load-modal">
+    <div class="save-modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 10px;">
+            <h2 style="margin: 0; color: #333;">📂 保存された履歴一覧</h2>
+            <button onclick="getEl('save-load-modal').style.display = 'none'" class="btn-base btn-gray" style="font-size:16px;">閉じる</button>
+        </div>
+        <div id="save-list"></div>
+    </div>
+</div>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
