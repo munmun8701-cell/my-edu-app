@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>位ごとに分けて計算しよう</title>
+<style>
+    :root {
+        --primary: #0284c7;
+        --primary-light: #e0f2fe;
+        --success: #16a34a;
+        --warning: #f59e0b;
+        --bg: #f8fafc;
+        --text: #334155;
+        --border: #cbd5e1;
+        --box-bg: #ffffff;
+    }
+    body {
+        font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    .app-container {
+        width: 100%;
+        max-width: 900px;
+        background: var(--box-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    /* ヘッダー・進行状況 */
+    .header {
+        background-color: var(--primary);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .lesson-title { margin: 0; font-size: 1.2rem; }
+    .badge { background: white; color: var(--primary); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
+
+    /* 各ステップのコンテナ */
+    .step-container { display: none; padding: 30px; animation: fadeIn 0.4s ease; }
+    .step-container.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 問題文 */
+    .problem-box {
+        background-color: #fefce8;
+        border-left: 6px solid var(--warning);
+        padding: 20px;
+        border-radius: 6px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    /* 具体物操作エリア (STEP 1) */
+    .instruction { font-size: 1.1rem; font-weight: bold; color: var(--primary); margin-bottom: 15px; }
+    
+    .pool-area {
+        background: #f1f5f9; border: 2px dashed var(--border); border-radius: 8px;
+        min-height: 80px; padding: 15px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+        align-items: center; justify-content: center;
+    }
+    
+    .block-10 {
+        width: 45px; height: 55px; background: #fca5a5; border: 2px solid #ef4444; border-radius: 4px;
+        display: flex; align-items: center; justify-content: center; font-weight: bold; color: #7f1d1d;
+        cursor: pointer; user-select: none; box-shadow: 2px 2px 0px #ef4444; transition: transform 0.1s;
+    }
+    .block-1 {
+        width: 35px; height: 35px; background: #fef08a; border: 2px solid #eab308; border-radius: 4px;
+        display: flex; align-items: center; justify-content: center; font-weight: bold; color: #713f12;
+        cursor: pointer; user-select: none; box-shadow: 2px 2px 0px #eab308; transition: transform 0.1s;
+    }
+    .block-10:active, .block-1:active { transform: translate(2px, 2px); box-shadow: none; }
+
+    .distribution-area { display: flex; gap: 15px; margin-bottom: 25px; }
+    .person-box {
+        flex: 1; border: 3px solid var(--border); border-radius: 8px; padding: 10px;
+        min-height: 120px; display: flex; flex-direction: column; align-items: center;
+        background: white; cursor: pointer; transition: 0.2s;
+    }
+    .person-box.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 10px rgba(2, 132, 199, 0.2); }
+    .person-label { font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid var(--border); width: 100%; text-align: center; }
+    .person-content { display: flex; flex-wrap: wrap; gap: 5px; width: 100%; justify-content: center; }
+
+    /* 思考プロセスエリア (STEP 2) */
+    .thinking-grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+    .think-row {
+        background: #f8fafc; border: 2px solid var(--border); border-radius: 8px; padding: 20px;
+        display: flex; align-items: center; justify-content: space-between; font-size: 1.2rem; font-weight: bold;
+    }
+    .tree-diagram {
+        display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.2rem; font-weight: bold;
+    }
+
+    /* 入力フォーム共通 */
+    input[type="text"] {
+        padding: 10px; font-size: 1.3rem; text-align: center;
+        border: 2px solid var(--border); border-radius: 6px; font-family: inherit;
+    }
+    input[type="text"]:focus { outline: none; border-color: var(--primary); background: var(--primary-light); }
+    .input-short { width: 70px; }
+    .input-eq { width: 150px; font-size: 1.1rem; }
+
+    /* ボタン・フィードバック */
+    .btn-wrap { text-align: center; margin-top: 20px; }
+    button {
+        font-family: inherit; font-size: 1.2rem; font-weight: bold;
+        padding: 12px 30px; border: none; border-radius: 8px;
+        cursor: pointer; color: white; transition: 0.2s;
+    }
+    button:active { transform: translateY(3px); }
+    .btn-action { background-color: var(--primary); box-shadow: 0 4px 0 #0369a1; }
+    .btn-check { background-color: var(--success); box-shadow: 0 4px 0 #15803d; }
+    .btn-hint { background-color: var(--warning); box-shadow: 0 4px 0 #b45309; margin-left: 10px; }
+    
+    .feedback { text-align: center; font-size: 1.2rem; font-weight: bold; margin-top: 20px; min-height: 30px; }
+    .correct { color: var(--success); }
+    .incorrect { color: #dc2626; }
+
+    /* 練習問題 (STEP 4) */
+    .practice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .practice-item {
+        background: white; border: 2px solid var(--border); border-radius: 8px; padding: 20px;
+        display: flex; align-items: center; justify-content: space-between; font-size: 1.3rem; font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h1 class="lesson-title">わり算のしかたを考えよう</h1>
+        <span class="badge">第 2 時 / 4</span>
+    </div>
+
+    <div id="step-1" class="step-container active">
+        <div class="problem-box">
+            69まいの色紙を、3人で同じ数ずつ分けます。<br>
+            1人分は何まいになりますか。
+        </div>
+
+        <div class="instruction">
+            ① 配りたい人（はこ）をタップして選びます。<br>
+            ② ブロックをタップして配ります。（はこの中のブロックをタップすると元にもどせるよ）
+        </div>
+
+        <div class="distribution-area">
+            <div class="person-box selected" id="box-1" onclick="selectBox(1)">
+                <div class="person-label">1人目</div>
+                <div class="person-content" id="content-1"></div>
+            </div>
+            <div class="person-box" id="box-2" onclick="selectBox(2)">
+                <div class="person-label">2人目</div>
+                <div class="person-content" id="content-2"></div>
+            </div>
+            <div class="person-box" id="box-3" onclick="selectBox(3)">
+                <div class="person-label">3人目</div>
+                <div class="person-content" id="content-3"></div>
+            </div>
+        </div>
+
+        <div class="pool-area" id="pool">
+            </div>
+
+        <div class="btn-wrap">
+            <button class="btn-action" onclick="checkDistribution()">おなじ数ずつ分けられたかチェック！</button>
+        </div>
+        <div id="fb-1" class="feedback"></div>
+    </div>
+
+    <div id="step-2" class="step-container">
+        <h2>ブロックの分け方を、式であらわそう</h2>
+        <div class="instruction">位（くらい）ごとに分けて考えたことを、式にしてみよう。</div>
+        
+        <div class="tree-diagram">
+            69 を 「60」 と 「9」 に分けて計算するよ。
+        </div>
+
+        <div class="thinking-grid">
+            <div class="think-row">
+                <span>10のまとまり（60まい）を3人で分けた式</span>
+                <span>60 ÷ 3 ＝ <input type="text" id="s2-1" class="input-short" oninput="formatInput(this)"></span>
+            </div>
+            <div class="think-row">
+                <span>ばら（9まい）を3人で分けた式</span>
+                <span>9 ÷ 3 ＝ <input type="text" id="s2-2" class="input-short" oninput="formatInput(this)"></span>
+            </div>
+            <div class="think-row">
+                <span>あわせて</span>
+                <span><input type="text" id="s2-3" class="input-short" oninput="formatInput(this)"></span>
+            </div>
+        </div>
+
+        <div class="btn-wrap">
+            <button class="btn-check" onclick="checkThinking()">たしかめる</button>
+        </div>
+        <div id="fb-2" class="feedback"></div>
+    </div>
+
+    <div id="step-3" class="step-container">
+        <h2>問題の式と答えをかこう</h2>
+        <div class="problem-box">
+            69まいの色紙を、3人で同じ数ずつ分けます。<br>
+            1人分は何まいになりますか。
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 20px; align-items: center; margin: 40px 0;">
+            <div style="font-size: 1.3rem; font-weight: bold;">
+                式 <input type="text" id="final-eq" class="input-eq" placeholder="例: 69÷3" oninput="formatInput(this)">
+            </div>
+            <div style="font-size: 1.3rem; font-weight: bold;">
+                答え <input type="text" id="final-ans" class="input-short" oninput="formatInput(this)"> まい
+            </div>
+        </div>
+
+        <div class="btn-wrap">
+            <button class="btn-check" onclick="checkFinal()">こたえあわせ</button>
+        </div>
+        <div id="fb-3" class="feedback"></div>
+    </div>
+
+    <div id="step-4" class="step-container">
+        <span class="badge" style="background: var(--primary); color: white;">練習問題</span>
+        <h2>位ごとに分けて計算しよう</h2>
+        <p style="text-align:center; font-weight:bold;">頭の中で「十の位」と「一の位」に分けて計算してみてね。</p>
+        
+        <div class="practice-grid">
+            <div class="practice-item">① 96 ÷ 3 ＝ <input type="text" id="p1" class="input-short" oninput="formatInput(this)"></div>
+            <div class="practice-item">② 88 ÷ 4 ＝ <input type="text" id="p2" class="input-short" oninput="formatInput(this)"></div>
+            <div class="practice-item">③ 64 ÷ 2 ＝ <input type="text" id="p3" class="input-short" oninput="formatInput(this)"></div>
+            <div class="practice-item">④ 77 ÷ 7 ＝ <input type="text" id="p4" class="input-short" oninput="formatInput(this)"></div>
+        </div>
+
+        <div class="btn-wrap">
+            <button class="btn-check" onclick="checkPractice()">すべて判定</button>
+        </div>
+        <div id="fb-4" class="feedback"></div>
+    </div>
+</div>
+
+<script>
+    // 全角入力自動補正（児童用）
+    function formatInput(element) {
+        let val = element.value;
+        val = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+        val = val.replace(/[\s　]/g, '');
+        val = val.replace(/\//g, '÷');
+        element.value = val;
+    }
+
+    // ステップ遷移
+    function goToStep(stepNum) {
+        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+        document.getElementById('step-' + stepNum).classList.add('active');
+    }
+
+    // ＝＝＝ STEP 1: 具体物操作ロジック ＝＝＝
+    let selectedBoxId = 1;
+    const pool = document.getElementById('pool');
+
+    // 初期ブロック生成 (60 + 9)
+    for(let i=0; i<6; i++) { createBlock('block-10', '10', pool); }
+    for(let i=0; i<9; i++) { createBlock('block-1', '1', pool); }
+
+    function createBlock(className, text, parent) {
+        let block = document.createElement('div');
+        block.className = className;
+        block.innerText = text;
+        block.onclick = function() { moveBlock(this); };
+        parent.appendChild(block);
+    }
+
+    function selectBox(boxId) {
+        document.querySelectorAll('.person-box').forEach(el => el.classList.remove('selected'));
+        document.getElementById('box-' + boxId).classList.add('selected');
+        selectedBoxId = boxId;
+    }
+
+    function moveBlock(block) {
+        // プールにある場合は、選択中の箱へ
+        if(block.parentElement.id === 'pool') {
+            document.getElementById('content-' + selectedBoxId).appendChild(block);
+        } 
+        // 箱の中にある場合は、プールへ戻す（やり直し）
+        else {
+            pool.appendChild(block);
+        }
+    }
+
+    function checkDistribution() {
+        const fb = document.getElementById('fb-1');
+        
+        // プールに残っているかチェック
+        if(pool.children.length > 0) {
+            fb.innerHTML = "<span class='incorrect'>まだ配っていないブロックがあるよ！</span>";
+            return;
+        }
+
+        // 各箱の合計値を計算
+        let totals = [];
+        for(let i=1; i<=3; i++) {
+            let box = document.getElementById('content-' + i);
+            let sum = 0;
+            for(let child of box.children) {
+                sum += parseInt(child.innerText);
+            }
+            totals.push(sum);
+        }
+
+        // 均等かチェック
+        if(totals[0] === 23 && totals[1] === 23 && totals[2] === 23) {
+            fb.innerHTML = "<span class='correct'>大正解！3人に「23」ずつ、おなじ数に分けられたね！</span>";
+            setTimeout(() => { goToStep(2); }, 2000);
+        } else {
+            // 主体的な気づきを促す詳細なフィードバック
+            fb.innerHTML = `<span class='incorrect'>おしい！いま、1人目は${totals[0]}まい、2人目は${totals[1]}まい、3人目は${totals[2]}まいになっているよ。おなじ数に直してみよう。</span>`;
+        }
+    }
+
+    // ＝＝＝ STEP 2: 思考の言語化判定 ＝＝＝
+    function checkThinking() {
+        const a1 = document.getElementById('s2-1').value;
+        const a2 = document.getElementById('s2-2').value;
+        const a3 = document.getElementById('s2-3').value;
+        const fb = document.getElementById('fb-2');
+
+        if(a1 === '20' && a2 === '3' && a3 === '23') {
+            fb.innerHTML = "<span class='correct'>ばっちり！位ごとに分けて計算するしくみがわかったね！</span>";
+            setTimeout(() => { goToStep(3); }, 2000);
+        } else {
+            fb.innerHTML = "<span class='incorrect'>さっきブロックを配ったときのことを思い出して、もういちど数を入れてみよう。</span>";
+        }
+    }
+
+    // ＝＝＝ STEP 3: 最終立式判定 ＝＝＝
+    function checkFinal() {
+        const eq = document.getElementById('final-eq').value;
+        const ans = document.getElementById('final-ans').value;
+        const fb = document.getElementById('fb-3');
+
+        // 式の入力を厳密にチェック（答えが含まれていないか等）
+        if(eq === '69÷3' && ans === '23') {
+            fb.innerHTML = "<span class='correct'>完璧です！位ごとに分けるわり算をマスターしたね！</span>";
+            setTimeout(() => { goToStep(4); }, 2000);
+        } else if (eq.includes('=')) {
+            fb.innerHTML = "<span class='incorrect'>「式」のところには、答えを書かなくていいよ（例: 69÷3）。</span>";
+        } else {
+            fb.innerHTML = "<span class='incorrect'>式か答えがまちがっているよ。問題文をよく読んでみよう。</span>";
+        }
+    }
+
+    // ＝＝＝ STEP 4: 練習問題判定 ＝＝＝
+    function checkPractice() {
+        const p1 = document.getElementById('p1').value === '32';
+        const p2 = document.getElementById('p2').value === '22';
+        const p3 = document.getElementById('p3').value === '32';
+        const p4 = document.getElementById('p4').value === '11';
+        const fb = document.getElementById('fb-4');
+
+        if(p1 && p2 && p3 && p4) {
+            fb.innerHTML = "<span class='correct'>全問正解！どんな数字でも、位ごとに分ければ暗算でできるね！素晴らしい！</span>";
+        } else {
+            fb.innerHTML = "<span class='incorrect'>まちがっているところがあるよ。十の位と一の位をわけて、もういちど計算しよう。</span>";
+        }
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
