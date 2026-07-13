@@ -1,59 +1,17 @@
-// --- 状態管理（データ保存用） ---
-const appState = {}; // 全問題のデータを保存するオブジェクト
-let currentProblemId = null;
-let currentDividend = 0;
-let currentDivisor = 0;
+// --- ナビゲーション（問題切り替え） ---
+const navBtns = document.querySelectorAll('.nav-btn');
+const views = document.querySelectorAll('.worksheet-view');
 
-// ブロックツールの状態
-let poolDotsCount = 0;
-let groupsArray = []; 
-
-// 数直線ツールの状態
-let jumpsMade = 0;
-
-// --- DOM要素 ---
-const hintText = document.getElementById('character-message');
-const eqDividend = document.getElementById('eq-dividend');
-const eqDivisor = document.getElementById('eq-divisor');
-
-// ツール1（ブロック）
-const poolCount = document.getElementById('pool-count');
-const blockPool = document.getElementById('block-pool');
-const groupCount = document.getElementById('group-count');
-const blockGroups = document.getElementById('block-groups');
-const autoGroupBtn = document.getElementById('auto-group-btn');
-const btnDivisorVal = document.getElementById('btn-divisor-val');
-
-// ツール2（数直線）
-const jumpArcs = document.getElementById('jump-arcs');
-const lineMaxVal = document.getElementById('line-max-val');
-const jumpedTotal = document.getElementById('jumped-total');
-const jumpRemain = document.getElementById('jump-remain');
-const jumpBtn = document.getElementById('jump-btn');
-const btnJumpVal = document.getElementById('btn-jump-val');
-
-// ツール3（たしかめ）
-const checkDiv = document.getElementById('check-div');
-const checkDsr = document.getElementById('check-dsr');
-const inputQuotient = document.getElementById('input-quotient');
-const inputRemainder = document.getElementById('input-remainder');
-const checkDsr2 = document.getElementById('check-dsr-2');
-const mirrorQuotient = document.getElementById('mirror-quotient');
-const mirrorRemainder = document.getElementById('mirror-remainder');
-const calcResult = document.getElementById('calc-result');
-
-// --- アプリ初期化 ---
-function initAppState() {
-  document.querySelectorAll('option[data-id], button[data-id]').forEach(el => {
-    const id = el.dataset.id;
-    if(id) {
-      appState[id] = { initialized: false, isCorrect: false };
-    }
+navBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    navBtns.forEach(b => b.classList.remove('active'));
+    views.forEach(v => v.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(e.target.dataset.target).classList.add('active');
   });
-}
-initAppState();
+});
 
-// --- タブ切り替え処理 ---
+// --- シミュレータータブ切り替え ---
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -64,110 +22,159 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // --- 全角数字を半角に変換 ---
-function toHalfWidthNumber(str) {
-  return str.replace(/[０-９]/g, function(s) {
-    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-  }).replace(/[^0-9]/g, '');
+function toHalfWidth(str) {
+  return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/[^0-9]/g, '');
 }
 
-// --- データの保存 ---
-function saveCurrentState() {
-  if(!currentProblemId) return;
-  appState[currentProblemId] = {
-    initialized: true,
-    poolDotsCount: poolDotsCount,
-    groupsArray: [...groupsArray],
-    jumpsMade: jumpsMade,
-    qVal: inputQuotient.value,
-    rVal: inputRemainder.value,
-    isCorrect: appState[currentProblemId].isCorrect
-  };
-}
+// ==========================================
+// 判定と状態保存（DOM上で完結）
+// ==========================================
 
-// --- データの復元 ---
-function restoreState(id) {
-  const state = appState[id];
-  if (state && state.initialized) {
-    poolDotsCount = state.poolDotsCount;
-    groupsArray = [...state.groupsArray];
-    jumpsMade = state.jumpsMade;
-    inputQuotient.value = state.qVal;
-    inputRemainder.value = state.rVal;
+const hintText = document.getElementById('character-message');
+
+// すべての入力欄でリアルタイム判定
+document.querySelectorAll('.ans-input').forEach(input => {
+  input.addEventListener('input', (e) => {
+    let val = toHalfWidth(e.target.value);
+    e.target.value = val; // 半角に上書き
+    
+    if (val === e.target.dataset.correct) {
+      e.target.classList.add('correct');
+    } else {
+      e.target.classList.remove('correct');
+    }
+    checkProgress();
+  });
+});
+
+// Q1のトグルボタン判定
+let q1Selections = [false, false, false, false, false, false, false, false, false];
+const q1Buttons = document.querySelectorAll('.q1-choice');
+q1Buttons.forEach((btn, index) => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('selected');
+    q1Selections[index] = !q1Selections[index];
+    
+    // 正解の判定（わりきれないものだけを選ぶ）
+    let isCorrectBtn = btn.dataset.ans === "true";
+    if (btn.classList.contains('selected') && isCorrectBtn) {
+      btn.classList.add('correct-selection');
+    } else {
+      btn.classList.remove('correct-selection');
+    }
+    checkProgress();
+  });
+});
+
+// 全体の進行状況をチェック
+function checkProgress() {
+  let allCleared = true;
+
+  // 各問題グループのチェック
+  ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].forEach(qId => {
+    let isQCleared = true;
+    
+    if (qId === 'q1') {
+      // Q1: data-ans="true" のものが全て selected、"false"が非selectedであること
+      q1Buttons.forEach(btn => {
+        let shouldSelect = btn.dataset.ans === "true";
+        let isSelected = btn.classList.contains('selected');
+        if (shouldSelect !== isSelected) isQCleared = false;
+      });
+    } else {
+      // Q2~Q6: そのセクション内の全ての .ans-input が .correct であること
+      const inputs = document.getElementById(qId).querySelectorAll('.ans-input');
+      inputs.forEach(input => {
+        if (!input.classList.contains('correct')) isQCleared = false;
+      });
+    }
+
+    // サイドバーの✅更新
+    const navBtn = document.querySelector(`.nav-btn[data-target="${qId}"]`);
+    if (isQCleared) {
+      navBtn.classList.add('cleared');
+      if (!navBtn.textContent.includes('✅')) {
+        navBtn.textContent = '✅ ' + navBtn.textContent;
+      }
+    } else {
+      navBtn.classList.remove('cleared');
+      allCleared = false;
+    }
+  });
+
+  if (allCleared) {
+    hintText.textContent = "すごい！ぜんぶ 正解だよ！";
+    setTimeout(() => {
+      document.getElementById('clear-screen').classList.add('show');
+    }, 500);
   } else {
-    // 初めて開く問題の場合はリセット
-    poolDotsCount = currentDividend;
-    groupsArray = [];
-    jumpsMade = 0;
-    inputQuotient.value = "";
-    inputRemainder.value = "";
+    hintText.textContent = "ひだりのメニューから 問題をえらんで、ノートにも 答えをかきながら すすめよう！";
   }
 }
 
-// --- 問題の読み込み ---
-function loadProblem(id, dividend, divisor, hint) {
-  if(!id || !dividend || !divisor) return;
-  
-  saveCurrentState(); // 前の問題のデータを保存
-  
-  currentProblemId = id;
+// ==========================================
+// シミュレーターのロジック
+// ==========================================
+let currentDividend = 0;
+let currentDivisor = 0;
+let poolDotsCount = 0;
+let groupsArray = [];
+let jumpsMade = 0;
+
+function loadSim(dividend, divisor) {
   currentDividend = parseInt(dividend);
   currentDivisor = parseInt(divisor);
   
-  // UIラベル更新
-  eqDividend.textContent = currentDividend;
-  eqDivisor.textContent = currentDivisor;
-  btnDivisorVal.textContent = currentDivisor;
-  btnJumpVal.textContent = currentDivisor;
-  checkDiv.textContent = currentDividend;
-  checkDsr.textContent = currentDivisor;
-  checkDsr2.textContent = currentDivisor;
-  lineMaxVal.textContent = currentDividend;
+  document.getElementById('eq-dividend').textContent = currentDividend;
+  document.getElementById('eq-divisor').textContent = currentDivisor;
+  document.getElementById('btn-divisor-val').textContent = currentDivisor;
+  document.getElementById('btn-jump-val').textContent = currentDivisor;
+  document.getElementById('check-div').textContent = currentDividend;
+  document.getElementById('check-dsr').textContent = currentDivisor;
+  document.getElementById('check-dsr-2').textContent = currentDivisor;
   
-  restoreState(id); // データを復元
-  
+  // ブロック初期化
+  poolDotsCount = currentDividend;
+  groupsArray = [];
   renderBlocks();
   
-  // 数直線の復元
-  jumpArcs.innerHTML = '';
-  for(let i=0; i<jumpsMade; i++) {
-    const arcWidthPercent = (currentDivisor / currentDividend) * 100;
-    const arc = document.createElement('div');
-    arc.className = 'arc';
-    arc.style.width = `${arcWidthPercent}%`;
-    jumpArcs.appendChild(arc);
-  }
+  // 数直線初期化
+  jumpsMade = 0;
+  document.getElementById('jump-arcs').innerHTML = '';
+  document.getElementById('line-max-val').textContent = currentDividend;
   updateLineUI();
   
-  updateCheckFormula(true); // 初期ロード時はクリア判定をスキップ
-  
-  if(!appState[id].isCorrect) {
-    hintText.textContent = hint || "おはじき を タップして、はこ に うつしてみよう！";
-  }
+  // たしかめ算初期化
+  document.getElementById('sim-input-q').value = '';
+  document.getElementById('sim-input-r').value = '';
+  updateSimCheck();
 }
 
-// --- ツール1：ブロック操作 ---
+// --- ブロックツール ---
+const blockPool = document.getElementById('block-pool');
+const blockGroups = document.getElementById('block-groups');
+
 function renderBlocks() {
+  document.getElementById('pool-count').textContent = poolDotsCount;
   blockPool.innerHTML = '';
-  poolCount.textContent = poolDotsCount;
-  for(let i=0; i < poolDotsCount; i++) {
+  for(let i=0; i<poolDotsCount; i++) {
     const dot = document.createElement('div');
     dot.className = 'dot';
     blockPool.appendChild(dot);
   }
 
+  const completed = groupsArray.filter(c => c === currentDivisor).length;
+  document.getElementById('group-count').textContent = completed;
   blockGroups.innerHTML = '';
-  const completedGroups = groupsArray.filter(count => count === currentDivisor).length;
-  groupCount.textContent = completedGroups;
-
-  groupsArray.forEach((dotCount, groupIndex) => {
+  
+  groupsArray.forEach((count, gIndex) => {
     const group = document.createElement('div');
     group.className = 'group-box';
-    if(dotCount === currentDivisor) group.classList.add('full');
-
-    for(let i=0; i < dotCount; i++) {
+    if(count === currentDivisor) group.classList.add('full');
+    for(let i=0; i<count; i++) {
       const dot = document.createElement('div');
       dot.className = 'dot';
-      dot.dataset.groupIndex = groupIndex;
+      dot.dataset.gIndex = gIndex;
       group.appendChild(dot);
     }
     blockGroups.appendChild(group);
@@ -177,163 +184,78 @@ function renderBlocks() {
 blockPool.addEventListener('click', (e) => {
   if(e.target.classList.contains('dot') && poolDotsCount > 0) {
     poolDotsCount--;
-    let targetIndex = groupsArray.findIndex(count => count < currentDivisor);
-    if(targetIndex === -1) groupsArray.push(1);
-    else groupsArray[targetIndex]++;
+    let tIdx = groupsArray.findIndex(c => c < currentDivisor);
+    if(tIdx === -1) groupsArray.push(1);
+    else groupsArray[tIdx]++;
     renderBlocks();
-    saveCurrentState();
   }
 });
 
 blockGroups.addEventListener('click', (e) => {
   if(e.target.classList.contains('dot')) {
-    const groupIndex = parseInt(e.target.dataset.groupIndex);
-    if(groupsArray[groupIndex] > 0) {
-      groupsArray[groupIndex]--;
-      poolDotsCount++;
-      if(groupsArray[groupIndex] === 0) groupsArray.splice(groupIndex, 1);
-      renderBlocks();
-      saveCurrentState();
-    }
+    const gIdx = parseInt(e.target.dataset.gIndex);
+    groupsArray[gIdx]--;
+    poolDotsCount++;
+    if(groupsArray[gIdx] === 0) groupsArray.splice(gIdx, 1);
+    renderBlocks();
   }
 });
 
-autoGroupBtn.addEventListener('click', () => {
+document.getElementById('auto-group-btn').addEventListener('click', () => {
   if (poolDotsCount >= currentDivisor) {
     poolDotsCount -= currentDivisor;
     groupsArray.push(currentDivisor);
     renderBlocks();
-    saveCurrentState();
   }
 });
 
 document.getElementById('reset-blocks-btn').addEventListener('click', () => {
-  poolDotsCount = currentDividend; groupsArray = [];
-  renderBlocks(); saveCurrentState();
+  poolDotsCount = currentDividend; groupsArray = []; renderBlocks();
 });
 
-
-// --- ツール2：数直線のロジック ---
+// --- 数直線ツール ---
 function updateLineUI() {
   const currentPos = jumpsMade * currentDivisor;
-  jumpedTotal.textContent = currentPos;
-  jumpRemain.textContent = currentDividend - currentPos;
+  document.getElementById('jumped-total').textContent = currentPos;
+  document.getElementById('jump-remain').textContent = currentDividend - currentPos;
 }
 
-jumpBtn.addEventListener('click', () => {
+document.getElementById('jump-btn').addEventListener('click', () => {
   const currentPos = jumpsMade * currentDivisor;
   if ((currentDividend - currentPos) >= currentDivisor) {
     jumpsMade++;
-    const arcWidthPercent = (currentDivisor / currentDividend) * 100;
+    const arcPercent = (currentDivisor / currentDividend) * 100;
     const arc = document.createElement('div');
     arc.className = 'arc';
-    arc.style.width = `${arcWidthPercent}%`;
-    jumpArcs.appendChild(arc);
+    arc.style.width = `${arcPercent}%`;
+    document.getElementById('jump-arcs').appendChild(arc);
     updateLineUI();
-    saveCurrentState();
   }
 });
 
 document.getElementById('reset-line-btn').addEventListener('click', () => {
-  jumpsMade = 0; jumpArcs.innerHTML = '';
-  updateLineUI(); saveCurrentState();
+  jumpsMade = 0; document.getElementById('jump-arcs').innerHTML = ''; updateLineUI();
 });
 
-// --- サイドバーのUI更新（正解マーク） ---
-function updateSidebarUI() {
-  document.querySelectorAll('option[data-id], button[data-id]').forEach(el => {
-    const id = el.dataset.id;
-    if (appState[id] && appState[id].isCorrect) {
-      if (el.tagName === 'OPTION') {
-        if (!el.textContent.includes('✅')) el.textContent = '✅ ' + el.textContent;
-      } else if (el.tagName === 'BUTTON') {
-        el.classList.add('completed');
-        if (!el.textContent.includes('✅')) el.textContent = '✅ ' + el.textContent;
-      }
-    }
-  });
-}
-
-// --- 全クリアチェック ---
-function checkAllCleared() {
-  const keys = Object.keys(appState);
-  const allCorrect = keys.every(key => appState[key].isCorrect);
-  if (allCorrect && keys.length > 0) {
-    document.getElementById('clear-screen').classList.add('show');
-  }
-}
-
-document.getElementById('close-clear-btn').addEventListener('click', () => {
-  document.getElementById('clear-screen').classList.remove('show');
-});
-
-
-// --- ツール3：たしかめ算のロジック ---
-function updateCheckFormula(skipClearCheck = false) {
-  let qValStr = toHalfWidthNumber(inputQuotient.value);
-  let rValStr = toHalfWidthNumber(inputRemainder.value);
+// --- たしかめ算ツール（シミュレーター内） ---
+const simInQ = document.getElementById('sim-input-q');
+const simInR = document.getElementById('sim-input-r');
+function updateSimCheck() {
+  let q = toHalfWidth(simInQ.value);
+  let r = toHalfWidth(simInR.value);
+  simInQ.value = q; simInR.value = r;
   
-  if(inputQuotient.value !== "" && qValStr !== "") inputQuotient.value = qValStr;
-  if(inputRemainder.value !== "" && rValStr !== "") inputRemainder.value = rValStr;
-
-  mirrorQuotient.textContent = qValStr !== "" ? qValStr : "?";
-  mirrorRemainder.textContent = rValStr !== "" ? rValStr : "?";
+  document.getElementById('mirror-q').textContent = q !== "" ? q : "?";
+  document.getElementById('mirror-r').textContent = r !== "" ? r : "?";
   
-  if(qValStr !== "" && rValStr !== "") {
-    const trueQ = Math.floor(currentDividend / currentDivisor);
-    const trueR = currentDividend % currentDivisor;
-    const enteredQ = parseInt(qValStr);
-    const enteredR = parseInt(rValStr);
-
-    const calc = (currentDivisor * enteredQ) + enteredR;
-    calcResult.textContent = calc;
-
-    // 正解判定：商と余りが算数的に完全に一致しているか
-    if (enteredQ === trueQ && enteredR === trueR) {
-      calcResult.style.color = "#00B894";
-      hintText.textContent = "大正解！ノートにかいて、次の問題にすすもう！";
-      
-      if(currentProblemId) {
-        appState[currentProblemId].isCorrect = true;
-        saveCurrentState();
-        updateSidebarUI();
-        if(!skipClearCheck) checkAllCleared();
-      }
-    } else {
-      calcResult.style.color = "#FF7675";
-      hintText.textContent = "あれ？どこか ちがうみたい。ブロックや数直線で もういちど確認してみよう。";
-    }
+  if(q !== "" && r !== "") {
+    document.getElementById('calc-result').textContent = (currentDivisor * parseInt(q)) + parseInt(r);
   } else {
-    calcResult.textContent = "?";
-    calcResult.style.color = "inherit";
+    document.getElementById('calc-result').textContent = "?";
   }
 }
+simInQ.addEventListener('input', updateSimCheck);
+simInR.addEventListener('input', updateSimCheck);
 
-inputQuotient.addEventListener('input', () => { updateCheckFormula(false); saveCurrentState(); });
-inputRemainder.addEventListener('input', () => { updateCheckFormula(false); saveCurrentState(); });
-
-
-// --- イベントリスナー（問題選択） ---
-const selects = document.querySelectorAll('.problem-select');
-selects.forEach(select => {
-  select.addEventListener('change', (e) => {
-    saveCurrentState(); // 切り替え前に保存
-    if(!e.target.value) {
-      currentProblemId = null;
-      return;
-    }
-    selects.forEach(s => { if(s !== e.target) s.value = ""; });
-    const option = e.target.options[e.target.selectedIndex];
-    const [dividend, divisor] = e.target.value.split(',');
-    loadProblem(option.dataset.id, dividend, divisor);
-  });
-});
-
-const btns = document.querySelectorAll('.problem-btn');
-btns.forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    saveCurrentState(); // 切り替え前に保存
-    selects.forEach(s => s.value = ""); 
-    loadProblem(e.target.dataset.id, e.target.dataset.dividend, e.target.dataset.divisor, e.target.dataset.hint);
-  });
-});
+// 初期ロード時のダミーセット
+loadSim(16, 2);
