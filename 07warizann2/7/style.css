@@ -1,138 +1,339 @@
-:root {
-  --primary: #e91e63;
-  --bg-color: #fce4ec;
-  --card-bg: #ffffff;
-  --text-main: #333333;
+// --- 状態管理（データ保存用） ---
+const appState = {}; // 全問題のデータを保存するオブジェクト
+let currentProblemId = null;
+let currentDividend = 0;
+let currentDivisor = 0;
+
+// ブロックツールの状態
+let poolDotsCount = 0;
+let groupsArray = []; 
+
+// 数直線ツールの状態
+let jumpsMade = 0;
+
+// --- DOM要素 ---
+const hintText = document.getElementById('character-message');
+const eqDividend = document.getElementById('eq-dividend');
+const eqDivisor = document.getElementById('eq-divisor');
+
+// ツール1（ブロック）
+const poolCount = document.getElementById('pool-count');
+const blockPool = document.getElementById('block-pool');
+const groupCount = document.getElementById('group-count');
+const blockGroups = document.getElementById('block-groups');
+const autoGroupBtn = document.getElementById('auto-group-btn');
+const btnDivisorVal = document.getElementById('btn-divisor-val');
+
+// ツール2（数直線）
+const jumpArcs = document.getElementById('jump-arcs');
+const lineMaxVal = document.getElementById('line-max-val');
+const jumpedTotal = document.getElementById('jumped-total');
+const jumpRemain = document.getElementById('jump-remain');
+const jumpBtn = document.getElementById('jump-btn');
+const btnJumpVal = document.getElementById('btn-jump-val');
+
+// ツール3（たしかめ）
+const checkDiv = document.getElementById('check-div');
+const checkDsr = document.getElementById('check-dsr');
+const inputQuotient = document.getElementById('input-quotient');
+const inputRemainder = document.getElementById('input-remainder');
+const checkDsr2 = document.getElementById('check-dsr-2');
+const mirrorQuotient = document.getElementById('mirror-quotient');
+const mirrorRemainder = document.getElementById('mirror-remainder');
+const calcResult = document.getElementById('calc-result');
+
+// --- アプリ初期化 ---
+function initAppState() {
+  document.querySelectorAll('option[data-id], button[data-id]').forEach(el => {
+    const id = el.dataset.id;
+    if(id) {
+      appState[id] = { initialized: false, isCorrect: false };
+    }
+  });
+}
+initAppState();
+
+// --- タブ切り替え処理 ---
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tool-content').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(e.target.dataset.target).classList.add('active');
+  });
+});
+
+// --- 全角数字を半角に変換 ---
+function toHalfWidthNumber(str) {
+  return str.replace(/[０-９]/g, function(s) {
+    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+  }).replace(/[^0-9]/g, '');
 }
 
-body {
-  font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
-  background-color: #f8bbd0;
-  margin: 0;
-  padding: 10px;
-  display: flex;
-  justify-content: center;
-  color: var(--text-main);
-  transition: background-color 0.5s;
+// --- データの保存 ---
+function saveCurrentState() {
+  if(!currentProblemId) return;
+  appState[currentProblemId] = {
+    initialized: true,
+    poolDotsCount: poolDotsCount,
+    groupsArray: [...groupsArray],
+    jumpsMade: jumpsMade,
+    qVal: inputQuotient.value,
+    rVal: inputRemainder.value,
+    isCorrect: appState[currentProblemId].isCorrect
+  };
 }
-body.theme-tire { background-color: #bbdefb; }
 
-#app {
-  width: 100%;
-  max-width: 800px;
-  background: var(--bg-color);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  overflow: hidden;
-  position: relative;
-  transition: background-color 0.5s;
+// --- データの復元 ---
+function restoreState(id) {
+  const state = appState[id];
+  if (state && state.initialized) {
+    poolDotsCount = state.poolDotsCount;
+    groupsArray = [...state.groupsArray];
+    jumpsMade = state.jumpsMade;
+    inputQuotient.value = state.qVal;
+    inputRemainder.value = state.rVal;
+  } else {
+    // 初めて開く問題の場合はリセット
+    poolDotsCount = currentDividend;
+    groupsArray = [];
+    jumpsMade = 0;
+    inputQuotient.value = "";
+    inputRemainder.value = "";
+  }
 }
-#app.theme-tire { background: #e3f2fd; }
 
-header {
-  background: var(--primary);
-  color: white;
-  padding: 15px 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.5s;
+// --- 問題の読み込み ---
+function loadProblem(id, dividend, divisor, hint) {
+  if(!id || !dividend || !divisor) return;
+  
+  saveCurrentState(); // 前の問題のデータを保存
+  
+  currentProblemId = id;
+  currentDividend = parseInt(dividend);
+  currentDivisor = parseInt(divisor);
+  
+  // UIラベル更新
+  eqDividend.textContent = currentDividend;
+  eqDivisor.textContent = currentDivisor;
+  btnDivisorVal.textContent = currentDivisor;
+  btnJumpVal.textContent = currentDivisor;
+  checkDiv.textContent = currentDividend;
+  checkDsr.textContent = currentDivisor;
+  checkDsr2.textContent = currentDivisor;
+  lineMaxVal.textContent = currentDividend;
+  
+  restoreState(id); // データを復元
+  
+  renderBlocks();
+  
+  // 数直線の復元
+  jumpArcs.innerHTML = '';
+  for(let i=0; i<jumpsMade; i++) {
+    const arcWidthPercent = (currentDivisor / currentDividend) * 100;
+    const arc = document.createElement('div');
+    arc.className = 'arc';
+    arc.style.width = `${arcWidthPercent}%`;
+    jumpArcs.appendChild(arc);
+  }
+  updateLineUI();
+  
+  updateCheckFormula(true); // 初期ロード時はクリア判定をスキップ
+  
+  if(!appState[id].isCorrect) {
+    hintText.textContent = hint || "おはじき を タップして、はこ に うつしてみよう！";
+  }
 }
-header.theme-tire { background: #1976d2; }
-header h1 { margin: 0; font-size: 20px; }
-.step-indicator { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold; }
 
-/* ---------------- Visualizer ---------------- */
-.visualizer { background: #ffffff; padding: 20px; border-bottom: 4px solid #f48fb1; transition: border-color 0.5s;}
-.visualizer.theme-tire { border-bottom-color: #90caf9; }
+// --- ツール1：ブロック操作 ---
+function renderBlocks() {
+  blockPool.innerHTML = '';
+  poolCount.textContent = poolDotsCount;
+  for(let i=0; i < poolDotsCount; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    blockPool.appendChild(dot);
+  }
 
-.area-label { font-weight: bold; color: #555; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;}
-.vis-controls { display: flex; gap: 8px; }
-.btn-small { background: #eeeeee; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; transition: 0.2s;}
-.btn-small:active { transform: scale(0.95); }
-.btn-magic { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
+  blockGroups.innerHTML = '';
+  const completedGroups = groupsArray.filter(count => count === currentDivisor).length;
+  groupCount.textContent = completedGroups;
 
-.btn-add-box { background: #e3f2fd; color: #1565c0; border: 2px dashed #1e88e5; animation: pop 0.5s; font-size: 16px;}
-.btn-add-box.theme-tire { background: #fff8e1; color: #f57c00; border-color: #ffca28; }
+  groupsArray.forEach((dotCount, groupIndex) => {
+    const group = document.createElement('div');
+    group.className = 'group-box';
+    if(dotCount === currentDivisor) group.classList.add('full');
 
-.pool-container { background: #fafafa; border: 2px dashed #ccc; border-radius: 10px; padding: 10px; margin-top: 10px;}
-.pool-status { font-weight: bold; margin-bottom: 5px; color: #555; }
-.pool-status strong { color: var(--primary); font-size: 1.2em; transition: color 0.5s;}
-.pool-status strong.theme-tire { color: #1976d2; }
-.pool { min-height: 45px; display: flex; flex-wrap: wrap; gap: 6px; }
-
-.groups { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; min-height: 100px;}
-
-/* ケーキ用の箱デザイン */
-.group-box.type-cake {
-  background: #efebe9; border: 3px solid #8d6e63; border-radius: 4px;
-  padding: 8px; width: 85px; min-height: 85px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; justify-content: center;
-  position: relative; transition: all 0.3s;
+    for(let i=0; i < dotCount; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.dataset.groupIndex = groupIndex;
+      group.appendChild(dot);
+    }
+    blockGroups.appendChild(group);
+  });
 }
-.group-box.type-cake::before { content: '📦'; position: absolute; top: -15px; left: -10px; font-size: 20px;}
-.group-box.type-cake.full { background: #d7ccc8; border-color: #5d4037; }
-.group-box.type-cake.new-box { animation: highlightBox 1s ease-out; border-color: #2196f3; background: #e3f2fd;}
 
-/* タイヤ用の車デザイン */
-.group-box.type-tire {
-  background: #f5f5f5; border: 3px solid #9e9e9e; border-radius: 12px;
-  padding: 8px; width: 85px; min-height: 85px; display: flex; flex-wrap: wrap; gap: 4px; align-content: center; justify-content: center;
-  position: relative; transition: all 0.3s;
+blockPool.addEventListener('click', (e) => {
+  if(e.target.classList.contains('dot') && poolDotsCount > 0) {
+    poolDotsCount--;
+    let targetIndex = groupsArray.findIndex(count => count < currentDivisor);
+    if(targetIndex === -1) groupsArray.push(1);
+    else groupsArray[targetIndex]++;
+    renderBlocks();
+    saveCurrentState();
+  }
+});
+
+blockGroups.addEventListener('click', (e) => {
+  if(e.target.classList.contains('dot')) {
+    const groupIndex = parseInt(e.target.dataset.groupIndex);
+    if(groupsArray[groupIndex] > 0) {
+      groupsArray[groupIndex]--;
+      poolDotsCount++;
+      if(groupsArray[groupIndex] === 0) groupsArray.splice(groupIndex, 1);
+      renderBlocks();
+      saveCurrentState();
+    }
+  }
+});
+
+autoGroupBtn.addEventListener('click', () => {
+  if (poolDotsCount >= currentDivisor) {
+    poolDotsCount -= currentDivisor;
+    groupsArray.push(currentDivisor);
+    renderBlocks();
+    saveCurrentState();
+  }
+});
+
+document.getElementById('reset-blocks-btn').addEventListener('click', () => {
+  poolDotsCount = currentDividend; groupsArray = [];
+  renderBlocks(); saveCurrentState();
+});
+
+
+// --- ツール2：数直線のロジック ---
+function updateLineUI() {
+  const currentPos = jumpsMade * currentDivisor;
+  jumpedTotal.textContent = currentPos;
+  jumpRemain.textContent = currentDividend - currentPos;
 }
-.group-box.type-tire::before { content: '🚙'; position: absolute; top: -15px; left: 30px; font-size: 24px; opacity: 0.3;}
-.group-box.type-tire.full { background: #e3f2fd; border-color: #1976d2; }
-.group-box.type-tire.full::before { opacity: 1; }
 
-.item {
-  width: 32px; height: 32px; border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.1s;
-  display: flex; justify-content: center; align-items: center; font-size: 22px;
+jumpBtn.addEventListener('click', () => {
+  const currentPos = jumpsMade * currentDivisor;
+  if ((currentDividend - currentPos) >= currentDivisor) {
+    jumpsMade++;
+    const arcWidthPercent = (currentDivisor / currentDividend) * 100;
+    const arc = document.createElement('div');
+    arc.className = 'arc';
+    arc.style.width = `${arcWidthPercent}%`;
+    jumpArcs.appendChild(arc);
+    updateLineUI();
+    saveCurrentState();
+  }
+});
+
+document.getElementById('reset-line-btn').addEventListener('click', () => {
+  jumpsMade = 0; jumpArcs.innerHTML = '';
+  updateLineUI(); saveCurrentState();
+});
+
+// --- サイドバーのUI更新（正解マーク） ---
+function updateSidebarUI() {
+  document.querySelectorAll('option[data-id], button[data-id]').forEach(el => {
+    const id = el.dataset.id;
+    if (appState[id] && appState[id].isCorrect) {
+      if (el.tagName === 'OPTION') {
+        if (!el.textContent.includes('✅')) el.textContent = '✅ ' + el.textContent;
+      } else if (el.tagName === 'BUTTON') {
+        el.classList.add('completed');
+        if (!el.textContent.includes('✅')) el.textContent = '✅ ' + el.textContent;
+      }
+    }
+  });
 }
-.item.type-cake { background: #fff; }
-.item.type-cake::after { content: '🍰'; }
-.item.type-tire { background: #424242; border: 3px dashed #e0e0e0; }
-.item.type-tire::after { content: '⚙️'; font-size: 18px;}
-.item:hover { transform: scale(1.15); }
 
-/* ---------------- Lesson Flow ---------------- */
-.question-board { padding: 20px; }
-.question-card { background: var(--card-bg); border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); animation: fadeIn 0.4s ease-out; }
-.mission-title { color: var(--primary); margin-top: 0; border-bottom: 2px dashed #f48fb1; padding-bottom: 10px; }
-.question-text { font-size: 18px; font-weight: bold; line-height: 1.6; }
-rt { font-size: 11px; color: #666; }
-
-.character-box { padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 16px; border: 2px solid transparent; display: inline-block;}
-.character-box.ami { background: #fce4ec; border-color: #f8bbd0; }
-
-.action-prompt { background: #e3f2fd; border: 2px solid #64b5f6; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 18px; color: #0d47a1; margin: 20px 0;}
-
-input[type="text"] {
-  height: 40px; font-size: 20px; text-align: center;
-  border: 2px solid #ccc; border-radius: 8px; outline: none; font-family: inherit; font-weight: bold;
+// --- 全クリアチェック ---
+function checkAllCleared() {
+  const keys = Object.keys(appState);
+  const allCorrect = keys.every(key => appState[key].isCorrect);
+  if (allCorrect && keys.length > 0) {
+    document.getElementById('clear-screen').classList.add('show');
+  }
 }
-input[type="text"]:focus { border-color: var(--secondary); background: #fff8e1; }
-.input-short { width: 50px; margin: 0 5px;}
 
-.answer-box { background: #f5f5f5; padding: 20px; border-radius: 12px; text-align: center; font-size: 22px; font-weight: bold; margin: 20px 0; }
-.final-answer { background: #e8f5e9; border: 3px solid #4caf50; font-size: 24px;}
+document.getElementById('close-clear-btn').addEventListener('click', () => {
+  document.getElementById('clear-screen').classList.remove('show');
+});
 
-.action-buttons { display: flex; gap: 15px;}
-.btn-primary { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 16px; font-size: 20px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #c2185b; transition: transform 0.1s; }
-.btn-primary:active { transform: translateY(4px); box-shadow: 0 0 0 transparent !important; }
 
-.msg { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; line-height: 1.5; white-space: pre-wrap; animation: pop 0.3s;}
-.msg.error { background: #ffebee; color: #c62828; border-left: 5px solid #f44336; }
-.msg.success { background: #e8f5e9; color: #2e7d32; border-left: 5px solid #4caf50; }
-.msg.warning { background: #fff3e0; color: #e65100; border-left: 5px solid #ff9800; }
+// --- ツール3：たしかめ算のロジック ---
+function updateCheckFormula(skipClearCheck = false) {
+  let qValStr = toHalfWidthNumber(inputQuotient.value);
+  let rValStr = toHalfWidthNumber(inputRemainder.value);
+  
+  if(inputQuotient.value !== "" && qValStr !== "") inputQuotient.value = qValStr;
+  if(inputRemainder.value !== "" && rValStr !== "") inputRemainder.value = rValStr;
 
-.summary-box { background: #fff8e1; border: 2px dashed #ffc107; padding: 20px; border-radius: 12px;}
+  mirrorQuotient.textContent = qValStr !== "" ? qValStr : "?";
+  mirrorRemainder.textContent = rValStr !== "" ? rValStr : "?";
+  
+  if(qValStr !== "" && rValStr !== "") {
+    const trueQ = Math.floor(currentDividend / currentDivisor);
+    const trueR = currentDividend % currentDivisor;
+    const enteredQ = parseInt(qValStr);
+    const enteredR = parseInt(rValStr);
 
-/* Clear Screen */
-.clear-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; justify-content: center; align-items: center; text-align: center; z-index: 100; animation: fadeIn 0.5s; }
-.clear-content { padding: 40px; }
-.crown { font-size: 80px; animation: pop 1s infinite alternate; }
+    const calc = (currentDivisor * enteredQ) + enteredR;
+    calcResult.textContent = calc;
 
-.hidden { display: none !important; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
-@keyframes highlightBox { 0% { transform: scale(1); } 50% { transform: scale(1.1); background: #bbdefb; } 100% { transform: scale(1); } }
+    // 正解判定：商と余りが算数的に完全に一致しているか
+    if (enteredQ === trueQ && enteredR === trueR) {
+      calcResult.style.color = "#00B894";
+      hintText.textContent = "大正解！ノートにかいて、次の問題にすすもう！";
+      
+      if(currentProblemId) {
+        appState[currentProblemId].isCorrect = true;
+        saveCurrentState();
+        updateSidebarUI();
+        if(!skipClearCheck) checkAllCleared();
+      }
+    } else {
+      calcResult.style.color = "#FF7675";
+      hintText.textContent = "あれ？どこか ちがうみたい。ブロックや数直線で もういちど確認してみよう。";
+    }
+  } else {
+    calcResult.textContent = "?";
+    calcResult.style.color = "inherit";
+  }
+}
+
+inputQuotient.addEventListener('input', () => { updateCheckFormula(false); saveCurrentState(); });
+inputRemainder.addEventListener('input', () => { updateCheckFormula(false); saveCurrentState(); });
+
+
+// --- イベントリスナー（問題選択） ---
+const selects = document.querySelectorAll('.problem-select');
+selects.forEach(select => {
+  select.addEventListener('change', (e) => {
+    saveCurrentState(); // 切り替え前に保存
+    if(!e.target.value) {
+      currentProblemId = null;
+      return;
+    }
+    selects.forEach(s => { if(s !== e.target) s.value = ""; });
+    const option = e.target.options[e.target.selectedIndex];
+    const [dividend, divisor] = e.target.value.split(',');
+    loadProblem(option.dataset.id, dividend, divisor);
+  });
+});
+
+const btns = document.querySelectorAll('.problem-btn');
+btns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    saveCurrentState(); // 切り替え前に保存
+    selects.forEach(s => s.value = ""); 
+    loadProblem(e.target.dataset.id, e.target.dataset.dividend, e.target.dataset.divisor, e.target.dataset.hint);
+  });
+});
