@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>３年　数の表し方　８時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小数のひき算 ツールボックス</title>
+<style>
+  :root {
+    --color-a: #4dabf7; --bg-a: #e7f5ff; /* 青：はじめの数・のこり */
+    --color-b: #ff922b; --bg-b: #fff4e6; /* オレンジ：ひく数 */
+    --success: #40c057; --warning: #fcc419; --danger: #fa5252;
+    --bg: #f4f6f8; --border: #ced4da; --theme: #2b8a3e;
+  }
+
+  * { box-sizing: border-box; }
+  body { font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; color: #343a40; }
+  .app-container { background: white; max-width: 900px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow: hidden; }
+
+  /* Header */
+  header { background: #ebfbee; padding: 15px; text-align: center; border-bottom: 3px solid var(--theme); }
+  h1 { margin: 0 0 10px; color: var(--theme); font-size: 1.5rem; }
+  .notebook-prompt { display: inline-block; background: white; border: 2px solid #8ce99a; color: var(--theme); padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+
+  /* Mission Bar */
+  .mission-bar { background: #f8f9fa; padding: 10px 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .mission-label { font-weight: bold; color: #495057; }
+  .problem-display { margin-left: auto; font-size: 1.4rem; font-weight: bold; background: white; padding: 4px 15px; border: 2px solid #adb5bd; border-radius: 8px; color: #495057; }
+
+  /* Global Controls */
+  .global-controls { display: flex; gap: 15px; padding: 15px; background: white; border-bottom: 3px dashed var(--border); flex-wrap: wrap; justify-content: center; align-items: center; }
+  .control-group { padding: 10px 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; border: 2px solid transparent; }
+  .blue-group { background: var(--bg-a); border-color: #a5d8ff; }
+  .orange-group { background: var(--bg-b); border-color: #ffd8a8; }
+  .reset-group { flex-direction: row; align-items: center; gap: 15px; background: #f8f9fa; border-color: var(--border); }
+  .group-title { font-weight: bold; font-size: 1rem; text-align: center; }
+  .btn-row { display: flex; gap: 5px; }
+
+  /* Buttons */
+  .btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: transform 0.1s; }
+  .btn:active { transform: translateY(2px); }
+  .btn-outline { background: white; border: 2px solid var(--theme); color: var(--theme); }
+  .btn-outline:hover { background: #ebfbee; }
+  .btn-blue { background: var(--color-a); color: white; }
+  .btn-orange { background: var(--color-b); color: white; }
+  .btn-gray { background: #dee2e6; color: #495057; }
+  .btn-gray:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-red.outline { background: white; border: 2px solid var(--danger); color: var(--danger); }
+  .btn-yellow { background: var(--warning); color: #343a40; }
+
+  .val-badge { font-size: 1.1rem; font-weight: bold; }
+  .val-badge span { color: var(--danger); font-size: 1.5rem; }
+
+  /* Visual Tabs */
+  .tool-tabs { display: flex; background: #e9ecef; }
+  .tool-tab { flex: 1; padding: 12px; border: none; background: transparent; font-size: 1.1rem; font-weight: bold; color: #495057; cursor: pointer; border-bottom: 3px solid transparent; }
+  .tool-tab.active { background: white; color: var(--theme); border-bottom: 3px solid var(--theme); }
+  .visual-container { padding: 20px; min-height: 380px; background: white; }
+  .visual-content { display: none; animation: fadeIn 0.3s; }
+  .visual-content.active { display: block; }
+  .vis-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 20px; color: #495057; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* 1. Beaker */
+  .beaker-stage { display: flex; justify-content: center; gap: 80px; align-items: flex-end; height: 260px; margin-top: 20px; }
+  .beaker { width: 110px; height: 200px; border: 3px solid #343a40; border-top: none; position: relative; background: #fffcf0; border-radius: 0 0 10px 10px; }
+  .beaker-inner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 0 0 6px 6px; overflow: hidden; }
+  .ticks-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+  .tick { position: absolute; left: 0; width: 100%; border-bottom: 1px dashed #adb5bd; }
+  .tick.half { border-bottom: 2px solid #868e96; }
+  .top-line { position: absolute; top: -3px; left: -20px; width: 144px; border-top: 4px solid var(--danger); z-index: 10; }
+  .one-liter-label { position: absolute; top: -28px; left: -35px; color: var(--danger); font-weight: bold; font-size: 1.3rem; }
+  .liquid { position: absolute; bottom: 0; left: 0; width: 100%; transition: all 0.3s ease; z-index: 1; }
+  .liquid-a { background: rgba(77, 171, 247, 0.85); }
+  .liquid-b { 
+    background: repeating-linear-gradient(45deg, rgba(255, 146, 43, 0.4), rgba(255, 146, 43, 0.4) 10px, rgba(255, 146, 43, 0.7) 10px, rgba(255, 146, 43, 0.7) 20px); 
+    border-top: 2px dashed #e67700;
+  }
+
+  /* 2. Number Line */
+  .line-stage { padding: 80px 20px 40px; }
+  .number-line { position: relative; height: 4px; background: #495057; width: 100%; margin-top: 30px; }
+  .nl-tick { position: absolute; bottom: 0; width: 2px; background: #495057; transform: translateX(-50%); }
+  .nl-tick.major { height: 20px; } .nl-tick.minor { height: 10px; }
+  .nl-label { position: absolute; top: 15px; transform: translateX(-50%); font-weight: bold; font-size: 1.1rem; }
+  .nl-range { position: absolute; bottom: 4px; height: 12px; transition: all 0.3s ease; }
+  .range-a { background: rgba(77, 171, 247, 0.6); left: 0; border-radius: 6px 0 0 6px; }
+  .range-b { background: rgba(255, 146, 43, 0.8); border-radius: 6px 0 0 6px; display: flex; align-items: center; justify-content: flex-start;}
+  .jump-arrow { position: absolute; top: -35px; transform: translateX(-50%); color: var(--danger); font-size: 2rem; transition: left 0.3s ease; }
+  .back-arrow { margin-left: -5px; color: white; font-size: 0.8rem; }
+
+  /* 3. Blocks */
+  .block-stage { display: flex; justify-content: center; margin-top: 10px; }
+  .block-area { width: 100%; max-width: 550px; min-height: 180px; background: #f1f3f5; border-radius: 12px; padding: 20px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; border: 2px dashed var(--border); }
+  .placeholder { color: #adb5bd; width: 100%; text-align: center; margin-top: 50px; font-weight: bold; }
+  .block-group { display: flex; gap: 4px; padding: 4px; border: 2px solid rgba(0,0,0,0.1); border-radius: 8px; background: white; margin-bottom: 5px; flex-wrap: wrap; max-width: 100%;}
+  .b-01 { width: 22px; height: 50px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); animation: popIn 0.2s; }
+  .b-01.a-color { background: var(--color-a); }
+  .b-01.b-color { background: repeating-linear-gradient(45deg, rgba(255, 146, 43, 0.4), rgba(255, 146, 43, 0.4) 4px, rgba(255, 146, 43, 0.8) 4px, rgba(255, 146, 43, 0.8) 8px); border: 1px dashed #d9480f; opacity: 0.7;}
+  
+  .hidden { display: none !important; }
+  @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* Notebook Guide */
+  .notebook-guide { background: #fff9db; padding: 20px; border-top: 3px dashed #fcc419; text-align: center; }
+  .notebook-guide h3 { margin: 0 0 10px; color: #d4a017; }
+  .notebook-guide p { margin: 0 0 15px; font-weight: bold; }
+  .notebook-keywords { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .notebook-keywords span { background: white; padding: 8px 15px; border-radius: 20px; border: 2px solid #ffe066; font-weight: bold; color: #495057; }
+
+  /* Modal */
+  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; border-top: 8px solid var(--warning); }
+  .mt-3 { margin-top: 15px; }
+
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header>
+    <h1>小数のひき算 ツールボックス</h1>
+    <div class="notebook-prompt">
+      ✏️ アプリで動かして見つけた「計算のしかた」を、ノートに書こう！
+    </div>
+  </header>
+
+  <div class="mission-bar">
+    <span class="mission-label">📖 きょうの もんだい：</span>
+    <button class="btn btn-outline" onclick="setProblem(0.5, 0.2)">① 0.5 － 0.2</button>
+    <button class="btn btn-outline" onclick="setProblem(1.0, 0.4)">② 1.0 － 0.4</button>
+    <button class="btn btn-outline" onclick="setProblem(1.4, 0.6)">③ 1.4 － 0.6</button>
+    <div class="problem-display" id="problem-display">0.5 － 0.2</div>
+  </div>
+
+  <div class="global-controls">
+    <div class="control-group blue-group">
+      <div class="group-title">🟦 青（はじめの数）</div>
+      <div class="btn-row">
+        <button class="btn btn-blue" onclick="addVal('A', 0.1)">＋ 0.1</button>
+        <button class="btn btn-gray" id="btn-dec-a" onclick="addVal('A', -0.1)">－ 0.1</button>
+      </div>
+    </div>
+    
+    <div class="control-group orange-group">
+      <div class="group-title">🟧 オレンジ（ひく数）</div>
+      <div class="btn-row">
+        <button class="btn btn-orange" id="btn-inc-b" onclick="addVal('B', 0.1)">＋ 0.1</button>
+        <button class="btn btn-gray" id="btn-dec-b" onclick="addVal('B', -0.1)">－ 0.1</button>
+      </div>
+    </div>
+
+    <div class="control-group reset-group">
+      <button class="btn btn-red outline" onclick="resetAll()">リセット</button>
+      <div class="val-badge">のこりは： <span id="total-val">0.3</span></div>
+    </div>
+  </div>
+
+  <main class="visual-sandbox">
+    <div class="tool-tabs">
+      <button class="tool-tab active" onclick="switchVisual('beaker')">🥛 ジュース（かさ）</button>
+      <button class="tool-tab" onclick="switchVisual('line')">📏 数直線</button>
+      <button class="tool-tab" onclick="switchVisual('block')">🟦 ブロック</button>
+    </div>
+
+    <div class="visual-container">
+      
+      <!-- 1. ジュース（かさ） -->
+      <div id="vis-beaker" class="visual-content active">
+        <div class="vis-header">
+          はじめの青いジュースから、オレンジの分だけ「のむ」と、のこりはどうなるかな？
+          <button class="btn btn-yellow hint-btn" onclick="showHint('beaker')">💡 ヒント</button>
+        </div>
+        <div class="beaker-stage">
+          <div class="beaker">
+            <div class="top-line"></div>
+            <div class="one-liter-label">1 L</div>
+            <div class="beaker-inner">
+              <div class="liquid liquid-a" id="beak1-a"></div>
+              <div class="liquid liquid-b" id="beak1-b"></div>
+              <div class="ticks-overlay">
+                <div class="tick" style="bottom: 10%"></div>
+                <div class="tick" style="bottom: 20%"></div>
+                <div class="tick" style="bottom: 30%"></div>
+                <div class="tick" style="bottom: 40%"></div>
+                <div class="tick half" style="bottom: 50%"></div>
+                <div class="tick" style="bottom: 60%"></div>
+                <div class="tick" style="bottom: 70%"></div>
+                <div class="tick" style="bottom: 80%"></div>
+                <div class="tick" style="bottom: 90%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="beaker">
+            <div class="top-line"></div>
+            <div class="one-liter-label">2 L</div>
+            <div class="beaker-inner">
+              <div class="liquid liquid-a" id="beak2-a"></div>
+              <div class="liquid liquid-b" id="beak2-b"></div>
+              <div class="ticks-overlay">
+                <div class="tick" style="bottom: 10%"></div>
+                <div class="tick" style="bottom: 20%"></div>
+                <div class="tick" style="bottom: 30%"></div>
+                <div class="tick" style="bottom: 40%"></div>
+                <div class="tick half" style="bottom: 50%"></div>
+                <div class="tick" style="bottom: 60%"></div>
+                <div class="tick" style="bottom: 70%"></div>
+                <div class="tick" style="bottom: 80%"></div>
+                <div class="tick" style="bottom: 90%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 数直線 -->
+      <div id="vis-line" class="visual-content">
+        <div class="vis-header">
+          青の長さからスタートして、オレンジの分だけ「もどる」とどこに着くかな？
+          <button class="btn btn-yellow hint-btn" onclick="showHint('line')">💡 ヒント</button>
+        </div>
+        <div class="line-stage">
+          <div class="number-line" id="num-line">
+            <div class="nl-range range-a" id="nl-range-a"></div>
+            <div class="nl-range range-b" id="nl-range-b"><span class="back-arrow">◀</span></div>
+            <div class="jump-arrow" id="jump-arrow">▼</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ブロック -->
+      <div id="vis-block" class="visual-content">
+        <div class="vis-header">
+          0.1のブロックを、ひく数だけ「とる」と、のこりはいくつになるかな？
+          <button class="btn btn-yellow hint-btn" onclick="showHint('block')">💡 ヒント</button>
+        </div>
+        
+        <div class="block-stage">
+          <div class="block-area" id="block-area">
+            <span class="placeholder">上のボタンをおして、ブロックをだそう</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- まとめ・ノート誘導 -->
+    <div class="notebook-guide">
+      <h3>📓 ノートに計算のしかたを書こう</h3>
+      <p>アプリでたしかめたら、下の言葉をつかって計算のしかたを説明してみよう！</p>
+      <div class="notebook-keywords">
+        <span>「0.1 をもとにして…」</span>
+        <span>「0.1が 〇こ分だから…」</span>
+        <span>「〇－〇 の計算で考えることができる」</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ヒントモーダル -->
+  <div id="hint-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>💡 考え方のヒント</h3>
+      <p id="hint-text"></p>
+      <button class="btn btn-gray mt-3" onclick="closeHint()">わかった！</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- 状態管理 ---
+let currentProblem = { a: 0.5, b: 0.2 };
+let valA = 0.5;
+let valB = 0.2;
+
+// --- 初期化 ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderNumberLine();
+  updateAllVisuals();
+});
+
+// --- タブ切り替え ---
+function switchVisual(tabId) {
+  document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.visual-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`vis-${tabId}`).classList.add('active');
+}
+
+// --- 問題セット ---
+function setProblem(a, b) {
+  currentProblem = { a, b };
+  document.getElementById('problem-display').innerText = `${a} － ${b}`;
+  valA = a;
+  valB = b;
+  updateAllVisuals();
+}
+
+// --- 数値の操作 ---
+function addVal(type, amount) {
+  if (type === 'A') {
+    valA = Math.round((valA + amount) * 10) / 10;
+    if (valA < valB) valA = valB; // ひく数より小さくならないようにする
+    if (valA > 2) valA = 2.0;
+  } else if (type === 'B') {
+    valB = Math.round((valB + amount) * 10) / 10;
+    if (valB < 0) valB = 0;
+    if (valB > valA) valB = valA; // はじめの数より多くひけないようにする
+  }
+  updateAllVisuals();
+}
+
+function resetAll() {
+  valA = 0;
+  valB = 0;
+  document.getElementById('problem-display').innerText = `❓ － ❓`;
+  updateAllVisuals();
+}
+
+// --- 全ビジュアルの同期更新 ---
+function updateAllVisuals() {
+  let rem = Math.round((valA - valB) * 10) / 10;
+  document.getElementById('total-val').innerText = rem.toFixed(1);
+
+  // ボタンの無効化制御
+  document.getElementById('btn-dec-a').disabled = (valA <= valB);
+  document.getElementById('btn-inc-b').disabled = (valB >= valA);
+  document.getElementById('btn-dec-b').disabled = (valB <= 0);
+
+  updateBeaker(rem);
+  updateLine(rem);
+  updateBlock(rem);
+}
+
+// --- 1. リットルます ---
+function updateBeaker(rem) {
+  // 青（のこり）と、オレンジ（のんだ分）を下から積み上げる構造にする
+  // 視覚的には、一番上がオレンジになり「減った」ことがわかりやすくなる。
+  
+  let b1_rem = Math.min(1.0, rem); 
+  let b1_sub = Math.min(1.0 - b1_rem, valB); 
+  
+  document.getElementById('beak1-a').style.height = `${(b1_rem / 1.0) * 100}%`;
+  document.getElementById('beak1-b').style.bottom = `${(b1_rem / 1.0) * 100}%`;
+  document.getElementById('beak1-b').style.height = `${(b1_sub / 1.0) * 100}%`;
+
+  let b2_rem = Math.max(0, rem - 1.0); 
+  let b2_sub = Math.max(0, valB - b1_sub); 
+  
+  document.getElementById('beak2-a').style.height = `${(b2_rem / 1.0) * 100}%`;
+  document.getElementById('beak2-b').style.bottom = `${(b2_rem / 1.0) * 100}%`;
+  document.getElementById('beak2-b').style.height = `${(b2_sub / 1.0) * 100}%`;
+}
+
+// --- 2. 数直線 ---
+function renderNumberLine() {
+  const container = document.getElementById('num-line');
+  for (let i = 0; i <= 20; i++) { 
+    let tick = document.createElement('div');
+    tick.className = `nl-tick ${i % 10 === 0 ? 'major' : (i % 5 === 0 ? 'minor' : 'minor')}`;
+    tick.style.left = `${(i / 20) * 100}%`;
+    if (i % 5 !== 0) tick.style.height = '6px';
+    container.appendChild(tick);
+    
+    if (i % 10 === 0) {
+      let label = document.createElement('div');
+      label.className = 'nl-label'; label.innerText = i / 10;
+      if (i === 10) { label.style.color = '#fa5252'; label.style.fontSize = '1.3rem'; label.style.top = '10px'; }
+      label.style.left = `${(i / 20) * 100}%`;
+      container.appendChild(label);
+    }
+  }
+}
+
+function updateLine(rem) {
+  // 青の範囲（のこり）
+  const rangeA = document.getElementById('nl-range-a');
+  rangeA.style.width = `${(rem / 2.0) * 100}%`;
+
+  // オレンジの範囲（もどる分/ひく数）
+  const rangeB = document.getElementById('nl-range-b');
+  rangeB.style.left = `${(rem / 2.0) * 100}%`;
+  rangeB.style.width = `${(valB / 2.0) * 100}%`;
+
+  // 矢印は残りの位置を指す
+  document.getElementById('jump-arrow').style.left = `${(rem / 2.0) * 100}%`;
+  
+  // ひく数がないときは矢印を隠す
+  if (valB === 0) {
+    rangeB.style.display = 'none';
+  } else {
+    rangeB.style.display = 'flex';
+  }
+}
+
+// --- 3. ブロック ---
+function updateBlock(rem) {
+  const container = document.getElementById('block-area');
+  container.innerHTML = '';
+  
+  if (valA === 0) {
+    container.innerHTML = '<span class="placeholder">上の青いボタンをおして、はじめの数を作ろう</span>';
+    return;
+  }
+
+  let total01s = Math.round(valA * 10);
+  let rem01s = Math.round(rem * 10);
+  let sub01s = Math.round(valB * 10);
+
+  // 10個単位でグループ化して表示する
+  let currentGroup = null;
+  
+  for (let i = 0; i < total01s; i++) {
+    if (i % 10 === 0) {
+      currentGroup = document.createElement('div');
+      currentGroup.className = 'block-group';
+      container.appendChild(currentGroup);
+    }
+    
+    let b = document.createElement('div');
+    // 残りの分は青、引く分（後ろから引かれる）はオレンジ（透明度あり）
+    if (i < rem01s) {
+      b.className = 'b-01 a-color';
+    } else {
+      b.className = 'b-01 b-color';
+    }
+    currentGroup.appendChild(b);
+  }
+}
+
+// --- ヒント機能 ---
+function showHint(tool) {
+  let text = "";
+  let a = valA;
+  let b = valB;
+
+  if (tool === 'beaker') {
+    text = `全体で ${a} Lのジュースがあります。上から ${b} L分（オレンジのしましま）をのむと、のこりの青いジュースは 0.1Lのめもり いくつ分になるかな？`;
+  } else if (tool === 'line') {
+    text = `はじめに ${a} まで進みます。そこから ${b} 分だけ左に「もどる」と、矢印の場所はどこを指しているかな？`;
+  } else if (tool === 'block') {
+    text = `0.1のブロックがぜんぶで ${a*10} こあります。そこから ${b*10} こ（オレンジのしましま）をとると、青いブロックは何こ のこるかな？`;
+  }
+  
+  document.getElementById('hint-text').innerText = text;
+  document.getElementById('hint-modal').classList.remove('hidden');
+}
+function closeHint() { document.getElementById('hint-modal').classList.add('hidden'); }
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>

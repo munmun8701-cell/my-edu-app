@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>３年　数の表し方　３時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小数の表し方（長さ）ツールボックス</title>
+<style>
+:root {
+  --color-cm: #4dabf7; --bg-cm: #e7f5ff;
+  --color-mm: #ff922b; --bg-mm: #fff4e6;
+  --success: #40c057; --warning: #fcc419; --danger: #fa5252;
+  --bg: #f4f6f8; --border: #ced4da; --theme: #2b8a3e;
+}
+
+* { box-sizing: border-box; }
+body { font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; color: #343a40; }
+.app-container { background: white; max-width: 950px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+
+/* Header */
+header { background: #ebfbee; padding: 15px; text-align: center; border-bottom: 3px solid var(--theme); }
+h1 { margin: 0 0 10px; color: var(--theme); font-size: 1.5rem; }
+.notebook-prompt { display: inline-block; background: white; border: 2px solid #8ce99a; color: var(--theme); padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+
+/* Mission Bar */
+.mission-bar { background: #f8f9fa; padding: 10px 15px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); align-items: center;}
+.mission-label { font-weight: bold; color: #495057; width: 100%; margin-bottom: 5px;}
+.btn-mission { padding: 6px 12px; border-radius: 20px; border: 2px solid var(--theme); background: white; color: var(--theme); cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem;}
+.btn-mission:hover { background: var(--theme); color: white; }
+
+/* Global Controls */
+.global-controls { display: flex; gap: 15px; padding: 15px; background: white; border-bottom: 3px dashed var(--border); flex-wrap: wrap; justify-content: center; align-items: stretch; }
+.control-group { padding: 10px 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; border: 2px solid transparent; justify-content: center;}
+.cm-group { background: var(--bg-cm); border-color: #a5d8ff; }
+.mm-group { background: var(--bg-mm); border-color: #ffd8a8; }
+.display-group { flex-direction: column; align-items: center; gap: 5px; background: #fffcf0; border: 2px solid #f1c40f; border-radius: 8px; padding: 10px 20px; min-width: 200px;}
+.group-title { font-weight: bold; font-size: 1rem; text-align: center; }
+.btn-row { display: flex; gap: 5px; justify-content: center;}
+
+/* Buttons */
+.btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: transform 0.1s; }
+.btn:active { transform: translateY(2px); }
+.btn-blue { background: var(--color-cm); color: white; }
+.btn-orange { background: var(--color-mm); color: white; }
+.btn-gray { background: #dee2e6; color: #495057; }
+.btn-red { background: white; border: 2px solid var(--danger); color: var(--danger); }
+
+/* Value Display */
+.val-display-main { font-size: 1.8rem; font-weight: bold; color: var(--danger); }
+.val-display-sub { font-size: 1.1rem; color: #495057; font-weight: bold; }
+
+/* Visual Tabs */
+.tool-tabs { display: flex; background: #e9ecef; }
+.tool-tab { flex: 1; padding: 12px; border: none; background: transparent; font-size: 1.1rem; font-weight: bold; color: #495057; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s;}
+.tool-tab:hover { background: #f8f9fa; }
+.tool-tab.active { background: white; color: var(--theme); border-bottom: 3px solid var(--theme); }
+.visual-container { padding: 20px; min-height: 350px; background: white; }
+.visual-content { display: none; animation: fadeIn 0.3s; }
+.visual-content.active { display: block; }
+.vis-header { font-weight: bold; margin-bottom: 20px; color: #495057; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid var(--warning); display: flex; justify-content: space-between; align-items: center;}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* 1. Ruler Stage */
+.ruler-stage { position: relative; padding: 60px 10px 20px; overflow-x: auto; white-space: nowrap;}
+.ruler { position: relative; height: 70px; background: #fadd9b; border: 2px solid #d4a017; border-radius: 4px; width: 1000px; /* 20cm分を長めにとる */ display: inline-block;}
+.tick { position: absolute; top: 0; width: 2px; background: #343a40; transform: translateX(-50%); }
+.tick.major { height: 35px; width: 3px;}
+.tick.mid { height: 25px; }
+.tick.minor { height: 15px; }
+.tick-label { position: absolute; top: 40px; transform: translateX(-50%); font-weight: bold; font-size: 1.2rem; color: #343a40; }
+.tape { position: absolute; top: -20px; left: 0; height: 20px; background: rgba(250, 82, 82, 0.9); transition: width 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.tape-label { position: absolute; right: -10px; top: -35px; background: white; border: 2px solid var(--danger); color: var(--danger); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 1rem; transform: translateX(50%); white-space: nowrap; z-index: 10;}
+
+/* Marker for Practice Problems */
+.ruler-marker { position: absolute; top: -65px; transform: translateX(-50%); text-align: center; font-weight: bold; color: var(--theme); display: flex; flex-direction: column; align-items: center; }
+.marker-letter { background: white; border: 2px solid var(--theme); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; font-size: 0.9rem;}
+.marker-arrow { color: var(--theme); font-size: 1.2rem; line-height: 0.5;}
+.marker-highlight { animation: bounce 1s infinite; color: var(--danger); }
+.marker-highlight .marker-letter { border-color: var(--danger); color: var(--danger); }
+.marker-highlight .marker-arrow { color: var(--danger); }
+@keyframes bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -5px); } }
+
+/* 2. Blocks Stage */
+.block-stage { display: flex; justify-content: center; margin-top: 10px; flex-direction: column; align-items: center; gap: 20px;}
+.block-area { width: 100%; max-width: 700px; min-height: 150px; background: #f1f3f5; border-radius: 12px; padding: 20px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; border: 2px dashed var(--border); }
+.placeholder { color: #adb5bd; width: 100%; text-align: center; margin-top: 50px; font-weight: bold; }
+.b-01 { width: 18px; height: 40px; background: var(--color-mm); border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); animation: popIn 0.2s; }
+.b-1 { width: 60px; height: 60px; background: var(--color-cm); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; animation: popIn 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+.b-group-10 { display: flex; gap: 2px; padding: 4px; background: rgba(255,146,43,0.2); border-radius: 6px; border: 1px dashed var(--color-mm);}
+
+/* 3. Structure Stage */
+.structure-stage { display: flex; justify-content: center; padding: 20px; flex-direction: column; align-items: center; gap: 20px;}
+.place-value-table { border-collapse: collapse; text-align: center; font-size: 1.4rem; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+.place-value-table th { background: #e9ecef; padding: 15px 30px; color: #495057; border-bottom: 2px solid var(--border); }
+.place-value-table td { padding: 20px 30px; font-weight: bold; font-size: 2.5rem; border-right: 1px dashed var(--border); }
+.place-value-table td:last-child { border-right: none; }
+.decimal-point { color: var(--danger); font-weight: bold; margin: 0 5px; }
+.structure-equation { font-size: 1.5rem; font-weight: bold; background: #fff9db; padding: 15px 30px; border-radius: 8px; border: 2px dashed #fcc419; color: #495057;}
+
+/* Notebook Guide */
+.notebook-guide { background: #fff9db; padding: 20px; border-top: 3px dashed #fcc419; text-align: center; margin-top: auto;}
+.notebook-guide h3 { margin: 0 0 10px; color: #d4a017; }
+.notebook-guide p { margin: 0 0 15px; font-weight: bold; }
+.notebook-keywords { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.notebook-keywords span { background: white; padding: 8px 15px; border-radius: 20px; border: 2px solid #ffe066; font-weight: bold; color: #495057; font-size: 0.95rem;}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header>
+    <h1>📐 小数の表し方（長さ） ツールボックス</h1>
+    <div class="notebook-prompt">
+      ✏️ 動かして見つけた「長さと小数のひみつ」を、ノートに書こう！
+    </div>
+  </header>
+
+  <div class="mission-bar">
+    <div class="mission-label">📖 きょうの もんだい（ボタンをおして確かめよう）：</div>
+    <button class="btn-mission" onclick="setTarget(8.7, 'main')">基本：テープの長さ </button>
+    <button class="btn-mission" onclick="setTarget(0.8, 'marker')">練習 エ </button>
+    <button class="btn-mission" onclick="setTarget(5.0, 'marker')">練習 イ </button>
+    <button class="btn-mission" onclick="setTarget(6.6, 'marker')">練習 ウ </button>
+    <button class="btn-mission" onclick="setTarget(11.4, 'marker')">練習 オ </button>
+    <button class="btn-mission" onclick="setTarget(0.5, 'convert')">① 5mm を cmに</button>
+    <button class="btn-mission" onclick="setTarget(17.6, 'convert')">② 17cm 6mm を cmに</button>
+    <button class="btn-mission" onclick="setTarget(3.7, 'convert')">③ 3.7cm を cmとmmに</button>
+    <button class="btn-mission" onclick="setTarget(1.9, 'count')">④ 1.9cm は何こ分？</button>
+  </div>
+
+  <div class="global-controls">
+    <div class="control-group cm-group">
+      <div class="group-title">🟦 1 cm ずつ</div>
+      <div class="btn-row">
+        <button class="btn btn-blue" onclick="addVal(1)">＋ 1 cm</button>
+        <button class="btn btn-gray" onclick="addVal(-1)">－ 1 cm</button>
+      </div>
+    </div>
+    
+    <div class="control-group mm-group">
+      <div class="group-title">🟧 1 mm (0.1cm) ずつ</div>
+      <div class="btn-row">
+        <button class="btn btn-orange" onclick="addVal(0.1)">＋ 1 mm</button>
+        <button class="btn btn-gray" onclick="addVal(-0.1)">－ 1 mm</button>
+      </div>
+    </div>
+
+    <div class="control-group display-group">
+      <div class="val-display-main"><span id="val-cm-decimal">0.0</span> cm</div>
+      <div class="val-display-sub"><span id="val-cm-int">0</span> cm <span id="val-mm-int">0</span> mm</div>
+      <button class="btn btn-red" onclick="resetAll()" style="margin-top: 5px; padding: 4px 10px; font-size: 0.85rem;">0 にもどす</button>
+    </div>
+  </div>
+
+  <main class="visual-sandbox">
+    <div class="tool-tabs">
+      <button class="tool-tab active" onclick="switchVisual('ruler')">📏 ものさし</button>
+      <button class="tool-tab" onclick="switchVisual('block')">🟦 ブロック (0.1のあつまり)</button>
+      <button class="tool-tab" onclick="switchVisual('structure')">🔢 数のしくみ</button>
+    </div>
+
+    <div class="visual-container">
+      <!-- ものさしタブ -->
+      <div id="vis-ruler" class="visual-content active">
+        <div class="vis-header" id="ruler-msg">
+          上のボタンをおして、赤いテープをのばしてみよう。
+        </div>
+        <div class="ruler-stage" id="ruler-scroll-area">
+          <div class="ruler" id="ruler-obj">
+            <!-- JSで目盛りとマーカーを生成 -->
+            <div class="tape" id="ruler-tape">
+              <div class="tape-label" id="tape-label">0.0 cm</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ブロックタブ -->
+      <div id="vis-block" class="visual-content">
+        <div class="vis-header">
+          <span>0.1cm（1mm）が 10こ あつまると「1cm」の大きなブロックになるよ！</span>
+        </div>
+        <div class="block-stage">
+          <div style="font-weight: bold; color: var(--danger); font-size: 1.3rem; background: #fff0f6; padding: 10px 20px; border-radius: 8px; border: 2px solid #faa2c1;">
+            ぜんぶで 0.1cm が 【 <span id="total-01-count" style="font-size: 2rem;">0</span> 】 こ分
+          </div>
+          <div class="block-area" id="block-area">
+            <span class="placeholder">上のボタンをおして、ブロックをだそう</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数のしくみタブ -->
+      <div id="vis-structure" class="visual-content">
+        <div class="vis-header">
+          「1cm」の位と「0.1cm」の位にわけて数字を見てみよう。
+        </div>
+        <div class="structure-stage">
+          <table class="place-value-table">
+            <tr>
+              <th>1 cm のくらい</th>
+              <th>0.1 cm (1mm) のくらい</th>
+            </tr>
+            <tr>
+              <td><span id="place-1">0</span><span class="decimal-point">.</span></td>
+              <td id="place-01" style="color: var(--color-mm);">0</td>
+            </tr>
+          </table>
+          <div class="structure-equation" id="structure-eq">
+            0 cm と 0 cm を あわせた長さ
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notebook-guide">
+      <h3>📓 ノートに「まとめ」を書こう</h3>
+      <div class="notebook-keywords">
+        <span>「1cmより短い長さは、1cmを10等分した1こ分の長さ…」</span>
+        <span>「0.1cm が 何こ分あるかで 表すことができる」</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// --- 状態管理 ---
+let currentLen = 0.0;
+const MAX_LEN = 20.0; // 17.6cmの問題があるため20cmまで測れるように設定
+
+// 練習問題のマーカー位置
+const markers = [
+  { val: 0.0, label: 'ア' },
+  { val: 0.8, label: 'エ' },
+  { val: 5.0, label: 'イ' },
+  { val: 6.6, label: 'ウ' },
+  { val: 11.4, label: 'オ' }
+];
+
+// --- 初期化 ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderRulerTicks();
+  renderMarkers();
+  updateAllVisuals();
+});
+
+// --- タブ切り替え ---
+function switchVisual(tabId) {
+  document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.visual-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`vis-${tabId}`).classList.add('active');
+}
+
+// --- 問題セット ---
+function setTarget(val, type) {
+  currentLen = val;
+  
+  // タブの自動切り替えとメッセージ変更
+  if (type === 'main' || type === 'marker') {
+    switchVisualTab('ruler');
+    let msg = type === 'main' ? "テープの長さは 何cm になったかな？" : "教科書の記号の場所と、同じになったかな？";
+    document.getElementById('ruler-msg').innerHTML = msg;
+    
+    // スクロール位置の調整 (見やすいように)
+    setTimeout(() => {
+      let scrollArea = document.getElementById('ruler-scroll-area');
+      let targetPx = (val / MAX_LEN) * 1000 - (scrollArea.clientWidth / 2);
+      scrollArea.scrollTo({ left: Math.max(0, targetPx), behavior: 'smooth' });
+    }, 100);
+
+  } else if (type === 'count') {
+    switchVisualTab('block');
+  } else if (type === 'convert') {
+    switchVisualTab('structure');
+  }
+
+  updateAllVisuals();
+}
+
+function switchVisualTab(tabId) {
+  document.querySelectorAll('.tool-tab').forEach(t => {
+    if(t.innerText.includes(tabId === 'ruler' ? 'ものさし' : tabId === 'block' ? 'ブロック' : 'しくみ')) {
+      t.click();
+    }
+  });
+}
+
+// --- 数値の操作 ---
+function addVal(amount) {
+  currentLen = Math.round((currentLen + amount) * 10) / 10;
+  if (currentLen < 0) currentLen = 0;
+  if (currentLen > MAX_LEN) currentLen = MAX_LEN;
+  document.getElementById('ruler-msg').innerHTML = "上のボタンをおして、赤いテープをのばしてみよう。";
+  updateAllVisuals();
+}
+
+function resetAll() {
+  currentLen = 0.0;
+  document.getElementById('ruler-msg').innerHTML = "上のボタンをおして、赤いテープをのばしてみよう。";
+  updateAllVisuals();
+}
+
+// --- 全ビジュアルの同期更新 ---
+function updateAllVisuals() {
+  let cmInt = Math.floor(currentLen);
+  let mmInt = Math.round((currentLen % 1) * 10);
+  
+  // テキスト表示の更新
+  document.getElementById('val-cm-decimal').innerText = currentLen.toFixed(1);
+  document.getElementById('val-cm-int').innerText = cmInt;
+  document.getElementById('val-mm-int').innerText = mmInt;
+
+  updateRuler();
+  updateBlock(cmInt, mmInt);
+  updateStructure(cmInt, mmInt);
+}
+
+// --- 1. ものさし ---
+function renderRulerTicks() {
+  const ruler = document.getElementById('ruler-obj');
+  for (let i = 0; i <= MAX_LEN * 10; i++) { 
+    let tick = document.createElement('div');
+    tick.classList.add('tick');
+    
+    if (i % 10 === 0) {
+      tick.classList.add('major');
+      let label = document.createElement('div');
+      label.className = 'tick-label';
+      label.innerText = i / 10;
+      label.style.left = `${(i / (MAX_LEN * 10)) * 100}%`;
+      ruler.appendChild(label);
+    } else if (i % 5 === 0) {
+      tick.classList.add('mid');
+    } else {
+      tick.classList.add('minor');
+    }
+    
+    tick.style.left = `${(i / (MAX_LEN * 10)) * 100}%`;
+    ruler.appendChild(tick);
+  }
+}
+
+function renderMarkers() {
+  const ruler = document.getElementById('ruler-obj');
+  markers.forEach(m => {
+    let marker = document.createElement('div');
+    marker.className = 'ruler-marker';
+    marker.id = `marker-${m.val.toFixed(1).replace('.','_')}`;
+    marker.style.left = `${(m.val / MAX_LEN) * 100}%`;
+    
+    marker.innerHTML = `
+      <div class="marker-letter">${m.label}</div>
+      <div class="marker-arrow">▼</div>
+    `;
+    ruler.appendChild(marker);
+  });
+}
+
+function updateRuler() {
+  const tape = document.getElementById('ruler-tape');
+  const tapeLabel = document.getElementById('tape-label');
+  
+  let percentage = (currentLen / MAX_LEN) * 100;
+  tape.style.width = `${percentage}%`;
+  
+  if (currentLen === 0) {
+    tapeLabel.style.display = 'none';
+  } else {
+    tapeLabel.style.display = 'block';
+    tapeLabel.innerText = `${currentLen.toFixed(1)} cm`;
+  }
+
+  // マーカーのハイライト判定
+  document.querySelectorAll('.ruler-marker').forEach(el => el.classList.remove('marker-highlight'));
+  let matchedMarker = document.getElementById(`marker-${currentLen.toFixed(1).replace('.','_')}`);
+  if (matchedMarker) {
+    matchedMarker.classList.add('marker-highlight');
+  }
+}
+
+// --- 2. ブロック (0.1の集まり) ---
+function updateBlock(cm, mm) {
+  const container = document.getElementById('block-area');
+  const countDisplay = document.getElementById('total-01-count');
+  container.innerHTML = '';
+  
+  let total01s = Math.round(currentLen * 10);
+  countDisplay.innerText = total01s;
+  
+  if (total01s === 0) {
+    container.innerHTML = '<span class="placeholder">上のボタンをおして、ブロックをだそう</span>';
+    return;
+  }
+
+  // 1cmブロックの描画
+  for (let i = 0; i < cm; i++) {
+    let b = document.createElement('div'); 
+    b.className = 'b-1'; 
+    b.innerText = '1'; 
+    container.appendChild(b);
+  }
+  
+  // 0.1cm(1mm)ブロックの描画
+  if (mm > 0) {
+    let mmGroup = document.createElement('div');
+    mmGroup.className = 'b-group-10';
+    for (let i = 0; i < mm; i++) {
+      let b = document.createElement('div'); 
+      b.className = 'b-01'; 
+      mmGroup.appendChild(b);
+    }
+    container.appendChild(mmGroup);
+  }
+}
+
+// --- 3. 数のしくみ (位取り) ---
+function updateStructure(cm, mm) {
+  document.getElementById('place-1').innerText = cm;
+  document.getElementById('place-01').innerText = mm;
+  
+  document.getElementById('structure-eq').innerHTML = 
+    `<span style="color:var(--theme);">${cm} cm</span> と <span style="color:var(--color-mm); border-bottom: 2px solid var(--color-mm);">0.${mm} cm</span> を あわせた長さ`;
+}
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>

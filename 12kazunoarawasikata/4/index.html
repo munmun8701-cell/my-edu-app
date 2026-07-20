@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>３年　数の表し方　４時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小数を数直線に表そう</title>
+<style>
+:root {
+  --theme: #0b7285; --theme-light: #e3fafc;
+  --primary: #f03e3e; --primary-light: #ffe3e3;
+  --gray-bg: #f8f9fa; --border: #ced4da;
+  --cm: #4dabf7; --mm: #ff922b;
+}
+
+* { box-sizing: border-box; }
+body { font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif; background-color: #e9ecef; margin: 0; padding: 10px; display: flex; justify-content: center; color: #343a40; }
+.app-container { background: white; max-width: 950px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+
+/* Header & Missions */
+header { background: var(--theme-light); padding: 15px 20px; border-bottom: 3px solid var(--theme); }
+h1 { margin: 0 0 10px; color: var(--theme); font-size: 1.5rem; text-align: center;}
+.mission-container { background: white; padding: 12px; border-radius: 8px; border: 2px dashed var(--theme); }
+.mission-title { font-weight: bold; color: var(--theme); margin-bottom: 10px; font-size: 1.1rem;}
+.mission-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-mission { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; color: #495057; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.2s;}
+.btn-mission:hover { background: #f1f3f5; }
+.btn-mission.active { background: var(--theme); color: white; border-color: var(--theme); }
+
+/* Main Workspace */
+.workspace { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+.instruction-box { background: var(--primary-light); color: #c92a2a; padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 25px; text-align: center; font-size: 1.1rem; border: 1px solid #ffa8a8;}
+
+/* Tabs */
+.tool-tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid var(--border);}
+.tool-tab { flex: 1; padding: 10px; border: none; background: transparent; font-size: 1.1rem; font-weight: bold; color: #868e96; cursor: pointer; border-bottom: 3px solid transparent; }
+.tool-tab.active { color: var(--theme); border-bottom: 3px solid var(--theme); }
+.tab-content { display: none; animation: fadeIn 0.3s; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Ruler Stage (修正部分：かぶり防止設計) */
+.ruler-wrapper { position: relative; padding: 60px 20px 80px; overflow-x: auto; margin-bottom: 10px;}
+.ruler-base { position: relative; height: 10px; border-bottom: 3px solid #343a40; width: 850px; margin: 0 auto;}
+.tick { position: absolute; bottom: 0; width: 2px; background: #343a40; transition: opacity 0.3s;}
+.tick.major { height: 25px; width: 3px; }
+.tick.mid { height: 15px; }
+.tick.minor { height: 10px; }
+.tick.hidden { opacity: 0; pointer-events: none; }
+.tick-label { position: absolute; bottom: 35px; transform: translateX(-50%); font-weight: bold; font-size: 1.2rem; }
+.unit-label { position: absolute; right: -40px; bottom: 35px; font-weight: bold; font-size: 1.2rem; }
+
+/* Markers (下から配置) */
+.marker { position: absolute; top: 100%; transform: translateX(-50%); text-align: center; padding-top: 5px; color: #495057; display: flex; flex-direction: column; align-items: center; }
+.marker-arrow { font-size: 1.2rem; line-height: 1; margin-bottom: 2px;}
+.marker-label { font-weight: bold; font-size: 1.2rem; white-space: nowrap;}
+.marker.found { color: var(--primary); }
+
+/* Cursor (上から配置) */
+.cursor { position: absolute; top: -45px; transform: translateX(-50%); color: var(--primary); font-size: 2.2rem; transition: left 0.3s ease; text-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;}
+
+/* Controls */
+.controls-area { display: flex; justify-content: space-between; align-items: center; background: var(--gray-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap; gap: 15px;}
+.move-btns { display: flex; gap: 10px; align-items: center;}
+.btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.1s; box-shadow: 0 2px 0 rgba(0,0,0,0.1);}
+.btn:active { transform: translateY(2px); box-shadow: none;}
+.btn-big { background: var(--cm); color: white; }
+.btn-small { background: var(--mm); color: white; }
+.btn-action { background: var(--theme); color: white; font-size: 1.1rem; padding: 12px 20px;}
+.btn-check { background: var(--primary); color: white; font-size: 1.1rem; padding: 12px 20px;}
+.btn-check:disabled { background: #adb5bd; cursor: not-allowed; box-shadow: none;}
+
+.value-display-panel { display: flex; flex-direction: column; align-items: center; background: white; padding: 10px 20px; border-radius: 8px; border: 2px solid var(--border); min-width: 180px;}
+.value-display-title { font-size: 0.85rem; color: #868e96; font-weight: bold; margin-bottom: 5px;}
+.value-masked { font-size: 1.8rem; font-weight: bold; color: #495057; }
+.value-revealed { font-size: 1.8rem; font-weight: bold; color: var(--primary); display: none;}
+.value-display-panel.revealed .value-masked { display: none; }
+.value-display-panel.revealed .value-revealed { display: inline; }
+
+/* Block Stage */
+.block-stage { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px;}
+.block-questions { width: 100%; display: flex; flex-direction: column; gap: 15px;}
+.block-q-card { background: #fff3bf; padding: 20px; border-radius: 8px; border: 2px solid #fcc419; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;}
+.q-input { font-size: 1.2rem; font-weight: bold; width: 60px; text-align: center; border: 2px solid #ced4da; border-radius: 4px; padding: 4px; color: var(--primary);}
+.btn-reveal-block { background: #fcc419; color: #343a40; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-left: auto;}
+.block-area { width: 100%; max-width: 700px; min-height: 150px; background: white; border-radius: 12px; padding: 20px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; border: 2px dashed var(--border); }
+.b-1 { width: 50px; height: 50px; background: var(--cm); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+.b-01 { width: 12px; height: 30px; background: var(--mm); border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header>
+    <h1>🔍 小数を数直線に表しましょう</h1>
+    <div class="mission-container">
+      <div class="mission-title">📖 教科書の問題：</div>
+      <div class="mission-buttons" id="mission-buttons">
+        <!-- JSでボタンを生成 -->
+      </div>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <div class="instruction-box" id="instruction-text">
+      上のボタンから問題を選んでね。
+    </div>
+
+    <div class="tool-tabs">
+      <button class="tool-tab active" onclick="switchTab('line')">📏 数直線</button>
+      <button class="tool-tab" onclick="switchTab('block')">🟦 □にあてはまる数 (ブロック)</button>
+    </div>
+
+    <!-- 数直線 タブ -->
+    <div id="tab-line" class="tab-content active">
+      <div class="ruler-wrapper">
+        <div class="ruler-base" id="ruler-base">
+          <div class="unit-label" id="unit-label">(L)</div>
+          <!-- カーソル (上から配置) -->
+          <div class="cursor" id="cursor">▼</div>
+          <!-- JSで目盛りとマーカー(下)を生成 -->
+        </div>
+      </div>
+
+      <div class="controls-area">
+        <div class="move-btns">
+          <button class="btn btn-big" onclick="moveCursor(-1)">－ 1</button>
+          <button class="btn btn-small" onclick="moveCursor(-0.1)">－ 0.1</button>
+          <button class="btn btn-small" onclick="moveCursor(0.1)">＋ 0.1</button>
+          <button class="btn btn-big" onclick="moveCursor(1)">＋ 1</button>
+        </div>
+        
+        <button class="btn btn-action" id="btn-divide" style="display: none;" onclick="toggleTicks()">📏 10等分する</button>
+
+        <div class="value-display-panel" id="val-panel">
+          <div class="value-display-title">カーソル(▼)がある場所</div>
+          <div>
+            <span class="value-masked">❓❓❓</span>
+            <span class="value-revealed" id="val-revealed">0.0</span>
+          </div>
+          <button class="btn" style="margin-top: 8px; background: white; border: 2px solid #adb5bd; font-size: 0.9rem;" 
+                  onmousedown="revealValue()" onmouseup="hideValue()" onmouseleave="hideValue()" ontouchstart="revealValue()" ontouchend="hideValue()">
+            👀 おしている間 かくにん
+          </button>
+        </div>
+
+        <button class="btn btn-check" id="btn-target-check" style="display: none;" onclick="checkTarget()">🎯 かきこむ！(ここだ)</button>
+      </div>
+    </div>
+
+    <!-- ブロック タブ -->
+    <div id="tab-block" class="tab-content">
+      <div class="block-stage">
+        <div class="block-questions" id="block-q-container">
+          <!-- 練習④専用コンテンツ -->
+          <div class="block-q-card">
+            ① 3.5 は、0.1 を <input type="text" id="q1-input" class="q-input" readonly value="❓"> こ 集めた数です。
+            <button class="btn-reveal-block" onclick="solveBlockQ(1)">ブロックでたしかめる</button>
+          </div>
+          <div class="block-q-card">
+            ② 0.1 を 14 こ 集めた数は <input type="text" id="q2-input" class="q-input" readonly value="❓"> です。
+            <button class="btn-reveal-block" onclick="solveBlockQ(2)">ブロックでたしかめる</button>
+          </div>
+        </div>
+        <div class="block-area" id="block-area">
+          <div style="color:#adb5bd; margin: 40px auto; font-weight:bold;">上のボタンをおすと、ここにブロックがでるよ</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const MAX_VAL = 4.0;
+let currentVal = 0.0;
+let currentProblem = null;
+let currentTargets = [];
+
+const problems = [
+  { id: 'p1', title: '例題：ア〜エ をよむ', unit: 'L', type: 'read', ticks: true, target: [],
+    markers: [{v:0.1, l:'ア'}, {v:0.9, l:'イ'}, {v:2.1, l:'ウ'}, {v:3.8, l:'エ'}],
+    desc: 'カーソル(▼)を 記号 にあわせて、「👀かくにん」ボタンで小数をよもう。' },
+  { id: 'p2', title: '例題：0.7L, 2.4L をかく', unit: 'L', type: 'find', ticks: true, target: [0.7, 2.4],
+    markers: [],
+    desc: 'ボタンでカーソルを動かして「0.7L」をさがし、「🎯かきこむ！」をおそう。' },
+  { id: 'p3', title: '練習① カ〜ク をよむ', unit: 'cm', type: 'read', ticks: true, target: [],
+    markers: [{v:0.3, l:'カ'}, {v:1.2, l:'キ'}, {v:3.6, l:'ク'}],
+    desc: 'カーソル(▼)を 記号 にあわせて、「👀かくにん」ボタンで小数をよもう。' },
+  { id: 'p4', title: '練習② 0.6cm, 3.2cm をかく', unit: 'cm', type: 'find', ticks: true, target: [0.6, 3.2],
+    markers: [],
+    desc: 'ボタンでカーソルを動かして「0.6cm」をさがし、「🎯かきこむ！」をおそう。' },
+  { id: 'p5', title: '練習③ 10等分して 1.6 をかく', unit: '', type: 'find', ticks: false, target: [1.6],
+    markers: [],
+    desc: '「📏10等分する」ボタンをおして細かいめもりを出し、「1.6」にかきこもう。' },
+  { id: 'p6', title: '練習④ □にあてはまる数', unit: '', type: 'block', ticks: true, target: [],
+    markers: [],
+    desc: '「🟦 □にあてはまる数 (ブロック)」のタブをひらいて、問題にちょうせんしよう。' }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderTicks();
+  setupProblemButtons();
+  loadProblem('p1');
+});
+
+// --- タブ制御 ---
+function switchTab(tabId) {
+  document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+}
+
+// --- 問題設定 ---
+function setupProblemButtons() {
+  const container = document.getElementById('mission-buttons');
+  problems.forEach(p => {
+    let btn = document.createElement('button');
+    btn.className = 'btn-mission';
+    btn.innerText = p.title;
+    btn.onclick = () => loadProblem(p.id);
+    container.appendChild(btn);
+  });
+}
+
+function loadProblem(id) {
+  document.querySelectorAll('.btn-mission').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  currentProblem = problems.find(p => p.id === id);
+  currentVal = 0.0;
+  currentTargets = [...currentProblem.target];
+  
+  if(currentProblem.type === 'block') {
+    switchTab('block');
+  } else {
+    switchTab('line');
+  }
+  
+  document.getElementById('unit-label').innerText = currentProblem.unit ? `(${currentProblem.unit})` : '';
+  
+  updateInstruction();
+  renderMarkers();
+  applyTickVisibility();
+  
+  // UI制御
+  document.getElementById('btn-divide').style.display = (!currentProblem.ticks && currentProblem.id === 'p5') ? 'block' : 'none';
+  document.getElementById('btn-target-check').style.display = currentProblem.type === 'find' ? 'block' : 'none';
+  document.getElementById('btn-target-check').disabled = false;
+  document.getElementById('val-panel').style.display = currentProblem.type === 'find' ? 'none' : 'flex';
+
+  updateVisuals();
+}
+
+function updateInstruction() {
+  if (currentProblem.type === 'find' && currentTargets.length > 0) {
+    document.getElementById('instruction-text').innerText = `ボタンで動かして「${currentTargets[0]}${currentProblem.unit}」をさがし、「🎯かきこむ！」をおそう。`;
+  } else {
+    document.getElementById('instruction-text').innerText = currentProblem.desc;
+  }
+}
+
+// --- 数直線描画 ---
+function renderTicks() {
+  const base = document.getElementById('ruler-base');
+  for (let i = 0; i <= MAX_VAL * 10; i++) {
+    let tick = document.createElement('div');
+    tick.className = 'tick';
+    tick.id = `tick-${i}`;
+    
+    if (i % 10 === 0) {
+      tick.classList.add('major');
+      let label = document.createElement('div');
+      label.className = 'tick-label';
+      label.innerText = i / 10;
+      tick.appendChild(label);
+    } else if (i % 5 === 0) {
+      tick.classList.add('mid');
+    } else {
+      tick.classList.add('minor');
+    }
+    
+    tick.style.left = `${(i / (MAX_VAL * 10)) * 100}%`;
+    base.appendChild(tick);
+  }
+}
+
+function applyTickVisibility() {
+  const hide = !currentProblem.ticks;
+  for (let i = 0; i <= MAX_VAL * 10; i++) {
+    if (i % 10 !== 0) {
+      const t = document.getElementById(`tick-${i}`);
+      if (hide) t.classList.add('hidden');
+      else t.classList.remove('hidden');
+    }
+  }
+}
+
+function toggleTicks() {
+  currentProblem.ticks = true;
+  applyTickVisibility();
+  document.getElementById('btn-divide').style.display = 'none';
+}
+
+function renderMarkers() {
+  document.querySelectorAll('.marker').forEach(el => el.remove());
+  const base = document.getElementById('ruler-base');
+  
+  currentProblem.markers.forEach(m => {
+    let marker = document.createElement('div');
+    marker.className = 'marker';
+    marker.style.left = `${(m.v / MAX_VAL) * 100}%`;
+    // ア、イなどの記号は下から上に向かって指す (↑)
+    marker.innerHTML = `<div class="marker-arrow">↑</div><div class="marker-label">${m.l}</div>`;
+    base.appendChild(marker);
+  });
+}
+
+// 動的にかきこんだ記号を追加する
+function addFoundMarker(val) {
+  const base = document.getElementById('ruler-base');
+  let marker = document.createElement('div');
+  marker.className = 'marker found';
+  marker.style.left = `${(val / MAX_VAL) * 100}%`;
+  marker.innerHTML = `<div class="marker-arrow">↑</div><div class="marker-label">${val}${currentProblem.unit}</div>`;
+  base.appendChild(marker);
+}
+
+// --- 操作と更新 ---
+function moveCursor(amount) {
+  currentVal = Math.round((currentVal + amount) * 10) / 10;
+  if (currentVal < 0) currentVal = 0;
+  if (currentVal > MAX_VAL) currentVal = MAX_VAL;
+  updateVisuals();
+}
+
+function updateVisuals() {
+  const cursor = document.getElementById('cursor');
+  cursor.style.left = `${(currentVal / MAX_VAL) * 100}%`;
+  
+  const valStr = currentVal.toFixed(1);
+  document.getElementById('val-revealed').innerText = valStr + (currentProblem.unit ? ` ${currentProblem.unit}` : '');
+}
+
+function revealValue() { document.getElementById('val-panel').classList.add('revealed'); }
+function hideValue() { document.getElementById('val-panel').classList.remove('revealed'); }
+
+// --- かきこむ(ターゲット判定) ---
+function checkTarget() {
+  if (currentTargets.length === 0) return;
+  const target = currentTargets[0];
+  
+  if (currentVal === target) {
+    addFoundMarker(target);
+    alert(`せいかい！ ${target} の場所に かきこみました。`);
+    currentTargets.shift(); 
+    
+    if (currentTargets.length > 0) {
+      updateInstruction();
+    } else {
+      document.getElementById('instruction-text').innerText = "✨ すべての場所にかきこめました！バッチリです！ ✨";
+      document.getElementById('btn-target-check').disabled = true;
+    }
+  } else {
+    let hint = currentVal < target ? "もっと右だよ" : "もっと左だよ";
+    alert(`おしい！ 今の場所は ${currentVal} だよ。${hint}。`);
+  }
+}
+
+// --- ブロック (練習④専用ロジック) ---
+function solveBlockQ(qNum) {
+  const area = document.getElementById('block-area');
+  area.innerHTML = '';
+  
+  let targetVal = qNum === 1 ? 3.5 : 1.4;
+  
+  let cm = Math.floor(targetVal);
+  let mm = Math.round((targetVal % 1) * 10);
+  let totalCount = Math.round(targetVal * 10);
+  
+  // ブロック描画
+  for(let i=0; i<cm; i++) {
+    let b = document.createElement('div'); b.className = 'b-1'; b.innerText = '1'; area.appendChild(b);
+  }
+  for(let i=0; i<mm; i++) {
+    let b = document.createElement('div'); b.className = 'b-01'; area.appendChild(b);
+  }
+  
+  // 答えの表示
+  if(qNum === 1) {
+    document.getElementById('q1-input').value = totalCount;
+  } else {
+    document.getElementById('q2-input').value = targetVal;
+  }
+}
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
