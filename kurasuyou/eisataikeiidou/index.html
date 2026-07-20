@@ -1,20 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>エイサー体系移動</title>
-    
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>エイサー 隊形移動シミュレーター（大円・小円 入れ替わり）</title>
+<title>エイサー 隊形移動シミュレーター（前後分割・最短距離）</title>
 <style>
   body {
     font-family: sans-serif;
@@ -23,7 +12,7 @@
   }
   .header-controls {
     background: white;
-    padding: 10px 15px;
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     margin-bottom: 10px;
@@ -31,28 +20,31 @@
   .input-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 10px;
     background: #f9f9f9;
-    padding: 8px;
+    padding: 10px;
     border-radius: 5px;
     border: 1px solid #ddd;
+    align-items: center;
   }
   .class-input {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 13px;
+    font-size: 14px;
   }
   .class-input input {
     width: 45px;
-    padding: 3px;
+    padding: 4px;
     text-align: right;
+    border: 1px solid #ccc;
+    border-radius: 3px;
   }
   
   .btn {
-    padding: 8px 16px;
-    margin: 3px;
+    padding: 10px 18px;
+    margin: 4px;
     font-size: 15px;
     font-weight: bold;
     cursor: pointer;
@@ -60,23 +52,35 @@
     border-radius: 5px;
     color: white;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, transform 0.1s;
   }
-  .btn:hover { opacity: 0.8; }
+  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px); box-shadow: none; }
+  
   .btn-step1 { background-color: #607d8b; }
   .btn-step2 { background-color: #4CAF50; } /* 緑 */
-  .btn-step3 { background-color: #f44336; } /* 赤 */
-  .btn-reset { background-color: #333; padding: 4px 8px; font-size: 12px;}
+  .btn-step3 { background-color: #e53935; } /* 赤 */
+  .btn-reset { background-color: #333; padding: 6px 12px; font-size: 13px;}
+  .btn-tool  { background-color: #ff9800; padding: 6px 12px; font-size: 13px; color: #fff;}
 
-  /* 運動場（画面に収まるサイズに変更） */
+  .tools-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  /* 運動場 */
   #field-wrapper {
     width: 100%;
-    overflow-x: auto; /* 万が一はみ出てもスクロールできる */
+    overflow-x: auto;
   }
   #field {
     position: relative;
-    width: 860px;  /* 見切れないように幅を縮小 */
-    height: 540px; /* 見切れないように高さを縮小 */
+    width: 1000px;  
+    height: 600px; 
     background-color: #fffdf5;
     border: 2px solid #ccc;
     border-radius: 10px;
@@ -95,11 +99,20 @@
     position: absolute;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
-    width: 780px;  
-    height: 460px; 
+    width: 920px;  
+    height: 540px; 
     border: 4px solid #558b2f;
     border-radius: 50%;
   }
+  /* 横の分割線（目安） */
+  .split-line {
+    position: absolute;
+    top: 50%; left: 0;
+    width: 100%; height: 2px;
+    background-color: rgba(0,0,0,0.3);
+    border-top: 1px dashed #333;
+  }
+
   /* 小円（点線） */
   .small-circle {
     position: absolute;
@@ -110,63 +123,70 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 50px;
+    font-size: 60px;
     font-weight: bold;
-    color: rgba(0,0,0,0.7);
+    color: rgba(0,0,0,0.1);
   }
   .border-red { border: 4px dashed #e53935; }
   .border-blue { border: 4px dashed #1e88e5; }
-  .border-yellow { border: 4px dashed #ffb300; color: rgba(0,0,0,0.5); }
+  .border-yellow { border: 4px dashed #ffb300; }
 
   /* 児童のドット */
   .student {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     border: 1px solid rgba(0,0,0,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
     color: #fff;
-    /* 最短距離で2.5秒かけて移動 */
-    transition: left 2.5s ease-in-out, top 2.5s ease-in-out;
     transform: translate(-50%, -50%);
     z-index: 10;
   }
 
-  /* 4年（濃い色）、3年（少し薄い色） */
-  .g4-k1 { background-color: #d32f2f; }
-  .g3-k1 { background-color: #ef9a9a; color: #000; }
-  .g4-k2 { background-color: #1976d2; }
-  .g3-k2 { background-color: #90caf9; color: #000; }
-  .g4-k3 { background-color: #f57c00; }
-  .g3-k3 { background-color: #ffe082; color: #000; }
+  /* 学年・クラスごとの色設定 */
+  .g4-k1 { background-color: #c62828; } /* 4-1 濃赤 */
+  .g3-k1 { background-color: #ef9a9a; color: #000; } /* 3-1 薄赤 */
+  .g4-k2 { background-color: #1565c0; } /* 4-2 濃青 */
+  .g3-k2 { background-color: #90caf9; color: #000; } /* 3-2 薄青 */
+  .g4-k3 { background-color: #f57c00; } /* 4-3 濃オレンジ */
+  .g3-k3 { background-color: #ffe082; color: #000; } /* 3-3 薄黄 */
 </style>
 </head>
 <body>
 
 <div class="header-controls">
-  <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">各クラスの人数設定（最大34人推奨 ※半分で17人）</div>
+  <div class="tools-row">
+    <div>
+      移動スピード調整: 
+      <input type="range" id="animSpeed" min="1" max="6" step="0.5" value="2.5">
+      <span id="speedValue">2.5秒</span>
+    </div>
+    <button class="btn btn-tool" onclick="toggleFullscreen()">📺 全画面表示切替</button>
+  </div>
+
+  <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">各クラスの人数設定（※横の線を基準に、半分が前、半分が後ろへ移動します）</div>
   <div class="input-group">
     <div class="class-input">
       <strong>【3組(黄)】</strong> 
-      4年 <input type="number" id="c43" value="32" min="10" max="34"> / 
-      3年 <input type="number" id="c33" value="32" min="10" max="34">
+      4年 <input type="number" id="c43" value="32" min="10" max="40"> / 
+      3年 <input type="number" id="c33" value="32" min="10" max="40">
     </div>
     <div class="class-input">
       <strong>【2組(青)】</strong> 
-      4年 <input type="number" id="c42" value="32" min="10" max="34"> / 
-      3年 <input type="number" id="c32" value="32" min="10" max="34">
+      4年 <input type="number" id="c42" value="32" min="10" max="40"> / 
+      3年 <input type="number" id="c32" value="32" min="10" max="40">
     </div>
     <div class="class-input">
       <strong>【1組(赤)】</strong> 
-      4年 <input type="number" id="c41" value="32" min="10" max="34"> / 
-      3年 <input type="number" id="c31" value="32" min="10" max="34">
+      4年 <input type="number" id="c41" value="32" min="10" max="40"> / 
+      3年 <input type="number" id="c31" value="32" min="10" max="40">
     </div>
-    <button class="btn btn-reset" onclick="init()">再配置</button>
+    <button class="btn btn-reset" onclick="init()">この人数で再配置</button>
   </div>
 
   <div>
@@ -180,13 +200,20 @@
 <div id="field-wrapper">
   <div id="field">
     <div id="bg-layer">
+      <!-- 大円 -->
       <div class="big-circle"></div>
-      <div class="small-circle border-yellow" style="left: 170px; top: 150px;"><span>3</span></div>
-      <div class="small-circle border-yellow" style="left: 170px; top: 390px;"><span>3</span></div>
-      <div class="small-circle border-blue" style="left: 430px; top: 150px;"><span>2</span></div>
-      <div class="small-circle border-blue" style="left: 430px; top: 390px;"><span>2</span></div>
-      <div class="small-circle border-red" style="left: 690px; top: 150px;"><span>1</span></div>
-      <div class="small-circle border-red" style="left: 690px; top: 390px;"><span>1</span></div>
+      <!-- 前後を分ける横線 -->
+      <div class="split-line"></div>
+      
+      <!-- 小円 -->
+      <!-- 後ろ側 (Top) -->
+      <div class="small-circle border-yellow" style="left: 200px; top: 180px;"><span>3</span></div>
+      <div class="small-circle border-blue" style="left: 500px; top: 180px;"><span>2</span></div>
+      <div class="small-circle border-red" style="left: 800px; top: 180px;"><span>1</span></div>
+      <!-- 前側 (Bottom) -->
+      <div class="small-circle border-yellow" style="left: 200px; top: 420px;"><span>3</span></div>
+      <div class="small-circle border-blue" style="left: 500px; top: 420px;"><span>2</span></div>
+      <div class="small-circle border-red" style="left: 800px; top: 420px;"><span>1</span></div>
     </div>
     <div id="students-layer"></div>
   </div>
@@ -194,13 +221,20 @@
 
 <script>
   const studentsLayer = document.getElementById('students-layer');
+  const speedInput = document.getElementById('animSpeed');
+  const speedValue = document.getElementById('speedValue');
   let students = [];
+
+  // スピード表示の連動
+  speedInput.addEventListener('input', function() {
+    speedValue.innerText = this.value + '秒';
+  });
 
   // 各グループの小円の中心座標
   const centers = {
-    'k3_top': { x: 170, y: 150 }, 'k3_bottom': { x: 170, y: 390 }, // 3組(黄)
-    'k2_top': { x: 430, y: 150 }, 'k2_bottom': { x: 430, y: 390 }, // 2組(青)
-    'k1_top': { x: 690, y: 150 }, 'k1_bottom': { x: 690, y: 390 }  // 1組(赤)
+    'k3_top': { x: 200, y: 180 }, 'k3_bottom': { x: 200, y: 420 },
+    'k2_top': { x: 500, y: 180 }, 'k2_bottom': { x: 500, y: 420 },
+    'k1_top': { x: 800, y: 180 }, 'k1_bottom': { x: 800, y: 420 } 
   };
 
   const classConfigs = [
@@ -212,100 +246,135 @@
     { id: 'c31', grade: 3, kumi: 1, posPrefix: 'k1', color: 'g3-k1' }
   ];
 
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        alert("全画面表示が許可されていません。");
+      });
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+    }
+  }
+
+  function updateTransitions() {
+    const speed = speedInput.value;
+    students.forEach(st => {
+      st.element.style.transition = `left ${speed}s ease-in-out, top ${speed}s ease-in-out`;
+    });
+  }
+
+  // 初期化：横の線を基準に「前側」と「後ろ側」に振り分ける
   function init() {
     studentsLayer.innerHTML = '';
     students = [];
 
     classConfigs.forEach(cfg => {
       const count = parseInt(document.getElementById(cfg.id).value, 10);
-      const halfCount = Math.ceil(count / 2); 
+      
+      // 1クラスあたりの列の長さ（例：32人なら16人ずつ2列）
+      const colSize = Math.ceil(count / 2); 
+      // 横線より前（下）に行く人数（例：16人なら8人）
+      const halfColSize = Math.ceil(colSize / 2); 
 
       for (let i = 0; i < count; i++) {
         const dot = document.createElement('div');
         dot.className = `student ${cfg.color}`;
         dot.innerText = i + 1;
 
-        // 半分をtop、半分をbottomへ
-        const groupPos = (i < halfCount) ? `${cfg.posPrefix}_top` : `${cfg.posPrefix}_bottom`;
-        const localIndex = (i < halfCount) ? i : i - halfCount;
+        // 自分が何列目か（0列目 or 1列目）
+        const colIndex = Math.floor(i / colSize); 
+        // 自分がその列の中で何番目か（例: 0〜15）
+        const posInCol = i % colSize; 
+
+        // ★ 横の黒い線による判定 ★
+        // その列の中で前半（1〜8番、17〜24番など）なら「前側(bottom)」、後半なら「後ろ側(top)」
+        const isFront = posInCol < halfColSize;
+        const groupPos = isFront ? `${cfg.posPrefix}_bottom` : `${cfg.posPrefix}_top`;
 
         students.push({
-          element: dot, grade: cfg.grade, kumi: cfg.kumi,
-          groupPos: groupPos, localIndex: localIndex
+          element: dot, grade: cfg.grade, kumi: cfg.kumi, posPrefix: cfg.posPrefix,
+          groupPos: groupPos, colIndex: colIndex, posInCol: posInCol, isFront: isFront
         });
         studentsLayer.appendChild(dot);
       }
     });
-    moveToLines();
+    
+    students.forEach(st => st.element.style.transition = 'none');
+    setTimeout(moveToLines, 50);
   }
 
-  // ① 入場隊形（直線・12列）
+  // ① 入場隊形
   function moveToLines() {
-    const baseX = { 'k3': 170, 'k2': 430, 'k1': 690 };
+    updateTransitions();
+    const baseX = { 'k3': 200, 'k2': 500, 'k1': 800 };
 
     students.forEach(st => {
       let colOffset = 0;
-      const isTop = st.groupPos.includes('top');
-      
-      // 4列の並び順 (4年上, 3年上, 4年下, 3年下)
-      if (st.grade === 4 && isTop) colOffset = -35;
-      if (st.grade === 3 && isTop) colOffset = -12;
-      if (st.grade === 4 && !isTop) colOffset = 12;
-      if (st.grade === 3 && !isTop) colOffset = 35;
+      // 4列の並び順 (4年1列目, 3年1列目, 4年2列目, 3年2列目)
+      if (st.grade === 4 && st.colIndex === 0) colOffset = -38;
+      if (st.grade === 3 && st.colIndex === 0) colOffset = -13;
+      if (st.grade === 4 && st.colIndex === 1) colOffset = 13;
+      if (st.grade === 3 && st.colIndex === 1) colOffset = 38;
 
-      const prefix = st.groupPos.split('_')[0];
-      const x = baseX[prefix] + colOffset;
-      // 下から並べる（間隔を詰めて見切れを防止）
-      const y = 510 - (st.localIndex * 24); 
+      const x = baseX[st.posPrefix] + colOffset;
+
+      // Y座標の計算（画面下部の前側から、画面上部の後ろ側へ並べる）
+      const count = parseInt(document.getElementById(`c${st.grade}${st.kumi}`).value, 10);
+      const colSize = Math.ceil(count / 2);
+      
+      let y;
+      if (colSize <= 1) {
+        y = 540;
+      } else {
+        const ySpacing = 440 / colSize; 
+        y = 540 - (st.posInCol * ySpacing); // 0番が一番下（前）、番号が増えると上（後ろ）へ
+      }
 
       st.element.style.left = x + 'px';
       st.element.style.top = y + 'px';
     });
   }
 
-  // ②・③ 隊形移動（大円と小円の配置）
+  // ②・③ 隊形移動（最短距離での展開）
   function moveToFormation(outerGrade, innerGrade) {
-    const cx = 430; // 運動場の中心X
-    const cy = 270; // 運動場の中心Y
-    const bigRx = 390; // 大円の横半径
-    const bigRy = 230; // 大円の縦半径
-    const smallR = 70; // 小円の半径
+    updateTransitions();
+    const cx = 500; 
+    const cy = 300; 
+    const bigRx = 460; 
+    const bigRy = 270; 
+    const smallR = 70; 
 
-    // 各グループが大円(緑の線)に行くときに割り当てる角度の範囲
-    const outerAngles = {
-      'k1_top':    { start: -55, end: -5 },
-      'k1_bottom': { start: 5,   end: 55 },
-      'k2_bottom': { start: 65,  end: 115 },
-      'k3_bottom': { start: 125, end: 175 },
-      'k3_top':    { start: 185, end: 235 },
-      'k2_top':    { start: 245, end: 295 }
-    };
+    // ■ 外側のリング（大円）の配置 ■
+    // 前側(Bottom)の児童は下半分の弧へ、後ろ側(Top)の児童は上半分の弧へ配置することで、絶対に交差しない最短距離になります。
+    const outerStudents = [
+      // --- 下半分の弧（右から左へ配置） ---
+      ...students.filter(s => s.kumi === 1 && s.grade === outerGrade && s.isFront),
+      ...students.filter(s => s.kumi === 2 && s.grade === outerGrade && s.isFront),
+      ...students.filter(s => s.kumi === 3 && s.grade === outerGrade && s.isFront),
+      // --- 上半分の弧（左から右へ配置） ---
+      ...students.filter(s => s.kumi === 3 && s.grade === outerGrade && !s.isFront),
+      ...students.filter(s => s.kumi === 2 && s.grade === outerGrade && !s.isFront),
+      ...students.filter(s => s.kumi === 1 && s.grade === outerGrade && !s.isFront)
+    ];
 
-    // グループ（例: k1_top）ごとに処理
+    const totalOuter = outerStudents.length;
+    outerStudents.forEach((st, i) => {
+      const angle = ((i + 0.5) / totalOuter) * 2 * Math.PI; 
+      const x = cx + bigRx * Math.cos(angle);
+      const y = cy + bigRy * Math.sin(angle);
+      st.element.style.left = x + 'px';
+      st.element.style.top = y + 'px';
+    });
+
+    // ■ 内側のリング（小円）の配置 ■
     Object.keys(centers).forEach(groupKey => {
-      // 外側に行く児童の配置
-      const outers = students.filter(s => s.groupPos === groupKey && s.grade === outerGrade);
-      outers.forEach((st, i) => {
-        const angles = outerAngles[groupKey];
-        // グループに割り当てられた角度範囲内で均等に配置
-        const fraction = outers.length > 1 ? i / (outers.length - 1) : 0.5;
-        const deg = angles.start + fraction * (angles.end - angles.start);
-        const rad = deg * Math.PI / 180;
-
-        const x = cx + bigRx * Math.cos(rad);
-        const y = cy + bigRy * Math.sin(rad);
-        st.element.style.left = x + 'px';
-        st.element.style.top = y + 'px';
-      });
-
-      // 内側（6つの小円）に行く児童の配置
       const inners = students.filter(s => s.groupPos === groupKey && s.grade === innerGrade);
       const smallCenter = centers[groupKey];
+      
       inners.forEach((st, i) => {
-        // 円形に均等に並べる
-        const rad = (i / inners.length) * Math.PI * 2 - Math.PI / 2;
-        const x = smallCenter.x + smallR * Math.cos(rad);
-        const y = smallCenter.y + smallR * Math.sin(rad);
+        const angle = (i / inners.length) * Math.PI * 2 - (Math.PI / 2);
+        const x = smallCenter.x + smallR * Math.cos(angle);
+        const y = smallCenter.y + smallR * Math.sin(angle);
         st.element.style.left = x + 'px';
         st.element.style.top = y + 'px';
       });
@@ -317,8 +386,4 @@
 </script>
 
 </body>
-</html>
-    
-  </body>
-  
 </html>

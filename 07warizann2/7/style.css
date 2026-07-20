@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* 全体設定・パステルカラー基調 */
 :root {
   --bg-color: #FDF9F1;
@@ -93,3 +94,266 @@ body { font-family: var(--font-base); background-color: var(--bg-color); color: 
 /* フッター */
 .footer { background: #fff; padding: 15px; text-align: center; border-top: 2px solid var(--border-light); z-index: 10; }
 .notebook-message { font-size: 1.2rem; color: #D35400; background: #FFF3E0; display: inline-block; padding: 10px 30px; border-radius: 30px; }
+=======
+// --- ナビゲーション（問題切り替え） ---
+const navBtns = document.querySelectorAll('.nav-btn');
+const views = document.querySelectorAll('.worksheet-view');
+
+navBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    navBtns.forEach(b => b.classList.remove('active'));
+    views.forEach(v => v.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(e.target.dataset.target).classList.add('active');
+  });
+});
+
+// --- シミュレータータブ切り替え ---
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tool-content').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(e.target.dataset.target).classList.add('active');
+  });
+});
+
+// --- 全角数字を半角に変換 ---
+function toHalfWidth(str) {
+  return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/[^0-9]/g, '');
+}
+
+// ==========================================
+// 判定と状態保存（DOM上で完結）
+// ==========================================
+
+const hintText = document.getElementById('character-message');
+
+// すべての入力欄でリアルタイム判定
+document.querySelectorAll('.ans-input').forEach(input => {
+  input.addEventListener('input', (e) => {
+    let val = toHalfWidth(e.target.value);
+    e.target.value = val; // 半角に上書き
+    
+    if (val === e.target.dataset.correct) {
+      e.target.classList.add('correct');
+    } else {
+      e.target.classList.remove('correct');
+    }
+    checkProgress();
+  });
+});
+
+// Q1のトグルボタン判定
+let q1Selections = [false, false, false, false, false, false, false, false, false];
+const q1Buttons = document.querySelectorAll('.q1-choice');
+q1Buttons.forEach((btn, index) => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('selected');
+    q1Selections[index] = !q1Selections[index];
+    
+    // 正解の判定（わりきれないものだけを選ぶ）
+    let isCorrectBtn = btn.dataset.ans === "true";
+    if (btn.classList.contains('selected') && isCorrectBtn) {
+      btn.classList.add('correct-selection');
+    } else {
+      btn.classList.remove('correct-selection');
+    }
+    checkProgress();
+  });
+});
+
+// 全体の進行状況をチェック
+function checkProgress() {
+  let allCleared = true;
+
+  // 各問題グループのチェック
+  ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].forEach(qId => {
+    let isQCleared = true;
+    
+    if (qId === 'q1') {
+      // Q1: data-ans="true" のものが全て selected、"false"が非selectedであること
+      q1Buttons.forEach(btn => {
+        let shouldSelect = btn.dataset.ans === "true";
+        let isSelected = btn.classList.contains('selected');
+        if (shouldSelect !== isSelected) isQCleared = false;
+      });
+    } else {
+      // Q2~Q6: そのセクション内の全ての .ans-input が .correct であること
+      const inputs = document.getElementById(qId).querySelectorAll('.ans-input');
+      inputs.forEach(input => {
+        if (!input.classList.contains('correct')) isQCleared = false;
+      });
+    }
+
+    // サイドバーの✅更新
+    const navBtn = document.querySelector(`.nav-btn[data-target="${qId}"]`);
+    if (isQCleared) {
+      navBtn.classList.add('cleared');
+      if (!navBtn.textContent.includes('✅')) {
+        navBtn.textContent = '✅ ' + navBtn.textContent;
+      }
+    } else {
+      navBtn.classList.remove('cleared');
+      allCleared = false;
+    }
+  });
+
+  if (allCleared) {
+    hintText.textContent = "すごい！ぜんぶ 正解だよ！";
+    setTimeout(() => {
+      document.getElementById('clear-screen').classList.add('show');
+    }, 500);
+  } else {
+    hintText.textContent = "ひだりのメニューから 問題をえらんで、ノートにも 答えをかきながら すすめよう！";
+  }
+}
+
+// ==========================================
+// シミュレーターのロジック
+// ==========================================
+let currentDividend = 0;
+let currentDivisor = 0;
+let poolDotsCount = 0;
+let groupsArray = [];
+let jumpsMade = 0;
+
+function loadSim(dividend, divisor) {
+  currentDividend = parseInt(dividend);
+  currentDivisor = parseInt(divisor);
+  
+  document.getElementById('eq-dividend').textContent = currentDividend;
+  document.getElementById('eq-divisor').textContent = currentDivisor;
+  document.getElementById('btn-divisor-val').textContent = currentDivisor;
+  document.getElementById('btn-jump-val').textContent = currentDivisor;
+  document.getElementById('check-div').textContent = currentDividend;
+  document.getElementById('check-dsr').textContent = currentDivisor;
+  document.getElementById('check-dsr-2').textContent = currentDivisor;
+  
+  // ブロック初期化
+  poolDotsCount = currentDividend;
+  groupsArray = [];
+  renderBlocks();
+  
+  // 数直線初期化
+  jumpsMade = 0;
+  document.getElementById('jump-arcs').innerHTML = '';
+  document.getElementById('line-max-val').textContent = currentDividend;
+  updateLineUI();
+  
+  // たしかめ算初期化
+  document.getElementById('sim-input-q').value = '';
+  document.getElementById('sim-input-r').value = '';
+  updateSimCheck();
+}
+
+// --- ブロックツール ---
+const blockPool = document.getElementById('block-pool');
+const blockGroups = document.getElementById('block-groups');
+
+function renderBlocks() {
+  document.getElementById('pool-count').textContent = poolDotsCount;
+  blockPool.innerHTML = '';
+  for(let i=0; i<poolDotsCount; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    blockPool.appendChild(dot);
+  }
+
+  const completed = groupsArray.filter(c => c === currentDivisor).length;
+  document.getElementById('group-count').textContent = completed;
+  blockGroups.innerHTML = '';
+  
+  groupsArray.forEach((count, gIndex) => {
+    const group = document.createElement('div');
+    group.className = 'group-box';
+    if(count === currentDivisor) group.classList.add('full');
+    for(let i=0; i<count; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.dataset.gIndex = gIndex;
+      group.appendChild(dot);
+    }
+    blockGroups.appendChild(group);
+  });
+}
+
+blockPool.addEventListener('click', (e) => {
+  if(e.target.classList.contains('dot') && poolDotsCount > 0) {
+    poolDotsCount--;
+    let tIdx = groupsArray.findIndex(c => c < currentDivisor);
+    if(tIdx === -1) groupsArray.push(1);
+    else groupsArray[tIdx]++;
+    renderBlocks();
+  }
+});
+
+blockGroups.addEventListener('click', (e) => {
+  if(e.target.classList.contains('dot')) {
+    const gIdx = parseInt(e.target.dataset.gIndex);
+    groupsArray[gIdx]--;
+    poolDotsCount++;
+    if(groupsArray[gIdx] === 0) groupsArray.splice(gIdx, 1);
+    renderBlocks();
+  }
+});
+
+document.getElementById('auto-group-btn').addEventListener('click', () => {
+  if (poolDotsCount >= currentDivisor) {
+    poolDotsCount -= currentDivisor;
+    groupsArray.push(currentDivisor);
+    renderBlocks();
+  }
+});
+
+document.getElementById('reset-blocks-btn').addEventListener('click', () => {
+  poolDotsCount = currentDividend; groupsArray = []; renderBlocks();
+});
+
+// --- 数直線ツール ---
+function updateLineUI() {
+  const currentPos = jumpsMade * currentDivisor;
+  document.getElementById('jumped-total').textContent = currentPos;
+  document.getElementById('jump-remain').textContent = currentDividend - currentPos;
+}
+
+document.getElementById('jump-btn').addEventListener('click', () => {
+  const currentPos = jumpsMade * currentDivisor;
+  if ((currentDividend - currentPos) >= currentDivisor) {
+    jumpsMade++;
+    const arcPercent = (currentDivisor / currentDividend) * 100;
+    const arc = document.createElement('div');
+    arc.className = 'arc';
+    arc.style.width = `${arcPercent}%`;
+    document.getElementById('jump-arcs').appendChild(arc);
+    updateLineUI();
+  }
+});
+
+document.getElementById('reset-line-btn').addEventListener('click', () => {
+  jumpsMade = 0; document.getElementById('jump-arcs').innerHTML = ''; updateLineUI();
+});
+
+// --- たしかめ算ツール（シミュレーター内） ---
+const simInQ = document.getElementById('sim-input-q');
+const simInR = document.getElementById('sim-input-r');
+function updateSimCheck() {
+  let q = toHalfWidth(simInQ.value);
+  let r = toHalfWidth(simInR.value);
+  simInQ.value = q; simInR.value = r;
+  
+  document.getElementById('mirror-q').textContent = q !== "" ? q : "?";
+  document.getElementById('mirror-r').textContent = r !== "" ? r : "?";
+  
+  if(q !== "" && r !== "") {
+    document.getElementById('calc-result').textContent = (currentDivisor * parseInt(q)) + parseInt(r);
+  } else {
+    document.getElementById('calc-result').textContent = "?";
+  }
+}
+simInQ.addEventListener('input', updateSimCheck);
+simInR.addEventListener('input', updateSimCheck);
+
+// 初期ロード時のダミーセット
+loadSim(16, 2);
+>>>>>>> dab01cf64e1f894f42ffc4b53e7f14216635ece6
