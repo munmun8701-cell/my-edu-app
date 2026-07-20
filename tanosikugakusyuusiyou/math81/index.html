@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>MATH８１</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEON MATH 81 : CYBER EVOLUTION</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@500;700;900&display=swap');
+
+        :root {
+            --cyan: #0ff;
+            --magenta: #f0f;
+            --yellow: #ff0;
+            --bg-color: #050510;
+            --grid-color: rgba(0, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--cyan);
+            font-family: 'Share Tech Mono', 'Noto Sans JP', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        body::after {
+            content: " "; display: block; position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        }
+
+        #app-container {
+            position: relative; width: 100%; max-width: 600px; height: 100%; max-height: 850px;
+            background: rgba(0, 0, 0, 0.85); border: 2px solid var(--cyan);
+            box-shadow: 0 0 20px var(--cyan), inset 0 0 20px var(--cyan);
+            display: flex; flex-direction: column; z-index: 10;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none; flex-direction: column; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; background: var(--bg-color);
+            padding-top: 65px; padding-bottom: 20px;
+            overflow-y: auto; scrollbar-width: none;
+        }
+        .screen::-webkit-scrollbar { display: none; }
+        .screen.active { display: flex; }
+
+        /* Glitch Text Effect */
+        .glitch {
+            font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 900; text-align: center;
+            text-shadow: 0 0 10px var(--cyan); margin: 15px 0; font-family: 'Share Tech Mono', sans-serif;
+        }
+
+        /* Buttons */
+        .cyber-btn {
+            background: rgba(0, 255, 255, 0.05); color: var(--cyan); border: 1px solid var(--cyan);
+            padding: 15px; margin: 10px 20px; font-size: 1.1rem; font-family: inherit; font-weight: bold;
+            cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 4px;
+        }
+        .cyber-btn:hover, .cyber-btn:active { background: var(--cyan); color: #000; box-shadow: 0 0 20px var(--cyan); }
+        .magenta-btn { color: var(--magenta); border-color: var(--magenta); box-shadow: 0 0 10px rgba(255, 0, 255, 0.2); }
+        .magenta-btn:hover, .magenta-btn:active { background: var(--magenta); color: #000; box-shadow: 0 0 20px var(--magenta); }
+        .yellow-btn { color: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 10px rgba(255, 255, 0, 0.2); }
+        .yellow-btn:hover, .yellow-btn:active { background: var(--yellow); color: #000; box-shadow: 0 0 20px var(--yellow); }
+        .red-btn { color: #f00; border-color: #f00; box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
+        .red-btn:hover, .red-btn:active { background: #f00; color: #fff; box-shadow: 0 0 20px #f00; }
+
+        /* Global HUD */
+        .hud-global {
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;
+            background: rgba(0,255,255,0.1); border-bottom: 1px solid var(--cyan); z-index: 20;
+        }
+        .status-badge {
+            display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.8);
+            border: 1px solid var(--cyan); padding: 4px 10px; border-radius: 15px; font-size: 0.9rem;
+        }
+        .badge-lv { border-color: var(--magenta); color: var(--magenta); }
+        .badge-coin { border-color: gold; color: gold; }
+
+        /* Stage Select Grid */
+        #stage-scroll-area { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; padding-bottom: 20px; }
+        .sector-card { background: rgba(10,10,15,0.9); border: 2px solid; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .sector-header { padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; color: #000; font-weight: 900; font-size: 1.1rem; }
+        .modes-container { display: flex; padding: 10px; gap: 8px; background: rgba(0,0,0,0.6); }
+        .mode-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 0; cursor: pointer; transition: 0.1s; }
+        .mode-btn:active { transform: scale(0.95); }
+        .star-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; margin: 1px; display: inline-block; }
+        .star-dot.filled { background: var(--yellow); box-shadow: 0 0 5px var(--yellow); }
+        .sector-card.locked { filter: grayscale(100%); pointer-events: none; }
+        .lock-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; }
+
+        /* Game Area */
+        .game-header { display: flex; justify-content: space-between; padding: 10px 20px; font-size: 1.2rem; }
+        .play-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .equation { font-size: clamp(2.5rem, 8vw, 4.5rem); text-shadow: 0 0 15px var(--cyan); margin-bottom: 20px; font-weight: bold; }
+        .input-display { display: flex; gap: 15px; margin-bottom: 30px; }
+        .input-box { width: 90px; height: 75px; border: 2px solid #555; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; border-radius: 8px; }
+        .input-box.active-input { border-color: var(--cyan); background: rgba(0,255,255,0.2); box-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; padding: 0 20px 20px 20px; margin: 0 auto; }
+        .num-btn { background: rgba(0,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); color: #fff; font-size: 1.8rem; font-family: inherit; padding: 12px; border-radius: 8px; cursor: pointer; }
+        .num-btn:active { background: var(--cyan); color: #000; }
+        .action-btn { background: rgba(255,0,255,0.1); border-color: var(--magenta); color: var(--magenta); }
+        .action-btn:active { background: var(--magenta); color: #000; }
+
+        /* Pet Room & Hologram */
+        #pet-display-area { width: 100%; height: 260px; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;}
+        .poop-container { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: space-around; padding: 0 20px; z-index: 10; pointer-events: none; }
+        .cyber-poop { color: #d4a373; font-size: 2rem; filter: drop-shadow(0 0 5px rgba(212, 163, 115, 0.8)); animation: float 2s infinite ease-in-out alternate; }
+        .hologram-base { position: absolute; bottom: 10px; width: 200px; height: 40px; background: radial-gradient(ellipse at center, rgba(0,255,255,0.5) 0%, transparent 70%); border-radius: 50%; box-shadow: 0 -10px 20px rgba(0,255,255,0.2); }
+        
+        .pet-svg-container { position: relative; width: 220px; height: 220px; animation: float 3s ease-in-out infinite; z-index: 5; transition: filter 0.5s; display: flex; justify-content: center; align-items: center;}
+        
+        .pet-stats { display: flex; justify-content: center; gap: 15px; padding: 10px; margin: 0 20px 10px 20px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0,255,255,0.2); border-radius: 8px; text-align: center; }
+        .pet-stats > div { display: flex; flex-direction: column; align-items: center; width: 80px; }
+        .stat-bar-container { width: 100%; background: #222; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; border: 1px solid #444; }
+        
+        .stat-bar { height: 100%; background: var(--cyan); transition: width 0.3s; }
+        .stat-bar.exp { background: var(--yellow); }
+        .mini-pet { position: absolute; bottom: 10px; right: 10px; width: 80px; height: 80px; filter: drop-shadow(0 0 5px var(--cyan)); opacity: 0.9; }
+        
+        .pet-jump { animation: jump 0.5s ease; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes jump { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.1); } }
+        
+        /* Flash Effects */
+        #flash-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity 0.1s; z-index:100; }
+        .flash-correct { background: rgba(0, 255, 0, 0.3); }
+        .flash-wrong { background: rgba(255, 0, 0, 0.4); }
+
+        .loading-spinner { border: 4px solid rgba(0,255,255,0.1); border-top: 4px solid var(--cyan); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Pet Type Badge */
+        .type-badge { font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; border: 1px solid; margin-bottom: 5px; display: inline-block;}
+        .type-speed { color: var(--cyan); border-color: var(--cyan); background: rgba(0,255,255,0.1); }
+        .type-logic { color: var(--magenta); border-color: var(--magenta); background: rgba(255,0,255,0.1); }
+        .type-power { color: #f55; border-color: #f55; background: rgba(255,85,85,0.1); }
+        .type-neutral { color: #aaa; border-color: #aaa; }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <!-- SVG Defs for Pet Generation -->
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <radialGradient id="grad-speed" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#0ff" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#0ff" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="grad-logic" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#f0f" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#f0f" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="grad-power" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#f33" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#f33" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="grad-neutral" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#fff" stop-opacity="0.6" />
+                <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+            </radialGradient>
+        </defs>
+    </svg>
+
+    <div id="flash-overlay"></div>
+
+    <!-- GLOBAL HUD -->
+    <div class="hud-global" id="global-hud" style="display: none;">
+        <button class="cyber-btn" style="margin:0; padding:5px 15px; font-size:1rem;" onclick="goBack()"><i class="fas fa-chevron-left"></i> BACK</button>
+        <div style="display:flex; gap:10px;">
+            <div class="status-badge badge-lv"><i class="fas fa-user-astronaut"></i> LV.<span id="ui-lv">1</span></div>
+            <div class="status-badge badge-coin"><i class="fas fa-coins"></i> <span id="ui-coin">0</span></div>
+        </div>
+    </div>
+
+    <!-- SCREEN: LOADING -->
+    <div id="screen-loading" class="screen active" style="justify-content:center; align-items:center;">
+        <div class="loading-spinner"></div>
+        <div class="glitch" style="font-size: 1.5rem;">CONNECTING TO SERVER...</div>
+        <div style="color:#aaa;">Loading Player Data</div>
+    </div>
+
+    <!-- SCREEN: MAIN MENU -->
+    <div id="screen-menu" class="screen">
+        <div style="display:flex; flex-direction:column; justify-content:center; flex-grow:1; min-height: max-content;">
+            <div class="glitch">NEON MATH 81<br><span style="font-size:1.2rem; color:var(--magenta)">// CYBER EVOLUTION //</span></div>
+            
+            <button class="cyber-btn" onclick="openStageSelect('mul')"><i class="fas fa-times"></i> 九九・かけ算</button>
+            <button class="cyber-btn" onclick="openStageSelect('div')"><i class="fas fa-divide"></i> わり算 (割り切れる)</button>
+            <button class="cyber-btn magenta-btn" onclick="openStageSelect('div_rem')"><i class="fas fa-percentage"></i> あまりのあるわり算</button>
+            <button class="cyber-btn red-btn" onclick="startEndless()"><i class="fas fa-infinity"></i> エンドレスサバイバル</button>
+            
+            <div style="margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px;"></div>
+            <button class="cyber-btn yellow-btn" onclick="openPetRoom()"><i class="fas fa-robot"></i> CYBER PET ROOM</button>
+            
+            <button onclick="resetData()" style="background:none; border:none; color:#555; text-decoration:underline; font-family:inherit; cursor:pointer; margin-top:20px;">[ RESET SAVE DATA ]</button>
+        </div>
+    </div>
+
+    <!-- SCREEN: STAGE SELECT -->
+    <div id="screen-stage" class="screen">
+        <div style="text-align:center; padding:10px; font-size:1.2rem; font-weight:bold; color:var(--cyan); border-bottom:1px solid #333;" id="course-title">COURSE</div>
+        <div id="stage-scroll-area">
+            <div class="grid-container" id="sector-grid"></div>
+        </div>
+    </div>
+
+    <!-- SCREEN: PET ROOM -->
+    <div id="screen-pet" class="screen">
+        <div class="glitch" style="font-size: 1.8rem; margin:10px 0;">AI COMPANION</div>
+        <div id="pet-display-area">
+            <div class="hologram-base"></div>
+            <div class="pet-svg-container" id="pet-svg-large"></div>
+            <div class="poop-container" id="poop-area"></div>
+        </div>
+        
+        <div style="text-align:center;">
+            <div id="pet-type-badge" class="type-badge type-neutral">TYPE: NEUTRAL</div>
+            <div style="font-size:1.5rem; font-weight:bold; margin-bottom:5px;" id="pet-name">Egg</div>
+        </div>
+        
+        <div class="pet-stats">
+            <div>
+                <div style="font-size:0.7rem; color:#aaa;">STAGE (MAX 100)</div>
+                <div id="pet-stage-txt" style="font-weight:bold; color:var(--cyan); font-size: 1.2rem;">1</div>
+            </div>
+            <div>
+                <div style="font-size:0.7rem; color:#aaa;">EXP TO EVOLVE</div>
+                <div class="stat-bar-container"><div class="stat-bar exp" id="pet-exp-bar" style="width:0%"></div></div>
+                <div id="pet-exp-txt" style="font-size:0.7rem; color:#ccc; margin-top:2px;">0/200</div>
+            </div>
+            <div>
+                <div style="font-size:0.7rem; color:#aaa;">ENERGY</div>
+                <div class="stat-bar-container"><div class="stat-bar" id="pet-energy-bar" style="width:100%"></div></div>
+                <div id="pet-energy-txt" style="font-size:0.7rem; color:#ccc; margin-top:2px;">100/100</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; padding: 0 20px;">
+            <button class="cyber-btn yellow-btn" style="flex:1; padding:10px; margin:0; font-size:1rem;" onclick="feedPet()"><i class="fas fa-utensils"></i> ごはん (-10)</button>
+            <button class="cyber-btn magenta-btn" style="flex:1; padding:10px; margin:0; font-size:1rem;" onclick="cleanPoop()"><i class="fas fa-broom"></i> そうじ</button>
+        </div>
+        <p style="text-align:center; color:#888; font-size:0.8rem; padding:10px;">プレイスタイル（速さ・正確さ・努力）で見た目が分岐！ 目指せSTAGE 100！</p>
+    </div>
+
+    <!-- SCREEN: GAME -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <div><i class="fas fa-clock" style="color:var(--cyan)"></i> <span id="game-time">60</span>s</div>
+            <div>SCORE <span id="game-score">0000</span></div>
+        </div>
+        
+        <div class="play-area">
+            <div class="equation" id="game-eq">3 × 4 = ?</div>
+            <div class="input-display" id="game-inputs"></div>
+            <div class="mini-pet" id="pet-svg-mini"></div>
+        </div>
+
+        <div class="numpad">
+            <button class="num-btn" onclick="inputNum(1)">1</button>
+            <button class="num-btn" onclick="inputNum(2)">2</button>
+            <button class="num-btn" onclick="inputNum(3)">3</button>
+            <button class="num-btn" onclick="inputNum(4)">4</button>
+            <button class="num-btn" onclick="inputNum(5)">5</button>
+            <button class="num-btn" onclick="inputNum(6)">6</button>
+            <button class="num-btn" onclick="inputNum(7)">7</button>
+            <button class="num-btn" onclick="inputNum(8)">8</button>
+            <button class="num-btn" onclick="inputNum(9)">9</button>
+            <button class="num-btn action-btn" onclick="clearInput()">C</button>
+            <button class="num-btn" onclick="inputNum(0)">0</button>
+            <button class="num-btn action-btn" onclick="submitAns()">ENT</button>
+        </div>
+    </div>
+
+    <!-- SCREEN: RESULT -->
+    <div id="screen-result" class="screen" style="justify-content:center; align-items:center;">
+        <div class="glitch" style="color:var(--yellow)">MISSION CLEAR</div>
+        <div style="font-size:4rem; font-weight:bold; margin:20px 0; text-shadow:0 0 20px var(--cyan);" id="res-score">0</div>
+        
+        <div style="font-size:1.2rem; display:flex; gap:20px; margin-bottom:10px;">
+            <div style="color:var(--magenta)">+<span id="res-exp">0</span> EXP</div>
+            <div style="color:gold">+<span id="res-coin">0</span> COIN</div>
+        </div>
+        
+        <div id="res-pet-msg" style="color:var(--cyan); font-size:1rem; margin-bottom:30px; text-align:center;">
+            Pet Stats Updated!
+        </div>
+        
+        <button class="cyber-btn" onclick="finishGame()">[ RETURN TO MENU ]</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'neon-math-81';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    let db, auth, userDocRef, userId;
+
+    // --- Player Data Structure ---
+    let player = {
+        level: 1, exp: 0, coins: 500, progress: {},
+        pet: { 
+            stage: 1, exp: 0, energy: 100, poops: 0, lastUpdate: Date.now(), 
+            stats: { speed: 0, logic: 0, power: 0 } // 進化分岐用スタッツ
+        }
+    };
+
+    function initProgress() {
+        ['mul', 'div', 'div_rem'].forEach(course => {
+            player.progress[course] = {};
+            for(let i=1; i<=30; i++) {
+                player.progress[course][i] = {
+                    id: i, reqLv: (i-1)*2 + 1, cost: (i-1)*100, unlocked: i === 1,
+                    stars: { ascend:0, descend:0, random:0 }
+                };
+            }
+        });
+    }
+    initProgress();
+
+    let currentCourse = '', currentSector = 1, currentMode = '';
+    let score = 0, timeLeft = 0, timerId = null, qCount = 0;
+    let currentQ = { ans: 0, rem: 0, startTime: 0, mistakes: 0 };
+    let inputVals = { ans: '', rem: '' }, activeInput = 'ans';
+
+    const el = id => document.getElementById(id);
+    const showScreen = id => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        el(`screen-${id}`).classList.add('active');
+        el('global-hud').style.display = (id === 'menu' || id === 'loading' || id === 'result') ? 'none' : 'flex';
+    };
+
+    async function initSystem() {
+        if (Object.keys(firebaseConfig).length === 0) {
+            showScreen('menu'); updateGlobalHUD(); return;
+        }
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app); db = getFirestore(app);
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else { await signInAnonymously(auth); }
+            
+            userId = auth.currentUser.uid;
+            userDocRef = doc(db, 'artifacts', appId, 'users', userId, 'playerData');
+            
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                player = { ...player, ...data };
+                if(data.pet) {
+                    player.pet = { ...player.pet, ...data.pet };
+                    if(!player.pet.stats) player.pet.stats = { speed: 0, logic: 0, power: 0 };
+                    if(player.pet.stage === 0) player.pet.stage = 1; // 修正
+                    updatePetOfflineStatus();
+                }
+                if(data.progress) {
+                    Object.keys(player.progress).forEach(k => {
+                         if(data.progress[k]) player.progress[k] = { ...player.progress[k], ...data.progress[k] };
+                    });
+                }
+            } else { await savePlayerData(); }
+            
+            showScreen('menu'); updateGlobalHUD();
+        } catch (error) { console.error("System Init Error:", error); showScreen('menu'); }
+    }
+
+    async function savePlayerData() {
+        if (!userDocRef) return;
+        try { await setDoc(userDocRef, player); } catch (e) {}
+    }
+
+    window.resetData = async function() {
+        if(confirm("🚨警告🚨\n本当にセーブデータを初期化しますか？\nレベルもペットも最初からになります。")) {
+            player = {
+                level: 1, exp: 0, coins: 500, progress: {},
+                pet: { stage: 1, exp: 0, energy: 100, poops: 0, lastUpdate: Date.now(), stats: { speed:0, logic:0, power:0 } }
+            };
+            initProgress();
+            await savePlayerData();
+            alert("データを初期化しました。");
+            updateGlobalHUD();
+        }
+    };
+
+    function updateGlobalHUD() {
+        el('ui-lv').innerText = player.level;
+        el('ui-coin').innerText = player.coins;
+    }
+
+    window.openStageSelect = function(course) {
+        currentCourse = course;
+        el('course-title').innerText = course === 'mul' ? '九九・かけ算' : course === 'div' ? 'わり算' : 'あまり算';
+        renderStageGrid();
+        showScreen('stage');
+    };
+
+    function renderStageGrid() {
+        const grid = el('sector-grid');
+        grid.innerHTML = '';
+        const sectors = player.progress[currentCourse];
+
+        for (let i = 1; i <= 30; i++) {
+            const sec = sectors[i];
+            if (!sec.unlocked && player.level >= sec.reqLv) { sec.unlocked = true; savePlayerData(); }
+            const cVar = `var(--c-${((i-1)%9)+1}, var(--cyan))`;
+            const card = document.createElement('div');
+            card.className = `sector-card ${sec.unlocked ? '' : 'locked'}`;
+            card.style.borderColor = cVar;
+
+            let html = `<div class="sector-header" style="${sec.unlocked ? `background:${cVar};color:#000;` : ''}">SECTOR ${i}のだん</div>`;
+            html += `<div class="modes-container">`;
+            ['ascend', 'descend', 'random'].forEach(m => {
+                let sHtml = '';
+                for(let s=0; s<3; s++) sHtml += `<div class="star-dot ${s < sec.stars[m] ? 'filled' : ''}"></div>`;
+                html += `<div class="mode-btn" onclick="${sec.unlocked ? `window.startGameNormal(${i}, '${m}')` : ''}">
+                            <div style="font-size:0.8rem; font-weight:bold;">${m === 'ascend' ? 'のぼり' : m === 'descend' ? 'くだり' : 'ばらばら'}</div>
+                            <div>${sHtml}</div>
+                         </div>`;
+            });
+            html += `</div>`;
+            if (!sec.unlocked) {
+                html += `<div class="lock-overlay" onclick="window.unlockSector(${i})">
+                            <i class="fas fa-lock fa-2x" style="color:#888; margin-bottom:5px;"></i>
+                            <div style="color:var(--magenta); font-weight:bold;">REQ LV.${sec.reqLv}</div>
+                            <div style="color:gold; font-size:0.9rem;">OR ${sec.cost} COIN</div>
+                         </div>`;
+            }
+            card.innerHTML = html; grid.appendChild(card);
+        }
+    }
+
+    window.unlockSector = function(secId) {
+        const sec = player.progress[currentCourse][secId];
+        if (player.coins >= sec.cost) {
+            if(confirm(`${sec.cost}コインを消費してロックを解除しますか？`)) {
+                player.coins -= sec.cost; sec.unlocked = true;
+                savePlayerData(); updateGlobalHUD(); renderStageGrid();
+            }
+        } else { alert("コインが不足しています！"); }
+    };
+
+    window.goBack = function() {
+        if(el('screen-stage').classList.contains('active') || el('screen-pet').classList.contains('active')) showScreen('menu');
+    };
+
+    // ==========================================
+    // 🐾 PROCEDURAL PET EVOLUTION SYSTEM (100 STAGES)
+    // ==========================================
+    
+    function getPetBranch(stats) {
+        if (stats.speed === 0 && stats.logic === 0 && stats.power === 0) return 'neutral';
+        let max = Math.max(stats.speed, Math.max(stats.logic, stats.power));
+        if (max === stats.speed && stats.speed > stats.logic * 1.2) return 'speed';
+        if (max === stats.logic && stats.logic > stats.speed * 1.2) return 'logic';
+        return 'power';
+    }
+
+    function getPetName(stage, branch) {
+        let tier = Math.min(4, Math.floor((stage - 1) / 20));
+        const prefixes = {
+            speed: ["Bit", "Aero", "Sonic", "Volt", "Light"],
+            logic: ["Dot", "Nova", "Aura", "Quantum", "Omni"],
+            power: ["Spark", "Iron", "Magma", "Titan", "Ragnarok"],
+            neutral: ["Egg", "Proto", "Core", "Sys", "Alpha"]
+        };
+        const suffixes = ["-Egg", "-Drone", "-Beast", "-Dragon", "-God"];
+        
+        let p = prefixes[branch][tier] || prefixes['neutral'][tier];
+        let s = suffixes[tier];
+        return p + s + (stage > 1 ? ` v${stage}` : '');
+    }
+
+    // 100段階のビジュアルを動的生成するコア関数
+    function generatePetSVG(stage, branch) {
+        let colors = {
+            speed: { main: '#0ff', sub: '#ff0', core: '#fff' },
+            logic: { main: '#f0f', sub: '#0ff', core: '#fff' },
+            power: { main: '#f33', sub: '#ff9900', core: '#ff0' },
+            neutral: { main: '#aaa', sub: '#fff', core: '#888' }
+        };
+        let c = colors[branch] || colors.neutral;
+        let tier = Math.min(4, Math.floor((stage - 1) / 20)); // 0 to 4
+        let levelInTier = (stage - 1) % 20; // 0 to 19
+
+        let svg = `<svg viewBox="0 0 100 100" width="100%" height="100%">`;
+        
+        // 1. Aura (レベルが上がるごとに大きく、濃くなる)
+        let auraSize = 25 + (tier * 8) + (levelInTier * 0.5);
+        svg += `<circle cx="50" cy="50" r="${auraSize}" fill="url(#grad-${branch})" opacity="0.5">
+                   <animate attributeName="r" values="${auraSize};${auraSize+3};${auraSize}" dur="${2 - tier*0.2}s" repeatCount="indefinite"/>
+                </circle>`;
+
+        // 2. Orbiting Rings (段階的に増える)
+        let ringCount = Math.floor(stage / 15);
+        for(let i=0; i<=ringCount; i++) {
+             let r = 20 + i * 8;
+             let dash = (4 + i*2) + "," + (2 + i);
+             svg += `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${c.sub}" stroke-width="${1 + tier*0.2}" stroke-dasharray="${dash}" transform="rotate(${i*45} 50 50)" opacity="0.7">
+                        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="${i%2==0?360:-360} 50 50" dur="${10 - i}s" repeatCount="indefinite"/>
+                     </circle>`;
+        }
+
+        // 3. Base Body Shape (Tier & Branch に依存)
+        let coreScale = 1 + (levelInTier * 0.02); // 微妙に成長
+        svg += `<g transform="translate(50, 50) scale(${coreScale}) translate(-50, -50)">`;
+
+        if (branch === 'logic' || branch === 'neutral') {
+            // カワイイ・丸っこい系
+            if (tier === 0) {
+                svg += `<circle cx="50" cy="55" r="15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier === 1) {
+                svg += `<rect x="30" y="40" width="40" height="30" rx="15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier === 2) {
+                svg += `<path d="M 35 30 Q 50 15 65 30 L 70 60 Q 50 75 30 60 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+                svg += `<path d="M 35 30 L 30 15 M 65 30 L 70 15" stroke="${c.sub}" stroke-width="3"/>`; // Ears
+            } else if (tier >= 3) {
+                svg += `<path d="M 30 40 Q 50 10 70 40 Q 90 60 70 80 Q 50 100 30 80 Q 10 60 30 40 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+                svg += `<circle cx="50" cy="20" r="8" fill="none" stroke="${c.sub}" stroke-width="2"/>`; // Halo
+            }
+            // Cute Eyes
+            svg += `<circle cx="42" cy="50" r="4" fill="${c.core}"/>`;
+            svg += `<circle cx="58" cy="50" r="4" fill="${c.core}"/>`;
+            if(stage > 5) svg += `<path d="M 47 58 Q 50 62 53 58" fill="none" stroke="${c.core}" stroke-width="2"/>`;
+
+        } else if (branch === 'speed') {
+            // カッコいい・シャープ系
+            if (tier === 0) {
+                svg += `<polygon points="50,30 65,55 50,70 35,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier === 1) {
+                svg += `<polygon points="50,20 75,60 50,75 25,60" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier === 2) {
+                svg += `<polygon points="50,15 80,55 60,60 50,85 40,60 20,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier >= 3) {
+                svg += `<path d="M 50 10 L 90 50 L 65 55 L 75 80 L 50 95 L 25 80 L 35 55 L 10 50 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            }
+            // Cool Visor
+            svg += `<polygon points="40,50 60,50 55,58 45,58" fill="${c.core}"/>`;
+
+        } else if (branch === 'power') {
+            // いかつい・ブロック系
+            if (tier === 0) {
+                svg += `<polygon points="40,35 60,35 65,55 50,70 35,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier === 1) {
+                svg += `<polygon points="35,25 65,25 75,50 65,75 35,75 25,50" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            } else if (tier === 2) {
+                svg += `<path d="M 30 30 L 70 30 L 85 60 L 60 85 L 40 85 L 15 60 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3"/>`;
+                svg += `<path d="M 30 30 L 20 10 M 70 30 L 80 10" stroke="${c.sub}" stroke-width="4"/>`; // Horns
+            } else if (tier >= 3) {
+                svg += `<path d="M 40 15 L 60 15 L 85 40 L 85 65 L 60 90 L 40 90 L 15 65 L 15 40 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3"/>`;
+                svg += `<polygon points="40,15 30,5 50,15 60,15 70,5" stroke="${c.sub}" stroke-width="3" fill="none"/>`;
+            }
+            // Fierce Core
+            svg += `<polygon points="45,45 55,45 60,60 50,65 40,60" fill="${c.core}"/>`;
+        }
+
+        // T4 (God Tier) Extra Particles
+        if (tier === 4) {
+             svg += `<circle cx="50" cy="50" r="45" fill="none" stroke="${c.main}" stroke-width="2" stroke-dasharray="2,10" opacity="0.8">
+                        <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="4s" repeatCount="indefinite"/>
+                     </circle>`;
+        }
+        
+        svg += `</g></svg>`;
+        return svg;
+    }
+
+    function updatePetOfflineStatus() {
+        if(!player.pet.lastUpdate) player.pet.lastUpdate = Date.now();
+        const now = Date.now();
+        const elapsedHours = (now - player.pet.lastUpdate) / (1000 * 60 * 60);
+        
+        if (elapsedHours > 0.1) {
+            const energyDecrease = Math.floor(elapsedHours * 10);
+            const poopsIncrease = Math.floor(elapsedHours / 2);
+            player.pet.energy = Math.max(0, player.pet.energy - energyDecrease);
+            player.pet.poops = Math.min(5, (player.pet.poops || 0) + poopsIncrease);
+            player.pet.lastUpdate = now;
+            savePlayerData();
+        }
+    }
+
+    window.openPetRoom = function() {
+        updatePetOfflineStatus();
+        updatePetUI();
+        showScreen('pet');
+    };
+
+    function updatePetUI() {
+        const p = player.pet;
+        const branch = getPetBranch(p.stats);
+        
+        el('pet-svg-large').innerHTML = generatePetSVG(p.stage, branch);
+        el('pet-name').innerText = getPetName(p.stage, branch);
+        el('pet-stage-txt').innerText = p.stage;
+        
+        let reqExp = p.stage * 100 + 100; // EXP scale
+        let expPercent = p.stage >= 100 ? 100 : (p.exp / reqExp) * 100;
+        el('pet-exp-bar').style.width = `${Math.min(100, expPercent)}%`;
+        el('pet-energy-bar').style.width = `${p.energy}%`;
+        
+        if (p.stage >= 100) el('pet-exp-txt').innerText = "MAX";
+        else el('pet-exp-txt').innerText = `${Math.floor(p.exp)} / ${reqExp}`;
+        el('pet-energy-txt').innerText = `${Math.floor(p.energy)} / 100`;
+
+        const badge = el('pet-type-badge');
+        badge.className = `type-badge type-${branch}`;
+        badge.innerText = `TYPE: ${branch.toUpperCase()}`;
+
+        const poopArea = el('poop-area');
+        if (poopArea) {
+            poopArea.innerHTML = '';
+            for(let i=0; i<(p.poops || 0); i++) {
+                poopArea.innerHTML += `<i class="fas fa-poop cyber-poop" style="animation-delay: ${i*0.2}s"></i>`;
+            }
+        }
+    }
+
+    window.feedPet = function() {
+        if (player.pet.energy >= 100) { alert("お腹いっぱいです！"); return; }
+        if (player.coins >= 10) {
+            player.coins -= 10;
+            player.pet.energy = Math.min(100, player.pet.energy + 30);
+            if(Math.random() < 0.3) player.pet.poops = Math.min(5, (player.pet.poops || 0) + 1);
+            
+            addPetExp(30); // 育成効果
+            player.pet.lastUpdate = Date.now();
+            updateGlobalHUD(); updatePetUI(); savePlayerData();
+            
+            const svgCont = el('pet-svg-large');
+            svgCont.classList.remove('pet-jump');
+            void svgCont.offsetWidth; 
+            svgCont.classList.add('pet-jump');
+        } else { alert("コインが足りません！"); }
+    };
+
+    window.cleanPoop = function() {
+        if ((player.pet.poops || 0) > 0) {
+            player.pet.poops = 0; addPetExp(20); 
+            player.pet.lastUpdate = Date.now();
+            updatePetUI(); savePlayerData();
+        } else { alert("トイレはピカピカです！"); }
+    };
+
+    function addPetExp(amt) {
+        if(player.pet.stage >= 100) return;
+        player.pet.exp += amt;
+        let reqExp = player.pet.stage * 100 + 100;
+        
+        if (player.pet.exp >= reqExp) {
+            player.pet.exp -= reqExp;
+            player.pet.stage++;
+            alert(`SYSTEM MSG: サイバーペットがSTAGE ${player.pet.stage} に進化した！`);
+        }
+    }
+
+    // ==========================================
+    // 🎮 GAME LOGIC
+    // ==========================================
+    
+    window.startEndless = function() { currentCourse = 'endless'; currentMode = 'random'; initGame(30); };
+    window.startGameNormal = function(secId, mode) { currentSector = secId; currentMode = mode; initGame(45); };
+
+    function initGame(time) {
+        score = 0; timeLeft = time; qCount = 0;
+        el('game-score').innerText = '0000';
+        
+        if (currentCourse === 'div_rem') {
+            el('game-inputs').innerHTML = `
+                <div class="input-box active-input" id="box-ans"></div>
+                <div style="font-size:2rem; align-self:center;">...</div>
+                <div class="input-box" id="box-rem"></div>`;
+            activeInput = 'ans';
+        } else {
+            el('game-inputs').innerHTML = `<div class="input-box active-input" id="box-ans"></div>`;
+            activeInput = 'ans';
+        }
+
+        let branch = getPetBranch(player.pet.stats);
+        el('pet-svg-mini').innerHTML = generatePetSVG(player.pet.stage, branch);
+
+        showScreen('game'); genNextQ();
+        
+        clearInterval(timerId);
+        timerId = setInterval(() => {
+            timeLeft--;
+            el('game-time').innerText = timeLeft;
+            el('game-time').style.color = timeLeft <= 10 ? 'var(--magenta)' : 'var(--cyan)';
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+    }
+
+    function genNextQ() {
+        inputVals = { ans: '', rem: '' };
+        if(el('box-ans')) el('box-ans').innerText = '';
+        if(el('box-rem')) el('box-rem').innerText = '';
+        if(currentCourse === 'div_rem') setActiveBox('ans');
+
+        qCount++;
+        let mult = currentSector;
+        let targetNum = 0;
+        let course = currentCourse;
+
+        if (course === 'endless') {
+            course = ['mul', 'div'][Math.floor(Math.random() * 2)];
+            let unlocked = Object.values(player.progress['mul']).filter(s => s.unlocked).map(s => s.id);
+            mult = unlocked[Math.floor(Math.random() * unlocked.length)];
+            targetNum = Math.floor(Math.random() * 9) + 1;
+        } else {
+            if (currentMode === 'ascend') targetNum = ((qCount - 1) % 9) + 1;
+            else if (currentMode === 'descend') targetNum = 9 - ((qCount - 1) % 9);
+            else targetNum = Math.floor(Math.random() * 9) + 1;
+        }
+
+        if (course === 'mul') currentQ = { text: `${mult} × ${targetNum}`, ans: mult * targetNum, rem: 0 };
+        else if (course === 'div') currentQ = { text: `${mult * targetNum} ÷ ${mult}`, ans: targetNum, rem: 0 };
+        else if (course === 'div_rem') {
+            let maxRem = mult - 1;
+            if (maxRem === 0) currentQ = { text: `${mult * targetNum} ÷ ${mult}`, ans: targetNum, rem: 0 };
+            else {
+                let r = Math.floor(Math.random() * maxRem) + 1;
+                currentQ = { text: `${(mult * targetNum) + r} ÷ ${mult}`, ans: targetNum, rem: r };
+            }
+        }
+        
+        currentQ.startTime = Date.now();
+        currentQ.mistakes = 0;
+        el('game-eq').innerText = currentQ.text;
+    }
+
+    function setActiveBox(tgt) {
+        if(currentCourse !== 'div_rem') return;
+        activeInput = tgt;
+        el('box-ans').classList.remove('active-input');
+        el('box-rem').classList.remove('active-input');
+        el(`box-${tgt}`).classList.add('active-input');
+    }
+
+    window.inputNum = function(n) {
+        if (inputVals[activeInput].length < 3) {
+            inputVals[activeInput] += n;
+            el(`box-${activeInput}`).innerText = inputVals[activeInput];
+            checkAutoSubmit();
+        }
+    };
+
+    window.clearInput = function() {
+        inputVals = { ans: '', rem: '' };
+        if(el('box-ans')) el('box-ans').innerText = '';
+        if(el('box-rem')) el('box-rem').innerText = '';
+        if(currentCourse === 'div_rem') setActiveBox('ans');
+        currentQ.mistakes++; // ミスとしてカウント
+    };
+
+    function checkAutoSubmit() {
+        const strAns = currentQ.ans.toString();
+        const strRem = currentQ.rem.toString();
+        if (activeInput === 'ans') {
+            if (inputVals.ans.length === strAns.length) {
+                if (parseInt(inputVals.ans) === currentQ.ans) {
+                    if (currentCourse === 'div_rem') setActiveBox('rem');
+                    else window.submitAns();
+                } else {
+                    flash('wrong'); currentQ.mistakes++;
+                    inputVals.ans = ''; el('box-ans').innerText = ''; 
+                }
+            }
+        } else if (activeInput === 'rem') {
+            if (inputVals.rem.length === strRem.length) {
+                if (parseInt(inputVals.rem) === currentQ.rem) window.submitAns();
+                else {
+                    flash('wrong'); currentQ.mistakes++;
+                    inputVals.rem = ''; el('box-rem').innerText = '';
+                }
+            }
+        }
+    }
+
+    window.submitAns = function() {
+        if(inputVals.ans === '') return;
+        const ua = parseInt(inputVals.ans);
+        const ur = inputVals.rem === '' ? 0 : parseInt(inputVals.rem);
+
+        if (ua === currentQ.ans && ur === currentQ.rem) {
+            score += 100;
+            el('game-score').innerText = score.toString().padStart(4, '0');
+            flash('correct');
+            petJump();
+            
+            // プレイログから分岐ポイントを計算
+            let timeTaken = Date.now() - currentQ.startTime;
+            if (timeTaken < 3000 && currentQ.mistakes === 0) player.pet.stats.speed += 2;
+            else if (currentQ.mistakes === 0) player.pet.stats.logic += 2;
+            else player.pet.stats.power += 2; // 間違えても解ききった
+
+            if (currentCourse === 'endless') {
+                timeLeft += 2; el('game-time').innerText = timeLeft;
+            }
+            genNextQ();
+        } else {
+            flash('wrong'); currentQ.mistakes++;
+            window.clearInput();
+        }
+    };
+
+    function flash(type) {
+        const f = el('flash-overlay');
+        f.className = type === 'correct' ? 'flash-correct' : 'flash-wrong';
+        f.style.opacity = '1'; setTimeout(() => f.style.opacity = '0', 100);
+    }
+    
+    function petJump() {
+        const p = el('pet-svg-mini');
+        p.classList.remove('pet-jump'); void p.offsetWidth; p.classList.add('pet-jump');
+    }
+
+    function endGame() {
+        clearInterval(timerId);
+        let expGained = Math.floor(score * 0.5);
+        let coinGained = Math.floor(score * 0.2);
+        
+        player.exp += expGained;
+        let req = Math.floor(100 * Math.pow(1.1, player.level - 1));
+        while(player.exp >= req && player.level < 100) {
+            player.exp -= req; player.level++;
+            req = Math.floor(100 * Math.pow(1.1, player.level - 1));
+        }
+        player.coins += coinGained;
+        
+        addPetExp(expGained);
+        player.pet.energy = Math.max(0, player.pet.energy - 10);
+        if(Math.random() < 0.2) player.pet.poops = Math.min(5, (player.pet.poops || 0) + 1);
+        player.pet.lastUpdate = Date.now();
+        
+        if (currentCourse !== 'endless') {
+            let sData = player.progress[currentCourse][currentSector];
+            let stars = score >= 3000 ? 3 : score >= 1500 ? 2 : score >= 500 ? 1 : 0;
+            if (stars > sData.stars[currentMode]) sData.stars[currentMode] = stars;
+        }
+        
+        savePlayerData();
+        
+        el('res-score').innerText = score;
+        el('res-exp').innerText = expGained;
+        el('res-coin').innerText = coinGained;
+        
+        const branch = getPetBranch(player.pet.stats);
+        el('res-pet-msg').innerHTML = `あなたのプレイ傾向: <span style="font-weight:bold" class="type-${branch}">${branch.toUpperCase()}</span>`;
+        
+        showScreen('result');
+    }
+
+    window.finishGame = function() {
+        updateGlobalHUD();
+        if (currentCourse === 'endless') showScreen('menu');
+        else { renderStageGrid(); showScreen('stage'); }
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if(el('screen-game').classList.contains('active')) {
+            if (e.key >= '0' && e.key <= '9') window.inputNum(e.key);
+            else if (e.key === 'Enter') window.submitAns();
+            else if (e.key === 'Backspace' || e.key === 'Escape') window.clearInput();
+            else if (e.key === 'ArrowRight' && currentCourse === 'div_rem') setActiveBox('rem');
+            else if (e.key === 'ArrowLeft' && currentCourse === 'div_rem') setActiveBox('ans');
+        }
+    });
+
+    window.onload = () => { initSystem(); };
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
