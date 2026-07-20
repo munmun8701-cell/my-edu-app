@@ -1,252 +1,219 @@
-// 全角数字を半角に変換
-function toHalfWidth(str) {
-  if (!str) return "";
+// --- 状態管理 ---
+let currentDividend = 0;
+let currentDivisor = 0;
+let remainingDots = 0;
+let groupsFormed = 0;
+let jumpsMade = 0;
+
+// --- DOM要素 ---
+const hintText = document.getElementById('character-message');
+const eqDividend = document.getElementById('eq-dividend');
+const eqDivisor = document.getElementById('eq-divisor');
+
+// ツール1
+const poolCount = document.getElementById('pool-count');
+const blockPool = document.getElementById('block-pool');
+const groupCount = document.getElementById('group-count');
+const blockGroups = document.getElementById('block-groups');
+const groupBtn = document.getElementById('group-btn');
+const btnDivisorVal = document.getElementById('btn-divisor-val');
+
+// ツール2
+const jumpArcs = document.getElementById('jump-arcs');
+const lineMaxVal = document.getElementById('line-max-val');
+const jumpedTotal = document.getElementById('jumped-total');
+const jumpRemain = document.getElementById('jump-remain');
+const jumpBtn = document.getElementById('jump-btn');
+const btnJumpVal = document.getElementById('btn-jump-val');
+
+// ツール3
+const checkDiv = document.getElementById('check-div');
+const checkDsr = document.getElementById('check-dsr');
+const inputQuotient = document.getElementById('input-quotient');
+const inputRemainder = document.getElementById('input-remainder');
+const checkDsr2 = document.getElementById('check-dsr-2');
+const mirrorQuotient = document.getElementById('mirror-quotient');
+const mirrorRemainder = document.getElementById('mirror-remainder');
+const calcResult = document.getElementById('calc-result');
+
+// --- タブ切り替え処理 ---
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tool-content').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(e.target.dataset.target).classList.add('active');
+  });
+});
+
+// --- 全角数字を半角に変換する処理（入力の正規化） ---
+function toHalfWidthNumber(str) {
   return str.replace(/[０-９]/g, function(s) {
     return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-  });
+  }).replace(/[^0-9]/g, ''); // 数字以外も除去
 }
 
-// ミッションのデータ
-const missions = [
-  { type: 'cake', total: 23, perGroup: 4, q: 5, r: 3, itemName: 'ケーキ', groupName: '箱', btnAddText: '📦 新しい箱を もってくる', ansCheckFunc: checkMission1Final },
-  { type: 'tire', total: 30, perGroup: 4, q: 7, r: 2, itemName: 'タイヤ', groupName: '車', btnAddText: '🚗 新しい車を もってくる', ansCheckFunc: checkMission2Final }
-];
-
-let currMIdx = 0;
-let currentM = missions[currMIdx];
-let poolItems = 0;
-let groupItems = []; 
-let step2Unlocked = false;
-
-// DOM要素
-const els = {
-  body: document.body,
-  app: document.getElementById('app'),
-  header: document.querySelector('header'),
-  visualizer: document.querySelector('.visualizer'),
-  poolNum: document.getElementById('pool-num'),
-  itemTitle: document.getElementById('item-title'),
-  groupTitle: document.getElementById('group-title'),
-  pool: document.getElementById('pool'),
-  groups: document.getElementById('groups'),
+// --- 問題の読み込みと初期化 ---
+function loadProblem(dividend, divisor, hint) {
+  if(!dividend || !divisor) return;
+  currentDividend = parseInt(dividend);
+  currentDivisor = parseInt(divisor);
   
-  btnAuto: document.getElementById('btn-auto-group'),
-  btnReset: document.getElementById('btn-reset-items'),
-  btnAddGroup: document.getElementById('btn-add-group'),
+  eqDividend.textContent = currentDividend;
+  eqDivisor.textContent = currentDivisor;
+  btnDivisorVal.textContent = currentDivisor;
+  btnJumpVal.textContent = currentDivisor;
+  checkDiv.textContent = currentDividend;
+  checkDsr.textContent = currentDivisor;
+  checkDsr2.textContent = currentDivisor;
   
-  progText: document.getElementById('progress-text')
-};
-
-function loadMission(idx) {
-  currMIdx = idx;
-  currentM = missions[idx];
-  poolItems = currentM.total;
-  groupItems = Array(currentM.q).fill(0); // 最初のグループ数は「商」の数
-  step2Unlocked = false;
+  hintText.textContent = hint || "「まとめる」ボタンや、「すすむ」ボタンを おしてみよう！";
   
-  // テキスト・テーマの更新
-  els.progText.textContent = `ミッション ${idx + 1} / 2`;
-  els.itemTitle.textContent = `${currentM.itemName}（ぜんぶで ${currentM.total} こ）`;
-  els.groupTitle.innerHTML = `<ruby>${currentM.groupName}<rt>${currentM.type==='cake'?'はこ':'くるま'}</rt></ruby>（1${currentM.type==='cake'?'箱':'台'}に ${currentM.perGroup}こ まで）`;
-  els.btnAddGroup.textContent = currentM.btnAddText;
-  
-  if (currentM.type === 'tire') {
-    els.body.classList.add('theme-tire');
-    els.app.classList.add('theme-tire');
-    els.header.classList.add('theme-tire');
-    els.visualizer.classList.add('theme-tire');
-    els.btnAddGroup.classList.add('theme-tire');
-    els.poolNum.classList.add('theme-tire');
-  }
-  
-  els.btnAddGroup.classList.add('hidden');
-  renderVisualizer();
+  resetSimulator();
 }
 
-function renderVisualizer() {
-  els.poolNum.textContent = poolItems;
-  
-  // プール描画
-  els.pool.innerHTML = '';
-  for(let i = 0; i < poolItems; i++) {
-    const item = document.createElement('div');
-    item.className = `item type-${currentM.type}`;
-    item.onclick = moveFromPool;
-    els.pool.appendChild(item);
+function resetSimulator() {
+  // ツール1リセット
+  remainingDots = currentDividend;
+  groupsFormed = 0;
+  blockPool.innerHTML = '';
+  blockGroups.innerHTML = '';
+  for(let i=0; i<currentDividend; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    blockPool.appendChild(dot);
   }
+  updateBlockUI();
 
-  // グループ描画
-  els.groups.innerHTML = '';
-  for(let i = 0; i < groupItems.length; i++) {
-    const box = document.createElement('div');
-    box.className = `group-box type-${currentM.type} ${groupItems[i] === currentM.perGroup ? 'full' : ''}`;
-    // ケーキミッションで、追加された箱（6箱目）をハイライト
-    if (currentM.type === 'cake' && groupItems.length > currentM.q && i === currentM.q) {
-      box.classList.add('new-box');
+  // ツール2リセット
+  jumpsMade = 0;
+  jumpArcs.innerHTML = '';
+  lineMaxVal.textContent = currentDividend;
+  updateLineUI();
+
+  // ツール3リセット
+  inputQuotient.value = '';
+  inputRemainder.value = '';
+  updateCheckFormula();
+}
+
+// --- ツール1：ブロック分けのロジック ---
+function updateBlockUI() {
+  poolCount.textContent = remainingDots;
+  groupCount.textContent = groupsFormed;
+  groupBtn.disabled = remainingDots < currentDivisor;
+  if(groupsFormed > 0 && remainingDots < currentDivisor) {
+    hintText.textContent = `もう ${currentDivisor}こ では まとめられないね。あまり はいくつかな？`;
+  }
+}
+
+groupBtn.addEventListener('click', () => {
+  if (remainingDots >= currentDivisor) {
+    remainingDots -= currentDivisor;
+    groupsFormed++;
+    
+    // UI更新（プールから削除）
+    for(let i=0; i<currentDivisor; i++) {
+      blockPool.removeChild(blockPool.lastChild);
     }
     
-    for(let j = 0; j < groupItems[i]; j++) {
-      const item = document.createElement('div');
-      item.className = `item type-${currentM.type}`;
-      item.onclick = () => moveFromPerson(i);
-      box.appendChild(item);
+    // グループエリアに追加
+    const group = document.createElement('div');
+    group.className = 'group-box';
+    for(let i=0; i<currentDivisor; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      group.appendChild(dot);
     }
-    els.groups.appendChild(box);
-  }
-}
-
-function moveFromPool() {
-  if (poolItems > 0) {
-    for(let i = 0; i < groupItems.length; i++) {
-      if(groupItems[i] < currentM.perGroup) {
-        groupItems[i]++;
-        poolItems--;
-        renderVisualizer();
-        checkAutoUnlockStep2();
-        return;
-      }
-    }
-    showMsg(`用意された ${groupItems.length}つの ${currentM.groupName}は もう いっぱいだ！`, "warning", currentM.type === 'cake' ? 1 : 2);
-  }
-}
-
-function moveFromPerson(boxIndex) {
-  if (groupItems[boxIndex] > 0) {
-    groupItems[boxIndex]--;
-    poolItems++;
-    renderVisualizer();
-  }
-}
-
-// 魔法のボタン
-els.btnAuto.addEventListener('click', () => {
-  for(let i = 0; i < groupItems.length; i++) {
-    while (groupItems[i] < currentM.perGroup && poolItems > 0) {
-      groupItems[i]++;
-      poolItems--;
-    }
-  }
-  renderVisualizer();
-  checkAutoUnlockStep2();
-});
-
-// 新しいグループを追加するボタン
-els.btnAddGroup.addEventListener('click', () => {
-  if (currentM.type === 'cake') {
-    // ケーキの場合は箱を追加できる
-    groupItems.push(0);
-    renderVisualizer();
-    els.btnAddGroup.classList.add('hidden');
-    showMsg("新しい箱を もってきたよ！ あまった ケーキも しまおう。", "success", 1);
-  } else if (currentM.type === 'tire') {
-    // 【重要】タイヤの場合は、残り2個なので車が作れないというエラーを出す
-    showMsg("🚨 エラー！<br>タイヤが 4こ ないと 車は 作れないよ！<br>あまった 2こ では たりないね。", "error", 2);
+    blockGroups.appendChild(group);
+    
+    updateBlockUI();
   }
 });
+document.getElementById('reset-blocks-btn').addEventListener('click', resetSimulator);
 
-els.btnReset.addEventListener('click', () => {
-  loadMission(currMIdx);
-  const msgEl = document.getElementById(`msg${currMIdx + 1}`);
-  if(msgEl) msgEl.classList.add('hidden');
-});
 
-// 満杯になったら自動でステップ2のヒントやボタンを出す
-function checkAutoUnlockStep2() {
-  if (!step2Unlocked) return; // まだ計算が終わってない時は何もしない
+// --- ツール2：数直線のロジック ---
+function updateLineUI() {
+  const currentPos = jumpsMade * currentDivisor;
+  jumpedTotal.textContent = currentPos;
+  jumpRemain.textContent = currentDividend - currentPos;
   
-  let fullGroups = 0;
-  for(let b of groupItems) if (b === currentM.perGroup) fullGroups++;
+  jumpBtn.disabled = (currentDividend - currentPos) < currentDivisor;
+  if(jumpsMade > 0 && (currentDividend - currentPos) < currentDivisor) {
+    hintText.textContent = `わられる数（${currentDividend}）を こえちゃうから、もう ジャンプできないね。`;
+  }
+}
+
+jumpBtn.addEventListener('click', () => {
+  const currentPos = jumpsMade * currentDivisor;
+  if ((currentDividend - currentPos) >= currentDivisor) {
+    jumpsMade++;
+    
+    // Arcの描画（%で幅を指定し、ズレを防止）
+    const arcWidthPercent = (currentDivisor / currentDividend) * 100;
+    const arc = document.createElement('div');
+    arc.className = 'arc';
+    arc.style.width = `${arcWidthPercent}%`;
+    jumpArcs.appendChild(arc);
+    
+    updateLineUI();
+  }
+});
+document.getElementById('reset-line-btn').addEventListener('click', resetSimulator);
+
+// --- ツール3：たしかめ算のロジック ---
+function updateCheckFormula() {
+  let qVal = toHalfWidthNumber(inputQuotient.value) || "?";
+  let rVal = toHalfWidthNumber(inputRemainder.value) || "?";
   
-  if (fullGroups === currentM.q && poolItems === currentM.r) {
-    els.btnAddGroup.classList.remove('hidden');
-  }
-}
+  // 入力欄の値を半角数字に上書き
+  if(inputQuotient.value !== "" && qVal !== "?") inputQuotient.value = qVal;
+  if(inputRemainder.value !== "" && rVal !== "?") inputRemainder.value = rVal;
 
-function showMsg(text, type, missionNum) {
-  const msgEl = document.getElementById(`msg${missionNum}`);
-  msgEl.innerHTML = text;
-  msgEl.className = `msg ${type}`;
-}
-
-// ================= ミッション1（ケーキ）のロジック =================
-const btnM1Check = document.getElementById('btn-m1-check');
-btnM1Check.addEventListener('click', () => {
-  if (!step2Unlocked) {
-    // 計算チェック
-    const q = parseInt(toHalfWidth(document.getElementById('m1-q').value));
-    const r = parseInt(toHalfWidth(document.getElementById('m1-r').value));
-    if (q === 5 && r === 3) {
-      showMsg("計算 ばっちり！🎉<br>では、上の ケーキを 動かして 箱に つめてみよう。", "success", 1);
-      document.getElementById('m1-step2').classList.remove('hidden');
-      step2Unlocked = true;
-      btnM1Check.textContent = "さいごの 答えあわせ ✨";
-      checkAutoUnlockStep2(); // 既に操作済みだった場合のため
+  mirrorQuotient.textContent = qVal;
+  mirrorRemainder.textContent = rVal;
+  
+  if(qVal !== "?" && rVal !== "?") {
+    const calc = (currentDivisor * parseInt(qVal)) + parseInt(rVal);
+    calcResult.textContent = calc;
+    
+    if (calc === currentDividend) {
+      calcResult.style.color = "green";
+      hintText.textContent = "たしかめの式が わられる数と ピッタリ合ったね！ノートにかいておこう。";
     } else {
-      showMsg("計算が まちがっているみたい。4のだんの 九九だよ。", "error", 1);
+      calcResult.style.color = "red";
+      hintText.textContent = "あれ？わられる数と ちがうみたい。ブロックや数直線で もういちど確認してみよう。";
     }
   } else {
-    // 最終解答チェック
-    currentM.ansCheckFunc();
+    calcResult.textContent = "?";
+    calcResult.style.color = "inherit";
   }
+}
+
+inputQuotient.addEventListener('input', updateCheckFormula);
+inputRemainder.addEventListener('input', updateCheckFormula);
+
+
+// --- イベントリスナー（問題選択） ---
+const selects = document.querySelectorAll('.problem-select');
+selects.forEach(select => {
+  select.addEventListener('change', (e) => {
+    if(!e.target.value) return;
+    // 他のセレクトボックスをリセット
+    selects.forEach(s => { if(s !== e.target) s.value = ""; });
+    const [dividend, divisor] = e.target.value.split(',');
+    loadProblem(dividend, divisor, "どうやって 答えを みつけようか？ ツールをさわってみよう。");
+  });
 });
 
-function checkMission1Final() {
-  const ans = parseInt(toHalfWidth(document.getElementById('m1-ans').value));
-  if (ans === 6) {
-    if (poolItems > 0) {
-      showMsg("答えは 合っているけど、上の ケーキが まだ しまえてないよ！", "warning", 1);
-      return;
-    }
-    showMsg("大正解！！🏆<br>あまった分も 「ぜんぶ入れる」から、答えに ＋1 したね！", "success", 1);
-    btnM1Check.classList.add('hidden');
-    setTimeout(() => {
-      document.getElementById('mission1-card').classList.add('hidden');
-      document.getElementById('mission2-card').classList.remove('hidden');
-      loadMission(1); // ミッション2へ
-    }, 2500);
-  } else if (ans === 5) {
-    showMsg("5箱だと、あまった 3この ケーキが 入らないよ！", "error", 1);
-  } else {
-    showMsg("上の 箱の 数を かぞえてみてね。", "error", 1);
-  }
-}
-
-// ================= ミッション2（タイヤ）のロジック =================
-const btnM2Check = document.getElementById('btn-m2-check');
-btnM2Check.addEventListener('click', () => {
-  if (!step2Unlocked) {
-    // 計算チェック
-    const q = parseInt(toHalfWidth(document.getElementById('m2-q').value));
-    const r = parseInt(toHalfWidth(document.getElementById('m2-r').value));
-    if (q === 7 && r === 2) {
-      showMsg("計算 ばっちり！🚗<br>では、上の タイヤを 使って 車を 完成させよう。", "success", 2);
-      document.getElementById('m2-step2').classList.remove('hidden');
-      step2Unlocked = true;
-      btnM2Check.textContent = "さいごの 答えあわせ ✨";
-      checkAutoUnlockStep2();
-    } else {
-      showMsg("計算ミスかな？ 4のだんの 九九だよ。", "error", 2);
-    }
-  } else {
-    // 最終解答チェック
-    currentM.ansCheckFunc();
-  }
+const btns = document.querySelectorAll('.problem-btn');
+btns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    selects.forEach(s => s.value = ""); // セレクトボックスリセット
+    loadProblem(e.target.dataset.dividend, e.target.dataset.divisor, e.target.dataset.hint);
+  });
 });
 
-function checkMission2Final() {
-  const ans = parseInt(toHalfWidth(document.getElementById('m2-ans').value));
-  if (ans === 7) {
-    showMsg("大正解！！🏆<br>あまった タイヤでは 車が 作れないから、答えは そのまま「7台」だね！", "success", 2);
-    btnM2Check.classList.add('hidden');
-    setTimeout(() => {
-      document.getElementById('clear-screen').classList.remove('hidden');
-    }, 2500);
-  } else if (ans === 8) {
-    showMsg("8台 作るには タイヤが たりないよ！ 上の ボタンを おして たしかめてみて。", "error", 2);
-  } else {
-    showMsg("上の 車の 台数を かぞえてみてね。", "error", 2);
-  }
-}
-
-// 初期化
-loadMission(0);
+// 初期化（何も選ばれていない状態）
+hintText.textContent = "まずは左から問題を選んでみよう！";
