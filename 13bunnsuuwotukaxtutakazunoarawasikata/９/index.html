@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>１３　分数を使った数の大きさの表し方　９時間目</title>
+    
+
+  </head>
+    
+  <body>
+  html_content = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分数のひき算（第9時）</title>
+  <style>
+    :root {
+      --primary: #f57c00;
+      --bg-color: #fff8e1;
+      --text-main: #333;
+      --water-color: #ffcc80;
+      --water-border: #f57c00;
+      --beaker-border: #9e9e9e;
+      --accent: #d84315;
+    }
+
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+      background-color: var(--bg-color); color: var(--text-main);
+    }
+
+    header {
+      background-color: var(--primary); color: white;
+      text-align: center; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header p { margin: 5px 0 0 0; font-size: 1rem; }
+
+    .tabs { display: flex; justify-content: center; gap: 10px; margin: 20px; flex-wrap: wrap;}
+    .tab-btn {
+      padding: 10px 20px; font-size: 1.1rem; font-weight: bold;
+      border: 2px solid #ccc; border-radius: 8px; background-color: #fff; color: #555;
+      cursor: pointer; box-shadow: 0 4px 0 #ccc; transition: all 0.1s;
+    }
+    .tab-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #ccc; }
+    .tab-btn.active { background-color: var(--accent); border-color: #bf360c; color: white; box-shadow: 0 4px 0 #bf360c; }
+
+    main { max-width: 800px; margin: 0 auto; padding: 0 15px 40px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    h2 {
+      font-size: 1.3rem; border-left: 5px solid var(--primary);
+      padding-left: 10px; margin-top: 30px; line-height: 1.5;
+    }
+    .instruction { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;}
+    .instruction p { margin: 0; line-height: 1.5; font-size: 1.1rem;}
+
+    .control-panel {
+      background: white; padding: 20px; border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 2px solid #e0e0e0; text-align: center;
+    }
+    
+    /* ビーカーエリア */
+    .simulator-area {
+      display: flex; flex-wrap: wrap; justify-content: space-around; align-items: flex-end; gap: 10px;
+      background: white; padding: 30px 10px; border-radius: 10px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 2px solid #e0e0e0;
+    }
+    .beaker-wrapper { position: relative; width: 120px; display: flex; flex-direction: column; align-items: center;}
+    .beaker {
+      width: 100%; height: 180px;
+      border: 3px solid var(--beaker-border); border-top: none;
+      border-radius: 0 0 8px 8px; position: relative; background: #fafafa;
+    }
+    .beaker-label { position: absolute; left: -35px; font-weight: bold; font-size: 1rem;}
+    .beaker-label.top { top: -10px; border-bottom: 1px dashed #555; padding-bottom: 2px; width: 25px; text-align: right;}
+    .beaker-label.bottom { bottom: -5px; width: 25px; text-align: right;}
+
+    .water {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background-color: var(--water-color); border-top: 2px solid var(--water-border);
+      border-radius: 0 0 4px 4px; transition: height 0.5s ease-in-out;
+    }
+    /* 飲んだ分（斜線などで表現） */
+    .water.drunk {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(245, 124, 0, 0.2),
+        rgba(245, 124, 0, 0.2) 10px,
+        rgba(255, 255, 255, 0.5) 10px,
+        rgba(255, 255, 255, 0.5) 20px
+      );
+      border-top: 2px dashed var(--water-border);
+      transition: height 0.5s ease-in-out;
+    }
+
+    .marks {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+    }
+    .mark-segment { flex: 1; border-bottom: 1px dashed #999; box-sizing: border-box; }
+    .mark-segment:last-child { border-bottom: none; }
+    
+    .math-symbol { font-size: 2.5rem; font-weight: bold; padding-bottom: 60px;}
+
+    .beaker-desc { text-align: center; margin-top: 15px; font-size: 1.1rem; font-weight: bold;}
+    
+    /* 質問エリア・分数入力 */
+    .question-area { flex: 1; font-size: 1.2rem; background: #fff; padding: 20px; border-radius: 10px; border: 2px solid #e0e0e0;}
+    .text-center { text-align: center; }
+    .text-right { text-align: right; margin-top: 10px; }
+    .flex-center { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 1.3rem; flex-wrap: wrap;}
+
+    .fraction-input { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; gap: 4px;}
+    .fraction-input.small .num-input { width: 45px; height: 35px; font-size: 1.3rem;}
+    .fraction-line { width: 100%; height: 2px; background-color: var(--text-main); }
+    .num-input { width: 50px; height: 45px; font-size: 1.5rem; text-align: center; border: 2px solid #ccc; border-radius: 5px;}
+    .small-input { width: 40px; height: 35px; font-size: 1.2rem; }
+
+    /* インライン分数表示 */
+    .inline-frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.9em; line-height: 1.1; font-weight: bold;}
+    .inline-frac .top { border-bottom: 2px solid currentColor; padding: 0 2px; }
+    .inline-frac .bottom { padding: 0 2px; }
+    .inline-frac.pink-text { color: #e91e63; }
+
+    /* クイズセクション */
+    .quiz-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #e0e0e0;}
+    .q-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;}
+    .q-item { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; font-weight: bold;}
+    .q-num { font-size: 1.1rem; width: 25px; color: #777;}
+
+    /* ボタン類 */
+    .action-btn {
+      padding: 10px 25px; font-size: 1.2rem; font-weight: bold; background-color: #29b6f6; color: white;
+      border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #0288d1;
+    }
+    .action-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #0288d1; }
+    
+    .mix-btn {
+      padding: 15px 30px; font-size: 1.5rem; font-weight: bold; background-color: #ff9800; color: white;
+      border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #ef6c00; transition: all 0.1s;
+    }
+    .mix-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ef6c00; }
+
+    .result-message { font-size: 1.2rem; font-weight: bold; margin-top: 10px; min-height: 24px;}
+    .correct { color: #e91e63; }
+    .wrong { color: #1976d2; }
+
+    /* キャラクターふきだし */
+    .character-box {
+      display: flex; align-items: flex-start; gap: 15px;
+      background: white; padding: 15px; border-radius: 15px; border: 2px solid #a5d6a7;
+      position: relative; margin-top: 20px;
+    }
+    .char-icon { width: 60px; height: 60px; }
+    .char-text { flex: 1; }
+    .char-text p { margin: 0; font-size: 1.1rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>分数の しくみと ひき算</h1>
+    <p>自分で 動かして、わかったことをノートにまとめよう！</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-target="tab1">① ジュースを飲もう</button>
+    <button class="tab-btn" data-target="tab2">② 1からのひき算</button>
+    <button class="tab-btn" data-target="tab3">③ 練習問題</button>
+  </div>
+
+  <main>
+    <!-- タブ1：分数のひき算の導入 -->
+    <section id="tab1" class="tab-content active">
+      <h2>ジュースが <span class="inline-frac"><span class="top">4</span><span class="bottom">5</span></span> L あります。<br><span class="inline-frac"><span class="top">2</span><span class="bottom">5</span></span> L 飲むと、のこりは 何 L になりますか。</h2>
+      
+      <div class="instruction">
+        <p>「飲む」ボタンをおして、のこりのジュースをたしかめよう！</p>
+      </div>
+      
+      <div class="control-panel">
+        <button id="btn-drink1" class="mix-btn">ジュースを 飲む！</button>
+      </div>
+
+      <div class="simulator-area">
+        <!-- 4/5L (はじめ) -->
+        <div class="beaker-wrapper">
+          <div class="beaker-label top">1 L</div>
+          <div class="beaker">
+            <div class="water" id="water-1a" style="height: 80%;"></div>
+            <div class="water drunk" id="drunk-1a" style="height: 0%; bottom: 80%;"></div>
+            <div class="marks" id="marks-1a"></div>
+          </div>
+          <div class="beaker-desc">
+            はじめ<br>
+            <span class="inline-frac"><span class="top">4</span><span class="bottom">5</span></span> L
+          </div>
+        </div>
+
+        <div class="math-symbol">－</div>
+
+        <!-- 2/5L (飲んだ分) -->
+        <div class="beaker-wrapper">
+          <div class="beaker-label top">1 L</div>
+          <div class="beaker">
+            <div class="water drunk" style="height: 40%;"></div>
+            <div class="marks" id="marks-1b"></div>
+          </div>
+          <div class="beaker-desc">
+            飲んだ分<br>
+            <span class="inline-frac"><span class="top">2</span><span class="bottom">5</span></span> L
+          </div>
+        </div>
+
+        <div class="math-symbol">＝</div>
+
+        <!-- 結果 -->
+        <div class="beaker-wrapper">
+          <div class="beaker-label top">1 L</div>
+          <div class="beaker">
+            <div class="water" id="water-res1" style="height: 0%; opacity: 0;"></div>
+            <div class="marks" id="marks-1c"></div>
+          </div>
+          <div class="beaker-desc" id="desc-res1" style="visibility: hidden;">
+            のこり<br>
+            <span class="inline-frac pink-text"><span class="top">2</span><span class="bottom">5</span></span> L
+          </div>
+        </div>
+      </div>
+
+      <div class="question-area text-center" id="q-area-1" style="display: none;">
+        <p>分数のひき算の しかたを考えよう。<br>たし算と同じように考えると、どうすれば計算できるかな？</p>
+        <div class="flex-center">
+          <span class="inline-frac"><span class="top">4</span><span class="bottom">5</span></span> － <span class="inline-frac"><span class="top">2</span><span class="bottom">5</span></span> ＝ 
+          <div class="fraction-input small">
+            <input type="text" id="q1-num" class="num-input">
+            <div class="fraction-line"></div>
+            <input type="text" id="q1-den" class="num-input">
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+          <button id="btn-check1" class="action-btn">たしかめる</button>
+          <div id="result1" class="result-message"></div>
+        </div>
+      </div>
+
+      <div class="character-box" id="char-box-1" style="display: none;">
+        <img src="https://api.iconify.design/noto:student-light-skin-tone.svg" alt="児童" class="char-icon">
+        <div class="char-text">
+          <p><strong>【ノートにまとめよう】</strong><br>
+          <span class="inline-frac"><span class="top">4</span><span class="bottom">5</span></span> － <span class="inline-frac"><span class="top">2</span><span class="bottom">5</span></span> は、<span class="inline-frac"><span class="top">1</span><span class="bottom">5</span></span> をもとにして、<strong>4 － 2</strong> の計算で考えることができるね。<br>
+          分数のたし算やひき算は、分子の整数の計算で考えられるんだ！</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- タブ2：1からのひき算 -->
+    <section id="tab2" class="tab-content">
+      <h2>1 － <span class="inline-frac"><span class="top">3</span><span class="bottom">5</span></span> の計算のしかたを せつめいしましょう。</h2>
+      
+      <div class="instruction">
+        <p>「飲む」ボタンをおして、答えがどうなるか見てみよう！<br>
+        <strong>1 L</strong> は、<span class="inline-frac"><span class="top">1</span><span class="bottom">5</span></span> L が 何こ分かな？</p>
+      </div>
+
+      <div class="control-panel">
+        <button id="btn-drink2" class="mix-btn">ジュースを 飲む！</button>
+      </div>
+
+      <div class="simulator-area">
+        <!-- 1L (はじめ) -->
+        <div class="beaker-wrapper">
+          <div class="beaker-label top">1 L</div>
+          <div class="beaker">
+            <div class="water" id="water-2a" style="height: 100%;"></div>
+            <div class="water drunk" id="drunk-2a" style="height: 0%; bottom: 100%;"></div>
+            <div class="marks" id="marks-2a"></div>
+          </div>
+          <div class="beaker-desc">
+            1
+          </div>
+        </div>
+
+        <div class="math-symbol">－</div>
+
+        <!-- 3/5L (飲んだ分) -->
+        <div class="beaker-wrapper">
+          <div class="beaker-label top">1 L</div>
+          <div class="beaker">
+            <div class="water drunk" style="height: 60%;"></div>
+            <div class="marks" id="marks-2b"></div>
+          </div>
+          <div class="beaker-desc">
+            <span class="inline-frac"><span class="top">3</span><span class="bottom">5</span></span>
+          </div>
+        </div>
+
+        <div class="math-symbol">＝</div>
+
+        <!-- 結果 -->
+        <div class="beaker-wrapper">
+          <div class="beaker-label top">1 L</div>
+          <div class="beaker">
+            <div class="water" id="water-res2" style="height: 0%; opacity: 0;"></div>
+            <div class="marks" id="marks-2c"></div>
+          </div>
+          <div class="beaker-desc" id="desc-res2" style="visibility: hidden;">
+            <span class="inline-frac pink-text"><span class="top">2</span><span class="bottom">5</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-area text-center" id="q-area-2" style="display: none;">
+        <p>1 は <span class="inline-frac"><span class="top">5</span><span class="bottom">5</span></span> だから、 <span class="inline-frac"><span class="top">5</span><span class="bottom">5</span></span> － <span class="inline-frac"><span class="top">3</span><span class="bottom">5</span></span> と考えればいいね。<br>
+        <span class="inline-frac"><span class="top">1</span><span class="bottom">5</span></span> をもとにして、5 － 3 ＝ 2。<br>
+        <span class="inline-frac"><span class="top">1</span><span class="bottom">5</span></span> が 2こ分で、答えはどうなるかな？</p>
+        
+        <div class="flex-center">
+          1 － <span class="inline-frac"><span class="top">3</span><span class="bottom">5</span></span> ＝ 
+          <div class="fraction-input small">
+            <input type="text" id="q2-num" class="num-input">
+            <div class="fraction-line"></div>
+            <input type="text" id="q2-den" class="num-input">
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+          <button id="btn-check2" class="action-btn">たしかめる</button>
+          <div id="result2" class="result-message"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- タブ3：練習問題（適応問題） -->
+    <section id="tab3" class="tab-content">
+      <h2>れんしゅう 問題</h2>
+      <p style="font-weight: bold; font-size: 1.2rem; text-align: center;">計算をしましょう。</p>
+
+      <div class="quiz-section">
+        <div class="q-grid">
+          
+          <!-- ① -->
+          <div class="q-item">
+            <span class="q-num">①</span>
+            <div class="flex-center">
+              <span class="inline-frac"><span class="top">6</span><span class="bottom">8</span></span> － <span class="inline-frac"><span class="top">4</span><span class="bottom">8</span></span> ＝ 
+              <div class="fraction-input small">
+                <input type="text" id="q3-num1" class="num-input">
+                <div class="fraction-line"></div>
+                <input type="text" id="q3-den1" class="num-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- ② -->
+          <div class="q-item">
+            <span class="q-num">②</span>
+            <div class="flex-center">
+              <span class="inline-frac"><span class="top">5</span><span class="bottom">7</span></span> － <span class="inline-frac"><span class="top">1</span><span class="bottom">7</span></span> ＝ 
+              <div class="fraction-input small">
+                <input type="text" id="q3-num2" class="num-input">
+                <div class="fraction-line"></div>
+                <input type="text" id="q3-den2" class="num-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ -->
+          <div class="q-item">
+            <span class="q-num">③</span>
+            <div class="flex-center">
+              1 － <span class="inline-frac"><span class="top">3</span><span class="bottom">4</span></span> ＝ 
+              <div class="fraction-input small">
+                <input type="text" id="q3-num3" class="num-input">
+                <div class="fraction-line"></div>
+                <input type="text" id="q3-den3" class="num-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- ④ -->
+          <div class="q-item">
+            <span class="q-num">④</span>
+            <div class="flex-center">
+              1 － <span class="inline-frac"><span class="top">7</span><span class="bottom">9</span></span> ＝ 
+              <div class="fraction-input small">
+                <input type="text" id="q3-num4" class="num-input">
+                <div class="fraction-line"></div>
+                <input type="text" id="q3-den4" class="num-input">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="text-center" style="margin-top: 30px;">
+          <button id="btn-check3" class="action-btn">こたえあわせ</button>
+          <div id="result3" class="result-message text-center"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      // 全角数字を半角に自動変換
+      function toHalfWidthMath(str) {
+        return str.replace(/[０-９]/g, function(s) {
+          return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+      }
+
+      document.querySelectorAll('.num-input').forEach(input => {
+        input.addEventListener('input', function() {
+          this.value = toHalfWidthMath(this.value).replace(/[^0-9]/g, '');
+        });
+      });
+
+      // タブ切り替え処理
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          tabContents.forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.target).classList.add('active');
+        });
+      });
+
+      // ----------------------------------------------------
+      // ビーカーのメモリを描画する関数
+      // ----------------------------------------------------
+      function drawMarks(containerId, divisions) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        for(let i=0; i<divisions; i++) {
+          const seg = document.createElement('div');
+          seg.className = 'mark-segment';
+          container.appendChild(seg);
+        }
+      }
+
+      // タブ1は5等分、タブ2も5等分
+      const beakerIds = ['marks-1a', 'marks-1b', 'marks-1c', 'marks-2a', 'marks-2b', 'marks-2c'];
+      beakerIds.forEach(id => drawMarks(id, 5));
+
+
+      // ----------------------------------------------------
+      // タブ1：4/5 - 2/5
+      // ----------------------------------------------------
+      const btnDrink1 = document.getElementById('btn-drink1');
+      const water1a = document.getElementById('water-1a');
+      const drunk1a = document.getElementById('drunk-1a');
+      const waterRes1 = document.getElementById('water-res1');
+      const descRes1 = document.getElementById('desc-res1');
+      const qArea1 = document.getElementById('q-area-1');
+
+      btnDrink1.addEventListener('click', () => {
+        // アニメーションで水を減らし、飲んだ分(斜線)を上から下へ伸ばす
+        water1a.style.height = '40%';
+        drunk1a.style.height = '40%';
+        drunk1a.style.bottom = '40%';
+
+        btnDrink1.disabled = true;
+        btnDrink1.style.backgroundColor = '#ccc';
+        btnDrink1.style.boxShadow = 'none';
+        
+        setTimeout(() => {
+          // 結果のビーカーを表示
+          waterRes1.style.height = '40%';
+          waterRes1.style.opacity = '1';
+          descRes1.style.visibility = 'visible';
+          qArea1.style.display = 'block';
+        }, 600);
+      });
+
+      const btnCheck1 = document.getElementById('btn-check1');
+      const result1 = document.getElementById('result1');
+      const charBox1 = document.getElementById('char-box-1');
+
+      btnCheck1.addEventListener('click', () => {
+        const num = document.getElementById('q1-num').value;
+        const den = document.getElementById('q1-den').value;
+
+        if (num === "2" && den === "5") {
+          result1.textContent = "大せいかい！ 分母はそのままで、分子だけ ひき算しているね！";
+          result1.className = "result-message correct";
+          charBox1.style.display = 'flex';
+        } else {
+          result1.textContent = "おしい！ 1/5L が 何こ分のこるか（分子の数）を考えよう。";
+          result1.className = "result-message wrong";
+        }
+      });
+
+
+      // ----------------------------------------------------
+      // タブ2：1 - 3/5
+      // ----------------------------------------------------
+      const btnDrink2 = document.getElementById('btn-drink2');
+      const water2a = document.getElementById('water-2a');
+      const drunk2a = document.getElementById('drunk-2a');
+      const waterRes2 = document.getElementById('water-res2');
+      const descRes2 = document.getElementById('desc-res2');
+      const qArea2 = document.getElementById('q-area-2');
+
+      btnDrink2.addEventListener('click', () => {
+        // 1(100%) から 3/5(60%) 飲む -> 40% 残る
+        water2a.style.height = '40%';
+        drunk2a.style.height = '60%';
+        drunk2a.style.bottom = '40%';
+
+        btnDrink2.disabled = true;
+        btnDrink2.style.backgroundColor = '#ccc';
+        btnDrink2.style.boxShadow = 'none';
+        
+        setTimeout(() => {
+          waterRes2.style.height = '40%';
+          waterRes2.style.opacity = '1';
+          descRes2.style.visibility = 'visible';
+          qArea2.style.display = 'block';
+        }, 600);
+      });
+
+      const btnCheck2 = document.getElementById('btn-check2');
+      const result2 = document.getElementById('result2');
+
+      btnCheck2.addEventListener('click', () => {
+        const num = document.getElementById('q2-num').value;
+        const den = document.getElementById('q2-den').value;
+
+        if (num === "2" && den === "5") {
+          result2.innerHTML = "ばっちり！ 1 を <strong>5/5</strong> だと考えて計算できたね！";
+          result2.className = "result-message correct";
+        } else {
+          result2.textContent = "おしい！ 1 を 分母が5の分数（○/5）になおしてから計算しよう。";
+          result2.className = "result-message wrong";
+        }
+      });
+
+
+      // ----------------------------------------------------
+      // タブ3：練習問題（適応問題）
+      // ----------------------------------------------------
+      const btnCheck3 = document.getElementById('btn-check3');
+      const result3 = document.getElementById('result3');
+
+      btnCheck3.addEventListener('click', () => {
+        const n1 = document.getElementById('q3-num1').value;
+        const d1 = document.getElementById('q3-den1').value;
+        
+        const n2 = document.getElementById('q3-num2').value;
+        const d2 = document.getElementById('q3-den2').value;
+
+        const n3 = document.getElementById('q3-num3').value;
+        const d3 = document.getElementById('q3-den3').value;
+
+        const n4 = document.getElementById('q3-num4').value;
+        const d4 = document.getElementById('q3-den4').value;
+
+        const isQ1 = (n1 === "2" && d1 === "8");
+        const isQ2 = (n2 === "4" && d2 === "7");
+        const isQ3 = (n3 === "1" && d3 === "4"); // 1 - 3/4 = 4/4 - 3/4
+        const isQ4 = (n4 === "2" && d4 === "9"); // 1 - 7/9 = 9/9 - 7/9
+
+        if (isQ1 && isQ2 && isQ3 && isQ4) {
+          result3.textContent = "全問せいかい！ 1からのひき算も、かんぺきだね！";
+          result3.className = "result-message correct";
+        } else {
+          result3.innerHTML = "おしい！ <strong>分母はそのまま</strong>で、分子だけをひくよ。<br>③と④は、1を分数になおしてから計算しよう。";
+          result3.className = "result-message wrong";
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>
+"""
+
+with open('/mnt/data/fraction_subtraction_simulator.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+print("File generated: /mnt/data/fraction_subtraction_simulator.html")
+    
+  </body>
+  
+</html>
