@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Blank Classic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="/style.css">
+  </head>
+
+  <body>
+    <div class="app-container">
+  <header>
+    <h1>3けたの数をかける計算（まとめ） 練習ツール</h1>
+    <div class="notebook-prompt">
+      ✏️ 今まで学習したことを使って、ぜんぶの筆算をクリアしよう！
+    </div>
+  </header>
+
+  <div class="mission-bar">
+    <span class="mission-label">📖 学習メニュー：</span>
+    <button class="btn btn-outline active-prob">第8時 練習問題（全11問）</button>
+  </div>
+
+  <main class="visual-sandbox">
+    <div class="visual-container">
+      
+      <div id="vis-practice" class="visual-content active">
+        <div class="vis-header">
+          位をそろえて、正しく計算しよう！
+          <div class="support-toggle">
+            <input type="checkbox" id="support-check" onchange="toggleSupport()">
+            <label for="support-check">🔰 おたすけモード</label>
+          </div>
+        </div>
+
+        <div class="prob-selector-container">
+          <select id="prob-select" class="prob-select" onchange="loadPractice()">
+            <optgroup label="問題 6（部分積が3けた・4けた）">
+              <option value="1">① 132 × 23</option>
+              <option value="2">② 231 × 32</option>
+              <option value="3">③ 316 × 43</option>
+              <option value="4">④ 214 × 47</option>
+              <option value="5">⑤ 498 × 75</option>
+              <option value="6">⑥ 754 × 69</option>
+            </optgroup>
+            <optgroup label="問題 7（空位あり・末尾0あり）">
+              <option value="7">① 501 × 48</option>
+              <option value="8">② 907 × 93</option>
+              <option value="9">③ 604 × 60</option>
+              <option value="10">④ 208 × 50</option>
+            </optgroup>
+            <optgroup label="問題 8（いろいろな問題をつくろう）">
+              <option value="11">⑪ じぶんで問題をつくる (□□□ × □□)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 児童用セーブ・ロード機能 -->
+        <div class="data-controls">
+          <button class="btn btn-green" onclick="saveData()">💾 セーブする（きろくする）</button>
+          <button class="btn btn-blue" onclick="loadData()">📂 ロードする（よみこむ）</button>
+        </div>
+
+        <!-- 自分で問題をつくる（問題11用） -->
+        <div id="custom-setup" class="custom-setup-area hidden">
+          <p>0から9までの数字を入れて、じぶんだけの問題をつくろう！<br>（一番大きい位は 0 以外にしてね）</p>
+          <div class="custom-inputs">
+            <input type="text" id="custom-a" class="num-input-large" placeholder="3けた" maxlength="3">
+            <span class="eq-sign">×</span>
+            <input type="text" id="custom-b" class="num-input-large" placeholder="2けた" maxlength="2">
+            <button class="btn btn-yellow" onclick="applyCustom()">これで計算する</button>
+          </div>
+          <div id="custom-error" class="error-msg"></div>
+        </div>
+
+        <div class="practice-stage" id="practice-stage">
+          <div id="prac-hint-msg" class="prac-hint-msg help-text"></div>
+
+          <!-- ひっ算グリッド (最大5桁対応) -->
+          <div class="math-grid clean-grid" id="practice-grid">
+            <div class="mg-row memo-row">
+              <div class="mg-cell"></div><div class="mg-cell"></div>
+              <div class="mg-cell"><input type="text" id="memo-100" class="memo-box" maxlength="1"></div>
+              <div class="mg-cell"><input type="text" id="memo-10" class="memo-box" maxlength="1"></div>
+              <div class="mg-cell"><input type="text" id="memo-1" class="memo-box" maxlength="1"></div>
+            </div>
+
+            <div class="mg-row">
+              <div class="mg-cell"></div><div class="mg-cell"></div>
+              <div class="mg-cell val" id="p-a-100"></div>
+              <div class="mg-cell val" id="p-a-10"></div>
+              <div class="mg-cell val" id="p-a-1"></div>
+            </div>
+            <div class="mg-row border-bottom">
+              <div class="mg-cell"></div><div class="mg-cell val">×</div>
+              <div class="mg-cell"></div>
+              <div class="mg-cell val" id="p-b-10"></div>
+              <div class="mg-cell val" id="p-b-1"></div>
+            </div>
+
+            <!-- 部分積1 -->
+            <div class="mg-row" id="row-p1">
+              <div class="mg-cell"></div>
+              <div class="mg-cell" id="p-cell-p1-1000"><input type="text" id="p-p1-1000" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-p1-100"><input type="text" id="p-p1-100" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-p1-10"><input type="text" id="p-p1-10" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-p1-1"><input type="text" id="p-p1-1" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <span class="side-note help-text">← <span id="h-a1"></span> × <span id="h-b1"></span></span>
+            </div>
+
+            <!-- 部分積2 -->
+            <div class="mg-row border-bottom" id="row-p2">
+              <div class="mg-cell" id="p-cell-p2-10000"><input type="text" id="p-p2-10000" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-p2-1000"><input type="text" id="p-p2-1000" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-p2-100"><input type="text" id="p-p2-100" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-p2-10"><input type="text" id="p-p2-10" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell help-zero">0</div>
+              <span class="side-note help-text">← <span id="h-a2"></span> × <span id="h-b2"></span></span>
+            </div>
+
+            <!-- 合計 -->
+            <div class="mg-row" id="row-sum">
+              <div class="mg-cell" id="p-cell-sum-10000"><input type="text" id="p-sum-10000" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-sum-1000"><input type="text" id="p-sum-1000" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-sum-100"><input type="text" id="p-sum-100" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-sum-10"><input type="text" id="p-sum-10" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+              <div class="mg-cell" id="p-cell-sum-1"><input type="text" id="p-sum-1" class="num-box" maxlength="1" oninput="handlePracticeInput(this)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="advice-controls">
+          <button class="btn btn-yellow" onclick="giveAdvice()">🤖 アドバイスをもらう</button>
+        </div>
+        <div id="advice-msg" class="advice-msg"></div>
+        <div id="practice-feedback" class="feedback-msg"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+    <script src="/script.js"></script>
+  </body>
+
+</html>

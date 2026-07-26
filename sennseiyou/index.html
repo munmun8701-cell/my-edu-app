@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --bg: #f4f7fe;
@@ -66,8 +67,37 @@
       text-decoration: none;
       transition: background 0.2s;
     }
-    .back-btn:hover {
-      background: rgba(255, 255, 255, 1);
+    .back-btn:hover { background: rgba(255, 255, 255, 1); }
+
+    /* ロックステータスボタン */
+    #lock-status-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    #lock-status-btn:hover { background: rgba(255, 255, 255, 0.3); }
+    #lock-status-btn.unlocked { background: #10b981; border-color: #10b981; }
+
+    /* リアルタイム時計 */
+    #live-clock {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      letter-spacing: 1px;
     }
 
     .header-badge {
@@ -91,7 +121,6 @@
       margin-bottom: 0.75rem;
       text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
     .header h1 .emoji {
       display: block;
       font-size: clamp(2.5rem, 7vw, 3.5rem);
@@ -108,12 +137,33 @@
       text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 
-    /* —— メイン —— */
-    .main {
+    /* —— 検索バー —— */
+    .search-container {
       max-width: 900px;
-      margin: 0 auto;
-      padding: 2.5rem 1.25rem 4rem;
+      margin: -20px auto 30px;
+      padding: 0 1.25rem;
+      position: relative;
+      z-index: 10;
     }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 12px 20px;
+      box-shadow: 0 4px 15px rgba(50, 80, 150, 0.15);
+      border: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    .search-box:focus-within { border-color: #3b82f6; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2); }
+    .search-box i { color: #94a3b8; font-size: 1.2rem; margin-right: 15px; }
+    .search-box input {
+      border: none; outline: none; width: 100%; font-size: 1rem; font-weight: 700; color: var(--text-dark); font-family: inherit;
+    }
+    .search-box input::placeholder { color: #cbd5e1; }
+
+    /* —— メイン —— */
+    .main { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
     /* —— カードグリッド —— */
     .card-grid {
@@ -128,75 +178,37 @@
       padding: 1.75rem 1.25rem 1.5rem;
       box-shadow: var(--shadow);
       border: 2px solid rgba(255, 255, 255, 0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       position: relative;
+      animation: fadeUp 0.5s ease backwards;
     }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-hover);
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    @keyframes bounce-icon {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-    .card:hover .card-icon {
-      animation: bounce-icon 0.5s ease;
-    }
+    .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
 
     .card-icon {
-      font-size: 3.5rem;
-      line-height: 1;
-      margin-bottom: 1rem;
+      font-size: 3.5rem; line-height: 1; margin-bottom: 1rem;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+    .card:hover .card-icon { transform: scale(1.1) rotate(5deg); }
 
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-
-    .card-desc {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      flex: 1;
-      line-height: 1.6;
-    }
+    .card-title { font-size: 1.2rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.5rem; }
+    .card-desc { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 1.5rem; flex: 1; line-height: 1.6; }
 
     .card-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.35rem;
-      width: 100%;
-      max-width: 220px;
-      padding: 0.8rem 1.25rem;
-      font-family: inherit;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #fff;
-      text-decoration: none;
-      border-radius: var(--radius-btn);
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; width: 100%; max-width: 220px;
+      padding: 0.8rem 1.25rem; font-family: inherit; font-size: 0.95rem; font-weight: 800; color: #fff;
+      text-decoration: none; border-radius: var(--radius-btn); cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
+    .card-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 4px; }
+    .card-btn:active { transform: scale(0.95); }
 
-    .card-btn:focus-visible {
-      outline: 3px solid #3b82f6;
-      outline-offset: 4px;
-    }
-
-    /* ボタンカラー (先生用落ち着いたカラー) */
+    /* ボタンカラー */
     .card-btn--blue   { background: linear-gradient(135deg, #60a5fa, #93c5fd); }
     .card-btn--purple { background: linear-gradient(135deg, #a78bfa, #c4b5fd); }
     .card-btn--green  { background: linear-gradient(135deg, #34d399, #6ee7b7); }
@@ -210,106 +222,182 @@
 <body>
 
   <header class="header">
-    <a href="../portal.html" class="back-btn">◀ ポータルへもどる</a>
+    <a href="../portal.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> ポータルへもどる</a>
+    
+    <button id="lock-status-btn" onclick="toggleLock()" title="クリックで認証状態をリセット">
+      <i class="fa-solid fa-lock" id="lock-icon"></i> <span id="lock-text">ロック中</span>
+    </button>
+
+    <div id="live-clock">--:--:--</div>
+    
     <span class="header-badge">管理領域</span>
-    <h1>
-      <span class="emoji">👨‍🏫✨</span>
-      先生用アプリ
-    </h1>
-    <p class="header-desc">
-      児童の学習状況の確認や、クラス運営に必要な各種管理アプリへアクセスします。
-    </p>
+    <h1><span class="emoji">👨‍🏫✨</span>先生用アプリ</h1>
+    <p class="header-desc">児童の学習状況の確認や、クラス運営に必要な各種管理アプリへアクセスします。</p>
   </header>
 
+  <!-- 検索バー -->
+  <div class="search-container">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="app-search" placeholder="管理アプリを検索 (例: 宿題, アンケート)">
+    </div>
+  </div>
+
   <main class="main">
-    <div class="card-grid">
+    <div class="card-grid" id="app-grid">
       
       <!-- 宿題管理 -->
-      <article class="card">
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">📝</div>
         <h3 class="card-title">宿題管理</h3>
         <p class="card-desc">毎日の宿題の提出状況や、ドリル・プリントのチェックを行います。</p>
-        <a href="./sukudaikannri/index.html" class="card-btn card-btn--blue" onclick="checkPass(event, this.href)">アプリを開く ▶</a>
+        <a href="./sukudaikannri/index.html" class="card-btn card-btn--blue" onclick="checkPass(event, this.href)">アプリを開く <i class="fa-solid fa-play"></i></a>
       </article>
 
       <!-- 引き渡し訓練 -->
-      <article class="card">
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">🤝</div>
         <h3 class="card-title">引き渡し訓練</h3>
         <p class="card-desc">災害時や訓練時の、保護者への児童引き渡し状況をリアルタイムで記録・確認します。</p>
-        <a href="./hikiwatasikunnrenn/index.html" class="card-btn card-btn--green" onclick="checkPass(event, this.href)">アプリを開く ▶</a>
+        <a href="./hikiwatasikunnrenn/index.html" class="card-btn card-btn--green" onclick="checkPass(event, this.href)">アプリを開く <i class="fa-solid fa-play"></i></a>
       </article>
 
       <!-- 緑と赤の羽根募金 -->
-      <article class="card">
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">🕊️</div>
         <h3 class="card-title">緑と赤の羽根募金</h3>
         <p class="card-desc">クラスごとの募金集計や、集まった金額の記録・管理を行います。</p>
-        <a href="./bokin/index.html" class="card-btn card-btn--red" onclick="checkPass(event, this.href)">アプリを開く ▶</a>
+        <a href="./bokin/index.html" class="card-btn card-btn--red" onclick="checkPass(event, this.href)">アプリを開く <i class="fa-solid fa-play"></i></a>
       </article>
 
       <!-- ホワイトボード -->
-      <article class="card">
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">🖍️</div>
         <h3 class="card-title">ホワイトボード</h3>
         <p class="card-desc">クラス全体での情報共有や、児童との意見のまとめに使用するボードです。</p>
-        <a href="./howaitobo-do/index.html" class="card-btn card-btn--purple" onclick="checkPass(event, this.href)">ボードを開く ▶</a>
+        <a href="./howaitobo-do/index.html" class="card-btn card-btn--purple" onclick="checkPass(event, this.href)">ボードを開く <i class="fa-solid fa-play"></i></a>
       </article>
 
       <!-- 所見管理 -->
-      <article class="card">
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">✍️</div>
         <h3 class="card-title">所見管理</h3>
         <p class="card-desc">通知表などの所見文面の作成や、児童ごとの記録・管理を行います。</p>
-        <a href="./syokenn/index.html" class="card-btn card-btn--indigo" onclick="checkPass(event, this.href)">アプリを開く ▶</a>
+        <a href="./syokenn/index.html" class="card-btn card-btn--indigo" onclick="checkPass(event, this.href)">アプリを開く <i class="fa-solid fa-play"></i></a>
       </article>
 
-      <!-- 挙手シート (フォルダ内包) -->
-      <article class="card">
+      <!-- 挙手シート -->
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">🙋</div>
         <h3 class="card-title">挙手シート</h3>
         <p class="card-desc">授業中の児童の挙手状況や反応を一覧で確認・管理します。</p>
-        <a href="./kyosyusiito/index.html" class="card-btn card-btn--teal" onclick="checkPass(event, this.href)">アプリを開く ▶</a>
+        <a href="./kyosyusiito/index.html" class="card-btn card-btn--teal" onclick="checkPass(event, this.href)">アプリを開く <i class="fa-solid fa-play"></i></a>
       </article>
 
-      <!-- 算数アンケート自動集計 (フォルダ内包) -->
-      <article class="card">
+      <!-- リサイクル委員会活動計画 -->
+      <article class="card search-target">
+        <div class="card-icon" aria-hidden="true">♻️</div>
+        <h3 class="card-title">リサイクル委員会活動計画</h3>
+        <p class="card-desc">リサイクル委員会の活動計画の作成や、活動内容の記録・管理を行います。</p>
+        <a href="./risaikuruiinnkaikatudoukeikaku/index.html" class="card-btn card-btn--green" onclick="checkPass(event, this.href)">アプリを開く <i class="fa-solid fa-play"></i></a>
+      </article>
+
+      <!-- 算数アンケート自動集計 -->
+      <article class="card search-target">
         <div class="card-icon" aria-hidden="true">📊</div>
         <h3 class="card-title">算数アンケート集計</h3>
         <p class="card-desc">算数のアンケート結果を自動で集計し、グラフなどで確認します。</p>
-        <a href="./sannsuuannketozidousyuukei/index.html" class="card-btn card-btn--orange" onclick="checkPass(event, this.href)">集計を開く ▶</a>
+        <a href="./sannsuuannketozidousyuukei/index.html" class="card-btn card-btn--orange" onclick="checkPass(event, this.href)">集計を開く <i class="fa-solid fa-play"></i></a>
       </article>
 
     </div>
   </main>
 
   <script>
+    // --- 時計機能 ---
+    function updateClock() {
+      const now = new Date();
+      const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+      const dateStr = now.toLocaleDateString('ja-JP', options);
+      const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('live-clock').textContent = `${dateStr} ${timeStr}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- 検索フィルター機能 ---
+    document.getElementById('app-search').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const cards = document.querySelectorAll('.search-target');
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+      });
+    });
+
+    // --- スマートパスコード認証機能 ---
+    function updateLockUI() {
+      const isAuth = sessionStorage.getItem('teacherAuth') === 'true';
+      const btn = document.getElementById('lock-status-btn');
+      const icon = document.getElementById('lock-icon');
+      const text = document.getElementById('lock-text');
+      
+      if (isAuth) {
+        btn.classList.add('unlocked');
+        icon.className = 'fa-solid fa-unlock';
+        text.textContent = '認証済み (解除)';
+      } else {
+        btn.classList.remove('unlocked');
+        icon.className = 'fa-solid fa-lock';
+        text.textContent = 'ロック中';
+      }
+    }
+
+    // ロックボタンの手動切り替え（認証リセット）
+    function toggleLock() {
+      if (sessionStorage.getItem('teacherAuth') === 'true') {
+        if(confirm("認証状態をリセットし、再度ロックしますか？")) {
+          sessionStorage.removeItem('teacherAuth');
+          updateLockUI();
+        }
+      } else {
+        alert("現在ロック中です。アプリを開く際にパスコードを入力してください。");
+      }
+    }
+
     function checkPass(event, url) {
-      // リンクの標準動作（画面遷移）をキャンセル
       event.preventDefault();
       
-      // パスコード入力のプロンプト表示
-      let input = prompt("先生専用領域です。パスコードを入力してください:");
-      
-      // キャンセルが押された場合は処理を終了
-      if (input === null) {
+      // セッションに認証情報があれば、パスワード入力をスキップ！
+      if (sessionStorage.getItem('teacherAuth') === 'true') {
+        window.location.href = url;
         return;
       }
       
-      // 入力された全角数字を半角数字に変換
+      let input = prompt("先生専用領域です。パスコードを入力してください:");
+      if (input === null) return;
+      
       let halfWidthInput = input.replace(/[０-９]/g, function(s) {
         return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
       });
       
-      // パスコードが「0113」かどうか判定
       if (halfWidthInput === "0113") {
-        // 一致すれば指定のURLへ遷移
+        // 認証成功時、セッションに記憶させる（ブラウザを閉じるまで有効）
+        sessionStorage.setItem('teacherAuth', 'true');
+        updateLockUI();
         window.location.href = url;
       } else {
-        // 不一致の場合は警告
         alert("パスコードが間違っています。");
       }
     }
+
+    // 初期読み込み時のUI更新
+    updateLockUI();
+    
+    // カードのアニメーション遅延設定
+    document.querySelectorAll('.card').forEach((card, index) => {
+      card.style.animationDelay = `${index * 0.05}s`;
+    });
   </script>
 </body>
 </html>
