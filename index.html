@@ -11,16 +11,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  <!-- FontAwesome 6.5.1 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
     :root {
       --bg-deep: #030712;
-      --bg-surface: rgba(15, 23, 42, 0.75);
-      --bg-card: rgba(15, 23, 42, 0.65);
-      --border-cyan: rgba(0, 242, 255, 0.25);
-      --border-glow: rgba(0, 242, 255, 0.6);
+      --bg-surface: rgba(15, 23, 42, 0.6);
+      --bg-surface-hover: rgba(30, 41, 59, 0.8);
+      --bg-card: rgba(15, 23, 42, 0.7);
+      --border-cyan: rgba(0, 242, 255, 0.2);
+      --border-purple: rgba(168, 85, 247, 0.3);
       
       --accent-cyan: #00f2ff;
       --accent-purple: #a855f7;
@@ -31,976 +31,680 @@
       --text-main: #94a3b8;
       --text-bright: #f8fafc;
       --radius-panel: 24px;
-      --radius-card: 20px;
+      --radius-card: 16px;
+      
+      --glow-cyan: 0 0 20px rgba(0, 242, 255, 0.4);
+      --glow-purple: 0 0 20px rgba(168, 85, 247, 0.4);
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
-      background-color: var(--bg-deep);
-      color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
-      selection-background-color: var(--accent-cyan);
-      selection-color: #030712;
+      background-color: var(--bg-deep); color: var(--text-main);
+      min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth;
     }
 
-    /* —— 未来感ホログラフィック・バックグラウンド —— */
+    /* カスタムスクロールバー */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.2); border-radius: 5px; border: 1px solid rgba(0, 242, 255, 0.1); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+    /* 背景アニメーション */
     .cyber-grid {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      pointer-events: none;
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
       background-image: 
         linear-gradient(to right, rgba(0, 242, 255, 0.03) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
+      background-size: 50px 50px;
     }
-
-    .glow-orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(140px);
-      pointer-events: none;
-      z-index: -1;
-      opacity: 0.18;
-      animation: floatPulse 18s ease-in-out infinite alternate;
-    }
+    .glow-orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: -1; opacity: 0.15; animation: floatPulse 20s ease-in-out infinite alternate; }
     .orb-1 { top: -10%; left: -10%; width: 600px; height: 600px; background: var(--accent-cyan); }
-    .orb-2 { top: 40%; right: -10%; width: 700px; height: 700px; background: var(--accent-purple); animation-delay: -6s; }
-    .orb-3 { bottom: -10%; left: 20%; width: 550px; height: 550px; background: var(--accent-pink); animation-delay: -12s; }
+    .orb-2 { top: 40%; right: -10%; width: 700px; height: 700px; background: var(--accent-purple); animation-delay: -5s; }
+    .orb-3 { bottom: -10%; left: 20%; width: 550px; height: 550px; background: var(--accent-pink); animation-delay: -10s; }
 
-    @keyframes floatPulse {
-      0% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(40px, -60px) scale(1.15); }
-      100% { transform: translate(-30px, 50px) scale(0.95); }
-    }
+    @keyframes floatPulse { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(30px, -40px) scale(1.1); } }
 
-    /* —— 数式・記号パーティクル —— */
-    .particles-container { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
-    .symbol-particle {
-      position: absolute; font-weight: 800; color: rgba(0, 242, 255, 0.15);
-      text-shadow: 0 0 12px rgba(0, 242, 255, 0.3); animation: riseAndRotate 20s linear infinite;
-    }
-    @keyframes riseAndRotate {
-      0% { transform: translateY(105vh) rotate(0deg) scale(0.8); opacity: 0; }
-      15% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; }
-    }
+    .container { max-width: 1300px; margin: 0 auto; padding: 0 20px; }
 
-    /* —— トップコンテナ —— */
-    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
-
-    /* —— ヘッダー：極上サイバーフレーム —— */
+    /* ヘッダー */
     .header-hero {
-      margin-top: 32px; margin-bottom: 24px; padding: 44px 40px;
-      border-radius: var(--radius-panel);
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.4) 100%);
-      backdrop-filter: blur(24px); border: 1px solid var(--border-cyan);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 30px rgba(0, 242, 255, 0.05);
-      position: relative; overflow: hidden;
+      margin: 40px 0; padding: 40px; border-radius: var(--radius-panel);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(3, 7, 18, 0.7) 100%);
+      backdrop-filter: blur(30px); border: 1px solid var(--border-cyan);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), inset 0 0 20px rgba(0, 242, 255, 0.05);
     }
-    .header-hero::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
-    }
-    .header-top-tag {
-      display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 50px;
-      background: rgba(0, 242, 255, 0.1); border: 1px solid rgba(0, 242, 255, 0.3);
-      color: var(--accent-cyan); font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 18px;
-    }
-    .header-hero h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); font-weight: 900; color: var(--text-bright); line-height: 1.25; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-    .title-gradient {
-      background: linear-gradient(135deg, #ffffff 0%, var(--accent-cyan) 60%, var(--accent-purple) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 25px rgba(0, 242, 255, 0.3));
-    }
-    .header-desc { font-size: 1.05rem; line-height: 1.8; color: #cbd5e1; max-width: 800px; font-weight: 500; }
-
-    /* —— 追加：検索バー＆フィルター —— */
-    .search-area { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
-    .search-box {
-      display: flex; align-items: center; background: rgba(3,7,18,0.6);
-      border: 1px solid var(--border-cyan); border-radius: 12px; padding: 12px 20px;
-    }
-    .search-box input { background: transparent; border: none; color: #fff; width: 100%; font-size: 1rem; margin-left: 10px; outline: none; }
-    .fav-filter {
-      display: flex; justify-content: space-between; align-items: center; background: rgba(3,7,18,0.6);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 20px; color: #fff; font-weight: bold; cursor: pointer;
-    }
-    .fav-filter span.count { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
-
-    /* —— 追加：ステータス＆進行度バー —— */
+    .title-gradient { background: linear-gradient(to right, #fff, var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: clamp(2rem, 4vw, 3rem); filter: drop-shadow(0 0 15px rgba(0,242,255,0.3)); }
+    
+    /* 進行度・EXPバー */
     .progress-panel {
-      background: var(--bg-surface); border: 1px solid var(--border-cyan); border-radius: var(--radius-panel);
-      padding: 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+      background: var(--bg-surface); padding: 24px 32px; border-radius: var(--radius-panel);
+      border: 1px solid var(--border-cyan); margin-bottom: 40px; backdrop-filter: blur(10px);
     }
-    .prog-icon { font-size: 2.2rem; color: var(--accent-cyan); }
-    .prog-info { flex: 1; }
-    .prog-title { color: var(--accent-cyan); font-weight: 900; font-size: 1.1rem; }
-    .prog-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px; }
-    .prog-bar-bg { width: 100%; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; border: 1px solid rgba(0,242,255,0.2); }
-    .prog-bar-fill { width: 15%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); box-shadow: 0 0 10px var(--accent-cyan); }
-    .total-exp-badge {
-      background: rgba(251, 191, 36, 0.15); border: 1px solid var(--accent-gold);
-      color: var(--accent-gold); padding: 10px 20px; border-radius: 20px; font-weight: 900; box-shadow: 0 0 15px rgba(251,191,36,0.2);
-    }
+    .exp-badge { background: rgba(251,191,36,0.15); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 10px 24px; border-radius: 30px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 0 20px rgba(251,191,36,0.2); }
 
-    /* —— 追加：日常ハブ（タブ＆ツール領域） —— */
-    .hub-container {
-      background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-cyan);
-      border-radius: var(--radius-panel); padding: 24px; margin-bottom: 48px;
+    /* —— 10の超便利ツール群 (Tool Hub) —— */
+    .tool-hub {
+      background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05);
+      border-radius: var(--radius-panel); padding: 32px; margin-bottom: 60px;
     }
-    .hub-tabs { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 24px; padding-bottom: 8px; scrollbar-width: thin; }
-    .hub-tab {
-      padding: 12px 24px; background: rgba(3,7,18,0.6); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px; color: #94a3b8; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.3s;
+    .tool-hub-title { font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    
+    /* ツール選択ピルナビゲーション */
+    .tool-nav { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
+    .tool-btn {
+      padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer;
+      background: rgba(3, 7, 18, 0.6); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 8px;
     }
-    .hub-tab.active { background: rgba(0,242,255,0.15); color: var(--accent-cyan); border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
-    .hub-content { display: none; animation: fadeIn 0.4s ease; }
-    .hub-content.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .tool-btn:hover { background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+    .tool-btn.active { background: rgba(168, 85, 247, 0.15); color: #fff; border-color: var(--accent-purple); box-shadow: var(--glow-purple); }
+    
+    /* ツールコンテンツ共通 */
+    .tool-content { display: none; animation: slideUp 0.4s ease forwards; }
+    .tool-content.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* 時間割グリッド */
-    .timetable-wrapper { overflow-x: auto; }
-    .timetable-grid { display: grid; grid-template-columns: 80px repeat(5, minmax(140px, 1fr)); gap: 8px; min-width: 700px; }
-    .tt-header { text-align: center; font-weight: bold; padding: 10px; color: #fff; background: rgba(255,255,255,0.05); border-radius: 8px; }
-    .tt-time { display: flex; align-items: center; justify-content: center; font-weight: bold; color: #94a3b8; }
-    .tt-cell {
-      background: rgba(3,7,18,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px;
+    /* 汎用入力UI */
+    .input-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .cool-input {
+      flex: 1; min-width: 200px; padding: 14px 20px; background: rgba(3,7,18,0.7); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s;
     }
-    .tt-select {
-      background: rgba(0,242,255,0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);
-      border-radius: 6px; padding: 6px 4px; font-weight: bold; outline: none; cursor: pointer; text-align: center;
+    .cool-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
+    .cool-btn {
+      padding: 14px 28px; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; border: none;
+      background: var(--accent-purple); color: #fff; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px;
     }
-    .tt-input {
-      background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.2);
-      color: #fff; font-size: 0.85rem; padding: 4px; outline: none; text-align: center; margin-top: auto;
+    .cool-btn:hover { transform: scale(1.05); box-shadow: var(--glow-purple); filter: brightness(1.2); }
+    
+    /* 汎用リスト（カード風） */
+    .list-grid { display: flex; flex-direction: column; gap: 12px; }
+    .list-item {
+      display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
+      background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; transition: 0.3s;
     }
-    .tt-input:focus { border-bottom-color: var(--accent-cyan); }
-    .tt-summary {
-      display: flex; justify-content: space-between; margin-top: 20px; padding: 16px;
-      background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 10px;
-    }
+    .list-item:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255,255,255,0.2); transform: translateX(5px); }
+    .list-item-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .item-title { color: #fff; font-weight: 800; font-size: 1.05rem; }
+    .item-meta { color: #64748b; font-size: 0.8rem; font-weight: bold; }
+    .del-btn { background: transparent; border: none; color: #ef4444; font-size: 1.2rem; cursor: pointer; padding: 8px; transition: 0.2s; opacity: 0.7; }
+    .del-btn:hover { opacity: 1; transform: scale(1.2) rotate(10deg); text-shadow: 0 0 10px #ef4444; }
 
-    /* リスト（持ち物・ルーティン） */
-    .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-    .list-input-text { flex: 1; padding: 12px 16px; border-radius: 12px; background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyan); color: #fff; font-size: 1rem; outline: none; }
-    .list-select { padding: 12px; border-radius: 12px; background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyan); color: var(--accent-purple); font-weight: bold; outline: none; }
-    .list-btn-add { padding: 12px 24px; border-radius: 12px; background: var(--accent-cyan); color: #000; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
-    .list-btn-add:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent-cyan); }
+    /* 各種専用デザイン */
+    /* チェックボックス型 */
+    .check-box-ui { cursor: pointer; font-size: 1.5rem; color: var(--accent-emerald); margin-right: 16px; transition: 0.3s; }
+    .list-item.done { opacity: 0.5; border-color: transparent; }
+    .list-item.done .item-title { text-decoration: line-through; }
+    
+    /* フラッシュカード＆クイズ */
+    .flashcard { cursor: pointer; text-align: center; }
+    .flashcard .ans { display: none; color: var(--accent-cyan); font-weight: 900; margin-top: 8px; font-size: 1.1rem; }
+    .flashcard.revealed .ans { display: block; animation: fadeIn 0.3s; }
+    .flashcard.revealed .q { color: #64748b; font-size: 0.9rem; }
 
-    .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
-    .check-item {
-      display: flex; align-items: center; padding: 14px 16px; background: rgba(15,23,42,0.8);
-      border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; transition: 0.3s;
-    }
-    .check-item.done { opacity: 0.5; text-decoration: line-through; border-color: rgba(255,255,255,0.1); }
-    .check-box { font-size: 1.4rem; color: var(--accent-cyan); cursor: pointer; margin-right: 12px; }
-    .check-text { flex: 1; color: #fff; font-weight: bold; font-size: 0.95rem; }
-    .check-tag { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; background: rgba(168,85,247,0.2); color: var(--accent-purple); margin-right: 12px; border: 1px solid rgba(168,85,247,0.4); font-weight: bold; }
-    .check-del { color: #ef4444; background: transparent; border: none; cursor: pointer; font-size: 1rem; padding: 4px; transition: 0.2s; }
-    .check-del:hover { transform: scale(1.2); }
+    /* ストップウォッチ＆タイマー */
+    .timer-display { text-align: center; margin: 40px 0; }
+    .time-huge { font-family: 'Space Grotesk', sans-serif; font-size: 5rem; font-weight: 900; color: #fff; text-shadow: var(--glow-purple); letter-spacing: 2px; }
+    .timer-controls { display: flex; justify-content: center; gap: 20px; }
+    .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+    .timer-mode-switch { display: flex; justify-content: center; margin-bottom: 20px; gap: 10px; }
+    .timer-mode-switch button { background: rgba(3,7,18,0.5); border: 1px solid rgba(255,255,255,0.2); color: #94a3b8; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+    .timer-mode-switch button.active { background: var(--accent-cyan); color: #000; border-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
 
-    /* —— クイックナビゲーション（スティッキー） —— */
-    .quick-nav-sticky { position: sticky; top: 20px; z-index: 90; margin-bottom: 48px; display: flex; justify-content: center; }
-    .quick-nav-pill {
-      display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 60px;
-      background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-cyan);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 242, 255, 0.08); flex-wrap: wrap; justify-content: center;
-    }
-    .nav-item {
-      display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 40px;
-      background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 242, 255, 0.15); color: var(--accent-cyan);
-      font-weight: 800; font-size: 0.88rem; text-decoration: none; transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    }
-    .nav-item:hover { background: var(--accent-cyan); color: var(--bg-deep); box-shadow: 0 0 20px rgba(0, 242, 255, 0.6); transform: translateY(-2px); }
+    /* 体調ログ */
+    .health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .health-card { background: rgba(3,7,18,0.5); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+    .range-slider { width: 100%; margin-top: 16px; accent-color: var(--accent-purple); cursor: pointer; }
+    .mood-btns { display: flex; gap: 10px; margin-top: 16px; }
+    .mood-btn { flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; background: transparent; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .mood-btn.active { background: var(--accent-purple); border-color: var(--accent-purple); box-shadow: var(--glow-purple); }
 
-    /* —— セクションタイトル —— */
-    .section-head { margin-bottom: 28px; scroll-margin-top: 100px; }
-    .section-title { font-size: 1.5rem; font-weight: 900; color: var(--text-bright); display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-    .section-title i { color: var(--accent-cyan); filter: drop-shadow(0 0 10px var(--accent-cyan)); }
-    .section-sub { font-size: 0.92rem; color: var(--text-main); padding-left: 36px; }
-
-    /* —— アプリカード・グリッド —— */
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px; margin-bottom: 72px; }
-    .app-card {
-      position: relative; background: var(--bg-card); backdrop-filter: blur(20px);
-      border: 1px solid var(--border-cyan); border-radius: var(--radius-card); padding: 28px;
-      display: flex; flex-direction: column; justify-content: space-between; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); overflow: hidden;
-    }
-    .app-card::after {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px;
-      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent); transform: translateX(-100%); transition: transform 0.8s ease;
-    }
-    .app-card:hover { transform: translateY(-8px); border-color: rgba(0, 242, 255, 0.6); background: rgba(15, 23, 42, 0.85); box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(0, 242, 255, 0.12); }
-    .app-card:hover::after { transform: translateX(100%); }
-
-    .card-icon-frame {
-      width: 60px; height: 60px; border-radius: 16px; background: rgba(0, 242, 255, 0.08);
-      border: 1px solid rgba(0, 242, 255, 0.3); display: flex; align-items: center; justify-content: center;
-      font-size: 1.7rem; color: var(--accent-cyan); margin-bottom: 20px; box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.08); transition: all 0.4s ease;
-    }
-    .app-card:hover .card-icon-frame { transform: scale(1.1) rotate(4deg); background: var(--accent-cyan); color: var(--bg-deep); box-shadow: 0 0 25px rgba(0, 242, 255, 0.8); }
-    .card-title { font-size: 1.25rem; font-weight: 800; color: var(--text-bright); margin-bottom: 10px; letter-spacing: 0.2px; }
-    .card-desc { font-size: 0.9rem; line-height: 1.65; color: #94a3b8; margin-bottom: 24px; flex-grow: 1; }
-    .card-action-btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px 20px;
-      border-radius: 14px; background: rgba(0, 242, 255, 0.08); border: 1px solid rgba(0, 242, 255, 0.35);
-      color: var(--accent-cyan); font-weight: 800; font-size: 0.92rem; text-decoration: none; transition: all 0.3s ease; letter-spacing: 0.5px;
-    }
-    .card-action-btn:hover { background: var(--accent-cyan); color: var(--bg-deep); box-shadow: 0 0 20px rgba(0, 242, 255, 0.6); border-color: var(--accent-cyan); }
-
-    /* —— ネオンステータスバッジ —— */
-    .badge { position: absolute; top: 18px; right: 18px; font-size: 0.72rem; font-weight: 900; padding: 5px 12px; border-radius: 8px; letter-spacing: 1px; backdrop-filter: blur(8px); }
-    .badge-clear { background: rgba(251, 191, 36, 0.15); color: var(--accent-gold); border: 1px solid rgba(251, 191, 36, 0.5); box-shadow: 0 0 12px rgba(251, 191, 36, 0.25); }
-    .badge-excellent { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); border: 1px solid rgba(236, 72, 153, 0.5); box-shadow: 0 0 12px rgba(236, 72, 153, 0.25); }
-    .badge-new { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.5); box-shadow: 0 0 12px rgba(16, 185, 129, 0.25); animation: pulseGlow 2s infinite alternate; }
-    @keyframes pulseGlow { 0% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.3); } 100% { box-shadow: 0 0 18px rgba(16, 185, 129, 0.8); } }
-
-    /* —— HUD & モーダル等 —— */
-    .footer { padding: 48px 24px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.08); margin-top: 80px; color: #64748b; font-size: 0.85rem; font-weight: 600; }
-    .key-trigger-btn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; color: #475569; cursor: pointer; transition: all 0.3s ease; vertical-align: middle; border: none; background: transparent; font-size: 0.8rem; }
-    .key-trigger-btn:hover { color: var(--accent-pink); transform: scale(1.2); }
-    #hud-navigator { position: fixed; bottom: 28px; right: 28px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
-    #hud-menu { background: rgba(3, 7, 18, 0.95); border: 1px solid var(--accent-cyan); backdrop-filter: blur(24px); padding: 24px; border-radius: 20px; width: 320px; margin-bottom: 16px; box-shadow: 0 0 40px rgba(0, 242, 255, 0.25); opacity: 0; transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
-    #hud-menu.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-    .hud-header { font-size: 0.8rem; font-weight: 900; color: var(--accent-cyan); letter-spacing: 2px; margin-bottom: 12px; padding-bottom: 8px; border-b: 1px solid rgba(0, 242, 255, 0.2); }
-    .hud-level { font-size: 1.8rem; font-weight: 900; color: #fff; margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif; }
-    .exp-bar-bg { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); }
-    .exp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); width: 0%; transition: width 0.8s ease; box-shadow: 0 0 12px var(--accent-cyan); }
-    #hud-cat-avatar { width: 68px; height: 68px; border-radius: 50%; background: var(--bg-deep); border: 2px solid var(--accent-cyan); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent-cyan); cursor: pointer; box-shadow: 0 0 25px rgba(0, 242, 255, 0.3), inset 0 0 15px rgba(0, 242, 255, 0.15); transition: all 0.3s ease; }
-    #hud-cat-avatar:hover { transform: scale(1.1) translateY(-4px); box-shadow: 0 0 35px rgba(0, 242, 255, 0.6), inset 0 0 20px rgba(0, 242, 255, 0.3); color: #fff; }
-    .modal-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-    .modal-overlay.show { opacity: 1; pointer-events: auto; }
-    .modal-box { background: var(--bg-surface); border: 1px solid var(--accent-cyan); border-radius: var(--radius-panel); padding: 40px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 0 60px rgba(0, 242, 255, 0.25); }
-    #scroll-top { position: fixed; bottom: 28px; left: 28px; width: 50px; height: 50px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; z-index: 900; opacity: 0; pointer-events: none; transition: all 0.3s ease; backdrop-filter: blur(10px); }
-    #scroll-top.show { opacity: 1; pointer-events: auto; }
-    #scroll-top:hover { background: var(--accent-cyan); color: var(--bg-deep); box-shadow: 0 0 25px var(--accent-cyan); transform: translateY(-4px); }
-    .portal-section-teacher { display: none; animation: fadeIn 0.5s ease forwards; }
+    /* 既存のアプリカード等 */
+    .section-title { font-size: 1.6rem; font-weight: 900; color: #fff; margin-top: 60px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
+    .app-card { background: var(--bg-card); backdrop-filter: blur(15px); border: 1px solid var(--border-cyan); border-radius: var(--radius-card); padding: 24px; display: flex; flex-direction: column; transition: 0.4s; }
+    .app-card:hover { transform: translateY(-8px); border-color: var(--accent-cyan); box-shadow: 0 15px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,242,255,0.1); }
+    .card-icon { font-size: 2rem; color: var(--accent-cyan); margin-bottom: 16px; display: inline-block; padding: 12px; background: rgba(0,242,255,0.1); border-radius: 12px; }
+    .card-title { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+    .card-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; flex: 1; }
+    .play-btn { text-align: center; padding: 12px; background: rgba(0,242,255,0.1); color: var(--accent-cyan); border-radius: 12px; text-decoration: none; font-weight: bold; transition: 0.3s; border: 1px solid rgba(0,242,255,0.2); }
+    .play-btn:hover { background: var(--accent-cyan); color: #000; box-shadow: var(--glow-cyan); }
 
     @media (max-width: 768px) {
-      .header-hero { padding: 30px 24px; }
-      .header-hero h1 { font-size: 1.8rem; }
-      .quick-nav-pill { border-radius: 20px; padding: 10px; }
-      .nav-item { padding: 8px 14px; font-size: 0.8rem; }
-      #hud-menu { width: 280px; }
+      .health-grid { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; }
+      .cool-btn { width: 100%; justify-content: center; }
+      .time-huge { font-size: 3.5rem; }
     }
   </style>
-
-  <!-- ▼ AdSense動的切り替え ▼ -->
-  <script>
-    if (window.location.hostname.includes("munmungstudymax.com")) {
-      const adScript = document.createElement('script');
-      adScript.async = true;
-      adScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8753219344909611";
-      adScript.crossOrigin = "anonymous";
-      document.head.appendChild(adScript);
-    }
-  </script>
 </head>
 <body>
 
-  <!-- Cyber background grid & glowing particles -->
+  <!-- Background -->
   <div class="cyber-grid"></div>
   <div class="glow-orb orb-1"></div>
   <div class="glow-orb orb-2"></div>
   <div class="glow-orb orb-3"></div>
-  <div class="particles-container" id="symbols-bg"></div>
-
-  <!-- Scroll To Top Button -->
-  <button id="scroll-top" title="トップへ戻る"><i class="fa-solid fa-arrow-up"></i></button>
-
-  <!-- Daily Login Bonus Modal -->
-  <div id="login-modal" class="modal-overlay">
-    <div class="modal-box">
-      <i class="fa-solid fa-gem" style="font-size: 3.5rem; color: var(--accent-cyan); text-shadow: 0 0 30px var(--accent-cyan); margin-bottom: 20px;"></i>
-      <h2 style="font-size: 1.6rem; font-weight: 900; color: #fff; margin-bottom: 10px;">DAILY LOGIN BONUS</h2>
-      <p style="color: var(--accent-cyan); font-weight: 800; font-size: 1.25rem; margin-bottom: 28px;">＋30 EXP 獲得！</p>
-      <button class="card-action-btn" onclick="acceptBonus()">ログイン特典を受け取る <i class="fa-solid fa-check"></i></button>
-    </div>
-  </div>
 
   <div class="container">
-
-    <!-- Header Hero -->
+    
+    <!-- Header -->
     <header class="header-hero">
-      <div class="header-top-tag">
+      <div style="display: inline-block; padding: 6px 16px; border-radius: 20px; background: rgba(0,242,255,0.1); color: var(--accent-cyan); font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(0,242,255,0.3); margin-bottom: 16px;">
         <i class="fa-solid fa-bolt"></i> GIGAスクール構想対応 次世代EdTechポータル
       </div>
-      <h1>
-        <i class="fa-solid fa-graduation-cap" style="color: var(--accent-cyan); filter: drop-shadow(0 0 15px var(--accent-cyan));"></i>
-        <span class="title-gradient">むん先生の学習クエスト</span>
-      </h1>
-      <p class="header-desc">
-        算数ドリル・社会・漢字・タイピング・クラス共有アプリまで！<br>
-        ゲーミフィケーションとAIが融合した最高峰のデジタル学習空間へようこそ。好きなコーナーを選んで学習を進めよう！
-      </p>
-
-      <!-- 追加：検索・お気に入り -->
-      <div class="search-area">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-cyan);"></i>
-          <input type="text" placeholder="クエスト名や単元を検索...">
-        </div>
-        <div class="fav-filter">
-          <span><i class="fa-regular fa-star"></i> お気に入りクエストのみ</span>
-          <span class="count">4</span>
-        </div>
-      </div>
+      <h1 class="title-gradient"><i class="fa-solid fa-graduation-cap" style="color:var(--accent-cyan);"></i> むん先生の学習クエスト</h1>
+      <p style="margin-top: 16px; line-height: 1.8; color: #cbd5e1;">算数・漢字・タイピングから、クラスの日常ツールまで！<br>ゲーミフィケーションとAIが融合した最強の学習空間。毎日ログインしてEXPを貯めよう！</p>
     </header>
 
-    <!-- 追加：進行度パネル -->
+    <!-- Progress -->
     <div class="progress-panel">
-      <div style="display: flex; gap: 16px; align-items: center;">
-        <div class="prog-icon"><i class="fa-solid fa-trophy"></i></div>
-        <div>
-          <div class="prog-title">全クエストクリア達成度 <span style="color:#fff;">15% COMPLETE</span></div>
-          <div class="prog-desc">全 27 クエスト中 4 個をコンプリート！</div>
-          <div class="prog-bar-bg"><div class="prog-bar-fill"></div></div>
-        </div>
-      </div>
-      <div class="total-exp-badge" id="top-exp-badge"><i class="fa-solid fa-fire"></i> TOTAL EXP: 0</div>
-    </div>
-
-    <!-- 追加：日常＆学習ハブ (タブ機能) -->
-    <div class="hub-container">
-      <div class="hub-tabs">
-        <div class="hub-tab active" onclick="switchTab('tab-timetable')"><i class="fa-regular fa-calendar-days"></i> 1週間の時間割＆集計</div>
-        <div class="hub-tab" onclick="switchTab('tab-items')"><i class="fa-solid fa-toolbox"></i> 日常ツール＆持ち物</div>
-        <div class="hub-tab" onclick="switchTab('tab-routine')"><i class="fa-solid fa-check-double"></i> 日常＆学習ToDo</div>
-      </div>
-
-      <!-- タブ1: 時間割 -->
-      <div id="tab-timetable" class="hub-content active">
-        <div class="list-header">
-          <h2 style="color:#fff; font-size:1.2rem;"><i class="fa-solid fa-table"></i> 1週間の時間割＆教科時間集計</h2>
-        </div>
-        <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:12px;">※教科を選んでメモを入力できます。入力内容は自動で保存されます。</p>
-        <div class="timetable-wrapper">
-          <div class="timetable-grid" id="tt-grid">
-            <!-- JSで自動生成 -->
+      <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
+        <i class="fa-solid fa-trophy" style="font-size: 2.5rem; color: var(--accent-cyan); filter: drop-shadow(0 0 10px rgba(0,242,255,0.5));"></i>
+        <div style="flex: 1;">
+          <div style="color: #fff; font-weight: 900; font-size: 1.2rem; margin-bottom: 4px;">全クエストクリア達成度 <span style="color:var(--accent-cyan);">15%</span></div>
+          <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; margin-top: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="width: 15%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); box-shadow: var(--glow-cyan);"></div>
           </div>
         </div>
-        <div class="tt-summary">
-          <div><i class="fa-solid fa-book-open"></i> 国語: <span id="sum-kokugo" style="color:#fff; font-weight:bold;">0</span> コマ</div>
-          <div><i class="fa-solid fa-calculator"></i> 算数: <span id="sum-sansu" style="color:#fff; font-weight:bold;">0</span> コマ</div>
-          <div><i class="fa-solid fa-flask"></i> 理科: <span id="sum-rika" style="color:#fff; font-weight:bold;">0</span> コマ</div>
-          <div><i class="fa-solid fa-earth-asia"></i> 社会: <span id="sum-shakai" style="color:#fff; font-weight:bold;">0</span> コマ</div>
-        </div>
+      </div>
+      <div class="exp-badge" id="global-exp-display"><i class="fa-solid fa-fire"></i> TOTAL EXP: 0</div>
+    </div>
+
+    <!-- ==============================================
+         超便利ツールハブ (10 Tools)
+    =============================================== -->
+    <div class="tool-hub">
+      <div class="tool-hub-title"><i class="fa-solid fa-toolbox" style="color: var(--accent-purple);"></i> 日常・学習で使える超便利ツール</div>
+      
+      <!-- ツール選択ピル -->
+      <div class="tool-nav">
+        <button class="tool-btn active" onclick="openTool('t-inv', this)"><i class="fa-solid fa-backpack" style="color:#f43f5e;"></i> 持ち物カスタム</button>
+        <button class="tool-btn" onclick="openTool('t-read', this)"><i class="fa-solid fa-book-open" style="color:#3b82f6;"></i> 読書通帳</button>
+        <button class="tool-btn" onclick="openTool('t-stopwatch', this)"><i class="fa-solid fa-stopwatch" style="color:#a855f7;"></i> 音読・計算タイマー</button>
+        <button class="tool-btn" onclick="openTool('t-health', this)"><i class="fa-solid fa-moon" style="color:#fbbf24;"></i> 体調＆睡眠ログ</button>
+        <button class="tool-btn" onclick="openTool('t-event', this)"><i class="fa-solid fa-calendar-days" style="color:#8b5cf6;"></i> 行事カウントダウン</button>
+        <button class="tool-btn" onclick="openTool('t-flash', this)"><i class="fa-solid fa-clone" style="color:#ec4899;"></i> 暗記カード</button>
+        <button class="tool-btn" onclick="openTool('t-chore', this)"><i class="fa-solid fa-star" style="color:#eab308;"></i> お手伝いポイント</button>
+        <button class="tool-btn" onclick="openTool('t-quiz', this)"><i class="fa-solid fa-question" style="color:#06b6d4;"></i> 自作クイズ</button>
       </div>
 
-      <!-- タブ2: 持ち物 -->
-      <div id="tab-items" class="hub-content">
-        <div class="list-header">
-          <h2 style="color:#fff; font-size:1.2rem;"><i class="fa-solid fa-backpack"></i> 明日の持ち物リスト (自由編集)</h2>
-          <span style="color:var(--text-main); font-size:0.9rem;" id="items-count">チェック済み: 0 / 0</span>
+      <!-- 1. 持ち物カスタム -->
+      <div id="t-inv" class="tool-content active">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-backpack"></i> 明日の持ち物チェック (自由編集)</h3>
+        <div class="input-row">
+          <input type="text" id="inv-input" class="cool-input" placeholder="持ち物を追加 (例: 絵の具セット)">
+          <button class="cool-btn" onclick="addInventory()">追加 <i class="fa-solid fa-plus"></i></button>
         </div>
-        <div class="input-group">
-          <input type="text" id="item-input" class="list-input-text" placeholder="持ち物を自由に追加 (例: リコーダー、水筒)">
-          <button class="list-btn-add" onclick="addItem()">追加 <i class="fa-solid fa-plus"></i></button>
-        </div>
-        <div class="check-grid" id="item-list">
-          <!-- JSで描画 -->
-        </div>
+        <div class="list-grid" id="inv-list"></div>
       </div>
 
-      <!-- タブ3: ルーティン (ToDo) -->
-      <div id="tab-routine" class="hub-content">
-        <div class="list-header">
-          <h2 style="color:#fff; font-size:1.2rem;"><i class="fa-solid fa-list-check"></i> 日常生活＆学習ルーティン</h2>
-          <span style="color:var(--accent-cyan); font-size:0.9rem;">完了で +10 EXP</span>
+      <!-- 2. 読書通帳 -->
+      <div id="t-read" class="tool-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="color:#fff;"><i class="fa-solid fa-book-open"></i> 読書記録通帳</h3>
+          <span style="color:var(--accent-purple); font-weight:bold;" id="read-total">総読書冊数: 0冊</span>
         </div>
-        <div class="input-group">
-          <input type="text" id="todo-input" class="list-input-text" placeholder="新しい目標・やることを追加 (例: 漢字ドリル)">
-          <select id="todo-type" class="list-select">
-            <option value="学習">学習</option>
-            <option value="生活">生活</option>
+        <div class="input-row">
+          <input type="text" id="read-title" class="cool-input" placeholder="読んだ本・本のタイトル">
+          <input type="number" id="read-pages" class="cool-input" placeholder="ページ数 (例: 120)" style="max-width:200px;">
+          <select id="read-rating" class="cool-input" style="max-width:120px;">
+            <option value="5">★★★★★</option>
+            <option value="4">★★★★☆</option>
+            <option value="3">★★★☆☆</option>
           </select>
-          <button class="list-btn-add" onclick="addTodo()">追加 <i class="fa-solid fa-plus"></i></button>
+          <button class="cool-btn" onclick="addReading()">通帳に記録 (+15 EXP)</button>
         </div>
-        <div class="check-grid" style="grid-template-columns: 1fr;" id="todo-list">
-          <!-- JSで描画 -->
+        <div class="list-grid" id="read-list"></div>
+      </div>
+
+      <!-- 3. ストップウォッチ＆タイマー -->
+      <div id="t-stopwatch" class="tool-content">
+        <div class="timer-mode-switch">
+          <button id="mode-sw" class="active" onclick="switchTimerMode('sw')">ストップウォッチ</button>
+          <button id="mode-tm" onclick="switchTimerMode('tm')">カスタムタイマー</button>
+        </div>
+        
+        <div class="timer-display">
+          <h3 id="timer-title" style="color:var(--accent-cyan); margin-bottom:10px;">音読・暗算ストップウォッチ</h3>
+          <div class="time-huge" id="time-display">0.00 <span style="font-size:2rem;">秒</span></div>
+          
+          <!-- タイマー入力エリア (初期非表示) -->
+          <div id="timer-inputs" style="display:none; justify-content:center; gap:10px; margin: 20px 0;">
+            <input type="number" id="tm-min" class="cool-input" placeholder="分" style="width:100px; text-align:center; font-size:1.5rem;" min="0" value="3">
+            <span style="color:#fff; font-size:2rem; font-weight:bold;">:</span>
+            <input type="number" id="tm-sec" class="cool-input" placeholder="秒" style="width:100px; text-align:center; font-size:1.5rem;" min="0" max="59" value="0">
+          </div>
+
+          <div class="timer-controls" style="margin-top:30px;">
+            <button class="cool-btn" id="timer-start-btn" onclick="toggleTimer()" style="padding:16px 40px; font-size:1.2rem;">スタート</button>
+            <button class="btn-outline" onclick="resetTimer()">リセット</button>
+          </div>
         </div>
       </div>
+
+      <!-- 4. 体調＆睡眠ログ -->
+      <div id="t-health" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:20px;"><i class="fa-solid fa-moon"></i> 今日の体調・睡眠時間チェック</h3>
+        <div class="health-grid">
+          <div class="health-card">
+            <div style="color:#fff; font-weight:bold; margin-bottom:10px;">😴 昨夜の睡眠時間: <span id="sleep-val" style="color:var(--accent-purple); font-size:1.2rem;">8</span> 時間</div>
+            <input type="range" id="sleep-slider" class="range-slider" min="0" max="14" step="0.5" value="8" oninput="updateSleep()">
+          </div>
+          <div class="health-card">
+            <div style="color:#fff; font-weight:bold;">😊 今日の気分:</div>
+            <div class="mood-btns">
+              <button class="mood-btn" id="mood-good" onclick="setMood('good')">元気！</button>
+              <button class="mood-btn" id="mood-normal" onclick="setMood('normal')">普通</button>
+              <button class="mood-btn" id="mood-tired" onclick="setMood('tired')">ちょっと疲れ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 行事カウントダウン -->
+      <div id="t-event" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-calendar-days"></i> 学校行事・テスト カウントダウン (自由追加)</h3>
+        <div class="input-row">
+          <input type="text" id="ev-name" class="cool-input" placeholder="行事・目標名 (例: 運動会, 算数テスト)">
+          <input type="date" id="ev-date" class="cool-input" style="max-width:200px;">
+          <button class="cool-btn" onclick="addEvent()">追加</button>
+        </div>
+        <div class="list-grid" id="ev-list"></div>
+      </div>
+
+      <!-- 6. 暗記カード -->
+      <div id="t-flash" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-clone"></i> 暗記・重要単語フラッシュカード</h3>
+        <div class="input-row">
+          <input type="text" id="fc-q" class="cool-input" placeholder="問題・表 (例: 九九 8×7=?)">
+          <input type="text" id="fc-a" class="cool-input" placeholder="答え・裏 (例: 56)">
+          <button class="cool-btn" onclick="addFlashcard()">カード追加</button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px;" id="fc-list"></div>
+      </div>
+
+      <!-- 7. お手伝いポイント -->
+      <div id="t-chore" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-star"></i> お手伝い＆目標ポイント帳 (+EXP)</h3>
+        <div class="input-row">
+          <input type="text" id="ch-name" class="cool-input" placeholder="新しいお手伝い・目標 (例: お風呂掃除)">
+          <input type="number" id="ch-pt" class="cool-input" placeholder="ポイント数" value="10" style="max-width:120px;">
+          <button class="cool-btn" onclick="addChore()">追加</button>
+        </div>
+        <div class="list-grid" id="ch-list"></div>
+      </div>
+
+      <!-- 8. 自作クイズ -->
+      <div id="t-quiz" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-question"></i> 自作クイズメーカー (自分や友だちの問題を作ろう)</h3>
+        <div class="input-row">
+          <input type="text" id="qz-q" class="cool-input" placeholder="問題 (例: 世界で一番高い山は？)">
+          <input type="text" id="qz-a" class="cool-input" placeholder="答え (例: エベレスト)">
+          <button class="cool-btn" onclick="addQuiz()">クイズ作成</button>
+        </div>
+        <div class="list-grid" id="qz-list"></div>
+      </div>
+
+    </div> <!-- End Tool Hub -->
+
+
+    <!-- ==============================================
+         既存アプリセクション (デザイン統一)
+    =============================================== -->
+    <h2 class="section-title"><i class="fa-solid fa-calculator"></i> 3年生 算数ドリル</h2>
+    <div class="card-grid">
+      <article class="app-card">
+        <div class="card-icon"><i class="fa-solid fa-divide"></i></div>
+        <h3 class="card-title">わり算</h3>
+        <p class="card-desc">あまりのない わり算を 練習しよう！</p>
+        <a href="./01warikireruwarizann/index.html" class="play-btn">学習をはじめる <i class="fa-solid fa-play"></i></a>
+      </article>
+      <article class="app-card">
+        <div class="card-icon"><i class="fa-solid fa-clock"></i></div>
+        <h3 class="card-title">時計と時間</h3>
+        <p class="card-desc">時こくと 時間の 計算を 覚える！</p>
+        <a href="./02tokei/index.html" class="play-btn">学習をはじめる <i class="fa-solid fa-play"></i></a>
+      </article>
+      <article class="app-card">
+        <div class="card-icon"><i class="fa-solid fa-arrow-up-9-1"></i></div>
+        <h3 class="card-title">大きな数</h3>
+        <p class="card-desc">1000より 大きい数の 仕組みを 練習！</p>
+        <a href="./03ookinakazu/index.html" class="play-btn">学習をはじめる <i class="fa-solid fa-play"></i></a>
+      </article>
     </div>
 
-    <!-- Quick Navigation (Sticky) -->
-    <div class="quick-nav-sticky">
-      <nav class="quick-nav-pill">
-        <a href="#sec-math" class="nav-item"><i class="fa-solid fa-pen-to-square"></i> 算数ドリル</a>
-        <a href="#sec-social" class="nav-item"><i class="fa-solid fa-map-location-dot"></i> 社会</a>
-        <a href="#sec-game" class="nav-item"><i class="fa-solid fa-gamepad"></i> 学習ゲーム</a>
-        <a href="#sec-class" class="nav-item"><i class="fa-solid fa-users"></i> クラス用</a>
-        <a href="#sec-duty" class="nav-item"><i class="fa-solid fa-clipboard-check"></i> 係活動</a>
-      </nav>
+    <h2 class="section-title"><i class="fa-solid fa-gamepad"></i> 楽しく学ぶ学習ゲーム</h2>
+    <div class="card-grid">
+      <article class="app-card">
+        <div class="card-icon"><i class="fa-solid fa-scroll"></i></div>
+        <h3 class="card-title">漢字の冒険</h3>
+        <p class="card-desc">冒険しながら漢字を覚えていこう！</p>
+        <a href="./tanosikugakusyuusiyou/kannzinoboukenn/dist/index.html" class="play-btn">学習をはじめる <i class="fa-solid fa-play"></i></a>
+      </article>
+      <article class="app-card">
+        <div class="card-icon"><i class="fa-solid fa-keyboard"></i></div>
+        <h3 class="card-title">むんむんタイピング</h3>
+        <p class="card-desc">文字を打つ練習でタイピングが上手くなる！</p>
+        <a href="./tanosikugakusyuusiyou/munmuntaipinngu/dist/index.html" class="play-btn">学習をはじめる <i class="fa-solid fa-play"></i></a>
+      </article>
     </div>
 
-    <!-- Main Content Area -->
-    <main>
-
-      <!-- 算数ドリル -->
-      <section id="sec-math" class="section-head">
-        <div class="section-title"><i class="fa-solid fa-calculator"></i> 3年生 算数ドリル</div>
-        <p class="section-sub">3年生の算数単元を順番にマスターできる練習コーナーです。</p>
-      </section>
-
-      <div class="card-grid">
-        <article class="app-card">
-          <div class="badge badge-clear"><i class="fa-solid fa-crown"></i> CLEAR</div>
-          <div class="card-icon-frame"><i class="fa-solid fa-divide"></i></div>
-          <h3 class="card-title">わり算</h3>
-          <p class="card-desc">あまりのない わり算を 練習しよう！基礎をマスター。</p>
-          <a href="./01warikireruwarizann/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="badge badge-excellent"><i class="fa-solid fa-star"></i> EXCELLENT</div>
-          <div class="card-icon-frame"><i class="fa-solid fa-clock"></i></div>
-          <h3 class="card-title">時計と時間</h3>
-          <p class="card-desc">時こくと 時間の 計算を 覚えるインタラクティブドリル！</p>
-          <a href="./02tokei/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-arrow-up-9-1"></i></div>
-          <h3 class="card-title">大きな数</h3>
-          <p class="card-desc">1000より 大きい数の 筆算や仕組みを 練習しよう！</p>
-          <a href="./03ookinakazu/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-ruler-combined"></i></div>
-          <h3 class="card-title">きょりと長さ</h3>
-          <p class="card-desc">kmとmの 関係を 直感的に学ぼう！</p>
-          <a href="./04kyoritongasa/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-chart-column"></i></div>
-          <h3 class="card-title">表とグラフ</h3>
-          <p class="card-desc">きろくを 整理して 調べよう！</p>
-          <a href="./05kirokuwoseirisitesirabeyou/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-bolt"></i></div>
-          <h3 class="card-title">暗算で計算しよう</h3>
-          <p class="card-desc">頭の中で パッと 計算する スピード脳トレ！</p>
-          <a href="./06annzanndekeisannsiyou/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-trophy"></i></div>
-          <h3 class="card-title">わり算 2</h3>
-          <p class="card-desc">わり算の筆算や、少し難しい応用問題に挑戦！</p>
-          <a href="./07warizann2/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-gem"></i></div>
-          <h3 class="card-title">10000より大きい数</h3>
-          <p class="card-desc">大きな数の仕組みや、読み方・書き方をマスター！</p>
-          <a href="./08a10000yori/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-xmark"></i></div>
-          <h3 class="card-title">大きな数のかけ算の仕方</h3>
-          <p class="card-desc">大きな数のかけ算の仕方をマスターしよう！</p>
-          <a href="./09ookiikazunokakezannnosikata/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-chart-pie"></i></div>
-          <h3 class="card-title">わり算や分数を考えよう</h3>
-          <p class="card-desc">わり算と分数の関係を学ぼう！</p>
-          <a href="./10warizannyabunnsuuwokanngaeyou/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-scale-balanced"></i></div>
-          <h3 class="card-title">重さの表し方</h3>
-          <p class="card-desc">gやkgなど、重さの単位をマスターしよう！</p>
-          <a href="./11omosanoarawasikata/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-hashtag"></i></div>
-          <h3 class="card-title">数の表し方</h3>
-          <p class="card-desc">小数の仕組みや、いろいろな数の表し方を学ぼう！</p>
-          <a href="./12kazunoarawasikata/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
-          <div class="card-icon-frame"><i class="fa-solid fa-layer-group"></i></div>
-          <h3 class="card-title">倍の計算</h3>
-          <p class="card-desc">ある数がもとの数の何倍になるか、計算で求めよう！</p>
-          <a href="./16bainokeisan/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-      </div>
-
-      <!-- 社会用アプリ -->
-      <section id="sec-social" class="section-head">
-        <div class="section-title"><i class="fa-solid fa-map-location-dot"></i> 社会科用アプリ</div>
-        <p class="section-sub">地図や町のようす、地域の探険ができるアプリです。</p>
-      </section>
-
-      <div class="card-grid">
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-tractor"></i></div>
-          <h3 class="card-title">社会科ポータル</h3>
-          <p class="card-desc">「農家と工場」など、社会科のアプリをここから選ぼう！</p>
-          <a href="./syakai/index.html" class="card-action-btn">コーナーを開く <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-      </div>
-
-      <!-- 学習ゲーム -->
-      <section id="sec-game" class="section-head">
-        <div class="section-title"><i class="fa-solid fa-gamepad"></i> 楽しく学ぶ！学習ゲーム</div>
-        <p class="section-sub">ゲーム感覚で楽しく学べるコーナーです。遊びながら力をつけよう！</p>
-      </section>
-
-      <div class="card-grid">
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-scroll"></i></div>
-          <h3 class="card-title">漢字の冒険</h3>
-          <p class="card-desc">冒険しながら漢字を覚えていこう！</p>
-          <a href="./tanosikugakusyuusiyou/kannzinoboukenn/dist/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-shield-halved"></i></div>
-          <h3 class="card-title">算数クエスト</h3>
-          <p class="card-desc">冒険の世界で 算数の問題に挑戦しよう！</p>
-          <a href="./tanosikugakusyuusiyou/sannsuukuesuto/dist/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
-          <div class="card-icon-frame"><i class="fa-solid fa-microchip"></i></div>
-          <h3 class="card-title">算数クエスト (サイバー版)</h3>
-          <p class="card-desc">新しいサイバー世界で、算数の計算をマスターしよう！</p>
-          <a href="./tanosikugakusyuusiyou/sannsuusaiba/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-book-open"></i></div>
-          <h3 class="card-title">算数3年（上）まとめ</h3>
-          <p class="card-desc">3年生の算数（上）で習ったことをふりかえろう！</p>
-          <a href="./tanosikugakusyuusiyou/sannsuu3nennzyoumatme/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-table-cells"></i></div>
-          <h3 class="card-title">81マス計算</h3>
-          <p class="card-desc">九九の計算をすばやく正確に解く練習をしよう！</p>
-          <a href="./tanosikugakusyuusiyou/math81/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-keyboard"></i></div>
-          <h3 class="card-title">むんむんタイピング</h3>
-          <p class="card-desc">文字を打つ練習でタイピングが上手くなるよ！</p>
-          <a href="./tanosikugakusyuusiyou/munmuntaipinngu/dist/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
-          <div class="card-icon-frame"><i class="fa-solid fa-cloud-moon"></i></div>
-          <h3 class="card-title">言葉の天空城</h3>
-          <p class="card-desc">言葉を使って、みんなで楽しく学ぼう！</p>
-          <a href="./tanosikugakusyuusiyou/kotobanotennkuuzyou/index.html" class="card-action-btn">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-      </div>
-
-      <!-- クラス用アプリ -->
-      <section id="sec-class" class="section-head">
-        <div class="section-title"><i class="fa-solid fa-users"></i> クラス用共有アプリ</div>
-        <p class="section-sub">友だちと一緒に意見をまとめたり、お絵かきができるツールです。</p>
-      </section>
-
-      <div class="card-grid">
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-pen-nib"></i></div>
-          <h3 class="card-title">話し合いボード</h3>
-          <p class="card-desc">みんなで一緒にお絵かきや、意見のまとめができるよ！</p>
-          <a href="./kurasuyou/howaitobo-do/index.html" class="card-action-btn">ボードを開く <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-hand"></i></div>
-          <h3 class="card-title">挙手シート</h3>
-          <p class="card-desc">みんなの意見や、手を挙げているか確認できるよ！</p>
-          <a href="./kurasuyou/kyosyusiito/index.html" class="card-action-btn">シートを開く <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-gift"></i></div>
-          <h3 class="card-title">ビンゴ大会</h3>
-          <p class="card-desc">お楽しみ会や、レクの時間にみんなで遊ぼう！</p>
-          <a href="./kurasuyou/bingo/index.html" class="card-action-btn">遊ぶ <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-bullseye"></i></div>
-          <h3 class="card-title">ルーレット</h3>
-          <p class="card-desc">係決めや、発表の順番を決めるときに回してみよう！</p>
-          <a href="./kurasuyou/ruret/index.html" class="card-action-btn">回す <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-location-dot"></i></div>
-          <h3 class="card-title">エイサー隊形移動</h3>
-          <p class="card-desc">運動会のエイサーの隊形や、移動の場所を確認しよう！</p>
-          <a href="./kurasuyou/eisataikeiidou/index.html" class="card-action-btn">確認する <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-      </div>
-
-      <!-- 係用アプリ -->
-      <section id="sec-duty" class="section-head">
-        <div class="section-title"><i class="fa-solid fa-clipboard-check"></i> 係用アプリ</div>
-        <p class="section-sub">クラスの係のお仕事を記録したり発表したりするアプリです。</p>
-      </section>
-
-      <div class="card-grid">
-        <article class="app-card">
-          <div class="card-icon-frame"><i class="fa-solid fa-list-check"></i></div>
-          <h3 class="card-title">係の活動ボード</h3>
-          <p class="card-desc">「学習係」「給食係」「窓・電気係」の活動はこちらから！</p>
-          <a href="./kakari/index.html" class="card-action-btn">コーナーを開く <i class="fa-solid fa-circle-play"></i></a>
-        </article>
-      </div>
-
-      <!-- 先生用アプリ（暗号鍵解除エリア） -->
-      <section class="portal-section-teacher" id="section-teacher">
-        <div class="section-head">
-          <div class="section-title" style="color: var(--accent-pink);"><i class="fa-solid fa-terminal"></i> 先生用アプリ (教員専用管理領域)</div>
-          <p class="section-sub">宿題管理、引き渡し訓練、所見作成などを行う先生専用のメニューです。</p>
-        </div>
-        <div class="card-grid">
-          <article class="app-card">
-            <div class="card-icon-frame" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);"><i class="fa-solid fa-sliders"></i></div>
-            <h3 class="card-title">管理ダッシュボード</h3>
-            <p class="card-desc">先生用の各種管理アプリのポータル画面を開きます。</p>
-            <a href="./sennseiyou/index.html" class="card-action-btn">管理画面へ <i class="fa-solid fa-circle-play"></i></a>
-          </article>
-
-          <article class="app-card">
-            <div class="card-icon-frame" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);"><i class="fa-solid fa-square-check"></i></div>
-            <h3 class="card-title">宿題管理</h3>
-            <p class="card-desc">児童の宿題の提出状況をチェック・記録します。</p>
-            <a href="./sennseiyou/sukudaikannri/index.html" class="card-action-btn">管理する <i class="fa-solid fa-circle-play"></i></a>
-          </article>
-
-          <article class="app-card">
-            <div class="card-icon-frame" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-            <h3 class="card-title">所見管理アシスタント</h3>
-            <p class="card-desc">通知表の所見作成や、日々の児童の記録管理を行います。</p>
-            <a href="./sennseiyou/syokenn/index.html" class="card-action-btn">管理する <i class="fa-solid fa-circle-play"></i></a>
-          </article>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <p>
-        © むん先生の学習クエスト — 小学校 学習 Webアプリ
-        <!-- 一番下に配置された小さなセキュリティ鍵マーク -->
-        <button id="teacher-key-btn" class="key-trigger-btn" title="管理者認証"><i class="fa-solid fa-key"></i></button>
-      </p>
-    </footer>
-
-  </div>
-
-  <!-- HUD ナビゲーター猫 -->
-  <div id="hud-navigator">
-    <div id="hud-menu">
-      <div class="hud-header"><i class="fa-solid fa-chart-simple"></i> SYSTEM STATUS</div>
-      <div class="hud-level" id="level-num">Lv. 1</div>
-      <div style="font-size: 11px; color: var(--accent-cyan); font-weight: 800; margin-bottom: 6px;">EXP GAUGE</div>
-      <div class="exp-bar-bg"><div class="exp-bar-fill" id="exp-fill"></div></div>
-      <div id="exp-next-text" style="font-size: 11px; text-align: right; margin-top: 6px; color: #94a3b8; font-weight: bold;">NEXT: 100 EXP</div>
-      <div id="hud-speech" style="margin-top: 16px; font-size: 0.9rem; line-height: 1.6; color: #fff; font-weight: bold; background: rgba(0,242,255,0.08); padding: 12px; border-radius: 12px; border-left: 3px solid var(--accent-cyan);"></div>
-    </div>
-    <div id="hud-cat-avatar" title="むんむん先生">
-      <i class="fa-solid fa-cat"></i>
-    </div>
-  </div>
+  </div> <!-- End Container -->
 
   <script>
-    // —— EXP/レベルシステム ——
-    const EXP_STEP = 100;
-    let currentExp = parseInt(localStorage.getItem('munQuest_exp')) || 30;
-
-    function syncStatusUI() {
-      localStorage.setItem('munQuest_exp', currentExp);
-      const lvl = Math.floor(currentExp / EXP_STEP) + 1;
-      const progress = ((currentExp % EXP_STEP) / EXP_STEP) * 100;
-      const needed = EXP_STEP - (currentExp % EXP_STEP);
-
-      // 猫ナビゲーター部分の更新
-      document.getElementById('level-num').innerText = `Lv. ${lvl}`;
-      document.getElementById('exp-fill').style.width = `${progress}%`;
-      document.getElementById('exp-next-text').innerText = `NEXT: ${needed} EXP`;
-      
-      // トップの全体EXPバッジの更新
-      document.getElementById('top-exp-badge').innerHTML = `<i class="fa-solid fa-fire"></i> TOTAL EXP: ${currentExp}`;
-    }
-
-    // デイリーログインボーナス
-    document.addEventListener('DOMContentLoaded', () => {
-      syncStatusUI();
-      const todayStr = new Date().toDateString();
-      if (localStorage.getItem('munQuest_lastLogin') !== todayStr) {
-        setTimeout(() => document.getElementById('login-modal').classList.add('show'), 600);
-      }
-    });
-
-    function acceptBonus() {
-      currentExp += 30;
-      localStorage.setItem('munQuest_lastLogin', new Date().toDateString());
-      syncStatusUI();
-      document.getElementById('login-modal').classList.remove('show');
-    }
-
-    // ナビゲーター猫インタラクション
-    const avatarBtn = document.getElementById('hud-cat-avatar');
-    const hudMenu = document.getElementById('hud-menu');
-    const hudSpeech = document.getElementById('hud-speech');
-
-    const hour = new Date().getHours();
-    let timeGreeting = "今日も楽しく勉強するニャ！";
-    if (hour >= 5 && hour < 11) timeGreeting = "おはようニャ！今日も一日元気にいこうニャ！";
-    else if (hour >= 11 && hour < 17) timeGreeting = "こんにちはニャ！午後もドリルを頑張ろうニャ！";
-    else if (hour >= 17 || hour < 5) timeGreeting = "こんばんはニャ！夜の学習も応援してるニャ！";
-
-    const speechList = [
-      timeGreeting,
-      "レベルアップを目指してドリルをクリアしようニャ！",
-      "毎日少しずつの積み重ねが最高のマジックニャ！",
-      "分からないことがあったらいつでも聞いてニャ！",
-      "むん先生はみんなの努力をずっと見守ってるニャ✨"
-    ];
-
-    avatarBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (hudMenu.classList.contains('show')) {
-        hudMenu.classList.remove('show');
-      } else {
-        hudSpeech.innerText = speechList[Math.floor(Math.random() * speechList.length)];
-        hudMenu.classList.add('show');
-      }
-    });
-    document.addEventListener('click', () => hudMenu.classList.remove('show'));
-
-    // —— 先生用ログイン認証（コード提示・ヒントを一切出さずに密閉保護） ——
-    document.getElementById('teacher-key-btn').addEventListener('click', () => {
-      const teacherSec = document.getElementById('section-teacher');
-      if (teacherSec.style.display === 'block') return;
-
-      const codeInput = prompt('管理者セキュリティパスワードを入力してください:');
-      
-      if (codeInput === '0113') {
-        teacherSec.style.display = 'block';
-        setTimeout(() => {
-          teacherSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      } else if (codeInput !== null) {
-        alert('アクセス拒否: パスワードが正しくありません。');
-      }
-    });
-
-    // 背景数式アニメーション生成
-    const bgContainer = document.getElementById('symbols-bg');
-    const mathSymbols = ['＋', '−', '×', '÷', '＝', '＜', '＞', '算', '漢', '★', '◇'];
-    for (let i = 0; i < 28; i++) {
-      const el = document.createElement('span');
-      el.className = 'symbol-particle';
-      el.innerText = mathSymbols[Math.floor(Math.random() * mathSymbols.length)];
-      el.style.left = `${Math.random() * 100}%`;
-      el.style.animationDelay = `${Math.random() * 18}s`;
-      el.style.fontSize = `${Math.random() * 1.4 + 1}rem`;
-      bgContainer.appendChild(el);
-    }
-
-    // トップへ戻るボタン
-    const scrollTopBtn = document.getElementById('scroll-top');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 280) scrollTopBtn.classList.add('show');
-      else scrollTopBtn.classList.remove('show');
-    });
-    scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-
     // ==========================================
-    // タブ切り替え機能
+    // システム全体管理＆EXP (自動保存コア)
     // ==========================================
-    function switchTab(tabId) {
-      document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.hub-content').forEach(c => c.classList.remove('active'));
-      
-      event.currentTarget.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-    }
-
-    // ==========================================
-    // 時間割機能 (自動保存)
-    // ==========================================
-    const subjects = ["未定", "国語", "算数", "理科", "社会", "体育", "音楽", "図工", "英語", "道徳", "学活", "総合", "クラブ"];
-    const days = ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日"];
+    let exp = parseInt(localStorage.getItem('mun_exp')) || 0;
     
-    let timetableData = JSON.parse(localStorage.getItem('munQuest_timetable')) || {};
+    function addExp(amount) {
+      exp += amount;
+      localStorage.setItem('mun_exp', exp);
+      document.getElementById('global-exp-display').innerHTML = `<i class="fa-solid fa-fire"></i> TOTAL EXP: ${exp}`;
+    }
+    // 初期表示
+    addExp(0);
 
-    function renderTimetable() {
-      const grid = document.getElementById('tt-grid');
-      grid.innerHTML = '<div class="tt-header">時間</div>' + days.map(d => `<div class="tt-header">${d}</div>`).join('');
-      
-      for(let period = 1; period <= 6; period++) {
-        grid.innerHTML += `<div class="tt-time">${period}時間目</div>`;
-        for(let day = 0; day < 5; day++) {
-          const key = `${day}-${period}`;
-          const cellData = timetableData[key] || { sub: "未定", memo: "" };
-          let options = subjects.map(s => `<option value="${s}" ${cellData.sub === s ? 'selected' : ''}>${s}</option>`).join('');
+    // ツールタブ切り替えUI
+    function openTool(id, btn) {
+      document.querySelectorAll('.tool-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tool-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // 汎用データ保存関数 (×ボタンやチェック時に即座に呼ばれる)
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+    function loadData(key, defaultData = []) { return JSON.parse(localStorage.getItem(key)) || defaultData; }
+
+
+    // ==========================================
+    // 1. 持ち物カスタム
+    // ==========================================
+    let invData = loadData('mun_inv', [{id:1, t:"連絡帳", d:false}, {id:2, t:"筆箱", d:false}]);
+    
+    function renderInv() {
+      const list = document.getElementById('inv-list');
+      list.innerHTML = invData.map(i => `
+        <div class="list-item ${i.d ? 'done' : ''}">
+          <div style="display:flex; align-items:center;">
+            <i class="fa-regular ${i.d ? 'fa-circle-check' : 'fa-circle'} check-box-ui" onclick="toggleInv(${i.id})"></i>
+            <span class="item-title">${i.t}</span>
+          </div>
+          <button class="del-btn" onclick="delInv(${i.id})"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+      saveData('mun_inv', invData); // レンダリング毎に確実保存
+    }
+    function addInventory() {
+      const v = document.getElementById('inv-input').value;
+      if(!v) return;
+      invData.push({id: Date.now(), t: v, d: false});
+      document.getElementById('inv-input').value = '';
+      renderInv();
+    }
+    function toggleInv(id) { invData.find(i=>i.id===id).d ^= true; renderInv(); }
+    function delInv(id) { invData = invData.filter(i=>i.id!==id); renderInv(); } // Xボタンで即削除＆保存
+    renderInv();
+
+    // ==========================================
+    // 2. 読書通帳
+    // ==========================================
+    let readData = loadData('mun_read', []);
+    
+    function renderRead() {
+      document.getElementById('read-list').innerHTML = readData.map(r => `
+        <div class="list-item">
+          <div class="list-item-content">
+            <div class="item-title">${r.title}</div>
+            <div class="item-meta">${r.pages}ページ ・ 読了日: ${r.date}</div>
+          </div>
+          <div style="color:var(--accent-gold); font-size:1.2rem;">${'★'.repeat(r.rate)}${'☆'.repeat(5-r.rate)}</div>
+          <button class="del-btn" onclick="delRead(${r.id})" style="margin-left:15px;"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+      document.getElementById('read-total').innerText = `総読書冊数: ${readData.length}冊`;
+      saveData('mun_read', readData);
+    }
+    function addReading() {
+      const t = document.getElementById('read-title').value;
+      const p = document.getElementById('read-pages').value;
+      const r = document.getElementById('read-rating').value;
+      if(!t || !p) return;
+      readData.unshift({id: Date.now(), title: t, pages: p, rate: r, date: new Date().toISOString().split('T')[0]});
+      document.getElementById('read-title').value = ''; document.getElementById('read-pages').value = '';
+      addExp(15);
+      renderRead();
+    }
+    function delRead(id) { readData = readData.filter(i=>i.id!==id); renderRead(); }
+    renderRead();
+
+    // ==========================================
+    // 3. ストップウォッチ ＆ カスタムタイマー
+    // ==========================================
+    let timerMode = 'sw'; // sw or tm
+    let timerInterval = null;
+    let timeElapsed = 0; // ms for sw
+    let timeRemain = 0;  // sec for tm
+    let isRunning = false;
+    const timeDisp = document.getElementById('time-display');
+
+    function switchTimerMode(mode) {
+      if(isRunning) resetTimer();
+      timerMode = mode;
+      document.getElementById('mode-sw').className = mode==='sw'?'active':'';
+      document.getElementById('mode-tm').className = mode==='tm'?'active':'';
+      document.getElementById('timer-title').innerText = mode==='sw'?'音読・暗算ストップウォッチ':'任意設定 カスタムタイマー';
+      document.getElementById('timer-inputs').style.display = mode==='tm'?'flex':'none';
+      timeDisp.style.display = mode==='tm'?'none':'block'; // 初期表示切り替え
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      if(timerMode === 'sw') {
+        timeDisp.innerHTML = `${(timeElapsed/1000).toFixed(2)} <span style="font-size:2rem;">秒</span>`;
+      } else {
+        const m = Math.floor(timeRemain / 60).toString().padStart(2, '0');
+        const s = (timeRemain % 60).toString().padStart(2, '0');
+        timeDisp.innerHTML = `${m}:${s}`;
+      }
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timer-start-btn');
+      if(isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        btn.innerText = "スタート";
+        btn.style.background = "var(--accent-purple)";
+      } else {
+        isRunning = true;
+        btn.innerText = "ストップ";
+        btn.style.background = "#ef4444";
+        
+        if(timerMode === 'sw') {
+          const startTime = Date.now() - timeElapsed;
+          timerInterval = setInterval(() => { timeElapsed = Date.now() - startTime; updateTimerDisplay(); }, 10);
+        } else {
+          // タイマー開始時に入力値を取得して表示を切り替え
+          if(timeRemain === 0) {
+            const m = parseInt(document.getElementById('tm-min').value) || 0;
+            const s = parseInt(document.getElementById('tm-sec').value) || 0;
+            timeRemain = (m * 60) + s;
+          }
+          document.getElementById('timer-inputs').style.display = 'none';
+          timeDisp.style.display = 'block';
+          updateTimerDisplay();
           
-          grid.innerHTML += `
-            <div class="tt-cell">
-              <select class="tt-select" onchange="saveTimetable('${key}', this.value, null)">${options}</select>
-              <input type="text" class="tt-input" placeholder="+入力" value="${cellData.memo}" onchange="saveTimetable('${key}', null, this.value)">
-            </div>
-          `;
+          timerInterval = setInterval(() => {
+            if(timeRemain > 0) { timeRemain--; updateTimerDisplay(); }
+            else { toggleTimer(); alert("時間です！"); }
+          }, 1000);
         }
       }
-      calcTimetableSummary();
     }
 
-    function saveTimetable(key, sub, memo) {
-      if(!timetableData[key]) timetableData[key] = { sub: "未定", memo: "" };
-      if(sub !== null) timetableData[key].sub = sub;
-      if(memo !== null) timetableData[key].memo = memo;
-      localStorage.setItem('munQuest_timetable', JSON.stringify(timetableData));
-      calcTimetableSummary();
-    }
-
-    function calcTimetableSummary() {
-      let counts = { "国語": 0, "算数": 0, "理科": 0, "社会": 0 };
-      Object.values(timetableData).forEach(val => {
-        if(counts[val.sub] !== undefined) counts[val.sub]++;
-      });
-      document.getElementById('sum-kokugo').innerText = counts["国語"];
-      document.getElementById('sum-sansu').innerText = counts["算数"];
-      document.getElementById('sum-rika').innerText = counts["理科"];
-      document.getElementById('sum-shakai').innerText = counts["社会"];
-    }
-    renderTimetable();
-
-    // ==========================================
-    // 持ち物チェックリスト機能
-    // ==========================================
-    let itemsData = JSON.parse(localStorage.getItem('munQuest_items')) || [
-      { id: 1, text: "連絡帳・連絡袋", done: false },
-      { id: 2, text: "筆箱 (鉛筆削り済)", done: true }
-    ];
-
-    function renderItems() {
-      const list = document.getElementById('item-list');
-      list.innerHTML = '';
-      let doneCount = 0;
-      
-      itemsData.forEach(item => {
-        if(item.done) doneCount++;
-        list.innerHTML += `
-          <div class="check-item ${item.done ? 'done' : ''}">
-            <i class="fa-regular ${item.done ? 'fa-circle-check' : 'fa-circle'} check-box" onclick="toggleItem(${item.id})"></i>
-            <span class="check-text">${item.text}</span>
-            <button class="check-del" onclick="delItem(${item.id})"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-        `;
-      });
-      document.getElementById('items-count').innerText = `チェック済み: ${doneCount} / ${itemsData.length}`;
-      localStorage.setItem('munQuest_items', JSON.stringify(itemsData));
-    }
-
-    function addItem() {
-      const input = document.getElementById('item-input');
-      if(!input.value.trim()) return;
-      itemsData.push({ id: Date.now(), text: input.value, done: false });
-      input.value = '';
-      renderItems();
-    }
-    
-    function toggleItem(id) {
-      const item = itemsData.find(i => i.id === id);
-      if(item) item.done = !item.done;
-      renderItems();
-    }
-    
-    function delItem(id) {
-      itemsData = itemsData.filter(i => i.id !== id);
-      renderItems();
-    }
-    renderItems();
-
-    // ==========================================
-    // ToDo・ルーティン機能 (EXP連動)
-    // ==========================================
-    let todosData = JSON.parse(localStorage.getItem('munQuest_todos')) || [
-      { id: 1, text: "漢字ドリル", type: "学習", done: false },
-      { id: 2, text: "明日の時間割・教科書の準備", type: "生活", done: false }
-    ];
-
-    function renderTodos() {
-      const list = document.getElementById('todo-list');
-      list.innerHTML = '';
-      
-      todosData.forEach(todo => {
-        list.innerHTML += `
-          <div class="check-item ${todo.done ? 'done' : ''}">
-            <i class="fa-regular ${todo.done ? 'fa-circle-check' : 'fa-circle'} check-box" onclick="toggleTodo(${todo.id})"></i>
-            <span class="check-tag">${todo.type}</span>
-            <span class="check-text">${todo.text}</span>
-            <button class="check-del" onclick="delTodo(${todo.id})"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-        `;
-      });
-      localStorage.setItem('munQuest_todos', JSON.stringify(todosData));
-    }
-
-    function addTodo() {
-      const input = document.getElementById('todo-input');
-      const type = document.getElementById('todo-type').value;
-      if(!input.value.trim()) return;
-      todosData.push({ id: Date.now(), text: input.value, type: type, done: false });
-      input.value = '';
-      renderTodos();
-    }
-
-    function toggleTodo(id) {
-      const todo = todosData.find(t => t.id === id);
-      if(todo) {
-        todo.done = !todo.done;
-        // タスク完了でEXPを増減
-        if(todo.done) currentExp += 10;
-        else currentExp = Math.max(0, currentExp - 10);
-        syncStatusUI();
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('timer-start-btn').innerText = "スタート";
+      document.getElementById('timer-start-btn').style.background = "var(--accent-purple)";
+      timeElapsed = 0; timeRemain = 0;
+      if(timerMode === 'tm') {
+        document.getElementById('timer-inputs').style.display = 'flex';
+        timeDisp.style.display = 'none';
       }
-      renderTodos();
+      updateTimerDisplay();
     }
 
-    function delTodo(id) {
-      todosData = todosData.filter(t => t.id !== id);
-      renderTodos();
+    // ==========================================
+    // 4. 体調＆睡眠ログ (スライダー自動保存)
+    // ==========================================
+    let healthData = loadData('mun_health', { sleep: 8, mood: 'normal' });
+    
+    function initHealth() {
+      document.getElementById('sleep-slider').value = healthData.sleep;
+      document.getElementById('sleep-val').innerText = healthData.sleep;
+      setMood(healthData.mood, false); // UI更新のみ
     }
-    renderTodos();
+    function updateSleep() {
+      const v = document.getElementById('sleep-slider').value;
+      document.getElementById('sleep-val').innerText = v;
+      healthData.sleep = v;
+      saveData('mun_health', healthData); // 動かすたびに自動保存
+    }
+    function setMood(m, doSave = true) {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('mood-'+m).classList.add('active');
+      if(doSave) { healthData.mood = m; saveData('mun_health', healthData); }
+    }
+    initHealth();
+
+    // ==========================================
+    // 5. 行事カウントダウン
+    // ==========================================
+    let evData = loadData('mun_event', [{id:1, n:"運動会", d:"2026-09-20"}]);
+    function renderEv() {
+      const today = new Date();
+      document.getElementById('ev-list').innerHTML = evData.map(e => {
+        const target = new Date(e.d);
+        const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+        const txt = diff > 0 ? `あと ${diff} 日！` : (diff === 0 ? "本日！" : "終了");
+        return `
+        <div class="list-item">
+          <div class="list-item-content">
+            <div class="item-title">🏃 ${e.n}</div>
+            <div class="item-meta">${e.d}</div>
+          </div>
+          <div style="font-weight:900; color:var(--accent-pink); font-size:1.2rem;">${txt}</div>
+          <button class="del-btn" onclick="delEv(${e.id})" style="margin-left:15px;"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `}).join('');
+      saveData('mun_event', evData);
+    }
+    function addEvent() {
+      const n = document.getElementById('ev-name').value;
+      const d = document.getElementById('ev-date').value;
+      if(!n || !d) return;
+      evData.push({id:Date.now(), n, d});
+      document.getElementById('ev-name').value = '';
+      renderEv();
+    }
+    function delEv(id) { evData = evData.filter(i=>i.id!==id); renderEv(); }
+    renderEv();
+
+    // ==========================================
+    // 6. 暗記フラッシュカード
+    // ==========================================
+    let fcData = loadData('mun_fc', [{id:1, q:"わり算の「商」とは？", a:"わり算の答えのこと"}]);
+    function renderFc() {
+      document.getElementById('fc-list').innerHTML = fcData.map(f => `
+        <div class="list-item flashcard" onclick="this.classList.toggle('revealed')">
+          <div style="flex:1;">
+            <div class="item-title q">${f.q} <span style="font-size:0.7rem; color:#64748b;">(タップで答え)</span></div>
+            <div class="ans">${f.a}</div>
+          </div>
+          <button class="del-btn" onclick="event.stopPropagation(); delFc(${f.id})"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+      saveData('mun_fc', fcData);
+    }
+    function addFlashcard() {
+      const q = document.getElementById('fc-q').value;
+      const a = document.getElementById('fc-a').value;
+      if(!q||!a) return;
+      fcData.push({id:Date.now(), q, a});
+      document.getElementById('fc-q').value=''; document.getElementById('fc-a').value='';
+      renderFc();
+    }
+    function delFc(id) { fcData = fcData.filter(i=>i.id!==id); renderFc(); }
+    renderFc();
+
+    // ==========================================
+    // 7. お手伝いポイント
+    // ==========================================
+    let chData = loadData('mun_chore', [{id:1, t:"お夕飯の食器を運ぶ", p:10, d:false}]);
+    function renderCh() {
+      document.getElementById('ch-list').innerHTML = chData.map(c => `
+        <div class="list-item ${c.d?'done':''}">
+          <div style="display:flex; align-items:center; flex:1;">
+            <i class="fa-regular ${c.d?'fa-circle-check':'fa-circle'} check-box-ui" onclick="toggleCh(${c.id}, ${c.p})"></i>
+            <span class="item-title">${c.t}</span>
+          </div>
+          <div style="font-weight:900; color:var(--accent-gold);">+${c.p} P</div>
+          <button class="del-btn" onclick="delCh(${c.id})" style="margin-left:15px;"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+      saveData('mun_chore', chData);
+    }
+    function addChore() {
+      const t = document.getElementById('ch-name').value;
+      const p = parseInt(document.getElementById('ch-pt').value) || 10;
+      if(!t) return;
+      chData.push({id:Date.now(), t, p, d:false});
+      document.getElementById('ch-name').value='';
+      renderCh();
+    }
+    function toggleCh(id, p) {
+      let item = chData.find(i=>i.id===id);
+      item.d = !item.d;
+      if(item.d) addExp(p); else addExp(-p); // チェックでEXP加算、外すと減算
+      renderCh();
+    }
+    function delCh(id) { chData = chData.filter(i=>i.id!==id); renderCh(); }
+    renderCh();
+
+    // ==========================================
+    // 8. 自作クイズ
+    // ==========================================
+    let qzData = loadData('mun_quiz', [{id:1, q:"日本の首都はどこ？", a:"東京"}]);
+    function renderQz() {
+      document.getElementById('qz-list').innerHTML = qzData.map(q => `
+        <div class="list-item flashcard" onclick="this.classList.toggle('revealed')">
+          <div style="flex:1; text-align:left;">
+            <div class="item-title q">Q. ${q.q} <span style="font-size:0.7rem; color:#64748b;">(クリックで解答)</span></div>
+            <div class="ans">A. ${q.a}</div>
+          </div>
+          <button class="del-btn" onclick="event.stopPropagation(); delQz(${q.id})"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+      saveData('mun_quiz', qzData);
+    }
+    function addQuiz() {
+      const q = document.getElementById('qz-q').value;
+      const a = document.getElementById('qz-a').value;
+      if(!q||!a) return;
+      qzData.push({id:Date.now(), q, a});
+      document.getElementById('qz-q').value=''; document.getElementById('qz-a').value='';
+      renderQz();
+    }
+    function delQz(id) { qzData = qzData.filter(i=>i.id!==id); renderQz(); }
+    renderQz();
 
   </script>
 </body>
