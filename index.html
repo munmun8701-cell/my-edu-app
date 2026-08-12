@@ -36,6 +36,18 @@
       
       --glow-cyan: 0 0 20px rgba(0, 242, 255, 0.5);
       --glow-purple: 0 0 20px rgba(168, 85, 247, 0.5);
+      
+      /* カスタムフォントサイズ用変数 */
+      --font-scale: 1;
+    }
+
+    /* テーマバリエーション */
+    body.theme-light {
+      --bg-deep: #f8fafc; --bg-surface: rgba(255,255,255,0.8); --bg-card: rgba(255,255,255,0.9);
+      --text-main: #475569; --text-bright: #0f172a; --border-cyan: rgba(0, 200, 255, 0.4);
+    }
+    body.theme-neon {
+      --bg-deep: #1a0b2e; --accent-cyan: #00ffcc; --accent-purple: #ff00ff;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,14 +56,25 @@
       font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
       background-color: var(--bg-deep); color: var(--text-main);
       min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth;
+      font-size: calc(16px * var(--font-scale));
+      cursor: crosshair; /* 17. カスタムカーソル */
+      transition: background-color 0.5s ease;
     }
+
+    /* 7. 集中モード */
+    body.focus-mode header, body.focus-mode .tool-hub, body.focus-mode .quick-nav-sticky, 
+    body.focus-mode main, body.focus-mode footer {
+      display: none !important;
+    }
+    body.focus-mode .dashboard-grid { grid-template-columns: 1fr; max-width: 600px; margin: 10vh auto; }
+    body.focus-mode .daily-card { display: none; }
 
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: var(--bg-deep); }
     ::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.2); border-radius: 5px; border: 1px solid rgba(0, 242, 255, 0.1); }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); box-shadow: var(--glow-cyan); }
 
-    /* --- 新機能：Boot Sequence --- */
+    /* Boot Sequence */
     #boot-screen {
       position: fixed; inset: 0; background: #000; z-index: 9999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -63,7 +86,7 @@
     .boot-fill { height: 100%; background: var(--accent-cyan); width: 0%; box-shadow: var(--glow-cyan); animation: loading 1.5s ease-in-out forwards; }
     @keyframes loading { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
 
-    /* --- 背景アニメーション (Canvas + CSS) --- */
+    /* 背景アニメーション */
     #canvas-bg { position: fixed; inset: 0; z-index: -3; pointer-events: none; }
     .cyber-grid {
       position: fixed; inset: 0; z-index: -2; pointer-events: none;
@@ -74,7 +97,7 @@
     }
     @keyframes gridMove { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(60px); } }
     
-    .glow-orb { position: fixed; border-radius: 50%; filter: blur(140px); pointer-events: none; z-index: -1; opacity: 0.15; animation: floatPulse 15s ease-in-out infinite alternate; }
+    .glow-orb { position: fixed; border-radius: 50%; filter: blur(140px); pointer-events: none; z-index: -1; opacity: 0.15; animation: floatPulse 15s ease-in-out infinite alternate; transition: background 1s; }
     .orb-1 { top: -10%; left: -10%; width: 600px; height: 600px; background: var(--accent-cyan); }
     .orb-2 { top: 40%; right: -10%; width: 700px; height: 700px; background: var(--accent-purple); animation-delay: -5s; }
     .orb-3 { bottom: -10%; left: 20%; width: 550px; height: 550px; background: var(--accent-pink); animation-delay: -10s; }
@@ -86,19 +109,21 @@
 
     .container { max-width: 1300px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
 
-    /* トップステータスバー */
+    /* トップステータスバー (追加機能) */
     .top-status-bar {
       display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; margin-top: 20px;
       background: rgba(2,4,10,0.8); border: 1px solid var(--border-cyan); border-radius: 30px;
       backdrop-filter: blur(15px); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; color: var(--accent-cyan);
       box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 10px rgba(0, 242, 255, 0.1);
+      flex-wrap: wrap; gap: 10px;
     }
-    .top-status-left { display: flex; align-items: center; gap: 16px; font-weight: bold; letter-spacing: 1px; }
+    .top-status-left { display: flex; align-items: center; gap: 16px; font-weight: bold; letter-spacing: 1px; flex-wrap: wrap;}
     .online-dot { width: 10px; height: 10px; background: var(--accent-emerald); border-radius: 50%; box-shadow: 0 0 10px var(--accent-emerald); animation: blink 1.5s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .top-status-right { display: flex; align-items: center; gap: 20px; font-weight: 600; color: #94a3b8; }
-    .sys-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 6px 16px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: 0.8rem; transition: 0.3s; }
+    .top-status-right { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #94a3b8; flex-wrap: wrap; }
+    .sys-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 6px 12px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: 0.8rem; transition: 0.3s; }
     .sys-btn:hover, .sys-btn.active { background: rgba(0,242,255,0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+    .coin-disp { color: var(--accent-gold); border-color: var(--accent-gold); box-shadow: 0 0 10px rgba(251,191,36,0.2); }
 
     /* ヘッダー */
     .header-hero {
@@ -110,7 +135,7 @@
       position: relative; overflow: hidden;
     }
     .header-content { flex: 1; min-width: 300px; z-index: 1; }
-    .title-gradient { background: linear-gradient(to right, #fff, var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: clamp(2rem, 3.5vw, 3rem); filter: drop-shadow(0 0 15px rgba(0,242,255,0.3)); margin-top: 12px; }
+    .title-gradient { background: linear-gradient(to right, #fff, var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: clamp(2rem, 3.5vw, 3rem); filter: drop-shadow(0 0 15px rgba(0,242,255,0.3)); margin-top: 12px; cursor: pointer;}
     
     /* 検索バー＆フィルター */
     .search-area { width: 350px; display: flex; flex-direction: column; gap: 12px; z-index: 1; }
@@ -127,7 +152,7 @@
     .progress-panel { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; background: var(--bg-surface); padding: 24px 32px; border-radius: var(--radius-panel); border: 1px solid var(--border-cyan); margin-bottom: 24px; backdrop-filter: blur(10px); }
     .exp-badge { background: rgba(251,191,36,0.15); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 10px 24px; border-radius: 30px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 0 20px rgba(251,191,36,0.2); }
 
-    /* ダッシュボード (デイリー ＆ タイマー) */
+    /* ダッシュボード */
     .dashboard-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; margin-bottom: 40px; }
     @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
     .dash-card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border-cyan); border-radius: var(--radius-panel); padding: 32px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
@@ -137,13 +162,22 @@
     .daily-title { font-size: 1.8rem; font-weight: 900; color: #fff; margin-bottom: 12px; }
     .daily-desc { color: #94a3b8; font-size: 1rem; margin-bottom: 30px; }
     .daily-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: auto; }
+    
+    /* 4. デイリークエストUI */
+    .daily-quests { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .dq-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; }
+    .dq-item.done { color: var(--accent-emerald); text-decoration: line-through; border: 1px solid var(--accent-emerald); }
+    
     .daily-claim-btn { background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
     .daily-claim-btn:hover { background: rgba(251,191,36,0.2); }
     .daily-claim-btn.claimed { border-color: #64748b; color: #64748b; background: rgba(255,255,255,0.05); cursor: not-allowed; }
     .daily-play-btn { background: linear-gradient(135deg, var(--accent-cyan), #0284c7); color: #000; padding: 12px 32px; border-radius: 30px; font-weight: 900; border: none; cursor: pointer; box-shadow: var(--glow-cyan); transition: 0.3s; }
     .daily-play-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
 
-    .timer-dash { text-align: center; }
+    .timer-dash { text-align: center; transition: box-shadow 0.3s; }
+    .timer-dash.running { box-shadow: 0 0 40px rgba(168,85,247,0.3); border-color: var(--accent-purple); animation: pulseTimer 2s infinite; }
+    @keyframes pulseTimer { 0% { box-shadow: 0 0 20px rgba(168,85,247,0.2); } 50% { box-shadow: 0 0 50px rgba(168,85,247,0.5); } 100% { box-shadow: 0 0 20px rgba(168,85,247,0.2); } }
+    
     .timer-top-tag { display: flex; justify-content: space-between; margin-bottom: 16px; color: #fff; font-weight: 800; font-size: 0.9rem; }
     .timer-pomodoro-tag { background: rgba(168,85,247,0.2); border: 1px solid var(--accent-purple); color: var(--accent-purple); padding: 4px 12px; border-radius: 12px; font-size: 0.7rem; }
     .timer-time-display { font-family: 'Space Grotesk', sans-serif; font-size: 5rem; font-weight: 900; color: #fff; text-shadow: var(--glow-cyan); line-height: 1; margin: 10px 0; cursor: pointer; transition: 0.2s; display: inline-block; padding: 10px 20px; border-radius: 20px; }
@@ -158,11 +192,11 @@
     .timer-edit-ui { display: none; justify-content: center; gap: 10px; margin: 10px 0; align-items: center; }
     .timer-edit-input { width: 90px; text-align: center; font-family: 'Space Grotesk', sans-serif; font-size: 3.5rem; font-weight: 900; background: rgba(0,0,0,0.5); color: var(--accent-cyan); border: 2px solid var(--accent-cyan); border-radius: 12px; outline: none; padding: 10px; }
 
-    /* 10の超便利ツール群 (変更なし完全維持) */
-    .tool-hub { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-panel); padding: 32px; margin-bottom: 60px; }
+    /* ツール群 UI */
+    .tool-hub { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-panel); padding: 32px; margin-bottom: 60px; transition: 0.3s; }
     .tool-hub-title { font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-    .tool-nav { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
-    .tool-btn { padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; background: rgba(3, 7, 18, 0.6); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 8px; }
+    .tool-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+    .tool-btn { padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; cursor: pointer; background: rgba(3, 7, 18, 0.6); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 8px; }
     .tool-btn:hover { background: rgba(255,255,255,0.05); transform: translateY(-2px); }
     .tool-btn.active { background: rgba(168, 85, 247, 0.15); color: #fff; border-color: var(--accent-purple); box-shadow: var(--glow-purple); }
     
@@ -171,12 +205,12 @@
     @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
     .input-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .cool-input { flex: 1; min-width: 200px; padding: 14px 20px; background: rgba(3,7,18,0.7); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+    .cool-input { flex: 1; min-width: 150px; padding: 14px 20px; background: rgba(3,7,18,0.7); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
     .cool-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
-    .cool-btn { padding: 14px 28px; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; border: none; background: var(--accent-purple); color: #fff; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+    .cool-btn { padding: 14px 24px; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; border: none; background: var(--accent-purple); color: #fff; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
     .cool-btn:hover { transform: scale(1.05); box-shadow: var(--glow-purple); filter: brightness(1.2); }
     
-    .list-grid { display: flex; flex-direction: column; gap: 12px; }
+    .list-grid { display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto; padding-right: 10px; }
     .list-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; transition: 0.3s; }
     .list-item:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(255,255,255,0.2); transform: translateX(5px); }
     .list-item-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
@@ -205,14 +239,17 @@
     .mood-btns { display: flex; gap: 10px; margin-top: 16px; }
     .mood-btn { flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; background: transparent; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .mood-btn.active { background: var(--accent-purple); border-color: var(--accent-purple); box-shadow: var(--glow-purple); }
-
+    
+    /* 24. お絵かきボード用 */
+    #sketch-canvas { background: #fff; border-radius: 12px; cursor: crosshair; touch-action: none; width: 100%; height: 200px;}
+    
     /* クイックナビゲーション（スティッキー） */
     .quick-nav-sticky { position: sticky; top: 20px; z-index: 90; margin-bottom: 48px; display: flex; justify-content: center; }
-    .quick-nav-pill { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 60px; background: rgba(2, 4, 10, 0.85); backdrop-filter: blur(25px); border: 1px solid var(--border-cyan); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 242, 255, 0.08); flex-wrap: wrap; justify-content: center; }
+    .quick-nav-pill { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 60px; background: rgba(2, 4, 10, 0.85); backdrop-filter: blur(25px); border: 1px solid var(--border-cyan); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 242, 255, 0.08); flex-wrap: wrap; justify-content: center; transition: 0.3s;}
     .nav-item { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 40px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 242, 255, 0.15); color: var(--accent-cyan); font-weight: 800; font-size: 0.88rem; text-decoration: none; transition: all 0.3s ease; }
-    .nav-item:hover { background: var(--accent-cyan); color: var(--bg-deep); box-shadow: 0 0 20px rgba(0, 242, 255, 0.6); transform: translateY(-2px); }
+    .nav-item:hover, .nav-item.active { background: var(--accent-cyan); color: var(--bg-deep); box-shadow: 0 0 20px rgba(0, 242, 255, 0.6); transform: translateY(-2px); }
 
-    /* —— アプリカードセクション (3Dティルト対応) —— */
+    /* アプリカードセクション */
     .section-head { margin-bottom: 28px; scroll-margin-top: 100px; display: flex; flex-direction: column; }
     .section-title { font-size: 1.6rem; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
     .section-title i { color: var(--accent-cyan); filter: drop-shadow(0 0 15px var(--accent-cyan)); }
@@ -233,7 +270,6 @@
     .app-card:hover { border-color: rgba(0, 242, 255, 0.6); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(0, 242, 255, 0.15); z-index: 10; }
     .app-card:hover::before { opacity: 1; }
 
-    /* ★ お気に入りボタン */
     .fav-btn { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; z-index: 10; transform: translateZ(20px); }
     .fav-btn:hover { background: rgba(255,255,255,0.15); transform: translateZ(30px) scale(1.1); }
     .fav-btn.active { color: var(--accent-gold); border-color: var(--accent-gold); background: rgba(251, 191, 36, 0.2); box-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
@@ -250,7 +286,7 @@
     .badge-excellent { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); border: 1px solid rgba(236, 72, 153, 0.5); }
     .badge-new { background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.6); box-shadow: 0 0 10px rgba(16,185,129,0.3); }
 
-    /* —— ステータスウィンドウ —— */
+    /* ステータスウィンドウ */
     #hud-navigator { position: fixed; bottom: 28px; right: 28px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
     #hud-cat-avatar { width: 68px; height: 68px; border-radius: 50%; background: var(--bg-deep); border: 2px solid var(--accent-cyan); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent-cyan); cursor: pointer; box-shadow: 0 0 25px rgba(0, 242, 255, 0.3), inset 0 0 15px rgba(0, 242, 255, 0.15); transition: 0.3s; position: relative; }
     #hud-cat-avatar:hover { transform: scale(1.1); box-shadow: 0 0 35px rgba(0, 242, 255, 0.6); color: #fff; }
@@ -265,7 +301,7 @@
     .chat-close-btn { background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
     .chat-close-btn:hover { color: #fff; transform: scale(1.2); }
     
-    .status-body { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .status-body { padding: 24px; display: flex; flex-direction: column; gap: 20px; max-height: 60vh; overflow-y: auto;}
     .status-profile { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.05); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
     .profile-icon { width: 50px; height: 50px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #fff; box-shadow: var(--glow-cyan); }
     .profile-name { font-weight: 900; color: #fff; font-size: 1.1rem; }
@@ -281,8 +317,8 @@
     .status-box .val { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 900; color: #fff; }
     .status-box .lbl { font-size: 0.75rem; color: #94a3b8; font-weight: bold; margin-top: 4px; }
 
-    /* トースト通知コンテナ */
-    #toast-container { position: fixed; bottom: 30px; left: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    /* トースト通知 (スタック対応) */
+    #toast-container { position: fixed; bottom: 30px; left: 30px; z-index: 9999; display: flex; flex-direction: column-reverse; gap: 10px; pointer-events: none; }
     .toast { background: rgba(10, 15, 30, 0.9); border: 1px solid var(--accent-gold); border-left: 5px solid var(--accent-gold); color: #fff; padding: 16px 24px; border-radius: 12px; font-weight: bold; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(251,191,36,0.3); animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
     .toast i { font-size: 1.5rem; color: var(--accent-gold); filter: drop-shadow(0 0 10px var(--accent-gold)); }
     @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
@@ -293,6 +329,7 @@
     .key-trigger-btn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; color: #475569; cursor: pointer; transition: 0.3s; vertical-align: middle; border: none; background: transparent; }
     .key-trigger-btn:hover { color: var(--accent-pink); transform: scale(1.2); }
     .portal-section-teacher { display: none; animation: fadeIn 0.5s ease forwards; }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
     
     #scroll-top { position: fixed; bottom: 28px; left: 28px; width: 50px; height: 50px; border-radius: 50%; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(10px); }
     #scroll-top.show { opacity: 1; pointer-events: auto; }
@@ -300,7 +337,10 @@
 
     .modal-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
     .modal-overlay.show { opacity: 1; pointer-events: auto; }
-    .modal-box { background: var(--bg-surface); border: 1px solid var(--accent-cyan); border-radius: var(--radius-panel); padding: 40px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 0 60px rgba(0, 242, 255, 0.25); }
+    .modal-box { background: var(--bg-surface); border: 1px solid var(--accent-cyan); border-radius: var(--radius-panel); padding: 40px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 0 60px rgba(0, 242, 255, 0.25); position: relative; }
+
+    /* 先生用スクリーンセーバー */
+    #lock-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
 
     @media (max-width: 768px) {
       .header-hero { flex-direction: column; align-items: flex-start; }
@@ -317,6 +357,14 @@
     <i class="fa-solid fa-fingerprint" style="font-size:4rem; margin-bottom:20px;"></i>
     <div class="boot-text">MUN-SENSEI OS // INITIALIZING...</div>
     <div class="boot-bar"><div class="boot-fill"></div></div>
+  </div>
+
+  <!-- 先生用ロック画面 -->
+  <div id="lock-screen">
+    <i class="fa-solid fa-lock" style="font-size:5rem; color:var(--accent-pink); margin-bottom:20px;"></i>
+    <h2>システムロック中</h2>
+    <p>解除するにはパスワードを入力してください</p>
+    <button onclick="unlockSystem()" class="cool-btn" style="margin-top:20px;">解除する</button>
   </div>
 
   <!-- Background (Canvas + CSS) -->
@@ -338,8 +386,40 @@
     <div class="modal-box">
       <i class="fa-solid fa-gem" style="font-size: 3.5rem; color: var(--accent-cyan); text-shadow: 0 0 30px var(--accent-cyan); margin-bottom: 20px;"></i>
       <h2 style="font-size: 1.6rem; font-weight: 900; color: #fff; margin-bottom: 10px;">DAILY LOGIN BONUS</h2>
-      <p style="color: var(--accent-cyan); font-weight: 800; font-size: 1.25rem; margin-bottom: 28px;">＋30 EXP 獲得！</p>
-      <button class="cool-btn" onclick="acceptBonus()" style="width:100%; justify-content:center;">ログイン特典を受け取る <i class="fa-solid fa-check"></i></button>
+      <p style="color: var(--accent-cyan); font-weight: 800; font-size: 1.25rem; margin-bottom: 10px;">＋30 EXP 獲得！</p>
+      <p style="color: var(--accent-gold); font-weight: 800; font-size: 1.25rem; margin-bottom: 28px;">＋10 Mun Coins 獲得！</p>
+      <button class="cool-btn sfx-click" onclick="acceptBonus()" style="width:100%; justify-content:center;">ログイン特典を受け取る <i class="fa-solid fa-check"></i></button>
+    </div>
+  </div>
+
+  <!-- レベルアップ モーダル -->
+  <div id="levelup-modal" class="modal-overlay">
+    <div class="modal-box" style="border-color: var(--accent-gold); box-shadow: 0 0 60px rgba(251,191,36,0.4);">
+      <i class="fa-solid fa-angles-up" style="font-size: 4rem; color: var(--accent-gold); text-shadow: 0 0 40px var(--accent-gold); margin-bottom: 20px;"></i>
+      <h2 style="font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 10px;">LEVEL UP!</h2>
+      <p id="lvlup-text" style="color: var(--accent-gold); font-weight: 800; font-size: 1.5rem; margin-bottom: 28px;">Lv. 2 に上がった！</p>
+      <button class="cool-btn sfx-click" onclick="closeLevelUp()" style="width:100%; justify-content:center; background:var(--accent-gold); color:#000;">やったね！ <i class="fa-solid fa-thumbs-up"></i></button>
+    </div>
+  </div>
+
+  <!-- ショップ モーダル -->
+  <div id="shop-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <button class="chat-close-btn sfx-click" onclick="closeShop()" style="position:absolute; top:20px; right:20px;"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="color: #fff; margin-bottom: 20px;"><i class="fa-solid fa-cart-shopping"></i> Mun Coin ショップ</h2>
+      <div style="display:flex; justify-content:space-between; margin-bottom:20px; color:var(--accent-gold); font-weight:bold;">
+        <span>所持コイン: <span id="shop-coin-disp">0</span> C</span>
+      </div>
+      <div class="grid" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="status-box">
+          <h4>ライトテーマ</h4><p>100 C</p>
+          <button class="sys-btn sfx-click" onclick="buyTheme('light', 100)" style="margin:10px auto;">購入</button>
+        </div>
+        <div class="status-box">
+          <h4>ネオンテーマ</h4><p>150 C</p>
+          <button class="sys-btn sfx-click" onclick="buyTheme('neon', 150)" style="margin:10px auto;">購入</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -348,13 +428,20 @@
     <!-- トップステータスバー -->
     <div class="top-status-bar">
       <div class="top-status-left">
-        <span class="online-dot"></span> SYSTEM ONLINE // CORE v4.0
-        <span style="color:#64748b; margin-left:10px;"><i class="fa-solid fa-microchip"></i> NEURAL AI MATRIX: ACTIVE</span>
+        <span class="online-dot"></span> SYSTEM ONLINE // CORE v4.5
+        <span id="time-greeting" style="color:#64748b; margin-left:10px;"><i class="fa-solid fa-sun"></i> おはようございます！</span>
       </div>
       <div class="top-status-right">
-        <div id="real-clock"><i class="fa-regular fa-clock"></i> 読み込み中...</div>
-        <button class="sys-btn" id="sfx-toggle" onclick="toggleSFX()"><i class="fa-solid fa-volume-xmark"></i> SFX OFF</button>
-        <button class="sys-btn" style="color:var(--accent-purple); border-color:var(--border-purple);"><i class="fa-solid fa-medal"></i> 実績: 1/5</button>
+        <!-- 2. Mun Coin UI -->
+        <span class="sys-btn coin-disp sfx-click" onclick="openShop()" title="ショップを開く"><i class="fa-solid fa-coins"></i> <span id="global-coin-display">0</span> C</span>
+        <!-- 9. 文字サイズ変更 -->
+        <button class="sys-btn sfx-click" onclick="changeFontSize(0.1)" title="文字を大きく"><i class="fa-solid fa-a"></i>+</button>
+        <button class="sys-btn sfx-click" onclick="changeFontSize(-0.1)" title="文字を小さく"><i class="fa-solid fa-a"></i>-</button>
+        <!-- 7. 集中モードトングル -->
+        <button class="sys-btn sfx-click" onclick="toggleFocusMode()" id="focus-btn" title="集中モード"><i class="fa-solid fa-eye-slash"></i> 集中</button>
+        
+        <div id="real-clock" style="margin:0 10px;"><i class="fa-regular fa-clock"></i> 読み込み中...</div>
+        <button class="sys-btn sfx-click" id="sfx-toggle" onclick="toggleSFX()"><i class="fa-solid fa-volume-xmark"></i> SFX OFF</button>
       </div>
     </div>
 
@@ -364,17 +451,21 @@
         <div style="display: inline-block; padding: 6px 16px; border-radius: 20px; background: rgba(0,242,255,0.1); color: var(--accent-cyan); font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(0,242,255,0.3); margin-bottom: 16px; box-shadow: var(--glow-cyan);">
           <i class="fa-solid fa-bolt"></i> GIGAスクール構想対応 次世代EdTechポータル
         </div>
-        <h1 class="title-gradient"><i class="fa-solid fa-graduation-cap" style="color:var(--accent-cyan);"></i> むん先生の学習クエスト</h1>
+        <!-- 14. イースターエッグ (クリックで発動) -->
+        <h1 class="title-gradient sfx-click" id="main-title" onclick="triggerEasterEgg()"><i class="fa-solid fa-graduation-cap" style="color:var(--accent-cyan);"></i> むん先生の学習クエスト</h1>
         <p style="margin-top: 16px; line-height: 1.8; color: #cbd5e1; max-width:800px;">算数ドリル・社会・漢字・タイピング・クラス共有アプリまで！<br>ゲーミフィケーションが融合した最高峰のデジタル学習空間。お気に入りクエストを選んで冒険をはじめよう！</p>
+        
+        <!-- 34. リンク共有 -->
+        <button class="sys-btn sfx-click" onclick="sharePortal()" style="margin-top:20px;"><i class="fa-solid fa-share-nodes"></i> このポータルを共有</button>
       </div>
       
       <div class="search-area">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-cyan);"></i>
-          <input type="text" id="quest-search" placeholder="クエスト名や単元を検索...">
+          <input type="text" id="quest-search" placeholder="クエスト名や単元を検索... (Alt+S)">
         </div>
         <!-- ★お気に入り絞り込みボタン -->
-        <div class="fav-filter" id="fav-filter-btn" onclick="toggleFavFilter()">
+        <div class="fav-filter sfx-click" id="fav-filter-btn" onclick="toggleFavFilter()">
           <span><i class="fa-regular fa-star"></i> お気に入りクエストのみ</span>
           <span class="count" id="fav-count">0</span>
         </div>
@@ -386,10 +477,10 @@
       <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
         <i class="fa-solid fa-trophy" style="font-size: 2.5rem; color: var(--accent-cyan); filter: drop-shadow(0 0 10px rgba(0,242,255,0.5));"></i>
         <div style="flex: 1; max-width: 600px;">
-          <div style="color: #fff; font-weight: 900; font-size: 1.2rem; margin-bottom: 4px;">全クエストクリア達成度 <span style="color:var(--accent-cyan);">7% COMPLETE</span></div>
-          <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">全 27 クエスト中 2 個をコンプリート！</div>
+          <div style="color: #fff; font-weight: 900; font-size: 1.2rem; margin-bottom: 4px;">全クエストクリア達成度 <span style="color:var(--accent-cyan);" id="total-progress-text">0% COMPLETE</span></div>
+          <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;" id="total-progress-sub">全 28 クエスト中 0 個をコンプリート！</div>
           <div style="width: 100%; height: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="width: 7%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); box-shadow: var(--glow-cyan);"></div>
+            <div id="total-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); box-shadow: var(--glow-cyan); transition:1s;"></div>
           </div>
         </div>
       </div>
@@ -400,23 +491,30 @@
     <div class="dashboard-grid">
       <div class="dash-card daily-card tilt-effect">
         <div class="daily-bonus-tag">DAILY SPECIAL BONUS +50 EXP</div>
-        <div class="daily-tag"><i class="fa-solid fa-bullseye"></i> 本日のデイリーピックアップクエスト</div>
-        <div class="daily-title">大きな数のかけ算</div>
-        <div class="daily-desc">2けた・3けたの 大きな数のかけ算の仕方をマスター！</div>
+        <div class="daily-tag"><i class="fa-solid fa-bullseye"></i> 今日のミッション & ピックアップ</div>
+        
+        <!-- 4. デイリーミッションUI -->
+        <div class="daily-quests" id="daily-quests-ui">
+          <div class="dq-item" onclick="this.classList.toggle('done')"><i class="fa-regular fa-square-check"></i> タイマーを1回使う</div>
+          <div class="dq-item" onclick="this.classList.toggle('done')"><i class="fa-regular fa-square-check"></i> アプリを1つお気に入り登録</div>
+          <div class="dq-item" onclick="this.classList.toggle('done')"><i class="fa-regular fa-square-check"></i> ピックアップクエストをプレイ</div>
+        </div>
+
+        <div class="daily-title" style="font-size: 1.3rem;">大きな数のかけ算</div>
+        <div class="daily-desc" style="margin-bottom: 15px;">2けた・3けたの 大きな数のかけ算の仕方をマスター！</div>
         <div class="daily-actions">
           <div style="display:flex; gap:10px; align-items:center;">
-            <span style="background:rgba(0,242,255,0.1); color:var(--accent-cyan); padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold;">3年生 算数</span>
-            <button id="daily-claim" class="daily-claim-btn sfx-click" onclick="claimDaily()"><i class="fa-solid fa-trophy"></i> 特別ボーナス受け取り (+50 EXP)</button>
+            <button id="daily-claim" class="daily-claim-btn sfx-click" onclick="claimDaily()"><i class="fa-solid fa-trophy"></i> ボーナス受け取り</button>
           </div>
-          <button class="daily-play-btn sfx-click" onclick="location.href='./09ookiikazunokakezannnosikata/index.html'">今すぐ挑戦 <i class="fa-solid fa-sparkles"></i></button>
+          <button class="daily-play-btn sfx-click" onclick="location.href='./09ookiikazunokakezannnosikata/index.html'">挑戦 <i class="fa-solid fa-sparkles"></i></button>
         </div>
       </div>
 
-      <!-- 集中学習タイマーカード（自由設定対応） -->
-      <div class="dash-card timer-dash tilt-effect">
+      <!-- 集中学習タイマーカード -->
+      <div class="dash-card timer-dash tilt-effect" id="timer-dash-box">
         <div class="timer-top-tag">
           <span style="color:var(--accent-pink);"><i class="fa-solid fa-fire"></i> 集中学習タイマー</span>
-          <span class="timer-pomodoro-tag">POMODORO</span>
+          <span class="timer-pomodoro-tag">POMODORO (Alt+T)</span>
         </div>
         <div id="pomo-display-area" onclick="editPomoTime()" title="クリックで時間を変更して保存できます">
           <div class="timer-time-display sfx-click" id="pomo-time">25:00</div>
@@ -435,23 +533,35 @@
       </div>
     </div>
 
-    <!-- 10の超便利ツール群 (欠落させずに完全に保持) -->
+    <!-- 10の超便利ツール群 + 新規ツール -->
     <div class="tool-hub tilt-effect">
       <div class="tool-hub-title"><i class="fa-solid fa-toolbox" style="color: var(--accent-purple);"></i> 日常・学習で使える超便利ツール</div>
       <div class="tool-nav">
-        <button class="tool-btn active sfx-hover sfx-click" onclick="openTool('t-inv', this)"><i class="fa-solid fa-backpack" style="color:#f43f5e;"></i> 持ち物カスタム</button>
-        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-read', this)"><i class="fa-solid fa-book-open" style="color:#3b82f6;"></i> 読書通帳</button>
-        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-stopwatch', this)"><i class="fa-solid fa-stopwatch" style="color:#a855f7;"></i> 音読・計算タイマー</button>
-        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-health', this)"><i class="fa-solid fa-moon" style="color:#fbbf24;"></i> 体調＆睡眠ログ</button>
-        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-event', this)"><i class="fa-solid fa-calendar-days" style="color:#8b5cf6;"></i> 行事カウントダウン</button>
+        <!-- 既存 -->
+        <button class="tool-btn active sfx-hover sfx-click" onclick="openTool('t-inv', this)"><i class="fa-solid fa-backpack" style="color:#f43f5e;"></i> 持ち物</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-read', this)"><i class="fa-solid fa-book-open" style="color:#3b82f6;"></i> 読書</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-stopwatch', this)"><i class="fa-solid fa-stopwatch" style="color:#a855f7;"></i> SW/タイマー</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-health', this)"><i class="fa-solid fa-moon" style="color:#fbbf24;"></i> 体調</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-event', this)"><i class="fa-solid fa-calendar-days" style="color:#8b5cf6;"></i> カウントダウン</button>
         <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-flash', this)"><i class="fa-solid fa-clone" style="color:#ec4899;"></i> 暗記カード</button>
-        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-chore', this)"><i class="fa-solid fa-star" style="color:#eab308;"></i> お手伝いポイント</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-chore', this)"><i class="fa-solid fa-star" style="color:#eab308;"></i> お手伝い</button>
         <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-quiz', this)"><i class="fa-solid fa-question" style="color:#06b6d4;"></i> 自作クイズ</button>
+        <!-- 新規追加 -->
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-dice', this)"><i class="fa-solid fa-dice" style="color:#f97316;"></i> サイコロ</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-calc', this)"><i class="fa-solid fa-calculator" style="color:#10b981;"></i> 電卓</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-fortune', this)"><i class="fa-solid fa-wand-sparkles" style="color:#d946ef;"></i> おみくじ</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-draw', this)"><i class="fa-solid fa-palette" style="color:#f43f5e;"></i> お絵かきメモ</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-unit', this)"><i class="fa-solid fa-ruler" style="color:#0ea5e9;"></i> 単位変換</button>
+        <button class="tool-btn sfx-hover sfx-click" onclick="openTool('t-bgm', this)"><i class="fa-solid fa-music" style="color:#a855f7;"></i> 環境音BGM</button>
       </div>
 
       <!-- 持ち物カスタム -->
       <div id="t-inv" class="tool-content active">
-        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-backpack"></i> 明日の持ち物チェック (自由編集)</h3>
+        <div style="display:flex; justify-content:space-between;">
+          <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-backpack"></i> 明日の持ち物チェック</h3>
+          <!-- 29. リセットボタン -->
+          <button class="sys-btn sfx-click" onclick="resetInv()"><i class="fa-solid fa-rotate-left"></i> リセット</button>
+        </div>
         <div class="input-row">
           <input type="text" id="inv-input" class="cool-input" placeholder="持ち物を追加 (例: 絵の具セット)">
           <button class="cool-btn sfx-click" onclick="addInventory()">追加 <i class="fa-solid fa-plus"></i></button>
@@ -480,18 +590,20 @@
           <button id="mode-sw" class="active sfx-click" onclick="switchTimerMode('sw')">ストップウォッチ</button>
           <button id="mode-tm" class="sfx-click" onclick="switchTimerMode('tm')">カスタムタイマー</button>
         </div>
-        <div class="timer-display">
+        <div class="timer-display" style="text-align:center;">
           <h3 id="timer-title" style="color:var(--accent-cyan); margin-bottom:10px;">音読・暗算ストップウォッチ</h3>
-          <div class="time-huge" id="time-display">0.00 <span style="font-size:2rem;">秒</span></div>
+          <div class="time-huge" id="time-display" style="font-size:4rem; font-weight:bold; color:#fff;">0.00 <span style="font-size:2rem;">秒</span></div>
           <div id="timer-inputs" style="display:none; justify-content:center; gap:10px; margin: 20px 0;">
             <input type="number" id="tm-min" class="cool-input" placeholder="分" style="width:100px; text-align:center; font-size:1.5rem;" min="0" value="3">
             <span style="color:#fff; font-size:2rem; font-weight:bold;">:</span>
             <input type="number" id="tm-sec" class="cool-input" placeholder="秒" style="width:100px; text-align:center; font-size:1.5rem;" min="0" max="59" value="0">
           </div>
-          <div class="timer-controls" style="margin-top:30px;">
+          <div class="timer-controls" style="margin-top:30px; display:flex; justify-content:center; gap:10px;">
             <button class="cool-btn sfx-click" id="timer-start-btn" onclick="toggleTimer()" style="padding:16px 40px; font-size:1.2rem;">スタート</button>
+            <button class="btn-outline sfx-click" onclick="lapTimer()" id="lap-btn">ラップ</button> <!-- 27. ラップ機能 -->
             <button class="btn-outline sfx-click" onclick="resetTimer()">リセット</button>
           </div>
+          <div id="lap-list" style="margin-top:10px; color:#94a3b8; font-size:0.9rem;"></div>
         </div>
       </div>
       <!-- 体調＆睡眠ログ -->
@@ -510,6 +622,11 @@
               <button class="mood-btn sfx-click" id="mood-tired" onclick="setMood('tired')">ちょっと疲れ</button>
             </div>
           </div>
+          <!-- 25. 水分トラッカー -->
+          <div class="health-card" style="grid-column: 1 / -1;">
+            <div style="color:#fff; font-weight:bold;">💧 今日の水分補給: <span id="water-val">0</span> 杯</div>
+            <button class="cool-btn sfx-click" onclick="addWater()" style="margin-top:10px;"><i class="fa-solid fa-glass-water"></i> 1杯飲んだ！</button>
+          </div>
         </div>
       </div>
       <!-- 行事カウントダウン -->
@@ -524,7 +641,11 @@
       </div>
       <!-- 暗記カード -->
       <div id="t-flash" class="tool-content">
-        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-clone"></i> 暗記・重要単語フラッシュカード</h3>
+        <div style="display:flex; justify-content:space-between;">
+          <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-clone"></i> 暗記・重要単語フラッシュカード</h3>
+          <!-- 28. シャッフルボタン -->
+          <button class="sys-btn sfx-click" onclick="shuffleFc()"><i class="fa-solid fa-shuffle"></i> シャッフル</button>
+        </div>
         <div class="input-row">
           <input type="text" id="fc-q" class="cool-input" placeholder="問題・表">
           <input type="text" id="fc-a" class="cool-input" placeholder="答え・裏">
@@ -552,12 +673,63 @@
         </div>
         <div class="list-grid" id="qz-list"></div>
       </div>
+
+      <!-- 新規ツール群 19~24 -->
+      <!-- 19. サイコロ -->
+      <div id="t-dice" class="tool-content text-center" style="text-align:center;">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-dice"></i> デジタルサイコロ</h3>
+        <div id="dice-result" style="font-size:5rem; font-weight:bold; color:var(--accent-cyan); margin:20px;">🎲</div>
+        <button class="cool-btn sfx-click" onclick="rollDice()">サイコロを振る！</button>
+      </div>
+      <!-- 21. 電卓 -->
+      <div id="t-calc" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-calculator"></i> 簡易電卓</h3>
+        <div class="input-row">
+          <input type="text" id="calc-in" class="cool-input" placeholder="例: 15 * 3 + 2" onkeypress="if(event.key==='Enter') doCalc()">
+          <button class="cool-btn sfx-click" onclick="doCalc()">計算 =</button>
+        </div>
+        <div id="calc-res" style="font-size:2rem; color:var(--accent-gold); font-weight:bold;">0</div>
+      </div>
+      <!-- 22. おみくじ -->
+      <div id="t-fortune" class="tool-content" style="text-align:center;">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-wand-sparkles"></i> 今日の運勢おみくじ</h3>
+        <button class="cool-btn sfx-click" onclick="drawFortune()">おみくじを引く</button>
+        <div id="fortune-res" style="font-size:3rem; font-weight:bold; color:#fff; margin-top:20px;"></div>
+      </div>
+      <!-- 24. お絵かき -->
+      <div id="t-draw" class="tool-content">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+          <h3 style="color:#fff;"><i class="fa-solid fa-palette"></i> お絵かきメモボード</h3>
+          <button class="sys-btn sfx-click" onclick="clearCanvas()">クリア</button>
+        </div>
+        <canvas id="sketch-canvas"></canvas>
+      </div>
+      <!-- 23. 単位変換 -->
+      <div id="t-unit" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-ruler"></i> 単位変換ツール</h3>
+        <div class="input-row">
+          <input type="number" id="u-val" class="cool-input" placeholder="数値" value="1">
+          <select id="u-type" class="cool-input"><option value="10">cm → mm</option><option value="1000">km → m</option><option value="1000g">kg → g</option></select>
+          <button class="cool-btn sfx-click" onclick="doConvert()">変換</button>
+        </div>
+        <div id="u-res" style="font-size:1.5rem; color:#fff; font-weight:bold;"></div>
+      </div>
+      <!-- 6. 環境音BGM -->
+      <div id="t-bgm" class="tool-content">
+        <h3 style="color:#fff; margin-bottom:16px;"><i class="fa-solid fa-music"></i> 集中用 環境音BGM (疑似)</h3>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button class="cool-btn sfx-click" onclick="playMockBGM('rain')"><i class="fa-solid fa-cloud-rain"></i> 雨音</button>
+          <button class="cool-btn sfx-click" onclick="playMockBGM('cafe')"><i class="fa-solid fa-mug-hot"></i> カフェ</button>
+          <button class="cool-btn sfx-click" onclick="playMockBGM('stop')" style="background:#ef4444;"><i class="fa-solid fa-stop"></i> 停止</button>
+        </div>
+        <p style="text-align:center; margin-top:10px; font-size:0.8rem;">※WebAudioによる疑似ノイズ生成です</p>
+      </div>
+
     </div>
 
-
-    <!-- クイックナビゲーション -->
+    <!-- 43. クイックナビゲーション (スクロールスパイ対応) -->
     <div class="quick-nav-sticky">
-      <nav class="quick-nav-pill">
+      <nav class="quick-nav-pill" id="scroll-spy-nav">
         <a href="#sec-math" class="nav-item sfx-hover"><i class="fa-solid fa-pen-to-square"></i> 算数ドリル</a>
         <a href="#sec-social" class="nav-item sfx-hover"><i class="fa-solid fa-map-location-dot"></i> 社会</a>
         <a href="#sec-game" class="nav-item sfx-hover"><i class="fa-solid fa-gamepad"></i> 学習ゲーム</a>
@@ -566,13 +738,12 @@
       </nav>
     </div>
 
-
     <!-- ==============================================
-         メインコンテンツ（オリジナルアプリ群 ＋ 追加分 ＋ ★3Dホバー・お気に入り機能）
+          メインコンテンツ
     =============================================== -->
     <main id="app-main-area">
       <!-- 算数ドリル -->
-      <section id="sec-math" class="section-head">
+      <section id="sec-math" class="section-head spy-target">
         <div class="section-title"><i class="fa-solid fa-calculator"></i> 3年生 算数ドリル</div>
         <p class="section-sub">3年生の算数単元を順番にマスターできる練習コーナーです。</p>
       </section>
@@ -676,7 +847,6 @@
           <a href="./12kazunoarawasikata/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
         </article>
 
-        <!-- ★追加分 13 -->
         <article class="app-card tilt-effect" data-id="app-math-13">
           <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
           <button class="fav-btn sfx-click" onclick="toggleFav('app-math-13', event)" title="お気に入り"><i class="fa-solid fa-star"></i></button>
@@ -686,7 +856,6 @@
           <a href="./13bunnsuuwotukaxtutakazunoarawasikata/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
         </article>
 
-        <!-- ★追加分 14 -->
         <article class="app-card tilt-effect" data-id="app-math-14">
           <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
           <button class="fav-btn sfx-click" onclick="toggleFav('app-math-14', event)" title="お気に入り"><i class="fa-solid fa-star"></i></button>
@@ -696,7 +865,6 @@
           <a href="./14sikakuwotukaxtutakeisan/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
         </article>
 
-        <!-- ★追加分 15 -->
         <article class="app-card tilt-effect" data-id="app-math-15">
           <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
           <button class="fav-btn sfx-click" onclick="toggleFav('app-math-15', event)" title="お気に入り"><i class="fa-solid fa-star"></i></button>
@@ -706,7 +874,6 @@
           <a href="./15kakezannnohixtusann/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
         </article>
 
-        <!-- 既存 16 -->
         <article class="app-card tilt-effect" data-id="app-math-16">
           <button class="fav-btn sfx-click" onclick="toggleFav('app-math-16', event)" title="お気に入り"><i class="fa-solid fa-star"></i></button>
           <div class="card-icon"><i class="fa-solid fa-layer-group"></i></div>
@@ -715,7 +882,6 @@
           <a href="./16bainokeisan/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
         </article>
 
-        <!-- ★追加分 17 -->
         <article class="app-card tilt-effect" data-id="app-math-17">
           <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
           <button class="fav-btn sfx-click" onclick="toggleFav('app-math-17', event)" title="お気に入り"><i class="fa-solid fa-star"></i></button>
@@ -727,7 +893,7 @@
       </div>
 
       <!-- 社会用アプリ -->
-      <section id="sec-social" class="section-head">
+      <section id="sec-social" class="section-head spy-target">
         <div class="section-title"><i class="fa-solid fa-map-location-dot"></i> 社会科用アプリ</div>
         <p class="section-sub">地図や町のようす、地域の探険ができるアプリです。</p>
       </section>
@@ -743,7 +909,7 @@
       </div>
 
       <!-- 学習ゲーム -->
-      <section id="sec-game" class="section-head">
+      <section id="sec-game" class="section-head spy-target">
         <div class="section-title"><i class="fa-solid fa-gamepad"></i> 楽しく学ぶ！学習ゲーム</div>
         <p class="section-sub">ゲーム感覚で楽しく学べるコーナーです。遊びながら力をつけよう！</p>
       </section>
@@ -806,10 +972,20 @@
           <p class="card-desc">言葉を使って、みんなで楽しく学ぼう！</p>
           <a href="./tanosikugakusyuusiyou/kotobanotennkuuzyou/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
         </article>
+        
+        <!-- 1. 英語の町アプリ追加位置 -->
+        <article class="app-card tilt-effect" data-id="app-game-8">
+          <div class="badge badge-new"><i class="fa-solid fa-sparkles"></i> NEW</div>
+          <button class="fav-btn sfx-click" onclick="toggleFav('app-game-8', event)" title="お気に入り"><i class="fa-solid fa-star"></i></button>
+          <div class="card-icon"><i class="fa-solid fa-house-chimney"></i></div>
+          <h3 class="card-title">英語の町</h3>
+          <p class="card-desc">英単語を答えて自分だけの町を作ろう！</p>
+          <a href="./tanosikugakusyuusiyou/englishnomati/index.html" class="play-btn sfx-click">学習をはじめる <i class="fa-solid fa-circle-play"></i></a>
+        </article>
       </div>
 
       <!-- クラス用アプリ -->
-      <section id="sec-class" class="section-head">
+      <section id="sec-class" class="section-head spy-target">
         <div class="section-title"><i class="fa-solid fa-users"></i> クラス用共有アプリ</div>
         <p class="section-sub">友だちと一緒に意見をまとめたり、お絵かきができるツールです。</p>
       </section>
@@ -857,7 +1033,7 @@
       </div>
 
       <!-- 係用アプリ -->
-      <section id="sec-duty" class="section-head">
+      <section id="sec-duty" class="section-head spy-target">
         <div class="section-title"><i class="fa-solid fa-clipboard-check"></i> 係用アプリ</div>
         <p class="section-sub">クラスの係のお仕事を記録したり発表したりするアプリです。</p>
       </section>
@@ -872,11 +1048,17 @@
         </article>
       </div>
 
-      <!-- 先生用アプリ（暗号鍵解除エリア） -->
-      <section class="portal-section-teacher" id="section-teacher">
+      <!-- 先生用アプリ -->
+      <section class="portal-section-teacher spy-target" id="section-teacher">
         <div class="section-head">
           <div class="section-title" style="color: var(--accent-pink);"><i class="fa-solid fa-terminal"></i> 先生用アプリ (教員専用管理領域)</div>
           <p class="section-sub">宿題管理、引き渡し訓練、所見作成などを行う先生専用のメニューです。</p>
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="sys-btn" onclick="exportData()"><i class="fa-solid fa-file-export"></i> データ書出</button>
+            <button class="sys-btn" onclick="importData()"><i class="fa-solid fa-file-import"></i> データ読込</button>
+            <button class="sys-btn" style="color:#ef4444;" onclick="resetAllData()"><i class="fa-solid fa-bomb"></i> パニックリセット</button>
+            <button class="sys-btn" onclick="lockSystem()"><i class="fa-solid fa-lock"></i> 画面ロック</button>
+          </div>
         </div>
         <div class="card-grid">
           <article class="app-card tilt-effect" data-id="app-teacher-1" style="border-color: rgba(236,72,153,0.3);">
@@ -902,6 +1084,33 @@
             <p class="card-desc">通知表の所見作成や、日々の児童の記録管理を行います。</p>
             <a href="./sennseiyou/syokenn/index.html" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">管理する <i class="fa-solid fa-circle-play"></i></a>
           </article>
+
+          <!-- 37~40 先生アプリ追加 -->
+          <article class="app-card tilt-effect" data-id="app-teacher-4" style="border-color: rgba(236,72,153,0.3);">
+            <div class="card-icon" style="color: var(--accent-pink);"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <h3 class="card-title">クラスお知らせボード</h3>
+            <p class="card-desc">明日の予定や連絡事項をデジタル掲示板に送信。</p>
+            <a href="#" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">作成する <i class="fa-solid fa-circle-play"></i></a>
+          </article>
+          <article class="app-card tilt-effect" data-id="app-teacher-5" style="border-color: rgba(236,72,153,0.3);">
+            <div class="card-icon" style="color: var(--accent-pink);"><i class="fa-solid fa-user-check"></i></div>
+            <h3 class="card-title">出欠・健康観察シート</h3>
+            <p class="card-desc">毎朝の健康状態や出欠をワンタップで集計。</p>
+            <a href="#" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">集計する <i class="fa-solid fa-circle-play"></i></a>
+          </article>
+          <article class="app-card tilt-effect" data-id="app-teacher-6" style="border-color: rgba(236,72,153,0.3);">
+            <div class="card-icon" style="color: var(--accent-pink);"><i class="fa-solid fa-chair"></i></div>
+            <h3 class="card-title">座席表メーカー</h3>
+            <p class="card-desc">ドラッグ＆ドロップで簡単に座席表を作成・印刷。</p>
+            <a href="#" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">作成する <i class="fa-solid fa-circle-play"></i></a>
+          </article>
+          <article class="app-card tilt-effect" data-id="app-teacher-7" style="border-color: rgba(236,72,153,0.3);">
+            <div class="card-icon" style="color: var(--accent-pink);"><i class="fa-solid fa-ranking-star"></i></div>
+            <h3 class="card-title">ミニ成績・ポイント帳</h3>
+            <p class="card-desc">小テストの点数や、クラス目標のポイントを管理。</p>
+            <a href="#" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">管理する <i class="fa-solid fa-circle-play"></i></a>
+          </article>
+
         </div>
       </section>
     </main>
@@ -916,9 +1125,7 @@
 
   </div>
 
-  <!-- ==============================================
-       ★リニューアル：学習ステータスウィンドウ
-  =============================================== -->
+  <!-- 学習ステータスウィンドウ -->
   <div id="hud-navigator">
     <div id="status-window">
       <div class="chat-header">
@@ -933,7 +1140,6 @@
       </div>
 
       <div class="status-body">
-        <!-- プレイヤー情報 -->
         <div class="status-profile">
           <div class="profile-icon"><i class="fa-solid fa-user-astronaut"></i></div>
           <div>
@@ -942,7 +1148,6 @@
           </div>
         </div>
         
-        <!-- レベル＆EXP詳細 -->
         <div class="status-level-section">
           <div style="display:flex; justify-content:space-between; align-items:flex-end;">
             <span class="hud-level" id="status-level-num">Lv. 1</span>
@@ -952,7 +1157,6 @@
           <div style="text-align:right; font-size:0.75rem; color:#94a3b8; margin-top:6px; font-weight:bold;" id="status-next-exp">次のレベルまで: 100 EXP</div>
         </div>
 
-        <!-- 記録グリッド -->
         <div class="status-grid">
           <div class="status-box">
             <i class="fa-solid fa-fire" style="color:var(--accent-pink);"></i>
@@ -974,11 +1178,15 @@
             <div class="val" id="stat-books">0</div>
             <div class="lbl">読んだ本の数</div>
           </div>
+          <div class="status-box" style="grid-column: 1 / -1; background:rgba(0,242,255,0.1); border-color:var(--accent-cyan);">
+            <i class="fa-solid fa-stopwatch" style="color:var(--accent-cyan);"></i>
+            <div class="val" id="stat-focus">0分</div>
+            <div class="lbl">累計 集中学習時間</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- アイコン本体 -->
     <div id="hud-cat-avatar" class="sfx-hover sfx-click" onclick="toggleStatus()" title="学習ステータスを開く">
       <i class="fa-solid fa-cat"></i>
       <div class="hud-badge" id="avatar-level-badge">L1</div>
@@ -986,16 +1194,41 @@
   </div>
 
   <script>
+    // 汎用データ保存関数
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+    function loadData(key, defaultData = []) { return JSON.parse(localStorage.getItem(key)) || defaultData; }
+
+    // State Variables
+    let exp = parseInt(localStorage.getItem('mun_exp')) || 0;
+    let coins = parseInt(localStorage.getItem('mun_coins')) || 0;
+    let streak = parseInt(localStorage.getItem('mun_streak')) || 1;
+    let totalFocusMins = parseInt(localStorage.getItem('mun_focus_total')) || 0;
+    let lastLoginDate = localStorage.getItem('munQuest_lastLogin');
+    const EXP_STEP = 100;
+    
+    let isFocusMode = false;
+    let fontSizeScale = parseFloat(localStorage.getItem('mun_font_scale')) || 1.0;
+    let activeTheme = localStorage.getItem('mun_theme') || 'default';
+    
     // ==========================================
-    // 起動アニメーション
+    // 起動アニメーション & 初期設定
     // ==========================================
     window.addEventListener('load', () => {
+      document.documentElement.style.setProperty('--font-scale', fontSizeScale);
+      applyTheme(activeTheme);
+      
       setTimeout(() => {
         const boot = document.getElementById('boot-screen');
         boot.style.opacity = '0';
         setTimeout(() => boot.style.display = 'none', 1000);
         showToast("SYSTEM ONLINE: ようこそ、むんクエストへ", "fa-check");
       }, 1500);
+
+      // デイリーミッションのリセット判定
+      const todayStr = new Date().toDateString();
+      if (lastLoginDate !== todayStr) {
+        document.querySelectorAll('.dq-item').forEach(el => el.classList.remove('done'));
+      }
     });
 
     // ==========================================
@@ -1003,6 +1236,8 @@
     // ==========================================
     let sfxEnabled = false;
     let audioCtx;
+    let bgmOsc = null;
+    
     function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     
     function toggleSFX() {
@@ -1032,13 +1267,40 @@
         osc.type = 'triangle'; osc.frequency.setValueAtTime(440, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
         gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.1, now + 0.1); gain.gain.linearRampToValueAtTime(0, now + 0.3);
         osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'coin') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now); osc.frequency.setValueAtTime(1600, now+0.1);
+        gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
       }
     }
     document.querySelectorAll('.sfx-hover').forEach(el => el.addEventListener('mouseenter', () => playSFX('hover')));
     document.querySelectorAll('.sfx-click').forEach(el => el.addEventListener('click', () => playSFX('click')));
 
+    function playMockBGM(type) {
+      initAudio();
+      if(bgmOsc) { bgmOsc.stop(); bgmOsc.disconnect(); bgmOsc = null; }
+      if(type === 'stop') return;
+      
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+      
+      bgmOsc = audioCtx.createBufferSource();
+      bgmOsc.buffer = buffer; bgmOsc.loop = true;
+      
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = type === 'rain' ? 'lowpass' : 'bandpass';
+      filter.frequency.value = type === 'rain' ? 400 : 1000;
+      
+      const gain = audioCtx.createGain(); gain.gain.value = 0.05;
+      bgmOsc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+      bgmOsc.start();
+      showToast(`${type} のBGMを再生中`, "fa-music");
+    }
+
     // ==========================================
-    // トースト通知システム
+    // トースト通知システム (スタック対応)
     // ==========================================
     function showToast(message, icon) {
       const container = document.getElementById('toast-container');
@@ -1051,7 +1313,7 @@
     }
 
     // ==========================================
-    // Canvas パーティクル背景
+    // Canvas 背景 & ティルト
     // ==========================================
     const canvas = document.getElementById('canvas-bg');
     const ctx = canvas.getContext('2d');
@@ -1081,9 +1343,6 @@
     }
     initParticles(); animateParticles();
 
-    // ==========================================
-    // 3D ティルト (傾き) エフェクト
-    // ==========================================
     document.querySelectorAll('.tilt-effect').forEach(card => {
       card.addEventListener('mousemove', e => {
         const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
@@ -1095,87 +1354,138 @@
     });
 
     // ==========================================
-    // 時計と背景アニメーション
+    // 時計と時間帯別挨拶
     // ==========================================
     function updateClock() {
       const now = new Date();
-      const str = now.getFullYear() + "." + String(now.getMonth()+1).padStart(2,'0') + "." + String(now.getDate()).padStart(2,'0') + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0') + ":" + String(now.getSeconds()).padStart(2,'0') + " JST";
+      const h = now.getHours();
+      const str = now.getFullYear() + "." + String(now.getMonth()+1).padStart(2,'0') + "." + String(now.getDate()).padStart(2,'0') + " " + String(h).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0') + ":" + String(now.getSeconds()).padStart(2,'0') + " JST";
       document.getElementById('real-clock').innerHTML = `<i class="fa-regular fa-clock"></i> ${str}`;
+      
+      let greet = "こんにちは！"; let icon = "fa-sun";
+      if(h >= 5 && h < 11) { greet = "おはようございます！"; icon = "fa-sun"; }
+      else if(h >= 17 || h < 5) { greet = "こんばんは！"; icon = "fa-moon"; }
+      document.getElementById('time-greeting').innerHTML = `<i class="fa-solid ${icon}"></i> ${greet}`;
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(updateClock, 1000); updateClock();
+
+    // タブ点滅
+    let titleTimer; const originalTitle = document.title;
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        let toggle = false;
+        titleTimer = setInterval(() => { document.title = toggle ? "⚠️ 戻ってきて！" : originalTitle; toggle = !toggle; }, 1000);
+      } else { clearInterval(titleTimer); document.title = originalTitle; }
+    });
 
     // ==========================================
-    // 汎用データ保存関数
+    // ログインボーナス & コイン・EXP管理
     // ==========================================
-    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-    function loadData(key, defaultData = []) { return JSON.parse(localStorage.getItem(key)) || defaultData; }
-
-    // ==========================================
-    // デイリーボーナス＆ログインストリーク
-    // ==========================================
-    let exp = parseInt(localStorage.getItem('mun_exp')) || 60;
-    let streak = parseInt(localStorage.getItem('mun_streak')) || 1;
-    let lastLoginDate = localStorage.getItem('munQuest_lastLogin');
-
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date();
       const todayStr = today.toDateString();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toDateString();
 
       if (lastLoginDate === yesterdayStr) { streak++; } else if (lastLoginDate !== todayStr) { streak = 1; }
       localStorage.setItem('mun_streak', streak);
-
       if (lastLoginDate !== todayStr) { setTimeout(() => document.getElementById('login-modal').classList.add('show'), 600); }
       
-      initFavs(); addExp(0); updateStatsUI();
+      initFavs(); updateGlobalExp(0); updateStatsUI();
     });
 
     function acceptBonus() {
-      addExp(30);
+      updateGlobalExp(30); addCoins(10);
       localStorage.setItem('munQuest_lastLogin', new Date().toDateString());
       document.getElementById('login-modal').classList.remove('show');
-      showToast("デイリーログインボーナス！", "fa-gift");
+      showToast("デイリーボーナス獲得！", "fa-gift");
       updateStatsUI();
     }
 
     function claimDaily() {
       const btn = document.getElementById('daily-claim');
       if(btn.classList.contains('claimed')) return;
-      addExp(50);
+      updateGlobalExp(50); addCoins(20);
       btn.classList.add('claimed');
       btn.innerHTML = `<i class="fa-solid fa-check"></i> 受け取り済み`;
-      showToast("デイリーボーナス 50 EXP 獲得しました！", "fa-trophy");
+      showToast("ミッション達成ボーナス 50 EXP / 20 C 獲得！", "fa-trophy");
     }
 
-    // ==========================================
-    // ステータス・EXP管理システム
-    // ==========================================
-    const EXP_STEP = 100;
-    
-    function addExp(amount) {
-      exp += amount;
-      localStorage.setItem('mun_exp', exp);
+    function addCoins(amount) {
+      coins += amount; localStorage.setItem('mun_coins', coins);
+      document.getElementById('global-coin-display').innerText = coins;
+      document.getElementById('shop-coin-disp').innerText = coins;
+      playSFX('coin');
+    }
+
+    function updateGlobalExp(amount) {
+      const oldLvl = Math.floor(exp / EXP_STEP) + 1;
+      exp += amount; localStorage.setItem('mun_exp', exp);
+      const newLvl = Math.floor(exp / EXP_STEP) + 1;
       
+      if(newLvl > oldLvl && amount > 0) {
+        document.getElementById('lvlup-text').innerText = `Lv. ${newLvl} に上がった！`;
+        document.getElementById('levelup-modal').classList.add('show');
+        playSFX('startup');
+      }
+
       document.getElementById('global-exp-display').innerHTML = `<i class="fa-solid fa-fire"></i> TOTAL EXP: ${exp}`;
       
-      const lvl = Math.floor(exp / EXP_STEP) + 1;
       const progress = ((exp % EXP_STEP) / EXP_STEP) * 100;
       const needed = EXP_STEP - (exp % EXP_STEP);
       
-      document.getElementById('status-level-num').innerText = `Lv. ${lvl}`;
+      document.getElementById('status-level-num').innerText = `Lv. ${newLvl}`;
       document.getElementById('status-exp-text').innerText = `${exp % EXP_STEP} / ${EXP_STEP} EXP`;
       document.getElementById('status-exp-fill').style.width = `${progress}%`;
       document.getElementById('status-next-exp').innerText = `次のレベルまで: ${needed} EXP`;
-      document.getElementById('avatar-level-badge').innerText = `L${lvl}`;
+      document.getElementById('avatar-level-badge').innerText = `L${newLvl}`;
 
       let title = "見習い勇者";
-      if(lvl >= 5) title = "一人前の冒険者";
-      if(lvl >= 10) title = "熟練の魔法使い";
-      if(lvl >= 20) title = "伝説のマスター";
+      if(newLvl >= 5) title = "一人前の冒険者";
+      if(newLvl >= 10) title = "熟練の魔法使い";
+      if(newLvl >= 20) title = "伝説のマスター";
       document.getElementById('status-title-text').innerHTML = `<i class="fa-solid fa-medal"></i> 称号: ${title}`;
+      
+      // グローバルプログレスバー (ダミー計算28アプリ)
+      const totalP = Math.min(100, Math.floor((exp / (28*50)) * 100));
+      document.getElementById('total-progress-bar').style.width = `${totalP}%`;
+      document.getElementById('total-progress-text').innerText = `${totalP}% COMPLETE`;
+      document.getElementById('total-progress-sub').innerText = `全 28 クエスト中 ${Math.floor(totalP/100*28)} 個相当をコンプリート！`;
+    }
+
+    function closeLevelUp() { document.getElementById('levelup-modal').classList.remove('show'); }
+
+    // ==========================================
+    // ショップ & テーマ機能 & 文字サイズ
+    // ==========================================
+    function openShop() { document.getElementById('shop-modal').classList.add('show'); document.getElementById('shop-coin-disp').innerText = coins;}
+    function closeShop() { document.getElementById('shop-modal').classList.remove('show'); }
+    function buyTheme(theme, price) {
+      if(coins >= price) {
+        addCoins(-price); applyTheme(theme); showToast(`${theme}テーマを購入・適用しました！`, "fa-cart-shopping");
+      } else { showToast("コインが足りません", "fa-triangle-exclamation"); }
+    }
+    function applyTheme(theme) {
+      activeTheme = theme; localStorage.setItem('mun_theme', theme);
+      document.body.className = '';
+      if(theme !== 'default') document.body.classList.add(`theme-${theme}`);
+    }
+    function changeFontSize(delta) {
+      fontSizeScale = Math.max(0.8, Math.min(1.5, fontSizeScale + delta));
+      localStorage.setItem('mun_font_scale', fontSizeScale);
+      document.documentElement.style.setProperty('--font-scale', fontSizeScale);
+    }
+    function toggleFocusMode() {
+      isFocusMode = !isFocusMode;
+      if(isFocusMode) { document.body.classList.add('focus-mode'); showToast("集中モードON", "fa-eye-slash"); }
+      else { document.body.classList.remove('focus-mode'); showToast("集中モードOFF", "fa-eye"); }
+    }
+
+    // イースターエッグ
+    let clickCount = 0;
+    function triggerEasterEgg() {
+      clickCount++;
+      if(clickCount === 10) { addCoins(10000); showToast("イースターエッグ発見！10000C獲得！", "fa-dragon"); clickCount = 0;}
     }
 
     function toggleStatus() {
@@ -1183,21 +1493,19 @@
       win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
       updateStatsUI();
     }
-
     function updateStatsUI() {
       document.getElementById('stat-streak').innerText = streak;
       document.getElementById('stat-favs').innerText = loadData('mun_favs', []).length;
-      
       let tasksDone = 0;
       loadData('mun_inv', []).forEach(i => { if(i.d) tasksDone++; });
       loadData('mun_chore', []).forEach(c => { if(c.d) tasksDone++; });
       document.getElementById('stat-tasks').innerText = tasksDone;
-      
       document.getElementById('stat-books').innerText = loadData('mun_read', []).length;
+      document.getElementById('stat-focus').innerText = totalFocusMins + "分";
     }
 
     // ==========================================
-    // ★ 検索機能 ＆ お気に入り機能
+    // お気に入り機能 & 検索 & スクロールスパイ
     // ==========================================
     let favorites = loadData('mun_favs', []);
     let isFavFilterOn = false;
@@ -1207,10 +1515,7 @@
       document.querySelectorAll('.app-card').forEach(card => {
         const id = card.getAttribute('data-id');
         const favBtn = card.querySelector('.fav-btn');
-        if (favorites.includes(id)) {
-          favBtn.classList.add('active');
-          favBtn.innerHTML = `<i class="fa-solid fa-star"></i>`;
-        }
+        if (favorites.includes(id)) { favBtn.classList.add('active'); favBtn.innerHTML = `<i class="fa-solid fa-star"></i>`; }
       });
       document.getElementById('fav-count').innerText = favorites.length;
     }
@@ -1218,65 +1523,65 @@
     function toggleFav(id, event) {
       event.preventDefault(); initAudio();
       const btn = event.currentTarget;
-      
       if (favorites.includes(id)) {
         favorites = favorites.filter(f => f !== id);
-        btn.classList.remove('active');
-        btn.innerHTML = `<i class="fa-solid fa-star"></i>`;
+        btn.classList.remove('active'); btn.innerHTML = `<i class="fa-solid fa-star"></i>`;
       } else {
         favorites.push(id);
-        btn.classList.add('active');
-        btn.innerHTML = `<i class="fa-solid fa-star"></i>`;
+        btn.classList.add('active'); btn.innerHTML = `<i class="fa-solid fa-star"></i>`;
         showToast("お気に入りに追加しました！ +10 EXP", "fa-star");
-        addExp(10);
+        updateGlobalExp(10);
       }
-      
       saveData('mun_favs', favorites);
       document.getElementById('fav-count').innerText = favorites.length;
-      applyFilters();
-      updateStatsUI();
+      applyFilters(); updateStatsUI();
     }
 
     function toggleFavFilter() {
-      initAudio();
-      isFavFilterOn = !isFavFilterOn;
+      initAudio(); isFavFilterOn = !isFavFilterOn;
       const btn = document.getElementById('fav-filter-btn');
       if (isFavFilterOn) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
       applyFilters();
     }
-
     searchInput.addEventListener('input', applyFilters);
 
     function applyFilters() {
       const query = searchInput.value.toLowerCase();
-      
       document.querySelectorAll('.app-card').forEach(card => {
         const title = card.querySelector('.card-title').innerText.toLowerCase();
         const desc = card.querySelector('.card-desc').innerText.toLowerCase();
         const id = card.getAttribute('data-id');
         const isFav = favorites.includes(id);
-
         const matchSearch = title.includes(query) || desc.includes(query);
         const matchFav = !isFavFilterOn || isFav;
-
-        if (matchSearch && matchFav) {
-          card.style.display = 'flex';
-          setTimeout(() => card.style.opacity = '1', 50);
-        } else {
-          card.style.opacity = '0';
-          setTimeout(() => card.style.display = 'none', 300);
-        }
+        if (matchSearch && matchFav) { card.style.display = 'flex'; setTimeout(() => card.style.opacity = '1', 50); } 
+        else { card.style.opacity = '0'; setTimeout(() => card.style.display = 'none', 300); }
       });
     }
 
+    // スクロールスパイ
+    const sections = document.querySelectorAll('.spy-target');
+    const navItems = document.querySelectorAll('#scroll-spy-nav .nav-item');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(sec => { if(window.scrollY >= sec.offsetTop - 150) current = sec.getAttribute('id'); });
+      navItems.forEach(a => {
+        a.classList.remove('active');
+        if(a.getAttribute('href').substring(1) === current) a.classList.add('active');
+      });
+      // Scroll to top button
+      const stBtn = document.getElementById('scroll-top');
+      if(window.scrollY > 300) stBtn.classList.add('show'); else stBtn.classList.remove('show');
+    });
+    document.getElementById('scroll-top').addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
     // ==========================================
-    // 集中学習タイマー (時間設定・自動保存対応)
+    // タイマー・ストップウォッチ群
     // ==========================================
     let pomoInterval = null;
     let pomoRunning = false;
     let pomoSetTime = parseInt(localStorage.getItem('mun_pomo_time')) || (25 * 60);
     let pomoRemain = pomoSetTime;
-
     const pomoDisp = document.getElementById('pomo-time');
     const pomoDispArea = document.getElementById('pomo-display-area');
     const pomoEditArea = document.getElementById('pomo-edit-area');
@@ -1286,133 +1591,101 @@
       const s = (pomoRemain % 60).toString().padStart(2, '0');
       pomoDisp.innerText = `${m}:${s}`;
     }
-
     function editPomoTime() {
       if(pomoRunning) return;
-      pomoDispArea.style.display = 'none';
-      pomoEditArea.style.display = 'flex';
+      pomoDispArea.style.display = 'none'; pomoEditArea.style.display = 'flex';
       document.getElementById('pomo-edit-min').value = Math.floor(pomoSetTime / 60);
       document.getElementById('pomo-edit-sec').value = pomoSetTime % 60;
     }
-
     function savePomoTime() {
       const m = parseInt(document.getElementById('pomo-edit-min').value) || 0;
       const s = parseInt(document.getElementById('pomo-edit-sec').value) || 0;
-      pomoSetTime = (m * 60) + s;
-      pomoRemain = pomoSetTime;
+      pomoSetTime = (m * 60) + s; pomoRemain = pomoSetTime;
       localStorage.setItem('mun_pomo_time', pomoSetTime);
-      pomoEditArea.style.display = 'none';
-      pomoDispArea.style.display = 'block';
+      pomoEditArea.style.display = 'none'; pomoDispArea.style.display = 'block';
       updatePomoUI();
     }
-
     function togglePomoTimer() {
       const btn = document.getElementById('pomo-start-btn');
+      const dash = document.getElementById('timer-dash-box');
       if (pomoRunning) {
-        clearInterval(pomoInterval);
-        pomoRunning = false;
-        btn.innerHTML = `<i class="fa-solid fa-play"></i> 再開`;
-        btn.style.background = "var(--accent-purple)";
+        clearInterval(pomoInterval); pomoRunning = false;
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> 再開`; btn.style.background = "var(--accent-purple)";
+        dash.classList.remove('running');
       } else {
         if(pomoRemain <= 0) return;
-        pomoRunning = true;
-        btn.innerHTML = `<i class="fa-solid fa-pause"></i> 一時停止`;
-        btn.style.background = "rgba(255,255,255,0.2)";
-        
+        pomoRunning = true; dash.classList.add('running');
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i> 一時停止`; btn.style.background = "rgba(255,255,255,0.2)";
         pomoInterval = setInterval(() => {
           if (pomoRemain > 0) {
-            pomoRemain--;
-            updatePomoUI();
+            pomoRemain--; updatePomoUI();
+            if(pomoRemain % 60 === 0) { totalFocusMins++; localStorage.setItem('mun_focus_total', totalFocusMins); }
           } else {
-            togglePomoTimer();
-            showToast("タイマー完了！目標達成お疲れ様！", "fa-bell");
-            resetPomoTimer();
+            togglePomoTimer(); playSFX('startup');
+            showToast("タイマー完了！目標達成お疲れ様！50C獲得", "fa-bell");
+            addCoins(50); updateGlobalExp(20);
+            pomoRemain = 5 * 60; // 自動休憩5分
+            document.getElementById('pomo-sub').innerText = "自動休憩モード(5分)に入りました。";
+            updatePomoUI();
           }
         }, 1000);
       }
     }
-
     function resetPomoTimer() {
-      clearInterval(pomoInterval);
-      pomoRunning = false;
-      pomoRemain = pomoSetTime;
-      const btn = document.getElementById('pomo-start-btn');
-      btn.innerHTML = `<i class="fa-solid fa-play"></i> スタート`;
-      btn.style.background = "var(--accent-purple)";
+      clearInterval(pomoInterval); pomoRunning = false; pomoRemain = pomoSetTime;
+      document.getElementById('pomo-start-btn').innerHTML = `<i class="fa-solid fa-play"></i> スタート`;
+      document.getElementById('pomo-start-btn').style.background = "var(--accent-purple)";
+      document.getElementById('timer-dash-box').classList.remove('running');
+      document.getElementById('pomo-sub').innerHTML = "設定した時間、集中してクエストをクリアしよう！<br><span style='font-size:0.75rem; color:#64748b;'>(※時間をタップで変更可能)</span>";
       updatePomoUI();
     }
     updatePomoUI();
 
     // ==========================================
-    // ツールハブ関連のコード
+    // ツールハブ関連 1~17
     // ==========================================
     function openTool(id, btn) {
       document.querySelectorAll('.tool-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tool-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      btn.classList.add('active');
+      document.getElementById(id).classList.add('active'); btn.classList.add('active');
     }
 
     // 1. 持ち物
     let invData = loadData('mun_inv', [{id:1, t:"連絡帳", d:false}, {id:2, t:"筆箱", d:false}]);
     function renderInv() {
-      const list = document.getElementById('inv-list');
-      list.innerHTML = invData.map(i => `
-        <div class="list-item ${i.d ? 'done' : ''}">
-          <div style="display:flex; align-items:center;">
-            <i class="fa-regular ${i.d ? 'fa-circle-check' : 'fa-circle'} check-box-ui sfx-click" onclick="toggleInv(${i.id})"></i>
-            <span class="item-title">${i.t}</span>
-          </div>
-          <button class="del-btn sfx-click" onclick="delInv(${i.id})"><i class="fa-solid fa-trash-can"></i></button>
-        </div>
-      `).join('');
+      document.getElementById('inv-list').innerHTML = invData.map(i => `<div class="list-item ${i.d ? 'done' : ''}"><div style="display:flex; align-items:center;"><i class="fa-regular ${i.d ? 'fa-circle-check' : 'fa-circle'} check-box-ui sfx-click" onclick="toggleInv(${i.id})"></i><span class="item-title">${i.t}</span></div><button class="del-btn sfx-click" onclick="delInv(${i.id})"><i class="fa-solid fa-trash-can"></i></button></div>`).join('');
       saveData('mun_inv', invData);
     }
-    function addInventory() {
-      const v = document.getElementById('inv-input').value;
-      if(!v) return; invData.push({id: Date.now(), t: v, d: false});
-      document.getElementById('inv-input').value = ''; renderInv(); updateStatsUI();
-      showToast("持ち物を追加しました", "fa-check");
-    }
-    function toggleInv(id) { invData.find(i=>i.id===id).d ^= true; renderInv(); updateStatsUI(); }
-    function delInv(id) { invData = invData.filter(i=>i.id!==id); renderInv(); updateStatsUI(); }
+    function addInventory() { const v = document.getElementById('inv-input').value; if(!v) return; invData.push({id: Date.now(), t: v, d: false}); document.getElementById('inv-input').value = ''; renderInv(); showToast("持ち物を追加しました", "fa-check"); }
+    function toggleInv(id) { invData.find(i=>i.id===id).d ^= true; renderInv(); }
+    function delInv(id) { invData = invData.filter(i=>i.id!==id); renderInv(); }
+    function resetInv() { invData.forEach(i=>i.d=false); renderInv(); showToast("持ち物チェックをリセットしました","fa-rotate-left");}
     renderInv();
 
     // 2. 読書通帳
     let readData = loadData('mun_read', []);
     function renderRead() {
-      document.getElementById('read-list').innerHTML = readData.map(r => `
-        <div class="list-item">
-          <div class="list-item-content">
-            <div class="item-title">${r.title}</div>
-            <div class="item-meta">${r.pages}ページ ・ 読了日: ${r.date}</div>
-          </div>
-          <div style="color:var(--accent-gold); font-size:1.2rem;">${'★'.repeat(r.rate)}${'☆'.repeat(5-r.rate)}</div>
-          <button class="del-btn sfx-click" onclick="delRead(${r.id})" style="margin-left:15px;"><i class="fa-solid fa-trash-can"></i></button>
-        </div>
-      `).join('');
-      document.getElementById('read-total').innerText = `総読書冊数: ${readData.length}冊`;
-      saveData('mun_read', readData);
+      document.getElementById('read-list').innerHTML = readData.map(r => `<div class="list-item"><div class="list-item-content"><div class="item-title">${r.title}</div><div class="item-meta">${r.pages}ページ ・ 読了日: ${r.date}</div></div><div style="color:var(--accent-gold); font-size:1.2rem;">${'★'.repeat(r.rate)}${'☆'.repeat(5-r.rate)}</div><button class="del-btn sfx-click" onclick="delRead(${r.id})" style="margin-left:15px;"><i class="fa-solid fa-trash-can"></i></button></div>`).join('');
+      document.getElementById('read-total').innerText = `総読書冊数: ${readData.length}冊`; saveData('mun_read', readData);
     }
     function addReading() {
       const t = document.getElementById('read-title').value; const p = document.getElementById('read-pages').value; const r = document.getElementById('read-rating').value;
-      if(!t || !p) return;
-      readData.unshift({id: Date.now(), title: t, pages: p, rate: r, date: new Date().toISOString().split('T')[0]});
+      if(!t || !p) return; readData.unshift({id: Date.now(), title: t, pages: p, rate: r, date: new Date().toISOString().split('T')[0]});
       document.getElementById('read-title').value = ''; document.getElementById('read-pages').value = '';
-      addExp(15); renderRead(); updateStatsUI();
-      showToast("読書通帳に記録しました！", "fa-book");
+      updateGlobalExp(15); renderRead(); showToast("読書通帳に記録しました！", "fa-book");
     }
-    function delRead(id) { readData = readData.filter(i=>i.id!==id); renderRead(); updateStatsUI(); }
+    function delRead(id) { readData = readData.filter(i=>i.id!==id); renderRead(); }
     renderRead();
 
-    // 3. ストップウォッチ
-    let timerMode = 'sw'; let timerInterval2 = null; let timeElapsed = 0; let timeRemain2 = 0; let isRunning2 = false;
+    // 3. SW & 27. ラップ
+    let timerMode = 'sw'; let timerInterval2 = null; let timeElapsed = 0; let timeRemain2 = 0; let isRunning2 = false; let laps = [];
     const timeDisp2 = document.getElementById('time-display');
     function switchTimerMode(mode) {
-      if(isRunning2) resetTimer();
-      timerMode = mode; document.getElementById('mode-sw').className = mode==='sw'?'active sfx-click':'sfx-click'; document.getElementById('mode-tm').className = mode==='tm'?'active sfx-click':'sfx-click';
+      if(isRunning2) resetTimer(); timerMode = mode;
+      document.getElementById('mode-sw').className = mode==='sw'?'active sfx-click':'sfx-click'; document.getElementById('mode-tm').className = mode==='tm'?'active sfx-click':'sfx-click';
       document.getElementById('timer-title').innerText = mode==='sw'?'音読・暗算ストップウォッチ':'任意設定 カスタムタイマー';
       document.getElementById('timer-inputs').style.display = mode==='tm'?'flex':'none'; timeDisp2.style.display = mode==='tm'?'none':'block'; 
+      document.getElementById('lap-btn').style.display = mode==='sw'?'inline-block':'none';
       updateTimerDisplay();
     }
     function updateTimerDisplay() {
@@ -1428,29 +1701,40 @@
         else {
           if(timeRemain2 === 0) { const m = parseInt(document.getElementById('tm-min').value) || 0; const s = parseInt(document.getElementById('tm-sec').value) || 0; timeRemain2 = (m * 60) + s; }
           document.getElementById('timer-inputs').style.display = 'none'; timeDisp2.style.display = 'block'; updateTimerDisplay();
-          timerInterval2 = setInterval(() => { if(timeRemain2 > 0) { timeRemain2--; updateTimerDisplay(); } else { toggleTimer(); showToast("時間です！", "fa-bell"); } }, 1000);
+          timerInterval2 = setInterval(() => { if(timeRemain2 > 0) { timeRemain2--; updateTimerDisplay(); } else { toggleTimer(); showToast("時間です！", "fa-bell"); playSFX('startup');} }, 1000);
         }
       }
+    }
+    function lapTimer() {
+      if(timerMode!=='sw' || !isRunning2) return;
+      laps.unshift((timeElapsed/1000).toFixed(2) + "秒");
+      document.getElementById('lap-list').innerHTML = laps.map((l,i)=>`<div>Lap ${laps.length-i}: ${l}</div>`).join('');
     }
     function resetTimer() {
       clearInterval(timerInterval2); isRunning2 = false;
       document.getElementById('timer-start-btn').innerText = "スタート"; document.getElementById('timer-start-btn').style.background = "var(--accent-purple)";
-      timeElapsed = 0; timeRemain2 = 0;
+      timeElapsed = 0; timeRemain2 = 0; laps = []; document.getElementById('lap-list').innerHTML='';
       if(timerMode === 'tm') { document.getElementById('timer-inputs').style.display = 'flex'; timeDisp2.style.display = 'none'; }
       updateTimerDisplay();
     }
 
-    // 4. 体調
-    let healthData = loadData('mun_health', { sleep: 8, mood: 'normal' });
-    function initHealth() { document.getElementById('sleep-slider').value = healthData.sleep; document.getElementById('sleep-val').innerText = healthData.sleep; setMood(healthData.mood, false); }
+    // 4, 25. 体調 & 水分トラッカー
+    let healthData = loadData('mun_health', { sleep: 8, mood: 'normal', water:0, date:new Date().toDateString() });
+    function initHealth() {
+      if(healthData.date !== new Date().toDateString()){ healthData.water = 0; healthData.date = new Date().toDateString(); saveData('mun_health',healthData);}
+      document.getElementById('sleep-slider').value = healthData.sleep; document.getElementById('sleep-val').innerText = healthData.sleep; 
+      document.getElementById('water-val').innerText = healthData.water; setMood(healthData.mood, false); 
+    }
     function updateSleep() { const v = document.getElementById('sleep-slider').value; document.getElementById('sleep-val').innerText = v; healthData.sleep = v; saveData('mun_health', healthData); }
-    function setMood(m, doSave = true) { document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active')); document.getElementById('mood-'+m).classList.add('active'); if(doSave) { healthData.mood = m; saveData('mun_health', healthData); showToast("気分を保存しました", "fa-check");} }
+    function setMood(m, doSave = true) { document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active')); document.getElementById('mood-'+m).classList.add('active'); if(doSave) { healthData.mood = m; saveData('mun_health', healthData); showToast("気分を保存", "fa-check");} }
+    function addWater() { healthData.water++; document.getElementById('water-val').innerText = healthData.water; saveData('mun_health', healthData); showToast("水分補給記録！", "fa-glass-water");}
     initHealth();
 
-    // 5. 行事
+    // 5, 33. 行事ソート
     let evData = loadData('mun_event', [{id:1, n:"運動会", d:"2026-09-20"}]);
     function renderEv() {
       const today = new Date();
+      evData.sort((a,b)=>new Date(a.d) - new Date(b.d)); // ソート機能
       document.getElementById('ev-list').innerHTML = evData.map(e => {
         const target = new Date(e.d); const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
         const txt = diff > 0 ? `あと ${diff} 日！` : (diff === 0 ? "本日！" : "終了");
@@ -1462,7 +1746,7 @@
     function delEv(id) { evData = evData.filter(i=>i.id!==id); renderEv(); }
     renderEv();
 
-    // 6. 暗記
+    // 6, 28. 暗記シャッフル
     let fcData = loadData('mun_fc', [{id:1, q:"わり算の「商」とは？", a:"わり算の答えのこと"}]);
     function renderFc() {
       document.getElementById('fc-list').innerHTML = fcData.map(f => `<div class="list-item flashcard sfx-click" onclick="this.classList.toggle('revealed')"><div style="flex:1;"><div class="item-title q">${f.q} <span style="font-size:0.7rem; color:#64748b;">(タップで答え)</span></div><div class="ans">${f.a}</div></div><button class="del-btn sfx-click" onclick="event.stopPropagation(); delFc(${f.id})"><i class="fa-solid fa-trash-can"></i></button></div>`).join('');
@@ -1470,6 +1754,7 @@
     }
     function addFlashcard() { const q = document.getElementById('fc-q').value; const a = document.getElementById('fc-a').value; if(!q||!a) return; fcData.push({id:Date.now(), q, a}); document.getElementById('fc-q').value=''; document.getElementById('fc-a').value=''; renderFc(); showToast("カードを追加しました", "fa-clone");}
     function delFc(id) { fcData = fcData.filter(i=>i.id!==id); renderFc(); }
+    function shuffleFc() { fcData.sort(()=>Math.random()-0.5); renderFc(); showToast("シャッフルしました", "fa-shuffle");}
     renderFc();
 
     // 7. お手伝い
@@ -1479,8 +1764,8 @@
       saveData('mun_chore', chData);
     }
     function addChore() { const t = document.getElementById('ch-name').value; const p = parseInt(document.getElementById('ch-pt').value) || 10; if(!t) return; chData.push({id:Date.now(), t, p, d:false}); document.getElementById('ch-name').value=''; renderCh(); showToast("目標を追加しました", "fa-star");}
-    function toggleCh(id, p) { let item = chData.find(i=>i.id===id); item.d = !item.d; if(item.d) addExp(p); else addExp(-p); renderCh(); updateStatsUI(); }
-    function delCh(id) { chData = chData.filter(i=>i.id!==id); renderCh(); updateStatsUI(); }
+    function toggleCh(id, p) { let item = chData.find(i=>i.id===id); item.d = !item.d; if(item.d) {updateGlobalExp(p); addCoins(5);} else {updateGlobalExp(-p); addCoins(-5);} renderCh(); }
+    function delCh(id) { chData = chData.filter(i=>i.id!==id); renderCh(); }
     renderCh();
 
     // 8. クイズ
@@ -1493,7 +1778,43 @@
     function delQz(id) { qzData = qzData.filter(i=>i.id!==id); renderQz(); }
     renderQz();
 
-    // 先生用ログイン
+    // 19. サイコロ
+    function rollDice() {
+      const el = document.getElementById('dice-result');
+      let count=0; const iv = setInterval(()=>{ el.innerText = Math.floor(Math.random()*6)+1; count++; if(count>10){clearInterval(iv); playSFX('startup');}}, 50);
+    }
+    
+    // 21. 電卓
+    function doCalc() {
+      try { const res = eval(document.getElementById('calc-in').value); document.getElementById('calc-res').innerText = res; playSFX('coin');}
+      catch(e) { document.getElementById('calc-res').innerText = 'Error'; }
+    }
+
+    // 22. おみくじ
+    const fortunes = ["大吉 🌟", "中吉 ☀️", "小吉 ⛅", "吉 ☁️", "末吉 🌦️"];
+    function drawFortune() { document.getElementById('fortune-res').innerText = fortunes[Math.floor(Math.random()*fortunes.length)]; playSFX('startup');}
+
+    // 23. 単位変換
+    function doConvert() {
+      const val = parseFloat(document.getElementById('u-val').value)||0; const t = document.getElementById('u-type').value;
+      if(t==='10') document.getElementById('u-res').innerText = (val*10) + " mm";
+      else if(t==='1000') document.getElementById('u-res').innerText = (val*1000) + " m";
+      else if(t==='1000g') document.getElementById('u-res').innerText = (val*1000) + " g";
+    }
+
+    // 24. お絵かきキャンバス
+    const sCanvas = document.getElementById('sketch-canvas');
+    const sCtx = sCanvas.getContext('2d');
+    let isDrawing = false;
+    setTimeout(()=>{sCanvas.width=sCanvas.offsetWidth; sCanvas.height=sCanvas.offsetHeight; sCtx.fillStyle="#fff"; sCtx.fillRect(0,0,sCanvas.width,sCanvas.height);}, 1000);
+    sCanvas.addEventListener('mousedown', e=>{isDrawing=true; sCtx.beginPath(); sCtx.moveTo(e.offsetX, e.offsetY);});
+    sCanvas.addEventListener('mousemove', e=>{if(isDrawing){sCtx.lineTo(e.offsetX, e.offsetY); sCtx.stroke();}});
+    window.addEventListener('mouseup', ()=>isDrawing=false);
+    function clearCanvas() { sCtx.fillRect(0,0,sCanvas.width,sCanvas.height); }
+
+    // ==========================================
+    // 先生・システム関連
+    // ==========================================
     document.getElementById('teacher-key-btn').addEventListener('click', () => {
       const teacherSec = document.getElementById('section-teacher');
       if (teacherSec.style.display === 'block') return;
@@ -1502,6 +1823,32 @@
       else if (codeInput !== null) { alert('アクセス拒否: パスワードが正しくありません。'); }
     });
 
+    // 10, 11, 12, 34, 41 エクスポート・システム管理
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(localStorage));
+      const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "mun_quest_backup.json");
+      document.body.appendChild(a); a.click(); a.remove(); showToast("データをエクスポートしました", "fa-file-export");
+    }
+    function importData() {
+      const p = prompt("JSONデータを貼り付けてください");
+      if(p) { try { const d = JSON.parse(p); Object.keys(d).forEach(k => localStorage.setItem(k, d[k])); location.reload(); } catch(e) { alert("不正なデータです"); } }
+    }
+    function resetAllData() {
+      if(confirm("本当に全てのセーブデータを消去しますか？この操作は取り消せません。")) { localStorage.clear(); location.reload(); }
+    }
+    function lockSystem() { document.getElementById('lock-screen').style.display='flex'; }
+    function unlockSystem() {
+      if(prompt("パスワード (0113) :") === "0113") document.getElementById('lock-screen').style.display='none';
+    }
+    function sharePortal() {
+      navigator.clipboard.writeText(window.location.href).then(()=>{showToast("ポータルのURLをコピーしました！", "fa-share-nodes");});
+    }
+
+    // 18. ショートカットキー
+    document.addEventListener('keydown', e => {
+      if(e.altKey && e.key === 't') { e.preventDefault(); document.getElementById('pomo-start-btn').click(); }
+      if(e.altKey && e.key === 's') { e.preventDefault(); searchInput.focus(); }
+    });
   </script>
 </body>
 </html>
