@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>究極ポップコーン・ファクトリー＆おみせやさん</title>
+  <style>
+    /* ==========================================================================
+   究極ポップコーン・ファクトリー - メインスタイルシート (CSS)
+   ========================================================================== */
+    :root {
+      --bg-app: #E0F7FA;
+      --bg-container: #FFFFFF;
+      --primary: #FF4757;
+      --primary-dark: #C0392B;
+      --secondary: #1E90FF;
+      --secondary-dark: #0984E3;
+      --success: #2ED573;
+      --success-dark: #27AE60;
+      --warning: #FFA502;
+      --warning-dark: #E67E22;
+      --fever: #FF1493;
+      --text-main: #2F3542;
+      --text-light: #747D8C;
+      --white: #FFFFFF;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+
+    /* 画面全体を完全に固定 */
+    body {
+      background: linear-gradient(135deg, #74EBD5 0%, #9FACE6 100%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      padding: 10px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      background: #FFF9E6;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 8px rgba(255, 255, 255, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* --- 共通ヘッダー＆ボタン --- */
+    .header {
+      background: var(--warning);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 6px solid var(--warning-dark);
+      z-index: 50;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+
+    .header h1 {
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      color: var(--white);
+      text-shadow: 2px 2px 0px var(--primary-dark);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 15px;
+      font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+      font-weight: 900;
+      cursor: pointer;
+      position: relative;
+      top: 0;
+      box-shadow: 0 6px 0 var(--primary-dark);
+      transition: all 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn:active:not(:disabled) {
+      top: 6px;
+      box-shadow: 0 0 0 var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: #BDC3C7 !important;
+      box-shadow: 0 6px 0 #95A5A6 !important;
+      cursor: not-allowed;
+      top: 0 !important;
+      color: #FFF !important;
+    }
+
+    .btn-blue {
+      background: var(--secondary);
+      box-shadow: 0 6px 0 var(--secondary-dark);
+    }
+
+    .btn-blue:active:not(:disabled) {
+      box-shadow: 0 0 0 var(--secondary-dark);
+    }
+
+    .btn-green {
+      background: var(--success);
+      box-shadow: 0 6px 0 var(--success-dark);
+    }
+
+    .btn-green:active:not(:disabled) {
+      box-shadow: 0 0 0 var(--success-dark);
+    }
+
+    .btn-yellow {
+      background: var(--warning);
+      box-shadow: 0 6px 0 var(--warning-dark);
+    }
+
+    .btn-yellow:active:not(:disabled) {
+      box-shadow: 0 0 0 var(--warning-dark);
+    }
+
+    /* --- 画面遷移 (絶対にスクロールさせない) --- */
+    .screen {
+      display: none;
+      flex: 1;
+      padding: 15px;
+      overflow: hidden;
+      /* ここを hidden にして外枠のスクロールを禁止 */
+      position: relative;
+      flex-direction: column;
+      animation: screenFadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes screenFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* --- ホーム画面 --- */
+    .dashboard-bar {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border: 4px dashed var(--warning);
+      margin-bottom: 20px;
+    }
+
+    .inv-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFF3E0;
+      padding: 5px 15px;
+      border-radius: 20px;
+      box-shadow: 0 4px 0 #FFE0B2;
+      border: 2px solid #FFCC80;
+      color: var(--text-main);
+      font-size: 1.3rem;
+    }
+
+    .inv-badge span {
+      color: var(--primary);
+      font-size: 1.8rem;
+      font-weight: 900;
+    }
+
+    .main-menu-grid {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      align-items: stretch;
+      flex: 1;
+      padding-bottom: 15px;
+    }
+
+    .menu-card {
+      flex: 1;
+      max-width: 320px;
+      background: var(--white);
+      border: 8px solid var(--success);
+      border-radius: 30px;
+      padding: 30px 15px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 15px 0 var(--success-dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .menu-card.shop {
+      border-color: var(--warning);
+      box-shadow: 0 15px 0 var(--warning-dark);
+    }
+
+    .menu-card:active {
+      transform: translateY(15px);
+    }
+
+    .menu-card.shop:active {
+      box-shadow: 0 0 0 var(--warning-dark);
+    }
+
+    .menu-card:not(.shop):active {
+      box-shadow: 0 0 0 var(--success-dark);
+    }
+
+    .menu-card .icon {
+      font-size: 6rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .menu-card .title {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .menu-card .desc {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text-light);
+      background: #F1F2F6;
+      padding: 8px 12px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    /* --- 工場：準備画面 --- */
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      padding: 20px;
+      background: var(--white);
+      border-radius: 20px;
+      border: 5px solid #DFE4EA;
+      overflow-y: auto;
+      flex: 1;
+      align-content: start;
+    }
+
+    .flavor-btn {
+      background: #FFF;
+      border: 4px solid #CED6E0;
+      border-radius: 20px;
+      padding: 15px 5px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      box-shadow: 0 6px 0 #A4B0BE;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .flavor-btn:active {
+      top: 6px;
+      box-shadow: 0 0 0 #A4B0BE;
+    }
+
+    .flavor-btn .emoji {
+      font-size: 3rem;
+    }
+
+    /* --- 工場：究極アクション調理画面 --- */
+    .cook-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .game-hud {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 10px 20px;
+      border: 5px solid #DFE4EA;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+      /* HUDを潰さない */
+    }
+
+    .game-instruction {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--warning-dark);
+      text-align: center;
+      margin: 0;
+    }
+
+    .gauge-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .gauge-label {
+      font-weight: 900;
+      font-size: 1.3rem;
+      width: 150px;
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .gauge-track {
+      width: 100%;
+      max-width: 500px;
+      height: 24px;
+      background: #CED6E0;
+      border-radius: 12px;
+      border: 4px inset #A4B0BE;
+      overflow: hidden;
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .gauge-fill-heat {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #FFD32A, #FF3F34);
+      transition: width 0.1s linear;
+    }
+
+    .gauge-fill-pop {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0BE881, #05C46B);
+      transition: width 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .gauge-fill-burn {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #808E9B, #1E272E);
+      transition: width 0.2s;
+    }
+
+    .gauge-fill-fever {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #FF1493, #FFD700, #00BFFF);
+      background-size: 200% 200%;
+      animation: gradientMove 2s linear infinite;
+      transition: width 0.1s linear;
+    }
+
+    .heat-target-zone {
+      position: absolute;
+      top: 0;
+      left: 55%;
+      width: 35%;
+      height: 100%;
+      background: rgba(46, 213, 115, 0.4);
+      z-index: 5;
+    }
+
+    .heat-target-marker {
+      position: absolute;
+      top: 0;
+      left: 55%;
+      width: 3px;
+      height: 100%;
+      background: #2ED573;
+      z-index: 10;
+    }
+
+    .heat-danger-zone {
+      position: absolute;
+      top: 0;
+      left: 90%;
+      width: 10%;
+      height: 100%;
+      background: rgba(255, 71, 87, 0.5);
+      z-index: 5;
+    }
+
+    .canvas-container {
+      flex: 1;
+      /* 縦幅の余りスペースを全て埋める */
+      min-height: 0;
+      /* はみ出し防止の魔法のコード */
+      position: relative;
+      border-radius: 20px;
+      border: 6px solid #3C6382;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      background: radial-gradient(circle at center, #82CCDD 0%, #60A3BC 100%);
+    }
+
+    .canvas-container.fever-mode {
+      animation: feverBg 0.5s infinite alternate;
+    }
+
+    .pot-wrapper {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(200px, 40vw, 350px);
+      height: clamp(100px, 20vh, 150px);
+      z-index: 10;
+    }
+
+    .pot-graphics {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #353b48, #2f3640);
+      border-radius: 10px 10px 200px 200px;
+      border: 8px solid #1e272e;
+      box-shadow: inset 0 -15px 30px rgba(0, 0, 0, 0.8), 0 15px 15px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .pot-handle-left,
+    .pot-handle-right {
+      position: absolute;
+      top: 10%;
+      width: 50px;
+      height: 25px;
+      background: #1E272E;
+      border-radius: 15px;
+    }
+
+    .pot-handle-left {
+      left: -40px;
+    }
+
+    .pot-handle-right {
+      right: -40px;
+    }
+
+    .pot-highlight {
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+
+    .fire-wrapper {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 80px;
+      z-index: 5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .fire-graphics {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      opacity: 0;
+      transition: 0.3s;
+    }
+
+    .flame {
+      width: 40px;
+      height: 50px;
+      background: #FF4757;
+      border-radius: 50% 50% 20% 20%;
+      animation: flicker 0.4s infinite alternate;
+      margin: 0 -10px;
+    }
+
+    .flame:nth-child(2) {
+      height: 70px;
+      background: #FFA502;
+      animation-delay: 0.1s;
+      z-index: 2;
+    }
+
+    .flame:nth-child(3) {
+      height: 50px;
+      animation-delay: 0.2s;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .action-controls {
+      text-align: center;
+      padding: 5px 0;
+      flex-shrink: 0;
+    }
+
+    .btn-massive-action {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      padding: 15px 30px;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 40px;
+      background: #FF4757;
+      box-shadow: 0 10px 0 #C0392B;
+      border: 6px solid #FFF;
+      color: #FFF;
+      font-weight: 900;
+      cursor: pointer;
+      text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+      outline: none;
+    }
+
+    .btn-massive-action:active {
+      transform: translateY(10px);
+      box-shadow: 0 0 0 #C0392B;
+      background: #FF6B81;
+    }
+
+    .btn-massive-action.fever-btn {
+      background: linear-gradient(45deg, #FF1493, #FFD700, #00BFFF);
+      background-size: 200% 200%;
+      animation: gradientMove 1s linear infinite;
+      box-shadow: 0 10px 0 #C71585;
+    }
+
+    .btn-massive-action.fever-btn:active {
+      box-shadow: 0 0 0 #C71585;
+      transform: translateY(10px);
+    }
+
+    /* --- お店画面 --- */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      /* タブレット横向き用に強制2カラム */
+      gap: 15px;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* 左：商品棚＆カート */
+    .shelf-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .shelf-display {
+      background: #FFF8E1;
+      border-radius: 20px;
+      padding: 15px;
+      border: 6px solid #FFE0B2;
+      flex: 1;
+      overflow-y: auto;
+      /* 棚の中だけはスクロール許可 */
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      align-content: flex-start;
+    }
+
+    .product-card {
+      background: var(--white);
+      border-radius: 15px;
+      padding: 10px;
+      text-align: center;
+      border: 4px solid #FFCC80;
+      box-shadow: 0 8px 0 #FFB74D;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+    }
+
+    .product-card:active:not(.out-of-stock) {
+      top: 8px;
+      box-shadow: 0 0 0 #FFB74D;
+    }
+
+    .product-card.out-of-stock {
+      filter: grayscale(100%);
+      opacity: 0.5;
+      box-shadow: 0 8px 0 #BDBDBD;
+      border-color: #E0E0E0;
+    }
+
+    .product-card .stock-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: var(--primary);
+      color: var(--white);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      border: 3px solid var(--white);
+      font-size: 1.4rem;
+      z-index: 5;
+    }
+
+    .product-card .emoji {
+      font-size: 3.5rem;
+      line-height: 1;
+    }
+
+    .product-card .name {
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+
+    .product-card .price {
+      font-size: 1.5rem;
+      color: var(--primary-dark);
+      font-weight: 900;
+    }
+
+    /* カート */
+    .cart-display {
+      background: #E8F8F5;
+      border-radius: 20px;
+      padding: 15px;
+      border: 6px dashed #A3E4D7;
+      height: 130px;
+      /* カートの高さを固定化 */
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .cart-header {
+      color: #16A085;
+      font-weight: 900;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .cart-item-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex: 1;
+      align-content: flex-start;
+      overflow-y: auto;
+    }
+
+    .cart-tag {
+      background: var(--white);
+      border: 3px solid #1ABC9C;
+      color: #16A085;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 0 #1ABC9C;
+      cursor: pointer;
+    }
+
+    .cart-tag:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 #1ABC9C;
+    }
+
+    .cart-tag .remove-icon {
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    /* 右：レジ＆財布 */
+    .checkout-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .pos-register {
+      background: #2F3542;
+      border-radius: 20px;
+      padding: 15px;
+      color: var(--success);
+      border: 8px solid #576574;
+      font-family: monospace;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .pos-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .pos-total {
+      font-size: 2.2rem;
+      color: var(--warning);
+      border-bottom: 3px dashed #A4B0BE;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pos-label {
+      color: #A4B0BE;
+      font-size: 1.3rem;
+    }
+
+    .wallet-panel {
+      background: #FFF3E0;
+      border: 6px solid #FFE0B2;
+      border-radius: 20px;
+      padding: 15px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .wallet-header {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--warning-dark);
+      margin-bottom: 15px;
+    }
+
+    .wallet-budget {
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    .coin-controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .coin-btn {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .coin-btn:active {
+      top: 6px;
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
+
+    .c-10 {
+      background: #CD7F32;
+      color: #FFF;
+      border: 3px solid #8B4513;
+    }
+
+    .c-50 {
+      background: #EEEEEE;
+      color: #333;
+      border: 3px solid #999;
+    }
+
+    .c-100 {
+      background: #E0E0E0;
+      color: #333;
+      border: 3px solid #777;
+    }
+
+    .c-500 {
+      background: #F4D03F;
+      color: #8A6D3B;
+      border: 3px solid #D4AC0D;
+      width: 75px;
+      height: 75px;
+      font-size: 1.8rem;
+    }
+
+    .tray-area {
+      background: #F1F2F6;
+      border: 6px inset #CED6E0;
+      border-radius: 20px;
+      padding: 15px;
+      flex: 1;
+      /* トレイを残りのスペースに合わせて伸縮させる */
+      min-height: 80px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-content: flex-start;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .tray-hint {
+      position: absolute;
+      top: 10px;
+      left: 15px;
+      font-size: 1.2rem;
+      color: #747D8C;
+      font-weight: bold;
+      pointer-events: none;
+    }
+
+    .tray-coin {
+      animation: dropCoin 0.2s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4) !important;
+      width: 50px;
+      height: 50px;
+      font-size: 1.2rem;
+    }
+
+    .tray-coin.c-500 {
+      width: 60px;
+      height: 60px;
+      font-size: 1.4rem;
+    }
+
+    .tray-coin .remove-mark {
+      content: "×";
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    @keyframes dropCoin {
+      from {
+        transform: translateY(-30px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .checkout-action {
+      width: 100%;
+      font-size: 1.8rem;
+      padding: 15px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      margin-top: auto;
+    }
+
+    /* --- モーダル --- */
+    .modal-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(47, 53, 66, 0.9);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .receipt-card {
+      background: #FFF;
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+      position: relative;
+      font-family: monospace;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .receipt-card::before,
+    .receipt-card::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 16px;
+      background-size: 32px 32px;
+    }
+
+    .receipt-card::before {
+      top: -16px;
+      background-image: radial-gradient(circle, #FFF 50%, transparent 50%);
+    }
+
+    .receipt-card::after {
+      bottom: -16px;
+      background-image: radial-gradient(circle, transparent 50%, #FFF 50%);
+    }
+
+    .rec-header {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 900;
+      border-bottom: 3px dashed #95A5A6;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .rec-item-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .rec-total-row {
+      border-top: 3px dashed #95A5A6;
+      padding-top: 15px;
+      font-size: 2rem;
+      margin-top: 15px;
+      color: #D35400;
+      font-weight: 900;
+    }
+
+    .rec-paid-row {
+      margin-top: 15px;
+      color: #747D8C;
+    }
+
+    .rec-change-row {
+      color: var(--primary);
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin-top: 10px;
+    }
+
+    .result-dialog {
+      background: var(--white);
+      padding: 40px;
+      border-radius: 40px;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      border: 10px solid var(--warning);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .res-icon {
+      font-size: 8rem;
+      margin-bottom: 10px;
+      line-height: 1;
+    }
+
+    .res-title {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      font-weight: 900;
+    }
+
+    .res-text {
+      font-size: 1.8rem;
+      font-weight: bold;
+      line-height: 1.5;
+    }
+
+    .teacher-panel {
+      background: var(--white);
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      border-radius: 30px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border: 8px solid #576574;
+    }
+
+    .tp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid #DFE4EA;
+      padding-bottom: 15px;
+    }
+
+    .tp-title {
+      font-size: 2rem;
+      font-weight: 900;
+    }
+
+    .tp-body {
+      flex: 1;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .tp-section {
+      background: #F1F2F6;
+      padding: 20px;
+      border-radius: 20px;
+      border: 3px solid #DFE4EA;
+    }
+
+    .tp-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .tp-input {
+      font-size: 1.4rem;
+      padding: 8px;
+      width: 100px;
+      text-align: center;
+      border-radius: 8px;
+      border: 2px solid #A4B0BE;
+    }
+
+    .history-list {
+      font-size: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .hist-item {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      border-left: 5px solid var(--success);
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app" class="app-container">
+    <!-- ヘッダー -->
+    <header class="header">
+      <button class="btn btn-blue" onclick="UIManager.navigate('home')">🏠 ホーム</button>
+      <h1>🍿 スーパーポップコーン・ファクトリー 🍿</h1>
+      <button class="btn btn-yellow" onclick="TeacherSystem.promptLogin()">⚙️ 設定</button>
+    </header>
+
+    <!-- ホーム画面 -->
+    <main id="screen-home" class="screen active">
+      <div class="dashboard-bar" id="inventory-dashboard"></div>
+      <div class="main-menu-grid">
+        <div class="menu-card factory" onclick="UIManager.navigate('factory-setup')">
+          <span class="icon">🏭</span>
+          <div class="title">工場で つくる</div>
+          <div class="desc">シャカシャカ アクション！</div>
+        </div>
+        <div class="menu-card shop" onclick="UIManager.navigate('shop')">
+          <span class="icon">🏪</span>
+          <div class="title">お店で かう</div>
+          <div class="desc">レジで おかいけい練習</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 工場：準備画面 -->
+    <main id="screen-factory-setup" class="screen">
+      <h2 style="text-align: center; font-size: 2.2rem; color: var(--text-main); margin-bottom: 15px;">つくる味を えらんでね！</h2>
+      <div class="setup-grid" id="flavor-select-grid"></div>
+    </main>
+
+    <!-- 工場：究極アクション調理画面 -->
+    <main id="screen-factory-game" class="screen">
+      <div class="cook-container">
+        <!-- ゲームHUD (固定) -->
+        <div class="game-hud">
+          <p class="game-instruction" id="game-inst-text">🔥 あかくなったら、ボタンをタップして なべを振れ！ 🔥</p>
+          <div class="gauge-row">
+            <div class="gauge-label" style="color:var(--primary);">🌡️ おんど</div>
+            <div class="gauge-track">
+              <div class="heat-target-zone"></div>
+              <div class="heat-target-marker"></div>
+              <div class="heat-danger-zone"></div>
+              <div class="gauge-fill-heat" id="bar-heat"></div>
+            </div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label" style="color:var(--success);">✨ ポップコーン</div>
+            <div class="gauge-track">
+              <div class="gauge-fill-pop" id="bar-pop"></div>
+            </div>
+          </div>
+          <div class="gauge-row" id="row-burn-fever">
+            <div class="gauge-label" id="label-burn" style="color:var(--text-main);">⬛ こげ (注意)</div>
+            <div class="gauge-track">
+              <div class="gauge-fill-burn" id="bar-burn"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ステージ (伸縮して収まる) -->
+        <div class="canvas-container" id="game-stage">
+          <div class="fire-wrapper">
+            <div class="fire-graphics" id="fire-graphics">
+              <div class="flame"></div>
+              <div class="flame"></div>
+              <div class="flame"></div>
+            </div>
+          </div>
+          <div class="pot-wrapper">
+            <div class="pot-graphics" id="pot-graphics">
+              <div class="pot-handle-left"></div>
+              <div class="pot-handle-right"></div>
+              <div class="pot-highlight"></div>
+            </div>
+          </div>
+          <canvas id="physics-canvas"></canvas>
+        </div>
+
+        <!-- 操作ボタン (固定) -->
+        <div class="action-controls">
+          <button id="btn-shake-pot" class="btn-massive-action">🍳 なべを ふる！！</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- お店画面 -->
+    <main id="screen-shop" class="screen">
+      <div class="shop-grid">
+        <!-- 左：商品棚＆カート -->
+        <div class="shelf-container">
+          <div class="shelf-display" id="shop-shelf"></div>
+          <div class="cart-display">
+            <div class="cart-header">🛒 買い物かご</div>
+            <div class="cart-item-list" id="cart-list"></div>
+          </div>
+        </div>
+
+        <!-- 右：レジ＆財布 -->
+        <div class="checkout-container">
+          <div class="pos-register">
+            <div class="pos-row"><span class="pos-label">かう ごうけい:</span><span id="reg-total">0円</span></div>
+            <div class="pos-row pos-total"><span class="pos-label">だした おかね:</span><span id="reg-paid">0円</span></div>
+          </div>
+          <div class="wallet-panel">
+            <div class="wallet-header">👛 さいふの中身：よさん <span class="wallet-budget" id="wallet-budget-display">500</span> 円</div>
+            <div class="coin-controls">
+              <div class="coin-btn c-10" data-val="10">10</div>
+              <div class="coin-btn c-50" data-val="50">50</div>
+              <div class="coin-btn c-100" data-val="100">100</div>
+              <div class="coin-btn c-500" data-val="500">500</div>
+            </div>
+          </div>
+          <div class="tray-area" id="money-tray">
+            <div class="tray-hint">ここにお金を置く</div>
+          </div>
+          <button id="btn-do-checkout" class="btn checkout-action" disabled>🛒 カートが空です</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- モーダル群 -->
+  <div id="modal-receipt" class="modal-wrapper">
+    <div class="receipt-card">
+      <div class="rec-header">🧾 レシート 🧾</div>
+      <div id="receipt-item-list" style="margin-bottom: 20px;"></div>
+      <div class="rec-item-row rec-total-row"><span>ごうけい</span><span id="receipt-total">0円</span></div>
+      <div class="rec-item-row rec-paid-row"><span>おあずかり</span><span id="receipt-paid">0円</span></div>
+      <div class="rec-item-row rec-change-row"><span>おつり</span><span id="receipt-change">0円</span></div>
+      <div style="text-align: center; margin-top: 30px;">
+        <button class="btn btn-blue" onclick="UIManager.closeModal('modal-receipt'); UIManager.navigate('home');">お店を出る</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-result" class="modal-wrapper">
+    <div class="result-dialog">
+      <div class="res-icon" id="res-icon">🍿</div>
+      <h2 class="res-title" id="res-title" style="color:var(--success);">大せいこう！</h2>
+      <p class="res-text" id="res-text"></p>
+      <div style="margin-top:30px;">
+        <button class="btn btn-green" onclick="GameManager.finishCooking()">棚にならべる！</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-teacher" class="modal-wrapper">
+    <div class="teacher-panel">
+      <div class="tp-header">
+        <h2 class="tp-title">⚙️ 先生用</h2>
+        <button class="btn" style="background:#A4B0BE;" onclick="UIManager.closeModal('modal-teacher')">閉じる</button>
+      </div>
+      <div class="tp-body">
+        <div class="tp-section">
+          <h3 style="color:#1E90FF; font-size:1.6rem; border-bottom:2px solid; margin-bottom:15px;">基本設定</h3>
+          <div class="tp-row"><span>お財布の予算 (円)</span><input type="number" id="cfg-budget" class="tp-input" step="100"></div>
+          <div class="tp-row"><span>火力の上がる早さ</span>
+            <select id="cfg-heat-speed" class="tp-input">
+              <option value="0.1">ゆっくり</option>
+              <option value="0.25" selected>ふつう</option>
+              <option value="0.5">はやい</option>
+            </select>
+          </div>
+          <div class="tp-row"><span>焦げやすさ</span>
+            <select id="cfg-burn-speed" class="tp-input">
+              <option value="0.3">やさしい</option>
+              <option value="0.6" selected>ふつう</option>
+              <option value="1.0">きびしい</option>
+            </select>
+          </div>
+          <div style="text-align:center; margin-top:20px;"><button class="btn btn-blue" onclick="TeacherSystem.saveConfig()">保存</button></div>
+        </div>
+        <div class="tp-section">
+          <h3 style="color:#1E90FF; font-size:1.6rem; border-bottom:2px solid; margin-bottom:15px;">履歴</h3>
+          <div class="history-list" id="teacher-history-list"></div>
+          <div style="text-align:center; margin-top:15px;"><button class="btn" style="background:#FF4757; font-size:1.2rem; padding:8px 15px;" onclick="TeacherSystem.clearHistory()">履歴消去</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Javascript -->
+  <script>
+    const FLAVORS = {
+      salt: {
+        id: 'salt',
+        name: 'しお',
+        emoji: '🍿',
+        color: '#FFF59D',
+        price: 100
+      },
+      caramel: {
+        id: 'caramel',
+        name: 'キャラメル',
+        emoji: '🍯',
+        color: '#D7CCC8',
+        price: 150
+      },
+      berry: {
+        id: 'berry',
+        name: 'いちご',
+        emoji: '🍓',
+        color: '#F8BBD0',
+        price: 200
+      },
+      choco: {
+        id: 'choco',
+        name: 'チョコ',
+        emoji: '🍫',
+        color: '#8D6E63',
+        price: 250
+      },
+      matcha: {
+        id: 'matcha',
+        name: '抹茶',
+        emoji: '🍵',
+        color: '#C8E6C9',
+        price: 200
+      },
+      cheese: {
+        id: 'cheese',
+        name: 'チーズ',
+        emoji: '🧀',
+        color: '#FFE082',
+        price: 150
+      },
+      curry: {
+        id: 'curry',
+        name: 'カレー',
+        emoji: '🍛',
+        color: '#FFB74D',
+        price: 200
+      },
+      soy: {
+        id: 'soy',
+        name: 'バター醤油',
+        emoji: '🧈',
+        color: '#BCAAA4',
+        price: 120
+      }
+    };
+    const STATE = {
+      config: {
+        budget: 500,
+        heatSpeed: 0.25,
+        burnSpeed: 0.6
+      },
+      inventory: {
+        salt: 3,
+        caramel: 1,
+        berry: 0,
+        choco: 0,
+        matcha: 0,
+        cheese: 0,
+        curry: 0,
+        soy: 0
+      },
+      history: [],
+      shop: {
+        cart: [],
+        trayCoins: []
+      },
+      game: {
+        active: false,
+        flavor: null,
+        heat: 0,
+        successProg: 0,
+        burnProg: 0,
+        feverProg: 0,
+        isFever: false,
+        shakePower: 0,
+        particles: [],
+        floatingTexts: [],
+        pot: {
+          x: 0,
+          y: 0,
+          rot: 0
+        }
+      }
+    };
+    class AudioEngine {
+      constructor() {
+        this.ctx = new(window.AudioContext || window.webkitAudioContext)();
+      }
+      resume() {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playTone(freq, type, duration, vol, envelope = 'linear') {
+        this.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const now = this.ctx.currentTime;
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        if (envelope === 'linear') {
+          gain.gain.setValueAtTime(vol, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + duration);
+        } else if (envelope === 'expo') {
+          gain.gain.setValueAtTime(vol, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+        }
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+      click() {
+        this.playTone(900, 'sine', 0.1, 0.2, 'expo');
+      }
+      coin() {
+        this.playTone(1800, 'square', 0.05, 0.1, 'expo');
+        setTimeout(() => this.playTone(2200, 'square', 0.05, 0.1, 'expo'), 50);
+      }
+      pop() {
+        this.playTone(400 + Math.random() * 800, 'triangle', 0.1, 0.3, 'expo');
+      }
+      shake() {
+        this.playTone(150, 'sawtooth', 0.1, 0.1, 'linear');
+      }
+      burn() {
+        this.playTone(100, 'sawtooth', 0.3, 0.2, 'linear');
+      }
+      error() {
+        this.playTone(150, 'sawtooth', 0.3, 0.3, 'linear');
+      }
+      fever() {
+        this.playTone(800, 'square', 0.1, 0.2, 'linear');
+        setTimeout(() => this.playTone(1200, 'square', 0.2, 0.2, 'linear'), 100);
+      }
+      success() {
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.5);
+          }, i * 150);
+        });
+      }
+    }
+    const Audio = new AudioEngine();
+    class TeacherSystem {
+      static promptLogin() {
+        Audio.click();
+        const pw = prompt("先生用パスワード (初期: 0000)");
+        if (pw === "0000") this.openDashboard();
+        else if (pw !== null) alert("パスワードが違います。");
+      }
+      static openDashboard() {
+        document.getElementById('cfg-budget').value = STATE.config.budget;
+        document.getElementById('cfg-heat-speed').value = STATE.config.heatSpeed;
+        document.getElementById('cfg-burn-speed').value = STATE.config.burnSpeed;
+        this.renderHistory();
+        UIManager.openModal('modal-teacher');
+      }
+      static saveConfig() {
+        Audio.click();
+        STATE.config.budget = parseInt(document.getElementById('cfg-budget').value) || 500;
+        STATE.config.heatSpeed = parseFloat(document.getElementById('cfg-heat-speed').value);
+        STATE.config.burnSpeed = parseFloat(document.getElementById('cfg-burn-speed').value);
+        ShopSystem.updateWalletDisplay();
+        UIManager.closeModal('modal-teacher');
+        alert("設定を保存しました。");
+      }
+      static addHistory(type, detail) {
+        const now = new Date();
+        const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+        STATE.history.unshift({
+          time: timeStr,
+          type,
+          detail
+        });
+        if (STATE.history.length > 50) STATE.history.pop();
+      }
+      static renderHistory() {
+        const list = document.getElementById('teacher-history-list');
+        list.innerHTML = '';
+        if (STATE.history.length === 0) {
+          list.innerHTML = '<div style="color:#747D8C; text-align:center;">まだ記録がありません</div>';
+          return;
+        }
+        STATE.history.forEach(h => {
+          const icon = h.type === 'cook' ? '🍳' : '🛒';
+          list.innerHTML += `<div class="hist-item"><div class="hist-time">${icon} ${h.time}</div><div>${h.detail}</div></div>`;
+        });
+      }
+      static clearHistory() {
+        if (confirm("履歴を消去しますか？")) {
+          STATE.history = [];
+          this.renderHistory();
+          Audio.click();
+        }
+      }
+    }
+    class GameManager {
+      static setupCanvas() {
+        this.canvas = document.getElementById('physics-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.canvas.width = rect.width;
+        this.canvas.height = rect.height;
+      }
+      static start(flavorId) {
+        Audio.click();
+        STATE.game.flavor = flavorId;
+        UIManager.navigate('factory-game');
+        this.setupCanvas();
+        STATE.game = {
+          ...STATE.game,
+          active: true,
+          heat: 0,
+          successProg: 0,
+          burnProg: 0,
+          feverProg: 0,
+          isFever: false,
+          shakePower: 0,
+          particles: [],
+          floatingTexts: [],
+          pot: {
+            x: 0,
+            y: 0,
+            rot: 0
+          }
+        };
+        document.getElementById('btn-shake-pot').disabled = false;
+        document.getElementById('btn-shake-pot').className = "btn-massive-action";
+        document.getElementById('fire-graphics').style.opacity = '0';
+        document.getElementById('game-stage').classList.remove('fever-mode');
+        document.getElementById('label-burn').innerText = "⬛ こげ (注意)";
+        document.getElementById('label-burn').style.color = "var(--text-main)";
+        document.getElementById('bar-burn').className = "gauge-fill-burn";
+        for (let i = 0; i < 80; i++) {
+          STATE.game.particles.push({
+            x: this.canvas.width / 2 + (Math.random() * 200 - 100),
+            y: this.canvas.height - 30 + Math.random() * 20,
+            vx: 0,
+            vy: 0,
+            state: 0,
+            size: 10,
+            color: '#F4D03F',
+            type: 'corn'
+          });
+        }
+        this.lastTime = performance.now();
+        requestAnimationFrame(this.loop.bind(this));
+      }
+      static shakeAction() {
+        if (!STATE.game.active) return;
+        Audio.shake();
+        STATE.game.shakePower = 50;
+        STATE.game.pot.x = (Math.random() - 0.5) * 40;
+        STATE.game.pot.y = -Math.random() * 30;
+        STATE.game.pot.rot = (Math.random() - 0.5) * 15;
+        STATE.game.particles.filter(p => p.type === 'corn').forEach(p => {
+          p.vy -= Math.random() * 12 + 8;
+          p.vx += (Math.random() - 0.5) * 15;
+        });
+      }
+      static spawnText(x, y, text, color) {
+        STATE.game.floatingTexts.push({
+          x,
+          y,
+          text,
+          color,
+          life: 1.0,
+          vy: -2
+        });
+      }
+      static spawnSmoke(x, y) {
+        STATE.game.particles.push({
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -Math.random() * 4 - 2,
+          state: 3,
+          size: 15,
+          color: 'rgba(47, 53, 66, 0.5)',
+          type: 'smoke',
+          life: 1.0
+        });
+      }
+      static spawnStar(x, y) {
+        STATE.game.particles.push({
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 10,
+          vy: -Math.random() * 10 - 5,
+          state: 4,
+          size: 8,
+          color: '#FFD700',
+          type: 'star',
+          life: 1.0,
+          rot: Math.random() * Math.PI * 2
+        });
+      }
+      static loop(timestamp) {
+        if (!STATE.game.active) return;
+        const dt = (timestamp - this.lastTime) / 16.66;
+        this.lastTime = timestamp;
+        const g = STATE.game;
+        const cfg = STATE.config;
+        if (g.isFever) {
+          g.heat = 70;
+          g.shakePower = 50;
+          g.feverProg -= 0.5 * dt;
+          if (g.feverProg <= 0) {
+            g.isFever = false;
+            document.getElementById('game-stage').classList.remove('fever-mode');
+            document.getElementById('btn-shake-pot').className = "btn-massive-action";
+            document.getElementById('label-burn').innerText = "⬛ こげ (注意)";
+            document.getElementById('label-burn').style.color = "var(--text-main)";
+            document.getElementById('bar-burn').className = "gauge-fill-burn";
+          }
+        } else {
+          g.heat += cfg.heatSpeed * dt;
+          if (g.heat > 100) g.heat = 100;
+          g.shakePower -= 2 * dt;
+          if (g.shakePower < 0) g.shakePower = 0;
+        }
+        g.pot.x *= 0.8;
+        g.pot.y *= 0.8;
+        g.pot.rot *= 0.8;
+        document.getElementById('pot-graphics').style.transform = `translate(${g.pot.x}px, ${g.pot.y}px) rotate(${g.pot.rot}deg)`;
+        document.getElementById('fire-graphics').style.opacity = (g.heat / 100) + 0.3;
+        const instText = document.getElementById('game-inst-text');
+        if (g.isFever) {
+          instText.innerText = "🌈 FEVER MODE!! 🌈";
+          instText.style.color = "#FF1493";
+        } else if (g.heat > 90) {
+          instText.innerText = "⚠️ あつすぎる！焦げるぞ！ ⚠️";
+          instText.style.color = "var(--primary)";
+        } else if (g.heat > 55 && g.heat < 90) {
+          instText.innerText = "✨ 今だ！なべを振れ！ ✨";
+          instText.style.color = "var(--success)";
+        } else {
+          instText.innerText = "🔥 あかくなるまで待とう 🔥";
+          instText.style.color = "var(--warning-dark)";
+        }
+        document.getElementById('bar-heat').style.width = g.heat + '%';
+        document.getElementById('bar-pop').style.width = g.successProg + '%';
+        if (!g.isFever) {
+          document.getElementById('bar-burn').style.width = g.burnProg + '%';
+        } else {
+          document.getElementById('bar-burn').style.width = g.feverProg + '%';
+        }
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const isHot = g.heat > 55 && g.heat < 90;
+        const isTooHot = g.heat >= 90;
+        const flavorColor = FLAVORS[g.flavor].color;
+        for (let i = g.particles.length - 1; i >= 0; i--) {
+          const p = g.particles[i];
+          if (p.type === 'corn') {
+            if (!g.isFever && p.state === 0 && isHot && g.shakePower > 20) {
+              g.feverProg += 0.05 * dt;
+              if (g.feverProg >= 100) {
+                g.isFever = true;
+                g.feverProg = 100;
+                Audio.fever();
+                document.getElementById('game-stage').classList.add('fever-mode');
+                document.getElementById('btn-shake-pot').className = "btn-massive-action fever-btn";
+                document.getElementById('label-burn').innerText = "🌈 FEVER!!";
+                document.getElementById('label-burn').style.color = "#FF1493";
+                document.getElementById('bar-burn').className = "gauge-fill-fever";
+                this.spawnText(this.canvas.width / 2, this.canvas.height / 2, "FEVER!!", "#FF1493");
+              }
+            }
+            let popChance = g.isFever ? 0.2 : (isHot && g.shakePower > 10 ? 0.03 : 0);
+            if (p.state === 0 && Math.random() < popChance) {
+              p.state = 1;
+              p.size = 20 + Math.random() * 15;
+              p.color = flavorColor;
+              g.successProg += 100 / 80;
+              Audio.pop();
+              this.spawnText(p.x, p.y - 20, g.isFever ? "SUPER!" : "POP!", g.isFever ? "#FF1493" : "#2ED573");
+              if (g.isFever) {
+                this.spawnStar(p.x, p.y);
+              }
+            }
+            if (!g.isFever && (p.state === 0 || p.state === 1) && isTooHot && g.shakePower < 10 && p.y >= this.canvas.height - 40 && Math.random() < (0.04 * cfg.burnSpeed)) {
+              p.state = 2;
+              p.size = 15;
+              p.color = '#1E272E';
+              g.burnProg += 100 / 80;
+              this.spawnSmoke(p.x, p.y);
+              if (Math.random() < 0.2) {
+                Audio.burn();
+                this.spawnText(p.x, p.y - 20, "焦げた!", "#FF4757");
+              }
+            }
+            p.vy += 0.8 * dt;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            if (p.y > this.canvas.height - 30 && p.x > this.canvas.width / 2 - 140 && p.x < this.canvas.width / 2 + 140) {
+              p.y = this.canvas.height - 30;
+              p.vy *= -0.4;
+              p.vx *= 0.8;
+            }
+            if (p.x < 10) {
+              p.x = 10;
+              p.vx *= -0.8;
+            }
+            if (p.x > this.canvas.width - 10) {
+              p.x = this.canvas.width - 10;
+              p.vx *= -0.8;
+            }
+            this.ctx.beginPath();
+            if (p.state === 0 || p.state === 2) {
+              this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+              this.ctx.fillStyle = p.color;
+              this.ctx.fill();
+            } else {
+              this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+              this.ctx.arc(p.x - p.size * 0.4, p.y - p.size * 0.3, p.size * 0.7, 0, Math.PI * 2);
+              this.ctx.arc(p.x + p.size * 0.4, p.y - p.size * 0.2, p.size * 0.6, 0, Math.PI * 2);
+              this.ctx.fillStyle = p.color;
+              this.ctx.fill();
+            }
+          } else if (p.type === 'smoke') {
+            p.y += p.vy * dt;
+            p.x += p.vx * dt;
+            p.life -= 0.02 * dt;
+            p.size += 0.5 * dt;
+            if (p.life <= 0) {
+              g.particles.splice(i, 1);
+              continue;
+            }
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fillStyle = `rgba(47, 53, 66, ${p.life * 0.5})`;
+            this.ctx.fill();
+          } else if (p.type === 'star') {
+            p.vy += 0.2 * dt;
+            p.y += p.vy * dt;
+            p.x += p.vx * dt;
+            p.rot += 0.1 * dt;
+            p.life -= 0.02 * dt;
+            if (p.life <= 0) {
+              g.particles.splice(i, 1);
+              continue;
+            }
+            this.ctx.save();
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rot);
+            this.ctx.fillStyle = `rgba(255, 215, 0, ${p.life})`;
+            this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            this.ctx.restore();
+          }
+        }
+        for (let i = g.floatingTexts.length - 1; i >= 0; i--) {
+          const ft = g.floatingTexts[i];
+          ft.y += ft.vy * dt;
+          ft.life -= 0.03 * dt;
+          if (ft.life <= 0) {
+            g.floatingTexts.splice(i, 1);
+            continue;
+          }
+          this.ctx.font = "900 20px 'M PLUS Rounded 1c'";
+          this.ctx.fillStyle = ft.color;
+          this.ctx.globalAlpha = ft.life;
+          this.ctx.strokeStyle = "#FFF";
+          this.ctx.lineWidth = 3;
+          this.ctx.strokeText(ft.text, ft.x, ft.y);
+          this.ctx.fillText(ft.text, ft.x, ft.y);
+          this.ctx.globalAlpha = 1.0;
+        }
+        if ((g.successProg >= 100 || (!g.isFever && g.burnProg >= 100)) && !g.isFever) {
+          this.endGame();
+        } else {
+          requestAnimationFrame(this.loop.bind(this));
+        }
+      }
+      static endGame() {
+        STATE.game.active = false;
+        document.getElementById('btn-shake-pot').disabled = true;
+        setTimeout(() => this.showResult(), 1500);
+      }
+      static showResult() {
+        Audio.success();
+        const g = STATE.game;
+        const flavorDef = FLAVORS[g.flavor];
+        let earned = Math.floor((g.successProg / 100) * 8);
+        if (earned < 1 && g.burnProg < 90) earned = 1;
+        const iconEl = document.getElementById('res-icon');
+        const titleEl = document.getElementById('res-title');
+        const textEl = document.getElementById('res-text');
+        if (g.successProg >= g.burnProg) {
+          iconEl.innerText = flavorDef.emoji;
+          titleEl.innerText = "大せいこう！";
+          titleEl.style.color = "var(--success)";
+          textEl.innerHTML = `${flavorDef.name}味が<br><span style="color:var(--primary); font-size:2.5rem; font-weight:900;">${earned}コ</span> できたよ！`;
+          TeacherSystem.addHistory('cook', `${flavorDef.name}味を ${earned}個 作成`);
+        } else {
+          earned = 0;
+          iconEl.innerText = "🔥";
+          titleEl.innerText = "あちゃー！";
+          titleEl.style.color = "var(--primary)";
+          textEl.innerHTML = `振るのをわすれて焦げちゃった。<br>お店には ならべられないね...`;
+          TeacherSystem.addHistory('cook', `${flavorDef.name}味の調理失敗`);
+        }
+        STATE.inventory[g.flavor] += earned;
+        UIManager.openModal('modal-result');
+      }
+      static finishCooking() {
+        Audio.click();
+        UIManager.closeModal('modal-result');
+        UIManager.navigate('home');
+      }
+    }
+    class ShopSystem {
+      static init() {
+        document.getElementById('wallet-budget-display').innerText = STATE.config.budget;
+        this.buildShelf();
+        this.renderCart();
+        this.renderTray();
+        this.updateRegister();
+      }
+      static buildShelf() {
+        const shelf = document.getElementById('shop-shelf');
+        shelf.innerHTML = '';
+        Object.keys(FLAVORS).forEach(key => {
+          const def = FLAVORS[key];
+          const inCartCount = STATE.shop.cart.filter(item => item.flavorId === key).length;
+          const stock = STATE.inventory[key] - inCartCount;
+          const isEmpty = stock <= 0;
+          const card = document.createElement('div');
+          card.className = `product-card ${isEmpty ? 'out-of-stock' : ''}`;
+          card.innerHTML = `<div class="stock-badge">${stock}</div><div class="emoji">${def.emoji}</div><div class="name">${def.name}</div><div class="price">${def.price}円</div>`;
+          card.onclick = () => {
+            if (!isEmpty) this.addToCart(key, def);
+            else Audio.error();
+          };
+          shelf.appendChild(card);
+        });
+      }
+      static addToCart(flavorId, def) {
+        Audio.click();
+        if (this.getCartTotal() + def.price > STATE.config.budget) {
+          Audio.error();
+          alert(`お財布の予算（${STATE.config.budget}円）を超えています！`);
+          return;
+        }
+        STATE.shop.cart.push({
+          id: Date.now() + Math.random(),
+          flavorId: flavorId,
+          name: def.name,
+          price: def.price
+        });
+        this.buildShelf();
+        this.renderCart();
+        this.updateRegister();
+      }
+      static removeFromCart(itemId) {
+        Audio.click();
+        STATE.shop.cart = STATE.shop.cart.filter(item => item.id !== itemId);
+        this.buildShelf();
+        this.renderCart();
+        this.updateRegister();
+      }
+      static renderCart() {
+        const list = document.getElementById('cart-list');
+        list.innerHTML = '';
+        STATE.shop.cart.forEach(item => {
+          const tag = document.createElement('div');
+          tag.className = 'cart-tag';
+          tag.innerHTML = `${item.name} ${item.price}円 <div class="remove-icon">×</div>`;
+          tag.onclick = () => this.removeFromCart(item.id);
+          list.appendChild(tag);
+        });
+      }
+      static putCoin(val) {
+        Audio.coin();
+        STATE.shop.trayCoins.push({
+          id: Date.now() + Math.random(),
+          val: val
+        });
+        this.renderTray();
+        this.updateRegister();
+      }
+      static removeCoin(coinId) {
+        Audio.click();
+        STATE.shop.trayCoins = STATE.shop.trayCoins.filter(c => c.id !== coinId);
+        this.renderTray();
+        this.updateRegister();
+      }
+      static renderTray() {
+        const tray = document.getElementById('money-tray');
+        tray.innerHTML = '<div class="tray-hint">ここにお金を置く</div>';
+        STATE.shop.trayCoins.forEach(coin => {
+          const btn = document.createElement('div');
+          btn.className = `coin-btn tray-coin c-${coin.val}`;
+          btn.innerHTML = `${coin.val}<div class="remove-mark"></div>`;
+          btn.onclick = () => this.removeCoin(coin.id);
+          tray.appendChild(btn);
+        });
+      }
+      static getCartTotal() {
+        return STATE.shop.cart.reduce((sum, item) => sum + item.price, 0);
+      }
+      static getTrayTotal() {
+        return STATE.shop.trayCoins.reduce((sum, coin) => sum + coin.val, 0);
+      }
+      static updateRegister() {
+        const total = this.getCartTotal();
+        const paid = this.getTrayTotal();
+        document.getElementById('reg-total').innerText = total + "円";
+        document.getElementById('reg-paid').innerText = paid + "円";
+        const btn = document.getElementById('btn-do-checkout');
+        if (total === 0) {
+          btn.className = "btn checkout-action";
+          btn.disabled = true;
+          btn.innerHTML = "🛒 カートが空です";
+        } else if (paid < total) {
+          btn.className = "btn checkout-action";
+          btn.disabled = true;
+          btn.innerHTML = `❌ あと ${total - paid}円 たりません`;
+        } else {
+          btn.className = "btn btn-green checkout-action";
+          btn.disabled = false;
+          const change = paid - total;
+          btn.innerHTML = change === 0 ? "💰 ぴったり！おかいけい" : `💰 おつり ${change}円 でおかいけい`;
+          btn.onclick = () => this.processCheckout(total, paid, change);
+        }
+      }
+      static processCheckout(total, paid, change) {
+        Audio.success();
+        STATE.shop.cart.forEach(item => {
+          STATE.inventory[item.flavorId]--;
+        });
+        const itemsStr = STATE.shop.cart.map(i => i.name).join(', ');
+        TeacherSystem.addHistory('shop', `${total}円の買物 (${itemsStr})`);
+        const recList = document.getElementById('receipt-item-list');
+        recList.innerHTML = '';
+        STATE.shop.cart.forEach(item => {
+          recList.innerHTML += `<div class="rec-item-row"><span>${item.name}</span><span>${item.price}円</span></div>`;
+        });
+        document.getElementById('receipt-total').innerText = total + "円";
+        document.getElementById('receipt-paid').innerText = paid + "円";
+        document.getElementById('receipt-change').innerText = change + "円";
+        STATE.shop.cart = [];
+        STATE.shop.trayCoins = [];
+        UIManager.openModal('modal-receipt');
+      }
+    }
+    class UIManager {
+      static navigate(screenName) {
+        Audio.click();
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        if (screenName === 'home') {
+          this.updateHomeInventory();
+          document.getElementById('screen-home').classList.add('active');
+        } else if (screenName === 'factory-setup') {
+          this.buildFlavorSelect();
+          document.getElementById('screen-factory-setup').classList.add('active');
+        } else if (screenName === 'factory-game') {
+          document.getElementById('screen-factory-game').classList.add('active');
+        } else if (screenName === 'shop') {
+          ShopSystem.init();
+          document.getElementById('screen-shop').classList.add('active');
+        }
+      }
+      static updateHomeInventory() {
+        const dash = document.getElementById('inventory-dashboard');
+        dash.innerHTML = '<span style="color:#747D8C; margin-right:10px;">📦 おみせの在庫:</span>';
+        let hasStock = false;
+        Object.keys(FLAVORS).forEach(key => {
+          const count = STATE.inventory[key];
+          if (count > 0) {
+            const def = FLAVORS[key];
+            dash.innerHTML += `<div class="inv-badge">${def.emoji} ${def.name} <span>${count}</span></div>`;
+            hasStock = true;
+          }
+        });
+        if (!hasStock) dash.innerHTML += '<span style="color:var(--primary);">からっぽです！工場で作ろう！</span>';
+      }
+      static buildFlavorSelect() {
+        const grid = document.getElementById('flavor-select-grid');
+        grid.innerHTML = '';
+        Object.keys(FLAVORS).forEach(key => {
+          const def = FLAVORS[key];
+          const btn = document.createElement('div');
+          btn.className = 'flavor-btn';
+          btn.innerHTML = `<span class="emoji">${def.emoji}</span><span>${def.name}を作る</span>`;
+          btn.onclick = () => GameManager.start(key);
+          grid.appendChild(btn);
+        });
+      }
+      static openModal(modalId) {
+        document.getElementById(modalId).style.display = 'flex';
+      }
+      static closeModal(modalId) {
+        Audio.click();
+        document.getElementById(modalId).style.display = 'none';
+      }
+    }
+    window.onload = () => {
+      UIManager.updateHomeInventory();
+      document.querySelectorAll('.coin-controls .coin-btn').forEach(btn => {
+        btn.onclick = (e) => ShopSystem.putCoin(parseInt(e.currentTarget.getAttribute('data-val')));
+      });
+      const actionBtn = document.getElementById('btn-shake-pot');
+      const handleShake = (e) => {
+        e.preventDefault();
+        GameManager.shakeAction();
+      };
+      actionBtn.addEventListener('touchstart', handleShake, {
+        passive: false
+      });
+      actionBtn.addEventListener('mousedown', handleShake);
+      document.body.addEventListener('touchstart', () => Audio.resume(), {
+        once: true
+      });
+      document.body.addEventListener('mousedown', () => Audio.resume(), {
+        once: true
+      });
+    };
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

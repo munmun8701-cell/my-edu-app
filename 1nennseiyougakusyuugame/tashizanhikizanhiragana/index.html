@@ -1,0 +1,2682 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>さいばー どりる ＆ げーむ (あるてぃめっと)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================
+       1. デザイン変数と基本設定
+    ========================================= */
+    :root {
+      --bg-base: #020611;
+      --panel-bg: rgba(10, 20, 35, 0.95);
+      --cyan: #00f0ff;
+      --magenta: #ff0055;
+      --alert: #ffcc00;
+      --green: #00ff66;
+      --text-main: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-image: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 80%);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: clamp(260px, 30vw, 350px) 1fr;
+      gap: 15px;
+      width: 100%;
+      height: 100%;
+      padding: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 35vh 1fr;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .game-header {
+        height: 50px !important;
+        padding: 5px 10px !important;
+      }
+
+      .big-start-btn {
+        font-size: 1.8rem !important;
+        padding: 15px 30px !important;
+      }
+
+      .card-actions-float {
+        bottom: 25% !important;
+      }
+
+      .action-chip {
+        padding: 8px 15px !important;
+        font-size: 1.2rem !important;
+      }
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan);
+      margin: 0 0 10px 0;
+      text-align: center;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+    }
+
+    .btn {
+      background: rgba(0, 0, 0, 0.6);
+      color: #ccc;
+      border: 2px solid #555;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      font-weight: bold;
+      font-family: inherit;
+      cursor: pointer;
+      transition: 0.1s;
+      text-align: center;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      color: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    .btn.magenta.active {
+      background: rgba(255, 0, 85, 0.2);
+      color: var(--magenta);
+      border-color: var(--magenta);
+      box-shadow: 0 0 10px var(--magenta);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn-group-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .left-panel {
+      background: var(--panel-bg);
+      border: 3px solid var(--cyan);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 15px;
+      height: 100%;
+      overflow-y: auto;
+      touch-action: pan-y;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .left-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .left-panel::-webkit-scrollbar-thumb {
+      background: var(--cyan);
+      border-radius: 3px;
+    }
+
+    .toggle-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--alert);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .zukan-box {
+      background: rgba(0, 255, 102, 0.1);
+      border: 2px solid var(--green);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    .xp-bar-bg {
+      width: 100%;
+      height: 15px;
+      background: #222;
+      border-radius: 10px;
+      border: 1px solid var(--green);
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--green);
+      transition: 0.5s ease-out;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .char-emoji {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 0 10px var(--green));
+      animation: float 2s infinite ease-in-out;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* =========================================
+       ★ 強化エフェクト用 CSS
+    ========================================= */
+    .particle {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      animation: pop 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(var(--dx), var(--dy)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .floating-text {
+      position: fixed;
+      font-weight: 900;
+      pointer-events: none;
+      z-index: 9999;
+      text-shadow: 0 0 15px currentColor;
+      animation: floatUp 1s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-100px) scale(1.5);
+      }
+    }
+
+    .shake {
+      animation: shake 0.3s;
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translate(2px, 2px) rotate(0deg);
+      }
+
+      25% {
+        transform: translate(-3px, -3px) rotate(-1deg);
+      }
+
+      50% {
+        transform: translate(3px, 3px) rotate(1deg);
+      }
+
+      75% {
+        transform: translate(-2px, 2px) rotate(-1deg);
+      }
+
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+    }
+
+    /* プログレスバーUI */
+    .progress-container {
+      width: 100%;
+      max-width: 400px;
+      height: 15px;
+      background: #222;
+      border-radius: 10px;
+      border: 2px solid #555;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--cyan);
+      width: 0%;
+      transition: width 0.3s ease-out;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* =========================================
+       右パネル (メイン画面)
+    ========================================= */
+    .right-panel {
+      background: var(--panel-bg);
+      border: 3px solid var(--cyan);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+    }
+
+    .game-header {
+      padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom: 2px solid var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      height: 60px;
+    }
+
+    .game-header div {
+      font-size: clamp(1rem, 3vw, 1.5rem) !important;
+    }
+
+    .quit-btn {
+      background: rgba(255, 0, 85, 0.2);
+      color: var(--magenta);
+      border: 2px solid var(--magenta);
+      border-radius: 6px;
+      padding: 5px 15px;
+      font-size: clamp(0.9rem, 2vw, 1.2rem);
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .quit-btn:active {
+      background: var(--magenta);
+      color: #000;
+    }
+
+    .game-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .big-start-btn {
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--cyan);
+      border: 4px solid var(--cyan);
+      border-radius: 20px;
+      padding: clamp(20px, 5vw, 30px) clamp(30px, 8vw, 60px);
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+      text-shadow: 0 0 15px var(--cyan);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+      font-family: inherit;
+    }
+
+    .big-start-btn:active {
+      background: var(--cyan);
+      color: #000;
+      transform: scale(0.95);
+    }
+
+    /* --- ボードゲーム --- */
+    .board-bg {
+      padding: 10px;
+      background: #111;
+      border: 3px solid var(--cyan);
+      border-radius: 10px;
+    }
+
+    .board-grid {
+      display: grid;
+      gap: 2px;
+      background: #444;
+      border: 2px solid #555;
+    }
+
+    .b-cell {
+      background: #1a2332;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.2rem, 5vw, 2.5rem);
+      font-weight: bold;
+      cursor: pointer;
+      width: clamp(25px, 7vw, 65px);
+      height: clamp(25px, 7vw, 65px);
+    }
+
+    .b-cell.chess-odd {
+      background: #2c3a50;
+    }
+
+    .b-cell.valid {
+      box-shadow: inset 0 0 0 4px var(--green);
+    }
+
+    .b-cell.selected {
+      box-shadow: inset 0 0 0 4px var(--cyan);
+      background: rgba(0, 240, 255, 0.2);
+    }
+
+    .piece-p1 {
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+      pointer-events: none;
+    }
+
+    .piece-p2 {
+      color: var(--magenta);
+      text-shadow: 0 0 10px var(--magenta);
+      transform: rotate(180deg);
+      pointer-events: none;
+    }
+
+    .piece-oth-b {
+      width: 85%;
+      height: 85%;
+      background: radial-gradient(circle at 30% 30%, #444, #000);
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      pointer-events: none;
+    }
+
+    .piece-oth-w {
+      width: 85%;
+      height: 85%;
+      background: radial-gradient(circle at 30% 30%, #fff, #aaa);
+      border-radius: 50%;
+      border: 2px solid var(--magenta);
+      pointer-events: none;
+    }
+
+    /* --- カードゲーム --- */
+    .card-table-bg {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle, #0a3a2a, #021a0a);
+      border-radius: 8px;
+      box-shadow: inset 0 0 50px rgba(0, 255, 102, 0.1);
+      justify-content: space-between;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .table-top {
+      display: flex;
+      justify-content: center;
+      height: 15%;
+      align-items: flex-start;
+    }
+
+    .table-middle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 50%;
+      width: 100%;
+    }
+
+    .table-side {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 15%;
+      height: 100%;
+      align-items: center;
+    }
+
+    .table-center {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: relative;
+    }
+
+    .table-bottom {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 25%;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    .card-area {
+      display: flex;
+      justify-content: center;
+      gap: -30px;
+      position: relative;
+    }
+
+    .card-area.player-hand {
+      gap: 5px;
+      overflow-x: auto;
+      touch-action: pan-x;
+      max-width: 90%;
+      padding-bottom: 5px;
+      justify-content: flex-start;
+    }
+
+    .card-area.player-hand::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .card-area.player-hand::-webkit-scrollbar-thumb {
+      background: var(--green);
+      border-radius: 4px;
+    }
+
+    .card-area.cpu-top {
+      transform: scale(0.6);
+      transform-origin: top center;
+    }
+
+    .card-area.cpu-left {
+      transform: scale(0.6) rotate(90deg);
+      transform-origin: center;
+    }
+
+    .card-area.cpu-right {
+      transform: scale(0.6) rotate(-90deg);
+      transform-origin: center;
+    }
+
+    .grid-sevens {
+      display: grid;
+      grid-template-columns: repeat(13, 1fr);
+      gap: 2px;
+      width: 100%;
+      height: 100%;
+      align-content: center;
+    }
+
+    .grid-memory {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      align-content: center;
+    }
+
+    .card {
+      width: clamp(40px, 8vw, 80px);
+      height: clamp(60px, 12vw, 120px);
+      background: #fff;
+      border-radius: 6px;
+      border: 2px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px;
+      font-weight: 900;
+      font-family: 'Arial', sans-serif;
+      font-size: clamp(1rem, 2vw, 1.8rem);
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+      color: #000;
+    }
+
+    .card.red {
+      color: #dd0000;
+    }
+
+    .card.black {
+      color: #111111;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 15px var(--cyan);
+      z-index: 10;
+    }
+
+    .card.selected {
+      transform: translateY(-20px);
+      border: 4px solid var(--cyan);
+      box-shadow: 0 0 20px var(--cyan);
+    }
+
+    .card.back {
+      background: repeating-linear-gradient(45deg, #222, #222 10px, #444 10px, #444 20px);
+      border-color: #111;
+    }
+
+    .grid-sevens .card {
+      width: clamp(20px, 4vw, 50px);
+      height: clamp(30px, 6vw, 75px);
+      font-size: clamp(0.7rem, 1vw, 1rem);
+      padding: 2px;
+    }
+
+    .grid-memory .card {
+      width: clamp(35px, 7vw, 70px);
+      height: clamp(50px, 10vw, 105px);
+    }
+
+    .uno-card {
+      color: #fff;
+      border: 3px solid #fff;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(2rem, 3vw, 3.5rem);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .uno-red {
+      background: #ff0055;
+    }
+
+    .uno-blue {
+      background: #00f0ff;
+    }
+
+    .uno-green {
+      background: #00ff66;
+    }
+
+    .uno-yellow {
+      background: #ffcc00;
+    }
+
+    .uno-wild {
+      background: conic-gradient(#ff0055, #00f0ff, #00ff66, #ffcc00, #ff0055);
+    }
+
+    .card-actions-float {
+      position: absolute;
+      bottom: 28%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 20;
+    }
+
+    .action-chip {
+      background: rgba(0, 0, 0, 0.85);
+      color: var(--cyan);
+      border: 3px solid var(--cyan);
+      padding: 12px 30px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px var(--cyan);
+    }
+
+    .action-chip:active {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    /* --- なぞりがき (Canvas) --- */
+    .trace-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+    }
+
+    .trace-char-display {
+      font-size: clamp(3rem, 10vw, 6rem);
+      color: var(--cyan);
+      font-family: 'Klee One', serif;
+      font-weight: bold;
+      text-shadow: 0 0 20px var(--cyan);
+      margin-bottom: 5px;
+    }
+
+    .canvas-container {
+      position: relative;
+      border: 4px dashed var(--cyan);
+      border-radius: 20px;
+      background: #0a1020;
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 1;
+      box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.1);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    /* --- さんすう (おはじき) --- */
+    .math-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .math-q {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 20px var(--cyan);
+      margin-bottom: 10px;
+      font-family: 'Orbitron', 'M PLUS Rounded 1c', sans-serif;
+    }
+
+    .ohajiki-area {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .ohajiki-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+      max-width: 250px;
+      justify-content: center;
+    }
+
+    .ohajiki {
+      width: clamp(30px, 8vw, 45px);
+      height: clamp(30px, 8vw, 45px);
+      border-radius: 50%;
+      background: #444;
+      border: 3px solid #777;
+      cursor: pointer;
+      transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .ohajiki:active {
+      transform: scale(0.8);
+    }
+
+    .ohajiki.on1 {
+      background: var(--cyan);
+      border-color: #fff;
+      box-shadow: 0 0 15px var(--cyan);
+      transform: scale(1.1);
+    }
+
+    .ohajiki.on2 {
+      background: var(--magenta);
+      border-color: #fff;
+      box-shadow: 0 0 15px var(--magenta);
+      transform: scale(1.1);
+    }
+
+    /* モーダル */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 5000;
+      padding: 15px;
+    }
+
+    .modal-content {
+      background: var(--panel-bg);
+      border: 4px solid var(--cyan);
+      border-radius: 15px;
+      padding: clamp(15px, 5vw, 30px);
+      width: 100%;
+      max-width: 700px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .info-modal {
+      background: rgba(10, 20, 40, 0.95);
+      border: 4px solid var(--alert);
+      border-radius: 15px;
+      padding: 30px 50px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(255, 204, 0, 0.5);
+    }
+
+    .zukan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .zukan-item {
+      background: rgba(0, 255, 102, 0.1);
+      border: 2px solid var(--green);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .zukan-item.locked {
+      background: #222;
+      border-color: #555;
+      filter: grayscale(100%);
+      opacity: 0.5;
+    }
+
+    .color-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 4px solid #fff;
+      display: inline-block;
+      margin: 10px;
+    }
+
+    .voice-toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: transparent;
+      border: 2px solid var(--alert);
+      color: var(--alert);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .voice-toggle.off {
+      border-color: #555;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="scanline"></div>
+  <button class="voice-toggle off" id="btnVoice" onclick="toggleVoice()">🔇</button>
+
+  <div class="layout">
+    <!-- 左パネル -->
+    <div class="left-panel">
+      <h2>あそび を えらぶ</h2>
+
+      <div class="btn-group">
+        <button class="btn active" onclick="switchCat('board')">ぼーど</button>
+        <button class="btn" onclick="switchCat('card')">かーど</button>
+        <button class="btn magenta" onclick="switchCat('trace')">なぞりがき</button>
+        <button class="btn magenta" onclick="switchCat('math')">さんすう</button>
+      </div>
+
+      <div id="menu-board">
+        <div style="color:var(--cyan); margin-bottom:5px; font-size:0.9rem; text-align:center;">げーむ を えらんでね</div>
+        <div class="btn-group-3">
+          <button class="btn active" onclick="selectGame('othello')">おせろ</button>
+          <button class="btn" onclick="selectGame('chess')">ちぇす</button>
+          <button class="btn" onclick="selectGame('shogi')">しょうぎ</button>
+        </div>
+      </div>
+
+      <div id="menu-card" style="display:none;">
+        <div style="color:var(--cyan); margin-bottom:5px; font-size:0.9rem; text-align:center;">げーむ を えらんでね</div>
+        <div class="btn-group-3">
+          <button class="btn active" onclick="selectGame('daifugo')">だいふごう</button>
+          <button class="btn" onclick="selectGame('sevens')">しちならべ</button>
+          <button class="btn" onclick="selectGame('baba')">ばばぬき</button>
+          <button class="btn" onclick="selectGame('memory')">しんけいすいじゃく</button>
+          <button class="btn" onclick="selectGame('uno')">うの (UNO)</button>
+        </div>
+      </div>
+
+      <div id="menu-trace" style="display:none;">
+        <div style="color:var(--magenta); margin-bottom:5px; font-size:0.9rem; text-align:center;">ぎょう を えらんでね (れんぞく)</div>
+        <div class="btn-group-3" id="trace-row-btns">
+          <button class="btn magenta active" onclick="selTraceRow('あ')">あ ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('か')">か ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('さ')">さ ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('た')">た ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('な')">な ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('は')">は ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('ま')">ま ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('や')">や ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('ら')">ら ぎょう</button>
+          <button class="btn magenta" onclick="selTraceRow('わ')">わ ぎょう</button>
+        </div>
+        <div class="btn-group" style="margin-top:5px;">
+          <button class="btn magenta active" onclick="selTraceType('hira')">ひらがな</button>
+          <button class="btn magenta" onclick="selTraceType('kata')">かたかな</button>
+        </div>
+      </div>
+
+      <div id="menu-math" style="display:none;">
+        <div style="color:var(--magenta); margin-bottom:5px; font-size:0.9rem; text-align:center;">もんだい を えらんでね (5もん)</div>
+        <div class="btn-group">
+          <button class="btn magenta active" onclick="selectGame('math_add')">たしざん</button>
+          <button class="btn magenta" onclick="selectGame('math_sub')">ひきざん</button>
+        </div>
+      </div>
+
+      <div class="toggle-box" id="quizToggleBox" style="margin-top:5px;">
+        <div style="color:var(--alert); font-weight:bold; margin-bottom:5px; font-size:0.9rem;">げーむ の まえ に さんすう</div>
+        <div class="btn-group" style="margin-bottom:0;">
+          <button class="btn" id="tgl-off" onclick="toggleMathQuiz(false)">OFF (なし)</button>
+          <button class="btn active" id="tgl-on" style="color:var(--alert); border-color:var(--alert);" onclick="toggleMathQuiz(true)">ON (あり)</button>
+        </div>
+      </div>
+
+      <div class="zukan-box">
+        <h3 style="color:var(--green); margin:0;">きみの なかま (Lv.<span id="playerLv">1</span>)</h3>
+        <div class="char-emoji" id="currentCharEmoji">🥚</div>
+        <div style="font-size: 1.2rem; color: #fff; font-weight:bold;" id="currentCharName">なぞの たまご</div>
+        <div class="xp-bar-bg">
+          <div class="xp-bar-fill" id="xpBar"></div>
+        </div>
+        <div style="color:var(--green); font-size:0.9rem; font-weight:bold;">けいけんち: <span id="xpText">0</span> / <span id="nextXpText">80</span></div>
+        <button class="btn" style="width:100%; margin-top:10px; border-color:var(--green); color:var(--green);" onclick="openZukan()">なかま ずかん を みる</button>
+      </div>
+    </div>
+
+    <!-- 右パネル (ゲームエリア) -->
+    <div class="right-panel">
+      <div class="game-header">
+        <div style="font-weight: 900;" id="headerTitle">さいばー どりる ＆ げーむ</div>
+        <div style="color:var(--alert); font-weight:bold;" id="headerTurn"></div>
+        <button class="quit-btn" id="btnQuit" style="display:none;" onclick="quitGame()">⏹ やめる</button>
+      </div>
+
+      <div class="game-content">
+        <!-- スタート画面 -->
+        <div id="screen-start" style="text-align: center;">
+          <button class="big-start-btn" onclick="startGame()">げーむ を はじめる</button>
+          <p style="font-size: clamp(1rem, 2vw, 1.2rem); color:#aaa; margin-top: 20px;">ひだり の めにゅー を えらんでね</p>
+        </div>
+
+        <!-- 1. ボードゲーム -->
+        <div id="screen-board" style="display:none;">
+          <div class="board-bg">
+            <div class="board-grid" id="gameBoard"></div>
+          </div>
+        </div>
+
+        <!-- 2. カードゲーム -->
+        <div id="screen-card" style="display:none; width:100%; height:100%;">
+          <div class="card-table-bg">
+            <div class="table-top">
+              <div class="card-area cpu-top" id="hand-cpu3"></div>
+            </div>
+            <div class="table-middle">
+              <div class="table-side">
+                <div class="card-area cpu-left" id="hand-cpu1"></div>
+              </div>
+              <div class="table-center" id="centerTable"></div>
+              <div class="table-side">
+                <div class="card-area cpu-right" id="hand-cpu2"></div>
+              </div>
+            </div>
+            <div class="card-actions-float" id="cardActionArea" style="display:none;">
+              <button class="action-chip" id="btnPlay" style="display:none;" onclick="wrapMath(actPlay)">だす</button>
+              <button class="action-chip" id="btnPass" style="display:none;" onclick="wrapMath(actPass)">ぱす</button>
+              <button class="action-chip" id="btnDraw" style="display:none;" onclick="wrapMath(actDraw)">ひく</button>
+            </div>
+            <div class="table-bottom">
+              <div class="card-area player-hand" id="hand-player"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. なぞりがき (Canvas) -->
+        <div id="screen-trace" class="trace-wrapper" style="display:none;">
+          <!-- 進行度UI -->
+          <div id="traceProgressText" style="color:var(--magenta); font-size:1.5rem; font-weight:bold;">1 / 5 もじめ</div>
+          <div class="progress-container">
+            <div id="traceProgressBar" class="progress-fill" style="background:var(--magenta); box-shadow:0 0 10px var(--magenta);"></div>
+          </div>
+
+          <div class="trace-char-display" id="traceTargetChar">あ</div>
+          <div class="canvas-container">
+            <canvas id="traceCanvas"></canvas>
+          </div>
+          <div style="display:flex; gap:20px; margin-top:10px;">
+            <button class="btn" style="padding: 10px 30px; font-size:clamp(1.2rem, 4vw, 1.8rem);" onclick="clearTraceCanvas()">けす</button>
+            <button class="btn active magenta" style="padding: 10px 30px; font-size:clamp(1.2rem, 4vw, 1.8rem);" onclick="evalTrace()">はんてい</button>
+          </div>
+        </div>
+
+        <!-- 4. さんすう (おはじき) -->
+        <div id="screen-math" class="math-wrapper" style="display:none;">
+          <!-- 進行度UI -->
+          <div id="mathProgressText" style="color:var(--alert); font-size:1.5rem; font-weight:bold;">だい 1 もん (ぜんぶで 5 もん)</div>
+          <div class="progress-container">
+            <div id="mathProgressBar" class="progress-fill" style="background:var(--alert); box-shadow:0 0 10px var(--alert);"></div>
+          </div>
+
+          <div class="math-q" id="mathQ">3 + 2 = ?</div>
+          <div class="ohajiki-area">
+            <div class="ohajiki-group" id="ohaGroup1"></div>
+            <div style="font-size:3rem; font-weight:bold;" id="mathSign">＋</div>
+            <div class="ohajiki-group" id="ohaGroup2"></div>
+          </div>
+          <div class="btn-group-3" id="mathChoices" style="width:100%; max-width:600px; gap:20px;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- モーダル群 -->
+  <div class="modal" id="infoModal" style="z-index: 6000;">
+    <div class="info-modal">
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.5rem); color:#fff; margin:0;" id="infoText">メッセージ</h2>
+    </div>
+  </div>
+
+  <div class="modal" id="quizModal">
+    <div class="modal-content" style="max-width:700px; border-color:var(--alert);">
+      <h1 style="color:var(--alert); font-size:clamp(1.8rem, 5vw, 3rem);">すとっぷ！ さんすう くいず</h1>
+      <p style="font-size:clamp(1rem, 3vw, 1.5rem);">せいかい しないと げーむ が すすめないよ！</p>
+      <div class="math-q" id="quizMathQ" style="color:var(--alert); font-size:clamp(2.5rem, 8vw, 4rem);"></div>
+      <div class="ohajiki-area" style="background:transparent; justify-content:center; padding:0; min-height:80px; margin-bottom:20px;">
+        <div class="ohajiki-group" id="quizOha1"></div>
+        <div style="font-size:3rem; font-weight:bold;" id="quizMathSign">＋</div>
+        <div class="ohajiki-group" id="quizOha2"></div>
+      </div>
+      <div class="btn-group-3" id="quizChoices" style="gap:20px;"></div>
+      <button class="btn" style="margin-top:20px; font-size:1.2rem; border-color:#555;" onclick="cancelMath()">やめる (きゃんせる)</button>
+    </div>
+  </div>
+
+  <div class="modal" id="zukanModal">
+    <div class="modal-content">
+      <h1 style="color:var(--green); font-size:clamp(2rem, 6vw, 3rem);">なかま ずかん</h1>
+      <p style="font-size:clamp(1rem, 3vw, 1.2rem);">けいけんち を ためると、あたらしい なかま が ふえるよ！</p>
+      <div class="zukan-grid" id="zukanGrid"></div>
+      <button class="btn" style="margin-top:30px; font-size:1.5rem; padding:10px 40px;" onclick="closeM('zukanModal')">とじる</button>
+    </div>
+  </div>
+
+  <div class="modal" id="resultModal">
+    <div class="modal-content" style="max-width:600px; border-color:var(--green); box-shadow:0 0 50px rgba(0, 255, 102, 0.4);">
+      <h1 style="font-size: clamp(3rem, 10vw, 5rem); color:var(--cyan);" id="resTitle">かち！</h1>
+      <p style="font-size: clamp(1.5rem, 5vw, 2.5rem);" id="resDesc">おめでとう！</p>
+      <div style="font-size: clamp(2rem, 6vw, 3rem); color:var(--green); margin: 30px 0; font-weight:bold;">
+        けいけんち <span id="resXp">+50</span> げっと！
+      </div>
+      <button class="big-start-btn" style="padding:10px 20px; font-size:2rem; background:rgba(0,255,102,0.2); border-color:var(--green); color:var(--green); text-shadow:none;" onclick="quitGame()">めにゅー に もどる</button>
+    </div>
+  </div>
+
+  <div class="modal" id="unoColorModal" style="z-index: 5500;">
+    <div class="modal-content" style="max-width:500px;">
+      <h1 style="font-size:clamp(1.5rem, 5vw, 2.5rem);">いろ を えらんでね</h1>
+      <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:20px; margin-top:30px;">
+        <div class="color-btn" style="background:#ff0055;" onclick="confirmUnoCol('red')"></div>
+        <div class="color-btn" style="background:#00f0ff;" onclick="confirmUnoCol('blue')"></div>
+        <div class="color-btn" style="background:#00ff66;" onclick="confirmUnoCol('green')"></div>
+        <div class="color-btn" style="background:#ffcc00;" onclick="confirmUnoCol('yellow')"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 0. 超・爽快エフェクト関数
+    // ==========================================
+    function spawnParticles(x, y, amount = 20) {
+      for (let i = 0; i < amount; i++) {
+        let p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        p.style.backgroundColor = ['#00f0ff', '#ff0055', '#00ff66', '#ffcc00'][Math.floor(Math.random() * 4)];
+        let dx = (Math.random() - 0.5) * 300;
+        let dy = (Math.random() - 0.5) * 300 - 100;
+        p.style.setProperty('--dx', dx + 'px');
+        p.style.setProperty('--dy', dy + 'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
+
+    function createFloatingText(text, x, y, color = 'var(--alert)', size = '3rem') {
+      let el = document.createElement('div');
+      el.className = 'floating-text';
+      el.textContent = text;
+      el.style.left = (x - 80) + 'px';
+      el.style.top = (y - 50) + 'px';
+      el.style.color = color;
+      el.style.fontSize = size;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1000);
+    }
+
+    function shakeScreen() {
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 300);
+    }
+    // ==========================================
+    // 1. システム・音声・ずかん管理 (やりこみ仕様)
+    // ==========================================
+    let currentCat = 'board',
+      currentGame = 'othello',
+      traceRow = 'あ',
+      traceType = 'hira';
+    let isPlaying = false,
+      requireMath = true,
+      mathCallback = null;
+    const players = ['player', 'cpu1', 'cpu2', 'cpu3'];
+    const pNames = {
+      'player': 'あなた',
+      'cpu1': 'CPU 1',
+      'cpu2': 'CPU 2',
+      'cpu3': 'CPU 3'
+    };
+    let turnIdx = 0,
+      voiceOn = false;
+
+    function toggleVoice() {
+      voiceOn = !voiceOn;
+      const btn = document.getElementById('btnVoice');
+      btn.textContent = voiceOn ? '🔊' : '🔇';
+      btn.className = voiceOn ? 'voice-toggle' : 'voice-toggle off';
+      if (voiceOn) speak("おんせい を おん に しました！");
+    }
+
+    function speak(text) {
+      if (!voiceOn || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      u.rate = 1.0;
+      window.speechSynthesis.speak(u);
+    }
+    const CHARACTERS = [{
+        lv: 1,
+        name: 'なぞの たまご',
+        emoji: '🥚'
+      }, {
+        lv: 2,
+        name: 'でじたる ひよこ',
+        emoji: '🐣'
+      },
+      {
+        lv: 3,
+        name: 'さいばー わんこ',
+        emoji: '🐶'
+      }, {
+        lv: 4,
+        name: 'ねおん ねこ',
+        emoji: '🐱'
+      },
+      {
+        lv: 5,
+        name: 'めか うさぎ',
+        emoji: '🐰'
+      }, {
+        lv: 6,
+        name: 'ぷらずま きつね',
+        emoji: '🦊'
+      },
+      {
+        lv: 8,
+        name: 'はっかー ぱんだ',
+        emoji: '🐼'
+      }, {
+        lv: 10,
+        name: 'こーど くま',
+        emoji: '🐻'
+      },
+      {
+        lv: 15,
+        name: 'どらごん ますたー',
+        emoji: '🐉'
+      }, {
+        lv: 20,
+        name: 'うちゅう じん',
+        emoji: '👽'
+      }
+    ];
+    let pXp = 0,
+      pLv = 1;
+    // ★ 修正: やりこみレベルデザイン (二次関数で必要XP上昇)
+    function calcReqXp(level) {
+      return Math.floor(level * level * 30 + 50);
+    }
+
+    function addXp(amount) {
+      pXp += amount;
+      checkLv();
+      updateZukan();
+      createFloatingText(`+${amount} XP!`, window.innerWidth / 2, window.innerHeight / 2, 'var(--green)');
+    }
+
+    function checkLv() {
+      let req = calcReqXp(pLv);
+      if (pXp >= req) {
+        pLv++;
+        pXp -= req;
+        speak("れべる あっぷ！");
+        showMsg(`れべるあっぷ！ Lv.${pLv}！`);
+        createFloatingText("LEVEL UP!", window.innerWidth / 2, window.innerHeight / 2, 'var(--magenta)', '5rem');
+        spawnParticles(window.innerWidth / 2, window.innerHeight / 2, 50);
+        checkLv();
+      }
+    }
+
+    function updateZukan() {
+      let req = calcReqXp(pLv);
+      document.getElementById('playerLv').textContent = pLv;
+      document.getElementById('xpText').textContent = pXp;
+      document.getElementById('nextXpText').textContent = req;
+      document.getElementById('xpBar').style.width = `${(pXp/req)*100}%`;
+      let ch = CHARACTERS[0];
+      for (let i = 0; i < CHARACTERS.length; i++) {
+        if (pLv >= CHARACTERS[i].lv) ch = CHARACTERS[i];
+      }
+      document.getElementById('currentCharEmoji').textContent = ch.emoji;
+      document.getElementById('currentCharName').textContent = ch.name;
+    }
+
+    function openZukan() {
+      const grid = document.getElementById('zukanGrid');
+      grid.innerHTML = '';
+      CHARACTERS.forEach(ch => {
+        let un = pLv >= ch.lv;
+        let d = document.createElement('div');
+        d.className = un ? 'zukan-item' : 'zukan-item locked';
+        d.innerHTML = `<div style="font-size:4rem; margin-bottom:10px;">${un ? ch.emoji : '❓'}</div><div style="color:var(--green); font-weight:bold; font-size:1.1rem;">${un ? ch.name : `Lv.${ch.lv} で かいほう`}</div>`;
+        grid.appendChild(d);
+      });
+      document.getElementById('zukanModal').style.display = 'flex';
+      speak("なかま ずかん だよ");
+    }
+
+    function closeM(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function showMsg(txt, ms = 2000) {
+      document.getElementById('infoText').textContent = txt;
+      const m = document.getElementById('infoModal');
+      m.style.display = 'flex';
+      setTimeout(() => {
+        m.style.display = 'none';
+      }, ms);
+    }
+
+    function showEnd(title, desc, xp) {
+      isPlaying = false;
+      document.getElementById('resTitle').textContent = title;
+      document.getElementById('resDesc').textContent = desc;
+      document.getElementById('resXp').textContent = `+${xp}`;
+      addXp(xp);
+      document.getElementById('resultModal').style.display = 'flex';
+      speak(title);
+      spawnParticles(window.innerWidth / 2, window.innerHeight / 2, 50);
+    }
+    // UI切替
+    function switchCat(cat) {
+      if (isPlaying) return;
+      currentCat = cat;
+      if (window.event && window.event.target && window.event.target.classList.contains('btn')) {
+        let parent = window.event.target.parentElement;
+        parent.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        window.event.target.classList.add('active');
+      }
+      ['board', 'card', 'trace', 'math'].forEach(c => document.getElementById(`menu-${c}`).style.display = c === cat ? 'block' : 'none');
+      document.getElementById('quizToggleBox').style.display = (cat === 'board' || cat === 'card') ? 'block' : 'none';
+      if (cat === 'board') selectGame('othello');
+      if (cat === 'card') selectGame('daifugo');
+      if (cat === 'trace') selectGame('trace_dummy');
+      if (cat === 'math') selectGame('math_add');
+    }
+
+    function selectGame(game) {
+      if (isPlaying) return;
+      currentGame = game;
+      if (window.event && window.event.target && window.event.target.classList.contains('btn')) {
+        let p = window.event.target.parentElement;
+        p.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        window.event.target.classList.add('active');
+      }
+    }
+
+    function selTraceRow(row) {
+      traceRow = row;
+      if (window.event && window.event.target) {
+        let p = window.event.target.parentElement;
+        p.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        window.event.target.classList.add('active');
+      }
+    }
+
+    function selTraceType(type) {
+      traceType = type;
+      if (window.event && window.event.target) {
+        let p = window.event.target.parentElement;
+        p.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        window.event.target.classList.add('active');
+      }
+    }
+
+    function toggleMathQuiz(bool) {
+      requireMath = bool;
+      document.getElementById('tgl-on').classList.toggle('active', bool);
+      document.getElementById('tgl-off').classList.toggle('active', !bool);
+    }
+
+    function startGame() {
+      isPlaying = true;
+      document.getElementById('screen-start').style.display = 'none';
+      document.getElementById('btnQuit').style.display = 'block';
+      ['board', 'card', 'trace', 'math'].forEach(c => document.getElementById(`screen-${c}`).style.display = 'none');
+      let title = "げーむ";
+      if (currentCat === 'board') {
+        title = currentGame;
+        initBoard();
+      } else if (currentCat === 'card') {
+        title = currentGame;
+        initCard();
+      } else if (currentCat === 'trace') {
+        title = "なぞりがき";
+        initTrace();
+      } else if (currentCat === 'math') {
+        title = "さんすう";
+        initMath();
+      }
+      document.getElementById('headerTitle').textContent = title;
+      speak("げーむ を はじめるよ！");
+    }
+
+    function quitGame() {
+      isPlaying = false;
+      window.speechSynthesis.cancel();
+      ['board', 'card', 'trace', 'math'].forEach(c => document.getElementById(`screen-${c}`).style.display = 'none');
+      document.getElementById('screen-start').style.display = 'block';
+      document.getElementById('btnQuit').style.display = 'none';
+      document.getElementById('headerTurn').textContent = "";
+      document.getElementById('headerTitle').textContent = "さいばー どりる ＆ げーむ";
+      closeM('resultModal');
+      document.getElementById('cardActionArea').style.display = 'none';
+    }
+    // 割り込みクイズ
+    function wrapMath(cb) {
+      if (requireMath && players[turnIdx] === 'player') {
+        mathCallback = cb;
+        openMathQuiz();
+      } else {
+        cb();
+      }
+    }
+
+    function openMathQuiz() {
+      let isAdd = Math.random() > 0.5;
+      let a = Math.floor(Math.random() * 5) + 1;
+      let b = Math.floor(Math.random() * 5) + 1;
+      let ans = 0;
+      if (isAdd) {
+        ans = a + b;
+        document.getElementById('quizMathQ').textContent = `${a} ＋ ${b} ＝ ？`;
+        document.getElementById('quizMathSign').textContent = "＋";
+        speak(`${a} たす ${b} は？`);
+      } else {
+        a = Math.floor(Math.random() * 5) + 5;
+        b = Math.floor(Math.random() * a) + 1;
+        ans = a - b;
+        document.getElementById('quizMathQ').textContent = `${a} － ${b} ＝ ？`;
+        document.getElementById('quizMathSign').textContent = "－";
+        speak(`${a} ひく ${b} は？`);
+      }
+      let o1 = document.getElementById('quizOha1');
+      o1.innerHTML = '';
+      for (let i = 0; i < a; i++) {
+        let d = document.createElement('div');
+        d.className = 'ohajiki';
+        d.onclick = function() {
+          this.classList.toggle('on1')
+        };
+        o1.appendChild(d);
+      }
+      let o2 = document.getElementById('quizOha2');
+      o2.innerHTML = '';
+      if (isAdd) {
+        for (let i = 0; i < b; i++) {
+          let d = document.createElement('div');
+          d.className = 'ohajiki';
+          d.onclick = function() {
+            this.classList.toggle('on2')
+          };
+          o2.appendChild(d);
+        }
+      }
+      let opt2 = ans + 1;
+      let opt3 = ans - 1 < 0 ? ans + 2 : ans - 1;
+      let opts = [ans, opt2, opt3].sort(() => Math.random() - 0.5);
+      let cB = document.getElementById('quizChoices');
+      cB.innerHTML = '';
+      opts.forEach(o => {
+        let btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.style.fontSize = 'clamp(2rem, 5vw, 3.5rem)';
+        btn.style.padding = '15px';
+        btn.textContent = o;
+        btn.onclick = (e) => {
+          if (o === ans) {
+            closeM('quizModal');
+            showMsg("せいかい！", 1500);
+            speak("せいかい！");
+            spawnParticles(e.clientX, e.clientY, 15);
+            if (mathCallback) mathCallback();
+          } else {
+            btn.style.background = 'var(--magenta)';
+            speak("ちがうよ");
+            shakeScreen();
+            setTimeout(() => {
+              btn.style.background = '';
+            }, 500);
+          }
+        };
+        cB.appendChild(btn);
+      });
+      document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function cancelMath() {
+      closeM('quizModal');
+      mathCallback = null;
+    }
+    // ==========================================
+    // 2. ボードゲーム エンジン (テンポアップ版)
+    // ==========================================
+    let bSize = 8,
+      bState = [],
+      bSel = null,
+      bVal = [];
+
+    function initBoard() {
+      document.getElementById('screen-board').style.display = 'flex';
+      const grid = document.getElementById('gameBoard');
+      bSize = currentGame === 'shogi' ? 9 : 8;
+      grid.style.gridTemplateColumns = `repeat(${bSize}, 1fr)`;
+      bState = Array(bSize).fill(null).map(() => Array(bSize).fill(null));
+      turnIdx = 0;
+      bSel = null;
+      bVal = [];
+      if (currentGame === 'othello') {
+        bState[3][3] = {
+          c: 'white'
+        };
+        bState[4][4] = {
+          c: 'white'
+        };
+        bState[3][4] = {
+          c: 'black'
+        };
+        bState[4][3] = {
+          c: 'black'
+        };
+      } else if (currentGame === 'chess') {
+        let l = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+          ic = {
+            r: '♖',
+            n: '♘',
+            b: '♗',
+            q: '♕',
+            k: '♔',
+            p: '♙'
+          };
+        for (let c = 0; c < 8; c++) {
+          bState[0][c] = {
+            t: l[c],
+            c: 'white',
+            chr: ic[l[c]]
+          };
+          bState[1][c] = {
+            t: l[8 + c],
+            c: 'white',
+            chr: ic[l[8 + c]]
+          };
+          bState[6][c] = {
+            t: l[8 + c],
+            c: 'black',
+            chr: ic[l[8 + c]]
+          };
+          bState[7][c] = {
+            t: l[c],
+            c: 'black',
+            chr: ic[l[c]]
+          };
+        }
+      } else if (currentGame === 'shogi') {
+        let lw = ['香', '桂', '銀', '金', '王', '金', '銀', '桂', '香'],
+          lb = ['香', '桂', '銀', '金', '玉', '金', '銀', '桂', '香'];
+        for (let c = 0; c < 9; c++) {
+          bState[0][c] = {
+            t: lw[c],
+            c: 'white',
+            chr: lw[c]
+          };
+          bState[8][c] = {
+            t: lb[c],
+            c: 'black',
+            chr: lb[c]
+          };
+          bState[2][c] = {
+            t: '歩',
+            c: 'white',
+            chr: '歩'
+          };
+          bState[6][c] = {
+            t: '歩',
+            c: 'black',
+            chr: '歩'
+          };
+        }
+        bState[1][1] = {
+          t: '飛',
+          c: 'white',
+          chr: '飛'
+        };
+        bState[1][7] = {
+          t: '角',
+          c: 'white',
+          chr: '角'
+        };
+        bState[7][7] = {
+          t: '飛',
+          c: 'black',
+          chr: '飛'
+        };
+        bState[7][1] = {
+          t: '角',
+          c: 'black',
+          chr: '角'
+        };
+      }
+      updateBoard();
+      chkBoard();
+    }
+
+    function updateBoard() {
+      const grid = document.getElementById('gameBoard');
+      grid.innerHTML = '';
+      let isP1 = (turnIdx % 2 === 0);
+      document.getElementById('headerTurn').textContent = isP1 ? 'あなた の ばん' : 'コンピュータ の ばん';
+      document.getElementById('headerTurn').style.color = isP1 ? 'var(--cyan)' : 'var(--magenta)';
+      if (isP1 && isPlaying) speak("あなたの ばん だよ");
+      for (let r = 0; r < bSize; r++)
+        for (let c = 0; c < bSize; c++) {
+          let d = document.createElement('div');
+          d.className = 'b-cell';
+          if (currentGame === 'chess') d.classList.add((r + c) % 2 === 0 ? 'chess-even' : 'chess-odd');
+          let p = bState[r][c];
+          if (p) {
+            if (currentGame === 'othello') d.innerHTML = `<div class="piece-oth-${p.c.charAt(0)}"></div>`;
+            else d.innerHTML = `<div class="piece-${p.c==='black'?'p1':'p2'}">${p.chr}</div>`;
+          }
+          if (bSel && bSel.r === r && bSel.c === c) d.classList.add('selected');
+          let isV = bVal.some(m => m.to ? m.to.r === r && m.to.c === c : m.r === r && m.c === c);
+          if (isV) {
+            d.classList.add('valid');
+            d.onclick = () => {
+              if (isP1) wrapMath(() => exeBoardMove(r, c));
+            };
+          } else {
+            d.onclick = () => {
+              if (isP1 && currentGame !== 'othello') {
+                let p = bState[r][c];
+                if (p && p.c === 'black') {
+                  bSel = {
+                    r,
+                    c
+                  };
+                  bVal = calcP(r, c, p);
+                  updateBoard();
+                } else {
+                  bSel = null;
+                  bVal = [];
+                  updateBoard();
+                }
+              }
+            };
+          }
+          grid.appendChild(d);
+        }
+    }
+
+    function chkBoard() {
+      if (!isPlaying) return;
+      bSel = null;
+      bVal = [];
+      let col = turnIdx % 2 === 0 ? 'black' : 'white';
+      if (currentGame === 'othello') {
+        bVal = getO(col);
+        if (bVal.length === 0) {
+          showMsg(col === 'black' ? "おけない から ぱす！" : "あいて が ぱす したよ！");
+          turnIdx++;
+          if (getO(turnIdx % 2 === 0 ? 'black' : 'white').length === 0) {
+            chkOWin();
+            return;
+          }
+          setTimeout(chkBoard, 1000);
+          return;
+        }
+      }
+      updateBoard();
+      // ★ 修正: 待機時間を1000msから600msに短縮しテンポアップ
+      if (col === 'white') setTimeout(cpuBoard, 600);
+    }
+
+    function exeBoardMove(r, c) {
+      let col = turnIdx % 2 === 0 ? 'black' : 'white';
+      if (currentGame === 'othello') {
+        let f = getOFlips(r, c, col);
+        bState[r][c] = {
+          c: col
+        };
+        f.forEach(v => bState[v.r][v.c] = {
+          c: col
+        });
+      } else {
+        let t = bState[r][c];
+        if (t && (t.t === 'k' || t.t === '王' || t.t === '玉')) {
+          showEnd(col === 'black' ? 'かち！' : 'まけ...', 'おうさま を とったよ！', col === 'black' ? 100 : 10);
+          return;
+        }
+        bState[r][c] = bState[bSel.r][bSel.c];
+        bState[bSel.r][bSel.c] = null;
+      }
+      turnIdx++;
+      chkBoard();
+    }
+
+    function cpuBoard() {
+      if (!isPlaying) return;
+      let mv = [];
+      if (currentGame === 'othello') mv = bVal;
+      else {
+        for (let r = 0; r < bSize; r++)
+          for (let c = 0; c < bSize; c++) {
+            let p = bState[r][c];
+            if (p && p.c === 'white') calcP(r, c, p).forEach(m => mv.push({
+              f: {
+                r,
+                c
+              },
+              t: m
+            }));
+          }
+      }
+      if (mv.length > 0) {
+        let m = mv[Math.floor(Math.random() * mv.length)];
+        if (currentGame === 'othello') exeBoardMove(m.r, m.c);
+        else {
+          bSel = m.f;
+          exeBoardMove(m.t.r, m.t.c);
+        }
+      }
+    }
+
+    function chkOWin() {
+      let b = 0,
+        w = 0;
+      bState.forEach(r => r.forEach(c => {
+        if (c) c.c === 'black' ? b++ : w++
+      }));
+      if (b > w) showEnd("かち！", `あお:${b} あか:${w}`, 100);
+      else showEnd("まけ...", `あお:${b} あか:${w}`, 20);
+    }
+
+    function getO(col) {
+      let res = [];
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          if (!bState[r][c] && getOFlips(r, c, col).length > 0) res.push({
+            r,
+            c
+          });
+      return res;
+    }
+
+    function getOFlips(r, c, col) {
+      let opp = col === 'black' ? 'white' : 'black',
+        f = [];
+      [
+        [-1, -1],
+        [-1, 0],
+        [-1, 1],
+        [0, -1],
+        [0, 1],
+        [1, -1],
+        [1, 0],
+        [1, 1]
+      ].forEach(([dr, dc]) => {
+        let tr = r + dr,
+          tc = c + dc,
+          t = [];
+        while (tr >= 0 && tr < 8 && tc >= 0 && tc < 8 && bState[tr][tc] && bState[tr][tc].c === opp) {
+          t.push({
+            r: tr,
+            c: tc
+          });
+          tr += dr;
+          tc += dc;
+        }
+        if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8 && bState[tr][tc] && bState[tr][tc].c === col) f.push(...t);
+      });
+      return f;
+    }
+
+    function calcP(r, c, p) {
+      let mv = [];
+      let o = p.c === 'black' ? 'white' : 'black';
+      let d = p.c === 'black' ? -1 : 1;
+      const a = (tr, tc) => {
+        if (tr < 0 || tr >= bSize || tc < 0 || tc >= bSize) return false;
+        let t = bState[tr][tc];
+        if (!t) {
+          mv.push({
+            r: tr,
+            c: tc
+          });
+          return true;
+        }
+        if (t.c === o) {
+          mv.push({
+            r: tr,
+            c: tc
+          });
+          return false;
+        }
+        return false;
+      };
+      const sl = vs => {
+        vs.forEach(([dr, dc]) => {
+          let tr = r + dr,
+            tc = c + dc;
+          while (a(tr, tc) && !bState[tr][tc]) {
+            tr += dr;
+            tc += dc;
+          }
+        });
+      };
+      if (currentGame === 'chess') {
+        if (p.t === 'p') {
+          if (a(r + d, c) && (r === (d === -1 ? 6 : 1))) a(r + d * 2, c);
+          if (bState[r + d]?.[c - 1]?.c === o) mv.push({
+            r: r + d,
+            c: c - 1
+          });
+          if (bState[r + d]?.[c + 1]?.c === o) mv.push({
+            r: r + d,
+            c: c + 1
+          });
+        }
+        if (p.t === 'r') sl([
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1]
+        ]);
+        if (p.t === 'b') sl([
+          [-1, -1],
+          [-1, 1],
+          [1, -1],
+          [1, 1]
+        ]);
+        if (p.t === 'q') sl([
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+          [-1, -1],
+          [-1, 1],
+          [1, -1],
+          [1, 1]
+        ]);
+        if (p.t === 'k')[[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dr, dc]) => a(r + dr, c + dc));
+        if (p.t === 'n')[[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]].forEach(([dr, dc]) => a(r + dr, c + dc));
+      } else {
+        if (['歩', '香'].includes(p.t)) a(r + d, c);
+        else [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+          [-1, -1],
+          [-1, 1],
+          [1, -1],
+          [1, 1]
+        ].forEach(([dr, dc]) => a(r + dr, c + dc));
+      }
+      return mv;
+    }
+    // ==========================================
+    // 3. カードゲーム エンジン (テンポアップ版)
+    // ==========================================
+    let deck = [],
+      hands = {},
+      tC = [],
+      sCards = [],
+      cRules = {};
+    const SUITS = ['♠', '♥', '♦', '♣'],
+      NUMS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+    function initCard() {
+      document.getElementById('screen-card').style.display = 'flex';
+      document.getElementById('cardActionArea').style.display = 'flex';
+      hands = {
+        player: [],
+        cpu1: [],
+        cpu2: [],
+        cpu3: []
+      };
+      tC = [];
+      sCards = [];
+      cRules = {};
+      turnIdx = 0;
+      if (currentGame === 'sevens') {
+        deck = [];
+        SUITS.forEach(s => NUMS.forEach((n, i) => deck.push({
+          s,
+          n,
+          v: i + 1
+        })));
+        deck.sort(() => Math.random() - 0.5);
+        while (deck.length) players.forEach(p => {
+          if (deck.length) hands[p].push(deck.pop())
+        });
+        players.forEach(p => {
+          let sevs = hands[p].filter(c => c.v === 7);
+          tC.push(...sevs);
+          hands[p] = hands[p].filter(c => c.v !== 7);
+        });
+        cRules = {
+          pass: {
+            player: 0,
+            cpu1: 0,
+            cpu2: 0,
+            cpu3: 0
+          }
+        };
+      } else if (currentGame === 'baba') {
+        deck = [];
+        SUITS.forEach(s => NUMS.forEach((n, i) => deck.push({
+          s,
+          n,
+          v: i + 1
+        })));
+        deck.push({
+          s: '',
+          n: 'JOKER',
+          v: 99,
+          j: true
+        });
+        deck.sort(() => Math.random() - 0.5);
+        while (deck.length) players.forEach(p => {
+          if (deck.length) hands[p].push(deck.pop())
+        });
+        const discard = arr => {
+          let cnt = {},
+            res = [];
+          arr.forEach(c => {
+            if (!c.j) cnt[c.n] = (cnt[c.n] || 0) + 1;
+          });
+          arr.forEach(c => {
+            if (c.j) {
+              res.push(c);
+              return;
+            }
+            if (cnt[c.n] % 2 !== 0) {
+              res.push(c);
+              cnt[c.n]--;
+            }
+          });
+          return res;
+        };
+        players.forEach(p => hands[p] = discard(hands[p]));
+      } else if (currentGame === 'memory') {
+        document.getElementById('cardActionArea').style.display = 'none';
+        deck = [];
+        SUITS.forEach(s => NUMS.forEach((n, i) => deck.push({
+          s,
+          n,
+          v: i + 1
+        })));
+        deck.sort(() => Math.random() - 0.5);
+        deck = deck.slice(0, 16);
+        tC = deck.map(c => ({
+          ...c,
+          f: false,
+          m: false
+        }));
+        hands = {
+          player: [],
+          cpu1: [],
+          cpu2: [],
+          cpu3: []
+        };
+        cRules = {
+          first: null,
+          score: 0
+        };
+      } else if (currentGame === 'uno') {
+        deck = [];
+        const cols = ['red', 'blue', 'green', 'yellow'],
+          types = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '🚫', '🔃', '+2'];
+        cols.forEach(c => {
+          deck.push({
+            c: c,
+            t: '0'
+          });
+          for (let i = 1; i < types.length; i++) {
+            deck.push({
+              c: c,
+              t: types[i]
+            });
+            deck.push({
+              c: c,
+              t: types[i]
+            });
+          }
+        });
+        for (let i = 0; i < 4; i++) {
+          deck.push({
+            c: 'wild',
+            t: '🌈',
+            w: true
+          });
+          deck.push({
+            c: 'wild',
+            t: '+4',
+            w: true
+          });
+        }
+        deck.sort(() => Math.random() - 0.5);
+        players.forEach(p => {
+          for (let i = 0; i < 7; i++) hands[p].push(deck.pop())
+        });
+        let f = deck.pop();
+        while (f.w) {
+          deck.unshift(f);
+          f = deck.pop();
+        }
+        tC.push(f);
+        cRules = {
+          c: f.c,
+          t: f.t,
+          dir: 1
+        };
+      } else {
+        deck = [];
+        SUITS.forEach(s => NUMS.forEach((n, i) => deck.push({
+          s,
+          n,
+          v: i + 1
+        })));
+        deck.push({
+          s: '',
+          n: 'JOKER',
+          v: 99,
+          j: true
+        });
+        deck.sort(() => Math.random() - 0.5);
+        while (deck.length) players.forEach(p => {
+          if (deck.length) hands[p].push(deck.pop())
+        });
+        players.forEach(p => hands[p].sort((a, b) => (a.v === 2 ? 15 : (a.v === 1 ? 14 : a.v)) - (b.v === 2 ? 15 : (b.v === 1 ? 14 : b.v))));
+        cRules = {
+          cnt: 0,
+          rank: 0,
+          pass: 0
+        };
+      }
+      updateCView();
+      chkCTurn();
+    }
+
+    function updateCView() {
+      document.getElementById('btnPlay').style.display = 'none';
+      document.getElementById('btnPass').style.display = 'none';
+      document.getElementById('btnDraw').style.display = 'none';
+      let cp = players[turnIdx];
+      document.getElementById('headerTurn').textContent = pNames[cp] + " の ばん";
+      document.getElementById('headerTurn').style.color = cp === 'player' ? 'var(--cyan)' : 'var(--magenta)';
+      if (cp === 'player' && isPlaying) speak("あなたの ばん だよ");
+      if (currentGame === 'memory') {
+        const cen = document.getElementById('centerTable');
+        cen.innerHTML = '';
+        cen.className = 'grid-memory';
+        tC.forEach((c, i) => {
+          if (c.m) {
+            let d = document.createElement('div');
+            d.style.width = '60px';
+            cen.appendChild(d);
+            return;
+          }
+          let dom = createCDom(c, !c.f);
+          dom.onclick = (e) => {
+            if (cp === 'player') wrapMath(() => clickMem(i, e));
+          };
+          cen.appendChild(dom);
+        });
+        document.getElementById('hand-player').innerHTML = `<div style="font-size:2rem; color:var(--cyan); width:100%; text-align:center;">あなたの すこあ: ${cRules.score}</div>`;
+        return;
+      }
+      players.forEach(p => {
+        let el = document.getElementById(`hand-${p}`);
+        if (!el) return;
+        el.innerHTML = '';
+        if (p === 'player') {
+          hands[p].forEach(c => {
+            let dom = createCDom(c, false);
+            if (sCards.includes(c)) dom.classList.add('selected');
+            dom.onclick = () => {
+              let i = sCards.indexOf(c);
+              if (i > -1) sCards.splice(i, 1);
+              else sCards.push(c);
+              updateCView();
+            };
+            el.appendChild(dom);
+          });
+        } else hands[p].forEach(() => el.appendChild(createCDom(null, true)));
+      });
+      const cen = document.getElementById('centerTable');
+      cen.innerHTML = '';
+      cen.className = 'table-center';
+      if (currentGame === 'sevens') {
+        cen.className = 'grid-sevens';
+        SUITS.forEach(s => {
+          for (let i = 1; i <= 13; i++) {
+            let tc = tC.find(c => c.s === s && c.v === i);
+            if (tc) cen.appendChild(createCDom(tc, false));
+            else {
+              let d = document.createElement('div');
+              d.style.border = '2px dashed #555';
+              d.style.borderRadius = '4px';
+              d.style.width = '100%';
+              d.style.height = '100%';
+              cen.appendChild(d);
+            }
+          }
+        });
+      } else {
+        let sh = currentGame === 'uno' ? [tC[tC.length - 1]] : tC;
+        sh.forEach(c => {
+          if (c) cen.appendChild(createCDom(c, false));
+        });
+        if (currentGame === 'uno') {
+          let ind = document.createElement('div');
+          ind.style.position = 'absolute';
+          ind.style.top = '-40px';
+          ind.style.fontSize = 'clamp(1.5rem, 4vw, 2.5rem)';
+          ind.style.fontWeight = '900';
+          ind.style.color = cRules.c === 'red' ? '#ff0055' : cRules.c === 'blue' ? '#00f0ff' : cRules.c === 'green' ? '#00ff66' : '#ffcc00';
+          ind.textContent = `いまのいろ: ${cRules.c.toUpperCase()}`;
+          cen.appendChild(ind);
+        }
+      }
+      if (cp === 'player') {
+        if (currentGame === 'sevens' || currentGame === 'daifugo') {
+          document.getElementById('btnPlay').style.display = 'block';
+          document.getElementById('btnPass').style.display = 'block';
+        }
+        if (currentGame === 'uno') {
+          document.getElementById('btnPlay').style.display = 'block';
+          document.getElementById('btnDraw').style.display = 'block';
+        }
+        if (currentGame === 'baba') {
+          let tP = players[(turnIdx + 3) % 4];
+          let tEl = document.getElementById(`hand-${tP}`);
+          tEl.style.boxShadow = '0 0 20px var(--cyan)';
+          showMsg('あいて の かーど を たっぷ して ひいてね！', 2000);
+          tEl.onclick = (e) => {
+            if (!hands[tP].length) return;
+            wrapMath(() => {
+              tEl.style.boxShadow = '';
+              tEl.onclick = null;
+              let d = hands[tP].pop();
+              hands.player.push(d);
+              let mText = `【${d.s||''}${d.n||'JOKER'}】 を ひいた！`;
+              showMsg(mText, 2000);
+              speak(mText);
+              createFloatingText(mText, e.clientX, e.clientY);
+              setTimeout(() => {
+                let b = hands.player.length;
+                const discard = arr => {
+                  let cnt = {},
+                    res = [];
+                  arr.forEach(c => {
+                    if (!c.j) cnt[c.n] = (cnt[c.n] || 0) + 1;
+                  });
+                  arr.forEach(c => {
+                    if (c.j) {
+                      res.push(c);
+                      return;
+                    }
+                    if (cnt[c.n] % 2 !== 0) {
+                      res.push(c);
+                      cnt[c.n]--;
+                    }
+                  });
+                  return res;
+                };
+                hands.player = discard(hands.player);
+                if (hands.player.length < b) {
+                  showMsg("ぺあ を すてたよ！", 2000);
+                  speak("ぺあ を すてたよ");
+                  spawnParticles(window.innerWidth / 2, window.innerHeight / 2);
+                }
+                setTimeout(advCTurn, 1000);
+              }, 1500);
+            });
+          };
+        }
+      }
+    }
+
+    function createCDom(c, isBack) {
+      let d = document.createElement('div');
+      d.className = 'card';
+      if (isBack) {
+        d.classList.add('back');
+        return d;
+      }
+      if (currentGame === 'uno') {
+        d.classList.add('uno-card', c.w ? 'uno-wild' : `uno-${c.c}`);
+        d.innerHTML = `<div class="uno-center-icon">${c.t}</div>`;
+      } else {
+        d.classList.add(c.s === '♥' || c.s === '♦' ? 'red' : 'black');
+        if (c.j) d.innerHTML = `<span style="font-size:0.6rem">JOKER</span><div style="font-size:clamp(1.5rem, 3vw, 2rem);text-align:center;">🤡</div><span></span>`;
+        else d.innerHTML = `<span>${c.s}${c.n}</span><div style="font-size:clamp(1.5rem, 3vw, 2rem);text-align:center;">${c.s}</div><span style="transform:rotate(180deg);align-self:flex-end;">${c.s}${c.n}</span>`;
+      }
+      return d;
+    }
+
+    function chkCTurn() {
+      if (!isPlaying) return;
+      updateCView();
+      let cp = players[turnIdx];
+      if (cp === 'player') return;
+      // ★ 修正: CPU思考時間を1500msから800msに短縮 (テンポアップ)
+      setTimeout(() => {
+        if (currentGame === 'sevens') {
+          let p = hands[cp].find(c => tC.some(t => t.s === c.s && Math.abs(t.v - c.v) === 1));
+          if (p) {
+            tC.push(p);
+            hands[cp] = hands[cp].filter(c => c !== p);
+          } else {
+            cRules.pass[cp]++;
+          }
+          advCTurn();
+        } else if (currentGame === 'uno') {
+          let p = hands[cp].find(c => c.w || c.c === cRules.c || c.t === cRules.t);
+          if (p) {
+            let col = p.w ? ['red', 'blue', 'green', 'yellow'][Math.floor(Math.random() * 4)] : null;
+            exeU(p, cp, col);
+          } else {
+            if (deck.length) hands[cp].push(deck.pop());
+            advCTurn();
+          }
+        } else if (currentGame === 'baba') {
+          let tP = players[(turnIdx + 3) % 4];
+          if (hands[tP].length) {
+            let d = hands[tP].pop();
+            hands[cp].push(d);
+            const discard = arr => {
+              let cnt = {},
+                res = [];
+              arr.forEach(c => {
+                if (!c.j) cnt[c.n] = (cnt[c.n] || 0) + 1;
+              });
+              arr.forEach(c => {
+                if (c.j) {
+                  res.push(c);
+                  return;
+                }
+                if (cnt[c.n] % 2 !== 0) {
+                  res.push(c);
+                  cnt[c.n]--;
+                }
+              });
+              return res;
+            };
+            hands[cp] = discard(hands[cp]);
+          }
+          advCTurn();
+        } else if (currentGame === 'memory') {
+          let u = tC.map((c, i) => ({
+            c,
+            i
+          })).filter(o => !o.c.f && !o.c.m);
+          if (u.length >= 2) {
+            let f1 = u[Math.floor(Math.random() * u.length)],
+              f2 = u.find(o => o.i !== f1.i && o.c.n === f1.c.n) || u[Math.floor(Math.random() * u.length)];
+            if (f1.i === f2.i) f2 = u.find(o => o.i !== f1.i);
+            tC[f1.i].f = true;
+            tC[f2.i].f = true;
+            updateCView();
+            setTimeout(() => {
+              if (f1.c.n === f2.c.n) {
+                tC[f1.i].m = true;
+                tC[f2.i].m = true;
+              } else {
+                tC[f1.i].f = false;
+                tC[f2.i].f = false;
+              }
+              advCTurn();
+            }, 800);
+          }
+        } else {
+          let r = c => c.j ? 99 : (c.v === 2 ? 15 : (c.v === 1 ? 14 : c.v));
+          let p = hands[cp].find(c => cRules.cnt === 0 || (cRules.cnt === 1 && r(c) > cRules.rank));
+          if (p) {
+            tC = [p];
+            cRules.cnt = 1;
+            cRules.rank = r(p);
+            cRules.pass = 0;
+            hands[cp] = hands[cp].filter(c => c !== p);
+          } else {
+            cRules.pass++;
+          }
+          advCTurn();
+        }
+      }, 800);
+    }
+
+    function actPlay() {
+      if (sCards.length !== 1) {
+        showMsg('１まい えらんでね！');
+        speak("いちまい えらんでね");
+        shakeScreen();
+        return;
+      }
+      let sc = sCards[0];
+      if (currentGame === 'sevens') {
+        if (tC.some(t => t.s === sc.s && Math.abs(t.v - sc.v) === 1)) {
+          tC.push(sc);
+          hands.player = hands.player.filter(c => c !== sc);
+          sCards = [];
+          advCTurn();
+        } else {
+          showMsg('おけないよ！');
+          shakeScreen();
+        }
+      } else if (currentGame === 'uno') {
+        if (sc.w || sc.c === cRules.c || sc.t === cRules.t) {
+          if (sc.w) {
+            document.getElementById('unoColorModal').style.display = 'flex';
+            speak("いろをえらんでね");
+            return;
+          }
+          exeU(sc, 'player');
+        } else {
+          showMsg('だせないよ！');
+          shakeScreen();
+        }
+      } else if (currentGame === 'daifugo') {
+        let r = c => c.j ? 99 : (c.v === 2 ? 15 : (c.v === 1 ? 14 : c.v));
+        if (cRules.cnt === 0 || (cRules.cnt === 1 && r(sc) > cRules.rank)) {
+          tC = [sc];
+          cRules.cnt = 1;
+          cRules.rank = r(sc);
+          cRules.pass = 0;
+          hands.player = hands.player.filter(c => c !== sc);
+          sCards = [];
+          advCTurn();
+        } else {
+          showMsg('だせないよ！');
+          shakeScreen();
+        }
+      }
+    }
+
+    function actPass() {
+      sCards = [];
+      if (currentGame === 'sevens') {
+        cRules.pass.player++;
+        if (cRules.pass.player > 3) {
+          showEnd('まけ...', 'ぱす しすぎ！', 0);
+          return;
+        }
+      } else if (currentGame === 'daifugo') cRules.pass++;
+      advCTurn();
+    }
+
+    function actDraw() {
+      if (deck.length) hands.player.push(deck.pop());
+      sCards = [];
+      advCTurn();
+    }
+
+    function confirmUnoCol(col) {
+      document.getElementById('unoColorModal').style.display = 'none';
+      exeU(sCards[0], 'player', col);
+    }
+
+    function exeU(c, p, wCol = null) {
+      tC.push(c);
+      hands[p] = hands[p].filter(x => x !== c);
+      sCards = [];
+      cRules.c = wCol || c.c;
+      cRules.t = c.t;
+      if (c.t === '🚫') turnIdx = (turnIdx + cRules.dir + 4) % 4;
+      if (c.t === '🔃') cRules.dir *= -1;
+      if (c.t.includes('+')) {
+        let a = c.t === '+2' ? 2 : 4;
+        let tp = players[(turnIdx + cRules.dir + 4) % 4];
+        for (let i = 0; i < a; i++)
+          if (deck.length) hands[tp].push(deck.pop());
+        showMsg(`${pNames[tp]} が ${a} まい ひかされた！`, 2000);
+      }
+      advCTurn();
+    }
+
+    function clickMem(idx, e) {
+      tC[idx].f = true;
+      updateCView();
+      if (cRules.first === null) cRules.first = idx;
+      else {
+        let f1 = cRules.first,
+          f2 = idx;
+        cRules.first = null;
+        setTimeout(() => {
+          if (tC[f1].n === tC[f2].n) {
+            tC[f1].m = true;
+            tC[f2].m = true;
+            cRules.score++;
+            showMsg('あたり！', 1000);
+            speak('あたり');
+            spawnParticles(e.clientX, e.clientY);
+            createFloatingText('GOOD!', e.clientX, e.clientY);
+          } else {
+            tC[f1].f = false;
+            tC[f2].f = false;
+            showMsg('はずれ...', 1000);
+            speak('はずれ');
+            shakeScreen();
+          }
+          advCTurn();
+        }, 800);
+      }
+    }
+
+    function advCTurn() {
+      if (currentGame === 'memory') {
+        if (tC.every(c => c.m)) {
+          showEnd("おわり", `あなたの すこあ: ${cRules.score}`, cRules.score * 30 + 50);
+          return;
+        }
+      } else {
+        let w = players.find(p => hands[p].length === 0);
+        if (w) {
+          showEnd(w === 'player' ? "かち！" : "まけ...", `${pNames[w]} が あがった！`, w === 'player' ? 200 : 20);
+          return;
+        }
+      }
+      if (currentGame === 'daifugo' && cRules.pass >= 3) {
+        tC = [];
+        cRules.cnt = 0;
+        cRules.rank = 0;
+        cRules.pass = 0;
+      }
+      if (currentGame === 'uno') turnIdx = (turnIdx + cRules.dir + 4) % 4;
+      else turnIdx = (turnIdx + 1) % 4;
+      chkCTurn();
+    }
+    // ==========================================
+    // ★ 4. なぞりがき (選んだ行を連続出題)
+    // ==========================================
+    const tCan = document.getElementById('traceCanvas');
+    const tCtx = tCan.getContext('2d', {
+      willReadFrequently: true
+    });
+    let isTracing = false;
+    const TRACE_HIRA = {
+      'あ': ['あ', 'い', 'う', 'え', 'お'],
+      'か': ['か', 'き', 'く', 'け', 'こ'],
+      'さ': ['さ', 'し', 'す', 'せ', 'そ'],
+      'た': ['た', 'ち', 'つ', 'て', 'と'],
+      'な': ['な', 'に', 'ぬ', 'ね', 'の'],
+      'は': ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+      'ま': ['ま', 'み', 'む', 'め', 'も'],
+      'や': ['や', 'ゆ', 'よ'],
+      'ら': ['ら', 'り', 'る', 'れ', 'ろ'],
+      'わ': ['わ', 'を', 'ん']
+    };
+    const TRACE_KATA = {
+      'あ': ['ア', 'イ', 'ウ', 'エ', 'オ'],
+      'か': ['カ', 'キ', 'ク', 'ケ', 'コ'],
+      'さ': ['サ', 'シ', 'ス', 'セ', 'ソ'],
+      'た': ['タ', 'チ', 'ツ', 'テ', 'ト'],
+      'な': ['ナ', 'ニ', 'ヌ', 'ネ', 'ノ'],
+      'は': ['ハ', 'ヒ', 'フ', 'ヘ', 'ホ'],
+      'ま': ['マ', 'ミ', 'ム', 'メ', 'モ'],
+      'や': ['ヤ', 'ユ', 'ヨ'],
+      'ら': ['ラ', 'リ', 'ル', 'レ', 'ロ'],
+      'わ': ['ワ', 'ヲ', 'ン']
+    };
+    let traceTargetList = [];
+    let traceRound = 0;
+    let traceTotalScore = 0;
+    // イベントリスナーの重複を防ぐため、一度だけ登録
+    window.addEventListener('DOMContentLoaded', () => {
+      tCan.addEventListener('mousedown', (e) => {
+        isTracing = true;
+        drawT(e);
+      });
+      tCan.addEventListener('mousemove', (e) => {
+        if (isTracing) drawT(e);
+      });
+      tCan.addEventListener('mouseup', () => isTracing = false);
+      tCan.addEventListener('mouseleave', () => isTracing = false);
+      tCan.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isTracing = true;
+        drawT(e.touches[0]);
+      }, {
+        passive: false
+      });
+      tCan.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (isTracing) drawT(e.touches[0]);
+      }, {
+        passive: false
+      });
+      tCan.addEventListener('touchend', () => isTracing = false);
+    });
+
+    function initTrace() {
+      document.getElementById('screen-trace').style.display = 'flex';
+      tCan.width = 400;
+      tCan.height = 400;
+      traceTargetList = traceType === 'hira' ? TRACE_HIRA[traceRow] : TRACE_KATA[traceRow];
+      traceRound = 0;
+      traceTotalScore = 0;
+      showTraceNext();
+    }
+
+    function showTraceNext() {
+      if (traceRound >= traceTargetList.length) {
+        let avg = Math.floor(traceTotalScore / traceTargetList.length);
+        let xp = avg > 80 ? 300 : (avg > 50 ? 150 : 50); // XP報酬を豪華に
+        showEnd("おわり！", `へいきん: ${avg} てん！`, xp);
+        return;
+      }
+      // プログレスバー更新
+      document.getElementById('traceProgressText').textContent = `${traceRound + 1} / ${traceTargetList.length} もじめ`;
+      document.getElementById('traceProgressBar').style.width = `${((traceRound) / traceTargetList.length) * 100}%`;
+      let char = traceTargetList[traceRound];
+      document.getElementById('traceTargetChar').textContent = char;
+      clearTraceCanvas();
+    }
+
+    function clearTraceCanvas() {
+      tCtx.clearRect(0, 0, tCan.width, tCan.height);
+      tCtx.fillStyle = "rgba(0, 240, 255, 0.2)";
+      tCtx.font = "bold 300px 'Klee One', serif";
+      tCtx.textAlign = "center";
+      tCtx.textBaseline = "middle";
+      tCtx.fillText(document.getElementById('traceTargetChar').textContent, tCan.width / 2, tCan.height / 2);
+    }
+
+    function drawT(e) {
+      const rect = tCan.getBoundingClientRect();
+      const sX = tCan.width / rect.width;
+      const sY = tCan.height / rect.height;
+      const x = (e.clientX - rect.left) * sX;
+      const y = (e.clientY - rect.top) * sY;
+      tCtx.fillStyle = "#ff0055";
+      tCtx.beginPath();
+      tCtx.arc(x, y, 15, 0, Math.PI * 2);
+      tCtx.fill();
+    }
+
+    function evalTrace() {
+      const data = tCtx.getImageData(0, 0, tCan.width, tCan.height).data;
+      let tgt = 0,
+        hit = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 0) {
+          if (data[i + 1] > 200 && data[i + 2] > 200 && data[i] < 50) tgt++;
+          else if (data[i] > 200 && data[i + 1] < 50) hit++;
+        }
+      }
+      let score = Math.floor(Math.min(100, (hit / (tgt || 1)) * 130));
+      if (hit === 0) score = 0;
+      traceTotalScore += score;
+      createFloatingText(`${score} てん！`, window.innerWidth / 2, window.innerHeight / 2, 'var(--cyan)');
+      speak(`${score} てん`);
+      if (score > 80) spawnParticles(window.innerWidth / 2, window.innerHeight / 2);
+      document.getElementById('traceProgressBar').style.width = `${((traceRound + 1) / traceTargetList.length) * 100}%`;
+      traceRound++;
+      setTimeout(showTraceNext, 1200);
+    }
+    // ==========================================
+    // ★ 5. さんすう (5問連続出題モード)
+    // ==========================================
+    let mathRound = 1;
+    const MATH_MAX = 5;
+    let mathScoreCount = 0;
+
+    function initMath() {
+      document.getElementById('screen-math').style.display = 'flex';
+      mathRound = 1;
+      mathScoreCount = 0;
+      generateMath();
+    }
+
+    function generateMath() {
+      document.getElementById('mathProgressText').textContent = `だい ${mathRound} もん (ぜんぶで ${MATH_MAX} もん)`;
+      document.getElementById('mathProgressBar').style.width = `${((mathRound-1) / MATH_MAX) * 100}%`;
+      let isAdd = currentGame === 'math_add';
+      let a = 0,
+        b = 0,
+        ans = 0;
+      if (isAdd) {
+        a = Math.floor(Math.random() * 5) + 1;
+        b = Math.floor(Math.random() * 5) + 1;
+        ans = a + b;
+        document.getElementById('mathQ').textContent = `${a} ＋ ${b} ＝ ？`;
+        document.getElementById('mathSign').textContent = "＋";
+        speak(`${a} たす ${b} は？`);
+      } else {
+        a = Math.floor(Math.random() * 5) + 5;
+        b = Math.floor(Math.random() * a) + 1;
+        ans = a - b;
+        document.getElementById('mathQ').textContent = `${a} － ${b} ＝ ？`;
+        document.getElementById('mathSign').textContent = "－";
+        speak(`${a} ひく ${b} は？`);
+      }
+      let o1 = document.getElementById('ohaGroup1');
+      o1.innerHTML = '';
+      for (let i = 0; i < a; i++) {
+        let d = document.createElement('div');
+        d.className = 'ohajiki';
+        d.onclick = function() {
+          this.classList.toggle('on1')
+        };
+        o1.appendChild(d);
+      }
+      let o2 = document.getElementById('ohaGroup2');
+      o2.innerHTML = '';
+      if (isAdd) {
+        for (let i = 0; i < b; i++) {
+          let d = document.createElement('div');
+          d.className = 'ohajiki';
+          d.onclick = function() {
+            this.classList.toggle('on2')
+          };
+          o2.appendChild(d);
+        }
+      }
+      let opt2 = ans + 1;
+      let opt3 = ans - 1 < 0 ? ans + 2 : ans - 1;
+      let opts = [ans, opt2, opt3].sort(() => Math.random() - 0.5);
+      let cB = document.getElementById('mathChoices');
+      cB.innerHTML = '';
+      opts.forEach(o => {
+        let btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.style.fontSize = 'clamp(2rem, 5vw, 4rem)';
+        btn.style.padding = '20px';
+        btn.textContent = o;
+        btn.onclick = (e) => {
+          if (o === ans) {
+            mathScoreCount++;
+            speak("せいかい！");
+            createFloatingText("GOOD!", e.clientX, e.clientY, 'var(--green)');
+            spawnParticles(e.clientX, e.clientY, 15);
+            nextMath();
+          } else {
+            btn.style.background = 'var(--magenta)';
+            speak("ちがうよ");
+            shakeScreen();
+            setTimeout(() => {
+              btn.style.background = '';
+            }, 500);
+            nextMath(); // 間違えても次に進む仕様
+          }
+        };
+        cB.appendChild(btn);
+      });
+    }
+
+    function nextMath() {
+      document.getElementById('mathProgressBar').style.width = `${(mathRound / MATH_MAX) * 100}%`;
+      mathRound++;
+      if (mathRound > MATH_MAX) {
+        setTimeout(() => {
+          let xp = mathScoreCount * 20 + (mathScoreCount === MATH_MAX ? 100 : 0); // 全問正解で+100XP
+          showEnd("おわり！", `${MATH_MAX}もんちゅう ${mathScoreCount}もん せいかい！`, xp);
+        }, 1000);
+      } else {
+        setTimeout(generateMath, 1000);
+      }
+    }
+    updateZukan();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
