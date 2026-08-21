@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【体験・思考型】三角形の角の大きさ（第6時）</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #009688;       /* 第6時はTeal（青緑）系 */
+      --primary-dark: #00796b;
+      --accent: #ff5252;        /* 目立たせる赤 */
+      --success: #4caf50;
+      --warning: #ffb300;
+      --bg-gradient: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #263238;
+      --grid-color: rgba(0, 150, 136, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* メインコンテナ */
+    .app-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      width: 100%;
+      max-width: 900px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      position: relative;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      padding: 15px;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.02);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 200px;
+      max-width: 280px;
+      padding: 15px;
+      text-align: center;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      background: white;
+      color: #95a5a6;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+    }
+    .tab:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); }
+    .tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 8px 15px rgba(0, 150, 136, 0.3);
+    }
+
+    /* コンテンツエリア */
+    .content-area {
+      padding: 30px;
+      display: none;
+      animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .content-area.active { display: block; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* インストラクション */
+    .instruction-bubble {
+      position: relative;
+      background: white;
+      border: 3px solid var(--primary);
+      padding: 20px 30px;
+      border-radius: 20px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.3s ease;
+    }
+    .instruction-bubble::before { content: '👨‍🏫'; font-size: 2.5rem; }
+    
+    .instruction-bubble.discussion-mode {
+      border-color: var(--warning);
+      background: #fff8e1;
+    }
+    .instruction-bubble.discussion-mode::before { content: '🗣️'; }
+
+    /* インタラクティブ・キャンバス */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      background-color: #fff;
+      background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 16px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.02), 0 10px 20px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      border: 4px solid #e0f2f1;
+      touch-action: none;
+      overflow: hidden;
+    }
+
+    /* キャンバス上のナビゲーション指示 */
+    .canvas-prompt {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--warning);
+      border: 3px solid var(--warning);
+      box-shadow: 0 5px 15px rgba(255, 179, 0, 0.2);
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .canvas-prompt.done { color: var(--success); border-color: var(--success); }
+
+    svg { width: 100%; height: 100%; overflow: visible; }
+
+    .text-label { font-size: 26px; font-weight: 800; fill: #333; user-select: none; pointer-events: none; }
+    .text-mark { font-size: 22px; font-weight: 800; fill: var(--accent); user-select: none; pointer-events: none; }
+
+    /* 黒板・まとめ */
+    .board-plan {
+      background: #263238; color: white; border: 6px solid #f1c40f; padding: 30px;
+      border-radius: 12px; margin-top: 20px; text-align: left; font-weight: 800;
+      font-size: 1.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.15); display: none;
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      line-height: 2.2;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* めくりカード */
+    .hidden-word {
+      display: inline-block; background: #ffb300; color: transparent;
+      padding: 0 20px; border-radius: 8px; cursor: pointer; position: relative;
+      box-shadow: 0 4px 0 #ff8f00; transition: transform 0.1s;
+      min-width: 100px; text-align: center; vertical-align: middle; user-select: none;
+    }
+    .hidden-word:active { transform: translateY(4px); box-shadow: 0 0 0 #ff8f00; }
+    .hidden-word::after {
+      content: '？'; color: white; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%); font-size: 1.4rem;
+    }
+    .hidden-word.revealed {
+      background: transparent; color: #ffeb3b; border-bottom: 4px dashed #ffeb3b;
+      box-shadow: none; cursor: default; transform: none;
+    }
+    .hidden-word.revealed::after { display: none; }
+
+    /* ボタン群 */
+    .btn {
+      padding: 15px 30px; font-size: 1.2rem; font-weight: 800; color: white;
+      background: linear-gradient(135deg, #78909c, #546e7a);
+      border: none; border-radius: 50px; cursor: pointer;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); transition: all 0.2s;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-action { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 8px 15px rgba(0, 150, 136, 0.3); }
+    .btn-outline { background: white; color: var(--primary); border: 3px solid var(--primary); }
+    .btn-outline:hover { background: var(--primary); color: white; }
+    .btn-choice { font-size: 1.4rem; padding: 20px 30px; width: 100%; max-width: 300px; margin: 10px; background: white; color: var(--primary-dark); border: 4px solid var(--primary); border-radius: 16px;}
+    .btn-choice:hover { background: var(--primary); color: white; transform: scale(1.05); }
+
+    .tool-box {
+      display: flex; gap: 15px; justify-content: center; margin-top: 15px;
+      background: white; padding: 20px; border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      flex-wrap: wrap;
+    }
+
+    #confetti-container {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none; z-index: 9999; overflow: hidden;
+    }
+    .confetti { position: absolute; width: 15px; height: 15px; animation: fall 3s linear forwards; }
+    @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+  </style>
+</head>
+
+<body>
+  <div id="confetti-container"></div>
+
+  <div class="app-container">
+    <div class="header">
+      <h1>📐 三角形の角の大きさ</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tab1')">① 二等辺三角形を折る</button>
+      <button class="tab" onclick="switchTab('tab2')">② 正三角形を折る</button>
+      <button class="tab" onclick="switchTab('tab3')">③ 練習（パズル）</button>
+    </div>
+
+    <!-- タブ1: 二等辺三角形を折る -->
+    <div id="tab1" class="content-area active">
+      <div class="instruction-bubble" id="inst1">
+        <span>二等辺三角形の３つの角の大きさはどうなっているかな？<br><strong>下のボタンを押して、紙を半分に折って重ねてみよう！</strong></span>
+      </div>
+      <div class="canvas-container">
+        <div class="canvas-prompt" id="prompt1">ボタンを押してね！</div>
+        <svg id="svg1"></svg>
+      </div>
+      <div class="tool-box">
+        <button id="btn-fold1" class="btn btn-action" onclick="foldIsosceles()">👉 左半分をパタンと折る！</button>
+      </div>
+      <div id="discussion-btn1" style="display:none; text-align:center; margin-top: 20px;">
+        <button class="btn btn-action" onclick="showBoard1()">話し合ったら、タップしてまとめへ！</button>
+      </div>
+      <div id="board1" class="board-plan">
+        💡 <strong>【まとめ】</strong><br>
+        二等辺三角形では、<span class="hidden-word" data-word="２つの角"></span> の大きさが <span class="hidden-word" data-word="等しく"></span> なっている。
+      </div>
+    </div>
+
+    <!-- タブ2: 正三角形を折る -->
+    <div id="tab2" class="content-area">
+      <div class="instruction-bubble" id="inst2">
+        <span>正三角形の３つの角はどうだろう？<br><strong>３つの折り方をすべてためして</strong>、角が重なるか確かめよう！</span>
+      </div>
+      <div class="canvas-container">
+        <div class="canvas-prompt" id="prompt2">３つのボタンを順番に押してね！</div>
+        <svg id="svg2"></svg>
+      </div>
+      <div class="tool-box">
+        <button id="btn-f1" class="btn btn-outline" onclick="foldEquilateral(1)">① ㋔と㋕を重ねる</button>
+        <button id="btn-f2" class="btn btn-outline" onclick="foldEquilateral(2)">② ㋓と㋔を重ねる</button>
+        <button id="btn-f3" class="btn btn-outline" onclick="foldEquilateral(3)">③ ㋓と㋕を重ねる</button>
+      </div>
+      <div id="discussion-btn2" style="display:none; text-align:center; margin-top: 20px;">
+        <button class="btn btn-action" onclick="showBoard2()">話し合ったら、タップしてまとめへ！</button>
+      </div>
+      <div id="board2" class="board-plan">
+        💡 <strong>【まとめ】</strong><br>
+        正三角形では、<span class="hidden-word" data-word="３つの角"></span> の大きさが <span class="hidden-word" data-word="すべて等しく"></span> なっている。<br>
+        これは、どんな形や大きさのときでもいえるね。<br>
+        <small style="color:#b2dfdb;">※「∠」などのしるしは、角の大きさが等しいことを表しているよ。</small>
+      </div>
+    </div>
+
+    <!-- タブ3: 練習パズル -->
+    <div id="tab3" class="content-area">
+      <div class="instruction-bubble" id="inst3">
+        <span>三角じょうぎを２まい並べると、それぞれ何という三角形ができるかな？<br><strong>指でパーツを動かして、ピタッとくっつけてみよう！</strong></span>
+      </div>
+      <div class="tool-box" style="margin-bottom: 15px;">
+        <button class="btn" style="background:#009688;" onclick="loadPuzzle(1)">問題①</button>
+        <button class="btn" style="background:#009688;" onclick="loadPuzzle(2)">問題②</button>
+        <button class="btn" style="background:#009688;" onclick="loadPuzzle(3)">問題③</button>
+      </div>
+      <div class="canvas-container" style="height: 400px;">
+        <div class="canvas-prompt" id="prompt3">青いパーツをドラッグしてね！</div>
+        <svg id="svg3"></svg>
+      </div>
+      
+      <!-- 選択肢エリア -->
+      <div id="choice-area" style="display:none; text-align:center;">
+        <h2 style="color:var(--text-main); margin-top: 0;">できたのは何という三角形？</h2>
+        <div style="display:flex; justify-content:center; flex-wrap:wrap;">
+          <button class="btn btn-choice" onclick="checkAnswer('直角三角形')">直角三角形</button>
+          <button class="btn btn-choice" onclick="checkAnswer('二等辺三角形')">二等辺三角形</button>
+          <button class="btn btn-choice" onclick="checkAnswer('正三角形')">正三角形</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------------
+    // グローバル設定・ユーティリティ
+    // ------------------------------------
+    window.switchTab = switchTab;
+    window.showBoard1 = showBoard1;
+    window.showBoard2 = showBoard2;
+    window.foldIsosceles = foldIsosceles;
+    window.foldEquilateral = foldEquilateral;
+    window.loadPuzzle = loadPuzzle;
+    window.checkAnswer = checkAnswer;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+      
+      if (tabId === 'tab1') initTab1();
+      if (tabId === 'tab2') initTab2();
+      if (tabId === 'tab3') loadPuzzle(1);
+    }
+
+    function createSVGElement(name, attrs) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (let key in attrs) el.setAttribute(key, attrs[key]);
+      return el;
+    }
+
+    function throwConfetti(isSmall = false) {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#009688', '#ff5252', '#ffb300', '#2196f3', '#4caf50'];
+      const count = isSmall ? 15 : 80;
+      for (let i = 0; i < count; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        const shape = Math.random();
+        if (shape < 0.3) confetti.style.borderRadius = '50%';
+        else if (shape < 0.6) confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+        container.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+      }
+    }
+
+    function setupHiddenWords() {
+      document.querySelectorAll('.hidden-word').forEach(el => {
+        el.classList.remove('revealed');
+        el.textContent = '';
+        el.onclick = function() {
+          if(this.classList.contains('revealed')) return;
+          this.classList.add('revealed');
+          this.textContent = this.getAttribute('data-word');
+          throwConfetti(true);
+          this.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 300 });
+        };
+      });
+    }
+
+    // ------------------------------------
+    // Tab 1: 二等辺三角形を折る
+    // ------------------------------------
+    function initTab1() {
+      const svg = document.getElementById('svg1');
+      document.getElementById('board1').style.display = 'none';
+      document.getElementById('discussion-btn1').style.display = 'none';
+      document.getElementById('btn-fold1').disabled = false;
+      document.getElementById('prompt1').textContent = "ボタンを押してね！";
+      document.getElementById('prompt1').className = "canvas-prompt";
+      document.getElementById('inst1').className = "instruction-bubble";
+      document.getElementById('inst1').innerHTML = `<span>二等辺三角形の３つの角の大きさはどうなっているかな？<br><strong>下のボタンを押して、紙を半分に折って重ねてみよう！</strong></span>`;
+      setupHiddenWords();
+      svg.innerHTML = '';
+
+      // 折り目の点線
+      svg.appendChild(createSVGElement('line', { x1: 350, y1: 50, x2: 350, y2: 400, stroke: "#95a5a6", "stroke-width": 3, "stroke-dasharray": "8 8" }));
+
+      // 右半分（固定）
+      svg.appendChild(createSVGElement('polygon', { 
+        points: "350,400 550,400 350,50", 
+        fill: "rgba(0, 150, 136, 0.15)", stroke: "#009688", "stroke-width": 4, "stroke-linejoin": "round" 
+      }));
+      const lblU = createSVGElement('text', { x: 500, y: 380, class: 'text-label' }); lblU.textContent = "㋒";
+      svg.appendChild(lblU);
+
+      // 左半分（動く）
+      const gMove = createSVGElement('g', {});
+      const polyMove = createSVGElement('polygon', { 
+        id: "t1-poly", points: "350,400 150,400 350,50", 
+        fill: "rgba(0, 150, 136, 0.4)", stroke: "#00796b", "stroke-width": 4, "stroke-linejoin": "round" 
+      });
+      const lblI = createSVGElement('text', { id: "t1-lbl", x: 180, y: 380, class: 'text-label' }); lblI.textContent = "㋑";
+      
+      gMove.append(polyMove, lblI);
+      svg.appendChild(gMove);
+    }
+
+    function foldIsosceles() {
+      document.getElementById('btn-fold1').disabled = true;
+      const poly = document.getElementById('t1-poly');
+      const lbl = document.getElementById('t1-lbl');
+      
+      // SVGのanimate要素を使って確実な変形アニメーション
+      const anim = createSVGElement('animate', {
+        attributeName: "points",
+        values: "350,400 150,400 350,50; 350,400 550,400 350,50",
+        dur: "0.8s", fill: "freeze", begin: "indefinite"
+      });
+      poly.appendChild(anim);
+      anim.beginElement();
+
+      // ラベルはCSSアニメーションで移動 (180 -> 500 = +320)
+      lbl.animate([{ transform: "translate(0px, 0px)" }, { transform: "translate(320px, 0px)" }], { duration: 800, fill: 'forwards', easing: 'ease-in-out' });
+
+      setTimeout(() => {
+        const prompt = document.getElementById('prompt1');
+        prompt.textContent = "🎉 ㋑と㋒がぴったり重なった！";
+        prompt.classList.add('done');
+        throwConfetti();
+
+        // 同じ角度マークを表示
+        const svg = document.getElementById('svg1');
+        svg.appendChild(createSVGElement('path', { d: "M 500,400 A 50 50 0 0 0 525,355", fill: "none", stroke: "#ff5252", "stroke-width": 5 }));
+        svg.appendChild(createSVGElement('path', { d: "M 510,400 A 60 60 0 0 0 530,345", fill: "none", stroke: "#ff5252", "stroke-width": 5 }));
+
+        const inst = document.getElementById('inst1');
+        inst.className = "instruction-bubble discussion-mode";
+        inst.innerHTML = `<span><strong>ぴったり重なったね！</strong><br>このことから、「二等辺三角形の角」についてどんなことが言えるか話し合おう！</span>`;
+        document.getElementById('discussion-btn1').style.display = 'block';
+      }, 900);
+    }
+
+    function showBoard1() {
+      document.getElementById('discussion-btn1').style.display = 'none';
+      document.getElementById('board1').style.display = 'block';
+    }
+
+
+    // ------------------------------------
+    // Tab 2: 正三角形を折る
+    // ------------------------------------
+    let t2Folds = [false, false, false];
+
+    function initTab2() {
+      t2Folds = [false, false, false];
+      const svg = document.getElementById('svg2');
+      document.getElementById('board2').style.display = 'none';
+      document.getElementById('discussion-btn2').style.display = 'none';
+      document.getElementById('prompt2').textContent = "３つのボタンを順番に押してね！";
+      document.getElementById('prompt2').className = "canvas-prompt";
+      document.getElementById('inst2').className = "instruction-bubble";
+      document.getElementById('inst2').innerHTML = `<span>正三角形の３つの角はどうだろう？<br><strong>３つの折り方をすべてためして</strong>、角が重なるか確かめよう！</span>`;
+      
+      for(let i=1; i<=3; i++) {
+        const btn = document.getElementById(`btn-f${i}`);
+        btn.disabled = false;
+        btn.style.background = "white";
+        btn.style.color = "var(--primary)";
+      }
+      setupHiddenWords();
+      drawEquilateralBase();
+    }
+
+    function drawEquilateralBase() {
+      const svg = document.getElementById('svg2');
+      svg.innerHTML = '';
+      // A(350,80), B(150,400), C(550,400) 中心M(350, 293)
+      svg.appendChild(createSVGElement('polygon', { 
+        id: "t2-base", points: "350,80 150,400 550,400", 
+        fill: "rgba(0, 150, 136, 0.15)", stroke: "#009688", "stroke-width": 4, "stroke-linejoin": "round" 
+      }));
+      
+      svg.appendChild(createSVGElement('text', { x: 335, y: 70, class: 'text-label' })).textContent = "㋓";
+      svg.appendChild(createSVGElement('text', { x: 120, y: 420, class: 'text-label' })).textContent = "㋔";
+      svg.appendChild(createSVGElement('text', { x: 550, y: 420, class: 'text-label' })).textContent = "㋕";
+    }
+
+    function foldEquilateral(pattern) {
+      if (t2Folds[pattern-1]) return; // 済みなら無視
+      
+      // 他のボタンを一旦無効化
+      for(let i=1; i<=3; i++) document.getElementById(`btn-f${i}`).disabled = true;
+
+      const svg = document.getElementById('svg2');
+      drawEquilateralBase(); // リセットして再描画
+
+      let fixedPts, startPts, endPts;
+      // A(350,80), B(150,400), C(550,400)
+      // M_BC(350,400), M_AB(250,240), M_CA(450,240)
+      if (pattern === 1) { // ㋔(B)を㋕(C)へ -> 縦割り
+        fixedPts = "350,400 550,400 350,80";
+        startPts = "350,400 150,400 350,80";
+        endPts   = "350,400 550,400 350,80";
+        svg.appendChild(createSVGElement('line', { x1:350, y1:80, x2:350, y2:400, stroke:"#95a5a6", "stroke-dasharray":"6 6", "stroke-width":2 }));
+      } else if (pattern === 2) { // ㋓(A)を㋔(B)へ
+        fixedPts = "150,400 550,400 250,240";
+        startPts = "350,80 550,400 250,240";
+        endPts   = "150,400 550,400 250,240";
+        svg.appendChild(createSVGElement('line', { x1:550, y1:400, x2:250, y2:240, stroke:"#95a5a6", "stroke-dasharray":"6 6", "stroke-width":2 }));
+      } else { // ㋓(A)を㋕(C)へ
+        fixedPts = "550,400 150,400 450,240";
+        startPts = "350,80 150,400 450,240";
+        endPts   = "550,400 150,400 450,240";
+        svg.appendChild(createSVGElement('line', { x1:150, y1:400, x2:450, y2:240, stroke:"#95a5a6", "stroke-dasharray":"6 6", "stroke-width":2 }));
+      }
+
+      // 固定部分を上書き
+      svg.appendChild(createSVGElement('polygon', { points: fixedPts, fill: "rgba(0, 150, 136, 0.2)" }));
+      // 動く部分
+      const moving = createSVGElement('polygon', { points: startPts, fill: "rgba(0, 150, 136, 0.5)", stroke: "#00796b", "stroke-width": 4, "stroke-linejoin": "round" });
+      const anim = createSVGElement('animate', {
+        attributeName: "points", values: `${startPts}; ${endPts}`, dur: "0.8s", fill: "freeze", begin: "indefinite"
+      });
+      moving.appendChild(anim);
+      svg.appendChild(moving);
+      
+      anim.beginElement();
+
+      setTimeout(() => {
+        t2Folds[pattern-1] = true;
+        const btn = document.getElementById(`btn-f${pattern}`);
+        btn.style.background = "var(--success)";
+        btn.style.color = "white";
+        btn.textContent = "✅ " + btn.textContent.substring(2);
+        
+        throwConfetti(true);
+
+        let allDone = t2Folds.every(f => f);
+        if (allDone) {
+          const prompt = document.getElementById('prompt2');
+          prompt.textContent = "🎉 どの角もぴったり重なった！！";
+          prompt.classList.add('done');
+          throwConfetti();
+
+          // 同じ角度マークを表示
+          svg.appendChild(createSVGElement('path', { d: "M 320,128 A 50 50 0 0 0 380,128", fill: "none", stroke: "#ff5252", "stroke-width": 4 }));
+          svg.appendChild(createSVGElement('path', { d: "M 200,400 A 50 50 0 0 0 225,355", fill: "none", stroke: "#ff5252", "stroke-width": 4 }));
+          svg.appendChild(createSVGElement('path', { d: "M 500,400 A 50 50 0 0 1 475,355", fill: "none", stroke: "#ff5252", "stroke-width": 4 }));
+
+          const inst = document.getElementById('inst2');
+          inst.className = "instruction-bubble discussion-mode";
+          inst.innerHTML = `<span><strong>全部の角がぴったり重なったね！</strong><br>このことから、「正三角形の角」についてどんなことが言えるか話し合おう！</span>`;
+          document.getElementById('discussion-btn2').style.display = 'block';
+        } else {
+          // 残りのボタンを有効化
+          for(let i=1; i<=3; i++) {
+            if(!t2Folds[i-1]) document.getElementById(`btn-f${i}`).disabled = false;
+          }
+        }
+      }, 900);
+    }
+
+    function showBoard2() {
+      document.getElementById('discussion-btn2').style.display = 'none';
+      document.getElementById('board2').style.display = 'block';
+    }
+
+
+    // ------------------------------------
+    // Tab 3: 練習パズル
+    // ------------------------------------
+    const puzzleData = {
+      1: {
+        inst: "直角二等辺三角形を２まい、一番長い辺（斜辺）どうしをくっつけると…？",
+        fixed: { points: "0,150 150,150 150,0", x: 200, y: 180 }, 
+        drag:  { points: "0,0 0,150 150,150", startX: 550, startY: 180, targetX: 350, targetY: 180 },
+        correct: "二等辺三角形" // 大きな直角二等辺三角形になる
+      },
+      2: { 
+        inst: "三角じょうぎを２まい、一番短い辺どうしをくっつけると…？",
+        fixed: { points: "0,150 260,150 260,0", x: 90, y: 180 }, 
+        drag:  { points: "0,0 0,150 260,150", startX: 550, startY: 180, targetX: 350, targetY: 180 },
+        correct: "二等辺三角形" // 頂角120度の二等辺三角形
+      },
+      3: { 
+        inst: "三角じょうぎを２まい、中くらいの辺どうしをくっつけると…？",
+        fixed: { points: "0,260 150,260 150,0", x: 200, y: 80 }, 
+        drag:  { points: "0,0 0,260 150,260", startX: 550, startY: 80, targetX: 350, targetY: 80 },
+        correct: "正三角形" // 底角60度の正三角形
+      }
+    };
+
+    let currentQ = 1;
+
+    function loadPuzzle(num) {
+      currentQ = num;
+      const data = puzzleData[num];
+      document.getElementById('choice-area').style.display = 'none';
+      
+      const prompt = document.getElementById('prompt3');
+      prompt.textContent = "青いパーツをドラッグして、白いパーツにくっつけよう！";
+      prompt.className = "canvas-prompt drag-mode";
+      
+      document.getElementById('inst3').innerHTML = `<span><strong>【問題${num}】</strong> ${data.inst}</span>`;
+      
+      const svg = document.getElementById('svg3');
+      svg.innerHTML = '';
+
+      // 固定パーツ (白)
+      const gFixed = createSVGElement('g', { transform: `translate(${data.fixed.x}, ${data.fixed.y})` });
+      gFixed.appendChild(createSVGElement('polygon', { 
+        points: data.fixed.points, fill: "#fff", stroke: "#2c3e50", "stroke-width": 4, "stroke-linejoin": "round" 
+      }));
+      // マーカー
+      svg.appendChild(createSVGElement('circle', { cx: data.drag.targetX, cy: data.drag.targetY + 50, r: 20, fill: "none", stroke: "#2196f3", "stroke-width": 3, "stroke-dasharray": "5 5", class: "target-marker", style: "animation: rotateDash 2s linear infinite;" }));
+      
+      // ドラッグパーツ (青)
+      const gDrag = createSVGElement('g', { cursor: 'grab', transform: `translate(${data.drag.startX}, ${data.drag.startY})` });
+      gDrag.appendChild(createSVGElement('polygon', { 
+        points: data.drag.points, fill: "rgba(33, 150, 243, 0.3)", stroke: "#2196f3", "stroke-width": 4, "stroke-linejoin": "round" 
+      }));
+      
+      // 目印の穴（教科書の図を再現）
+      gFixed.appendChild(createSVGElement('circle', { cx: 50, cy: 100, r: 8, fill: "white", stroke:"#bdc3c7", "stroke-width":2 }));
+      gDrag.appendChild(createSVGElement('circle', { cx: 100, cy: 100, r: 8, fill: "white", stroke:"#bdc3c7", "stroke-width":2 }));
+
+      svg.append(gFixed, gDrag);
+
+      // ドラッグ処理
+      let isDragging = false;
+      let offset = { x: 0, y: 0 };
+      let currentTrans = { x: data.drag.startX, y: data.drag.startY }; 
+
+      function getMousePos(evt) {
+        const CTM = svg.getScreenCTM();
+        let clientX = evt.clientX; let clientY = evt.clientY;
+        if (evt.touches) { clientX = evt.touches[0].clientX; clientY = evt.touches[0].clientY; }
+        return { x: (clientX - CTM.e) / CTM.a, y: (clientY - CTM.f) / CTM.d };
+      }
+
+      function startDrag(evt) {
+        if (evt.cancelable) evt.preventDefault(); 
+        isDragging = true;
+        const mousePos = getMousePos(evt);
+        offset.x = mousePos.x - currentTrans.x; offset.y = mousePos.y - currentTrans.y;
+        gDrag.setAttribute('cursor', 'grabbing');
+      }
+
+      function drag(evt) {
+        if (!isDragging) return;
+        if (evt.cancelable) evt.preventDefault();
+        const mousePos = getMousePos(evt);
+        currentTrans.x = mousePos.x - offset.x; currentTrans.y = mousePos.y - offset.y;
+        gDrag.setAttribute('transform', `translate(${currentTrans.x}, ${currentTrans.y})`);
+      }
+
+      function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        gDrag.setAttribute('cursor', 'grab');
+
+        const dist = Math.hypot(currentTrans.x - data.drag.targetX, currentTrans.y - data.drag.targetY);
+        if (dist < 40) { // スナップ成功
+          currentTrans.x = data.drag.targetX; currentTrans.y = data.drag.targetY;
+          gDrag.setAttribute('transform', `translate(${currentTrans.x}, ${currentTrans.y})`);
+          
+          gDrag.removeEventListener('mousedown', startDrag); gDrag.removeEventListener('touchstart', startDrag);
+          svg.removeEventListener('mousemove', drag); svg.removeEventListener('touchmove', drag);
+          svg.removeEventListener('mouseup', endDrag); svg.removeEventListener('touchend', endDrag); svg.removeEventListener('mouseleave', endDrag);
+
+          document.querySelector('.target-marker').remove();
+          prompt.textContent = "カチッ！くっついた！";
+          prompt.className = "canvas-prompt";
+          throwConfetti(true);
+          
+          setTimeout(() => {
+            document.getElementById('choice-area').style.display = 'block';
+          }, 800);
+        }
+      }
+
+      gDrag.addEventListener('mousedown', startDrag); gDrag.addEventListener('touchstart', startDrag, {passive: false});
+      svg.addEventListener('mousemove', drag); svg.addEventListener('touchmove', drag, {passive: false});
+      svg.addEventListener('mouseup', endDrag); svg.addEventListener('touchend', endDrag); svg.addEventListener('mouseleave', endDrag);
+    }
+
+    function checkAnswer(ans) {
+      const data = puzzleData[currentQ];
+      const prompt = document.getElementById('prompt3');
+      if(ans === data.correct) {
+        prompt.textContent = `🎉 大正解！「${ans}」だね！`;
+        prompt.className = "canvas-prompt done";
+        throwConfetti();
+        document.getElementById('choice-area').style.display = 'none';
+      } else {
+        prompt.textContent = "うーん、ちがうみたい。もう一度よく見てみよう！";
+        prompt.className = "canvas-prompt";
+        prompt.style.borderColor = "var(--accent)";
+        prompt.style.color = "var(--accent)";
+      }
+    }
+
+    // 初期化
+    window.onload = () => {
+      initTab1();
+    };
+  </script>
+</body>
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

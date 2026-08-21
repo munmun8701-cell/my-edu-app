@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【体験型】円を使った三角形のかき方（話し合い対応版）</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4caf50;
+      --primary-dark: #2e7d32;
+      --accent: #ff4081;
+      --success: #00e676;
+      --warning: #ff9800;
+      --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #2c3e50;
+      --grid-color: rgba(76, 175, 80, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* メインコンテナ */
+    .app-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      width: 100%;
+      max-width: 900px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      position: relative;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      padding: 15px;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.02);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 200px;
+      max-width: 260px;
+      padding: 15px;
+      text-align: center;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      background: white;
+      color: #95a5a6;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+    }
+
+    .tab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 8px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    /* コンテンツエリア */
+    .content-area {
+      padding: 30px;
+      display: none;
+      animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .content-area.active {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* インストラクション */
+    .instruction-bubble {
+      position: relative;
+      background: white;
+      border: 3px solid var(--primary);
+      padding: 20px 30px;
+      border-radius: 20px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .instruction-bubble::before {
+      content: '👨‍🏫';
+      font-size: 2.5rem;
+    }
+
+    .instruction-bubble.discussion-mode {
+      border-color: var(--warning);
+      background: #fff8e1;
+    }
+
+    .instruction-bubble.discussion-mode::before {
+      content: '🗣️';
+    }
+
+    /* インタラクティブ・キャンバス */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      background-color: #fff;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 16px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.02), 0 10px 20px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      border: 4px solid #e8f5e9;
+      touch-action: none;
+    }
+
+    /* キャンバス上のナビゲーション指示 */
+    .canvas-prompt {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent);
+      border: 3px solid var(--accent);
+      box-shadow: 0 5px 15px rgba(255, 64, 129, 0.2);
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+
+    .canvas-prompt.done {
+      color: var(--success);
+      border-color: var(--success);
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* SVG 要素のスタイリング */
+    .point {
+      fill: var(--primary-dark);
+    }
+
+    .center-point {
+      fill: #333;
+    }
+
+    .line {
+      stroke: var(--text-main);
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+
+    .line-radius {
+      stroke: var(--primary);
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+
+    .line-dashed {
+      stroke: #bdc3c7;
+      stroke-width: 5;
+      stroke-dasharray: 8 8;
+      stroke-linecap: round;
+    }
+
+    .line-hitbox {
+      stroke: transparent;
+      stroke-width: 40;
+      cursor: pointer;
+    }
+
+    .line-hitbox:hover {
+      stroke: rgba(76, 175, 80, 0.2);
+    }
+
+    .circle-base {
+      stroke: #95a5a6;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .circle-hitbox {
+      stroke: transparent;
+      stroke-width: 30;
+      fill: none;
+      cursor: pointer;
+    }
+
+    .circle-hitbox:hover {
+      stroke: rgba(76, 175, 80, 0.2);
+    }
+
+    .arc {
+      stroke: var(--accent);
+      stroke-width: 4;
+      fill: none;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 5px rgba(255, 64, 129, 0.4));
+    }
+
+    .text-label {
+      font-size: 22px;
+      font-weight: 800;
+      fill: #333;
+      user-select: none;
+    }
+
+    .text-length {
+      font-size: 16px;
+      font-weight: 800;
+      fill: var(--primary-dark);
+      user-select: none;
+      background: white;
+    }
+
+    /* タップを促す波紋アニメーション */
+    .pulse-circle {
+      fill: var(--accent);
+      cursor: pointer;
+      animation: pulseAnim 1s infinite alternate;
+    }
+
+    .pulse-circle:hover {
+      fill: #ffeb3b;
+    }
+
+    @keyframes pulseAnim {
+      0% {
+        r: 15px;
+        opacity: 0.8;
+      }
+
+      100% {
+        r: 25px;
+        opacity: 0.3;
+      }
+    }
+
+    /* 黒板・まとめ（穴埋めめくり対応） */
+    .board-plan {
+      background: #2c3e50;
+      color: white;
+      border: 6px solid #f1c40f;
+      padding: 30px;
+      border-radius: 12px;
+      margin-top: 20px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 1.5rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      display: none;
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      line-height: 2;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* めくりカード（隠しキーワード） */
+    .hidden-word {
+      display: inline-block;
+      background: #ff9800;
+      /* 未めくりはオレンジ */
+      color: transparent;
+      padding: 0 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 4px 0 #e65100;
+      transition: transform 0.1s;
+      min-width: 100px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .hidden-word:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 #e65100;
+    }
+
+    .hidden-word::after {
+      content: '？';
+      color: white;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.4rem;
+    }
+
+    .hidden-word.revealed {
+      background: transparent;
+      color: #ff4081;
+      /* めくった後はピンク */
+      border-bottom: 4px dashed #ff4081;
+      box-shadow: none;
+      cursor: default;
+      transform: none;
+      text-shadow: 0 0 10px rgba(255, 64, 129, 0.3);
+    }
+
+    .hidden-word.revealed::after {
+      display: none;
+    }
+
+    /* ボタン群 */
+    .btn {
+      padding: 15px 35px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--text-main), #576574);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-action {
+      background: linear-gradient(135deg, var(--warning), #f39c12);
+      box-shadow: 0 8px 15px rgba(243, 156, 18, 0.3);
+    }
+
+    /* パーティクル（紙吹雪） */
+    #confetti-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      animation: fall 3s linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="confetti-container"></div>
+
+  <div class="app-container">
+    <div class="header">
+      <h1>📐 円を使った三角形のかき方</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tab1')">① 円で三角形をかこう</button>
+      <button class="tab" onclick="switchTab('tab2')">② 円で正三角形をかこう</button>
+      <button class="tab" onclick="switchTab('tab3')">③ 練習しよう</button>
+    </div>
+
+    <!-- タブ1: 円から二等辺三角形を発見する -->
+    <div id="tab1" class="content-area active">
+      <div class="instruction-bubble" id="inst1">
+        <span>円のまわりに<strong>２つの点</strong>を決めて、中心の「ア」とむすんで三角形をかきましょう！<br>円の線を直接タップしてみてね。</span>
+      </div>
+
+      <div class="canvas-container" id="canvas1-wrapper">
+        <div class="canvas-prompt" id="prompt1">準備中...</div>
+        <svg id="svg1"></svg>
+      </div>
+
+      <!-- 話し合いフェーズのボタン（最初は非表示） -->
+      <div id="discussion-btn1" style="display:none; text-align:center; margin-bottom: 20px;">
+        <button class="btn btn-action" onclick="showBoard1()">みんなで話し合ったら、ここをタップしてまとめへ！</button>
+      </div>
+
+      <!-- 黒板（穴埋めフェーズ） -->
+      <div id="board1" class="board-plan">
+        💡 <span class="hidden-word" data-word="アイ"></span> と <span class="hidden-word" data-word="アウ"></span> の辺は、どちらも円の <span class="hidden-word" data-word="半径"></span>。<br>
+        １つの円では、半径の長さが <span class="hidden-word" data-word="どこも等しい"></span> ので、<br>
+        円を使って <span class="hidden-word" data-word="二等辺三角形"></span> をかくことができる！
+      </div>
+    </div>
+
+    <!-- タブ2: 円を使って正三角形をかく -->
+    <div id="tab2" class="content-area">
+      <div class="instruction-bubble" id="inst2">
+        <span>二等辺三角形のかき方をもとにして、<strong>正三角形</strong>をかいてみよう！<br>３つ目の辺も「半径」と同じ長さにすればいいんだね。</span>
+      </div>
+
+      <div class="canvas-container" id="canvas2-wrapper">
+        <div class="canvas-prompt" id="prompt2">準備中...</div>
+        <svg id="svg2"></svg>
+      </div>
+
+      <div id="discussion-btn2" style="display:none; text-align:center; margin-bottom: 20px;">
+        <button class="btn btn-action" onclick="showBoard2()">みんなで話し合ったら、ここをタップしてまとめへ！</button>
+      </div>
+
+      <div id="board2" class="board-plan">
+        💡 円のまわりの２つの点をむすんだ辺の長さを、<br>
+        円の <span class="hidden-word" data-word="半径の長さ"></span> と等しくすれば、<br>
+        円を使って <span class="hidden-word" data-word="正三角形"></span> をかくこともできる！
+      </div>
+    </div>
+
+    <!-- タブ3: 練習問題（4cm） -->
+    <div id="tab3" class="content-area">
+      <div class="instruction-bubble" id="inst3">
+        <span>円とその中心を使って、<strong>１辺の長さが４cmの正三角形</strong>をかきましょう！<br>コンパスの長さに気をつけてね。</span>
+      </div>
+
+      <div class="canvas-container" id="canvas3-wrapper" style="height: 520px;">
+        <div class="canvas-prompt" id="prompt3">準備中...</div>
+        <svg id="svg3"></svg>
+      </div>
+
+      <div style="text-align: center; margin-top: 15px;">
+        <button class="btn" style="background: var(--primary);" onclick="startEngine3()">🔄 もう一度かく</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------------
+    // 共通ユーティリティ
+    // ------------------------------------
+    function switchTab(tabId) {
+      document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+      if (tabId === 'tab1') startEngine1();
+      if (tabId === 'tab2') startEngine2();
+      if (tabId === 'tab3') startEngine3();
+    }
+
+    function createSVGElement(name, attrs) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (let key in attrs) el.setAttribute(key, attrs[key]);
+      return el;
+    }
+    // 特定の色で紙吹雪を飛ばす
+    function throwConfetti(isSmall = false) {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#4caf50', '#ff4081', '#ff9800', '#00bcd4', '#f1c40f'];
+      const count = isSmall ? 20 : 70;
+      for (let i = 0; i < count; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        const shape = Math.random();
+        if (shape < 0.3) confetti.style.borderRadius = '50%';
+        else if (shape < 0.6) confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+        container.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+      }
+    }
+
+    function drawAnimLine(svgGroup, pStart, pEnd, className, onComplete) {
+      const line = createSVGElement('line', {
+        x1: pStart.x,
+        y1: pStart.y,
+        x2: pEnd.x,
+        y2: pEnd.y,
+        class: className
+      });
+      const lineLength = Math.hypot(pEnd.x - pStart.x, pEnd.y - pStart.y);
+      line.style.strokeDasharray = lineLength;
+      line.style.strokeDashoffset = lineLength;
+      svgGroup.appendChild(line);
+      const anim = line.animate(
+        [{
+          strokeDashoffset: lineLength
+        }, {
+          strokeDashoffset: 0
+        }], {
+          duration: 500,
+          fill: 'forwards',
+          easing: 'ease-out'
+        }
+      );
+      if (onComplete) anim.onfinish = onComplete;
+    }
+    // 穴埋めカード（めくり機能）のセットアップ
+    function setupHiddenWords() {
+      document.querySelectorAll('.hidden-word').forEach(el => {
+        el.classList.remove('revealed');
+        el.textContent = '';
+        el.onclick = function() {
+          if (this.classList.contains('revealed')) return;
+          this.classList.add('revealed');
+          this.textContent = this.getAttribute('data-word');
+          throwConfetti(true); // プチ紙吹雪
+          this.animate([{
+              transform: 'scale(1)'
+            },
+            {
+              transform: 'scale(1.3)'
+            },
+            {
+              transform: 'scale(1)'
+            }
+          ], {
+            duration: 300
+          });
+        };
+      });
+    }
+    // ------------------------------------
+    // Tab 1: 円から二等辺三角形を発見する
+    // ------------------------------------
+    function startEngine1() {
+      const svg = document.getElementById('svg1');
+      const prompt = document.getElementById('prompt1');
+      const inst = document.getElementById('inst1');
+      const board = document.getElementById('board1');
+      const discBtn = document.getElementById('discussion-btn1');
+      board.style.display = 'none';
+      discBtn.style.display = 'none';
+      inst.classList.remove('discussion-mode');
+      inst.innerHTML = `<span>円のまわりに<strong>２つの点</strong>を決めて、中心の「ア」とむすんで三角形をかきましょう！<br>円の線を直接タップしてみてね。</span>`;
+      setupHiddenWords(); // めくりカードリセット
+      svg.innerHTML = '';
+      prompt.textContent = "【手順１】円の線をタップして、「イ」の点を決めよう！";
+      prompt.classList.remove('done');
+      const cx = 400,
+        cy = 250,
+        rPx = 150;
+      svg.appendChild(createSVGElement('circle', {
+        cx,
+        cy,
+        r: rPx,
+        class: 'circle-base'
+      }));
+      svg.appendChild(createSVGElement('circle', {
+        cx,
+        cy,
+        r: 5,
+        class: 'center-point'
+      }));
+      const labelA = createSVGElement('text', {
+        x: cx - 25,
+        y: cy + 10,
+        class: 'text-label'
+      });
+      labelA.textContent = "ア";
+      svg.appendChild(labelA);
+      const textR = createSVGElement('text', {
+        x: cx - 40,
+        y: cy + 30,
+        class: 'text-length',
+        fill: '#4caf50'
+      });
+      textR.textContent = "半径 3cm";
+      svg.appendChild(textR);
+      const hitCircle = createSVGElement('circle', {
+        cx,
+        cy,
+        r: rPx,
+        class: 'circle-hitbox'
+      });
+      svg.appendChild(hitCircle);
+      let points = [];
+      let dynamicGroup = createSVGElement('g', {});
+      svg.appendChild(dynamicGroup);
+      hitCircle.onclick = (e) => {
+        if (points.length >= 2) return;
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        const angle = Math.atan2(svgP.y - cy, svgP.x - cx);
+        const px = cx + rPx * Math.cos(angle);
+        const py = cy + rPx * Math.sin(angle);
+        points.push({
+          x: px,
+          y: py
+        });
+        const isI = points.length === 1;
+        const circle = createSVGElement('circle', {
+          cx: px,
+          cy: py,
+          r: 0,
+          class: 'point'
+        });
+        dynamicGroup.appendChild(circle);
+        circle.animate([{
+          r: 0
+        }, {
+          r: 8
+        }], {
+          duration: 300,
+          fill: 'forwards'
+        });
+        const lbl = createSVGElement('text', {
+          x: px + (Math.cos(angle) * 20) - 10,
+          y: py + (Math.sin(angle) * 20) + 10,
+          class: 'text-label',
+          fill: 'var(--primary-dark)'
+        });
+        lbl.textContent = isI ? "イ" : "ウ";
+        dynamicGroup.appendChild(lbl);
+        drawAnimLine(dynamicGroup, {
+          x: cx,
+          y: cy
+        }, {
+          x: px,
+          y: py
+        }, 'line-radius', () => {
+          if (isI) {
+            prompt.textContent = "【手順２】もう一度、円の線をタップして、「ウ」の点を決めよう！";
+          } else {
+            hitCircle.style.pointerEvents = 'none';
+            prompt.textContent = "【手順３】点線をタップして、イとウを直線でむすぼう！";
+            const dashed = createSVGElement('line', {
+              x1: points[0].x,
+              y1: points[0].y,
+              x2: points[1].x,
+              y2: points[1].y,
+              class: 'line-dashed'
+            });
+            const lineHit = createSVGElement('line', {
+              x1: points[0].x,
+              y1: points[0].y,
+              x2: points[1].x,
+              y2: points[1].y,
+              class: 'line-hitbox'
+            });
+            dynamicGroup.appendChild(dashed);
+            dynamicGroup.appendChild(lineHit);
+            lineHit.onclick = () => {
+              dashed.remove();
+              lineHit.remove();
+              drawAnimLine(dynamicGroup, points[0], points[1], 'line', () => {
+                // --- 話し合いフェーズへの移行 ---
+                prompt.textContent = "完成！";
+                prompt.classList.add('done');
+                throwConfetti();
+                inst.classList.add('discussion-mode');
+                inst.innerHTML = `<span><strong>かいた三角形は、何という三角形かな？</strong><br>どうしてそう言えるのか、アから引いた「２つの線」に注目して話し合ってみよう！</span>`;
+                discBtn.style.display = 'block'; // まとめへ進むボタンを表示
+              });
+            };
+          }
+        });
+      };
+    }
+
+    function showBoard1() {
+      document.getElementById('discussion-btn1').style.display = 'none';
+      const inst = document.getElementById('inst1');
+      inst.classList.remove('discussion-mode');
+      inst.innerHTML = `<span>みんなの考えがまとまったね！<br>「？」のカードをタップして、キーワードを確認しよう！</span>`;
+      const board = document.getElementById('board1');
+      board.style.display = 'block';
+    }
+    // ------------------------------------
+    // Tab 2: 円を使って正三角形をかく
+    // ------------------------------------
+    function startEngine2() {
+      const svg = document.getElementById('svg2');
+      const prompt = document.getElementById('prompt2');
+      const inst = document.getElementById('inst2');
+      const board = document.getElementById('board2');
+      const discBtn = document.getElementById('discussion-btn2');
+      board.style.display = 'none';
+      discBtn.style.display = 'none';
+      inst.classList.remove('discussion-mode');
+      inst.innerHTML = `<span>二等辺三角形のかき方をもとにして、<strong>正三角形</strong>をかいてみよう！<br>３つ目の辺も「半径」と同じ長さにすればいいんだね。</span>`;
+      setupHiddenWords();
+      svg.innerHTML = '';
+      const cx = 400,
+        cy = 250,
+        rPx = 150;
+      const pI = {
+        x: cx + rPx,
+        y: cy
+      };
+      const angleU = -Math.PI / 3;
+      const pU = {
+        x: cx + rPx * Math.cos(angleU),
+        y: cy + rPx * Math.sin(angleU)
+      };
+      svg.appendChild(createSVGElement('circle', {
+        cx,
+        cy,
+        r: rPx,
+        class: 'circle-base'
+      }));
+      svg.appendChild(createSVGElement('circle', {
+        cx,
+        cy,
+        r: 5,
+        class: 'center-point'
+      }));
+      svg.appendChild(createSVGElement('circle', {
+        cx: pI.x,
+        cy: pI.y,
+        r: 6,
+        class: 'point'
+      }));
+      const labelA = createSVGElement('text', {
+        x: cx - 25,
+        y: cy + 10,
+        class: 'text-label'
+      });
+      labelA.textContent = "ア";
+      const labelI = createSVGElement('text', {
+        x: pI.x + 15,
+        y: pI.y + 10,
+        class: 'text-label'
+      });
+      labelI.textContent = "イ";
+      svg.appendChild(labelA);
+      svg.appendChild(labelI);
+      svg.appendChild(createSVGElement('line', {
+        x1: cx,
+        y1: cy,
+        x2: pI.x,
+        y2: pI.y,
+        class: 'line-radius'
+      }));
+      const textR = createSVGElement('text', {
+        x: cx + 50,
+        y: cy - 10,
+        class: 'text-length',
+        fill: '#4caf50'
+      });
+      textR.textContent = "3cm";
+      svg.appendChild(textR);
+      const dynamicGroup = createSVGElement('g', {});
+      svg.appendChild(dynamicGroup);
+      prompt.textContent = "【手順１】イの点をタップして、3cmのコンパスでしるしをつけよう！";
+      prompt.classList.remove('done');
+      const pulseI = createSVGElement('circle', {
+        cx: pI.x,
+        cy: pI.y,
+        class: 'pulse-circle'
+      });
+      dynamicGroup.appendChild(pulseI);
+      pulseI.onclick = () => {
+        pulseI.remove();
+        const startAngle = Math.PI - 0.5;
+        const endAngle = Math.PI + 0.5;
+        const startX = pI.x + rPx * Math.cos(startAngle);
+        const startY = pI.y + rPx * Math.sin(startAngle);
+        const endX = pI.x + rPx * Math.cos(endAngle);
+        const endY = pI.y + rPx * Math.sin(endAngle);
+        const arc = createSVGElement('path', {
+          d: `M ${startX} ${startY} A ${rPx} ${rPx} 0 0 1 ${endX} ${endY}`,
+          class: 'arc'
+        });
+        dynamicGroup.appendChild(arc);
+        const arcLen = arc.getTotalLength();
+        arc.style.strokeDasharray = arcLen;
+        arc.style.strokeDashoffset = arcLen;
+        const anim = arc.animate([{
+          strokeDashoffset: arcLen
+        }, {
+          strokeDashoffset: 0
+        }], {
+          duration: 800,
+          fill: 'forwards'
+        });
+        anim.onfinish = () => {
+          prompt.textContent = "【手順２】線が交わったところをタップして、「ウ」を決めよう！";
+          const pulseU = createSVGElement('circle', {
+            cx: pU.x,
+            cy: pU.y,
+            class: 'pulse-circle'
+          });
+          dynamicGroup.appendChild(pulseU);
+          pulseU.onclick = () => {
+            pulseU.remove();
+            const pointU = createSVGElement('circle', {
+              cx: pU.x,
+              cy: pU.y,
+              r: 8,
+              fill: 'var(--accent)'
+            });
+            const labelU = createSVGElement('text', {
+              x: pU.x - 10,
+              y: pU.y - 20,
+              class: 'text-label'
+            });
+            labelU.textContent = "ウ";
+            dynamicGroup.appendChild(pointU);
+            dynamicGroup.appendChild(labelU);
+            prompt.textContent = "【手順３】点線をタップして、直線を引こう！";
+            let linesDrawn = 0;
+            const drawInteractive = (pStart, pEnd, isRadius) => {
+              const group = createSVGElement('g', {});
+              const dashed = createSVGElement('line', {
+                x1: pStart.x,
+                y1: pStart.y,
+                x2: pEnd.x,
+                y2: pEnd.y,
+                class: 'line-dashed'
+              });
+              const hit = createSVGElement('line', {
+                x1: pStart.x,
+                y1: pStart.y,
+                x2: pEnd.x,
+                y2: pEnd.y,
+                class: 'line-hitbox'
+              });
+              group.appendChild(dashed);
+              group.appendChild(hit);
+              dynamicGroup.appendChild(group);
+              hit.onclick = () => {
+                group.remove();
+                drawAnimLine(dynamicGroup, pStart, pEnd, isRadius ? 'line-radius' : 'line', () => {
+                  const bg = createSVGElement('rect', {
+                    x: (pStart.x + pEnd.x) / 2 - 20,
+                    y: (pStart.y + pEnd.y) / 2 - 15,
+                    width: 40,
+                    height: 25,
+                    fill: 'white',
+                    rx: 5
+                  });
+                  const lbl = createSVGElement('text', {
+                    x: (pStart.x + pEnd.x) / 2,
+                    y: (pStart.y + pEnd.y) / 2 + 3,
+                    class: 'text-length',
+                    'text-anchor': 'middle'
+                  });
+                  lbl.textContent = "3cm";
+                  dynamicGroup.appendChild(bg);
+                  dynamicGroup.appendChild(lbl);
+                  linesDrawn++;
+                  if (linesDrawn === 2) {
+                    // --- 話し合いフェーズへ移行 ---
+                    prompt.textContent = "完成！";
+                    prompt.classList.add('done');
+                    throwConfetti();
+                    inst.classList.add('discussion-mode');
+                    inst.innerHTML = `<span><strong>どうして「正三角形」がかけたのかな？</strong><br>「イウ」の線を引くとき、コンパスをどれくらい開いたか思い出して話し合おう！</span>`;
+                    discBtn.style.display = 'block';
+                  }
+                });
+              };
+            };
+            drawInteractive({
+              x: cx,
+              y: cy
+            }, pU, true);
+            drawInteractive(pI, pU, false);
+          };
+        };
+      };
+    }
+
+    function showBoard2() {
+      document.getElementById('discussion-btn2').style.display = 'none';
+      const inst = document.getElementById('inst2');
+      inst.classList.remove('discussion-mode');
+      inst.innerHTML = `<span>「イウ」の長さも、円の半径と同じにしたからだね！<br>「？」のカードをタップして、まとめを完成させよう！</span>`;
+      const board = document.getElementById('board2');
+      board.style.display = 'block';
+    }
+    // ------------------------------------
+    // Tab 3: 練習問題 (4cmの正三角形)
+    // ------------------------------------
+    function startEngine3() {
+      const svg = document.getElementById('svg3');
+      const prompt = document.getElementById('prompt3');
+      svg.innerHTML = '';
+      const cx = 400,
+        cy = 280,
+        rPx = 200;
+      const pI = {
+        x: cx + rPx,
+        y: cy
+      };
+      const angleU = -Math.PI / 3;
+      const pU = {
+        x: cx + rPx * Math.cos(angleU),
+        y: cy + rPx * Math.sin(angleU)
+      };
+      svg.appendChild(createSVGElement('circle', {
+        cx,
+        cy,
+        r: rPx,
+        class: 'circle-base'
+      }));
+      svg.appendChild(createSVGElement('circle', {
+        cx,
+        cy,
+        r: 5,
+        class: 'center-point'
+      }));
+      svg.appendChild(createSVGElement('circle', {
+        cx: pI.x,
+        cy: pI.y,
+        r: 6,
+        class: 'point'
+      }));
+      const dynamicGroup = createSVGElement('g', {});
+      svg.appendChild(dynamicGroup);
+      prompt.textContent = "【手順１】右の点をタップして、4cmのコンパスでしるしをつけよう！";
+      prompt.classList.remove('done');
+      const pulseI = createSVGElement('circle', {
+        cx: pI.x,
+        cy: pI.y,
+        class: 'pulse-circle'
+      });
+      dynamicGroup.appendChild(pulseI);
+      pulseI.onclick = () => {
+        pulseI.remove();
+        const startAngle = Math.PI - 0.5;
+        const endAngle = Math.PI + 0.5;
+        const startX = pI.x + rPx * Math.cos(startAngle);
+        const startY = pI.y + rPx * Math.sin(startAngle);
+        const endX = pI.x + rPx * Math.cos(endAngle);
+        const endY = pI.y + rPx * Math.sin(endAngle);
+        const arc = createSVGElement('path', {
+          d: `M ${startX} ${startY} A ${rPx} ${rPx} 0 0 1 ${endX} ${endY}`,
+          class: 'arc'
+        });
+        dynamicGroup.appendChild(arc);
+        const arcLen = arc.getTotalLength();
+        arc.style.strokeDasharray = arcLen;
+        arc.style.strokeDashoffset = arcLen;
+        const anim = arc.animate([{
+          strokeDashoffset: arcLen
+        }, {
+          strokeDashoffset: 0
+        }], {
+          duration: 800,
+          fill: 'forwards'
+        });
+        anim.onfinish = () => {
+          prompt.textContent = "【手順２】線が交わったところをタップして、「頂点」を決めよう！";
+          const pulseU = createSVGElement('circle', {
+            cx: pU.x,
+            cy: pU.y,
+            class: 'pulse-circle'
+          });
+          dynamicGroup.appendChild(pulseU);
+          pulseU.onclick = () => {
+            pulseU.remove();
+            const pointU = createSVGElement('circle', {
+              cx: pU.x,
+              cy: pU.y,
+              r: 8,
+              fill: 'var(--accent)'
+            });
+            dynamicGroup.appendChild(pointU);
+            prompt.textContent = "【手順３】点線をタップして、直線を引こう！";
+            let linesDrawn = 0;
+            const drawInteractive = (pStart, pEnd) => {
+              const group = createSVGElement('g', {});
+              const dashed = createSVGElement('line', {
+                x1: pStart.x,
+                y1: pStart.y,
+                x2: pEnd.x,
+                y2: pEnd.y,
+                class: 'line-dashed'
+              });
+              const hit = createSVGElement('line', {
+                x1: pStart.x,
+                y1: pStart.y,
+                x2: pEnd.x,
+                y2: pEnd.y,
+                class: 'line-hitbox'
+              });
+              group.appendChild(dashed);
+              group.appendChild(hit);
+              dynamicGroup.appendChild(group);
+              hit.onclick = () => {
+                group.remove();
+                drawAnimLine(dynamicGroup, pStart, pEnd, 'line', () => {
+                  const bg = createSVGElement('rect', {
+                    x: (pStart.x + pEnd.x) / 2 - 20,
+                    y: (pStart.y + pEnd.y) / 2 - 15,
+                    width: 40,
+                    height: 25,
+                    fill: 'white',
+                    rx: 5
+                  });
+                  const lbl = createSVGElement('text', {
+                    x: (pStart.x + pEnd.x) / 2,
+                    y: (pStart.y + pEnd.y) / 2 + 3,
+                    class: 'text-length',
+                    'text-anchor': 'middle'
+                  });
+                  lbl.textContent = "4cm";
+                  dynamicGroup.appendChild(bg);
+                  dynamicGroup.appendChild(lbl);
+                  linesDrawn++;
+                  if (linesDrawn === 3) {
+                    prompt.textContent = "🎉 １辺が４cmの正三角形の完成です！よくできました！";
+                    prompt.classList.add('done');
+                    throwConfetti();
+                  }
+                });
+              };
+            };
+            drawInteractive({
+              x: cx,
+              y: cy
+            }, pI);
+            drawInteractive({
+              x: cx,
+              y: cy
+            }, pU);
+            drawInteractive(pI, pU);
+          };
+        };
+      };
+    }
+    // 初期化
+    window.onload = () => {
+      startEngine1();
+    };
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

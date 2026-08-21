@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>そろばんシミュレーター</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
+
+:root {
+  --primary-color: #2b9348;
+  --bg-color: #f4fcf4;
+  --frame-color: #d4a373;
+  --beam-color: #8b5a2b;
+  --rod-color: #e0c097;
+  --bead-color: #0077b6; 
+  --go-bead-color: #55a630; 
+  --text-main: #333;
+}
+
+body {
+  font-family: 'Kosugi Maru', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  margin: 0;
+  padding: 10px; 
+  display: flex;
+  justify-content: center;
+}
+
+.app-container {
+  max-width: 900px;
+  width: 100%;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  padding: 15px; 
+  box-sizing: border-box;
+}
+
+header {
+  border-bottom: 3px dashed #c7e9c0;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.title-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-area h1 {
+  color: var(--primary-color);
+  margin: 0;
+  font-size: 24px; 
+}
+
+.header-desc {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* 教科書コンテンツ用スタイル */
+.textbook-panel {
+  background: #fffdf5;
+  border: 2px solid #ffdd57;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.textbook-panel h2 {
+  font-size: 18px;
+  color: #b08d00;
+  margin-top: 0;
+  border-bottom: 2px dashed #ffdd57;
+  padding-bottom: 5px;
+}
+
+.textbook-panel h3 {
+  font-size: 16px;
+  color: #333;
+  margin: 10px 0 5px 0;
+  display: flex;
+  align-items: center;
+  background: #ffec99;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.text-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.text-box {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  font-size: 13px;
+}
+.text-box ul {
+  padding-left: 20px;
+  margin: 5px 0;
+}
+.text-box p {
+  margin: 5px 0;
+}
+.highlight-text {
+  color: #d62828;
+  font-weight: bold;
+}
+
+.math-example {
+  background: #e3f2fd;
+  border-left: 4px solid #1e88e5;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 0 8px 8px 0;
+}
+.math-example h4 {
+  margin: 0 0 5px 0;
+  color: #1565c0;
+  font-size: 15px;
+}
+.math-example ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .text-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  font-family: inherit;
+  background: #f0f0f0;
+  border: 2px solid #ccc;
+  padding: 6px 14px; 
+  border-radius: 20px;
+  font-size: 14px; 
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+
+button.active, button:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.panel {
+  background: #fff0f3;
+  border: 2px solid #ffb3c6;
+  border-radius: 12px;
+  padding: 15px; 
+  margin-bottom: 15px;
+}
+
+.panel.hidden { display: none; }
+
+.question-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.question-header h2 {
+  margin: 0;
+  font-size: 18px; 
+}
+
+.highlight-number {
+  font-size: 28px; 
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-right: 10px;
+}
+
+.desc-text {
+  color: #555;
+  font-size: 14px;
+}
+
+.hint-section {
+  margin-top: 10px;
+  border-top: 1px solid #ffc8dd;
+  padding-top: 10px;
+}
+
+#hint-btn {
+  background: #ffb703;
+  border-color: #fb8500;
+  color: white;
+}
+
+#hint-text {
+  color: #d62828;
+  font-weight: bold;
+  margin-top: 5px;
+  background: #ffe5d9;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* そろばんの描画 */
+.soroban-wrapper {
+  overflow-x: auto;
+  padding: 10px 0; 
+}
+
+.soroban {
+  position: relative;
+  height: 200px; 
+  background: var(--frame-color);
+  border: 8px solid #8b5a2b; 
+  border-radius: 6px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  min-width: max-content;
+  padding: 0 6px;
+}
+
+.beam {
+  position: absolute;
+  top: 55px; 
+  left: 0;
+  right: 0;
+  height: 8px; 
+  background: var(--beam-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  z-index: 5;
+}
+
+.teiiten {
+  position: absolute;
+  width: 6px; 
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  top: 56px; 
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+  z-index: 20; 
+}
+
+.rods-container {
+  display: flex;
+  height: 100%;
+}
+
+.rod-col {
+  position: relative;
+  width: 38px; 
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rod-col::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px; 
+  background: var(--rod-color);
+  box-shadow: inset -1px 0 2px rgba(0,0,0,0.3);
+  z-index: 1;
+}
+
+.bead {
+  position: absolute;
+  width: 32px; 
+  height: 18px; 
+  background: var(--bead-color);
+  clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+  z-index: 10;
+  cursor: pointer;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); 
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.4);
+}
+
+.bead.go-bead { background: var(--go-bead-color); }
+
+.go-bead { top: 6px; }
+.go-bead.active { transform: translateY(28px); } 
+
+.ichi-bead-1 { top: 108px; }
+.ichi-bead-2 { top: 128px; }
+.ichi-bead-3 { top: 148px; }
+.ichi-bead-4 { top: 168px; }
+
+.ichi-bead-1.active { transform: translateY(-44px); } 
+.ichi-bead-2.active { transform: translateY(-44px); }
+.ichi-bead-3.active { transform: translateY(-44px); }
+.ichi-bead-4.active { transform: translateY(-44px); }
+
+.display-area {
+  margin-top: 10px; 
+  text-align: center;
+}
+
+.speech-bubble {
+  background: #e9ecef;
+  border-radius: 16px;
+  padding: 10px 15px; 
+  display: inline-block;
+  min-width: 250px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.bubble-title {
+  margin: 0 0 5px 0;
+  color: #6c757d;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.current-number {
+  font-size: 28px; 
+  font-weight: bold;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+}
+
+input[type="text"] {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 180px;
+  margin: 0 5px;
+}
+
+.success-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.success-box {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.success-box h3 {
+  font-size: 28px;
+  color: #d62828;
+  margin-top: 0;
+}
+
+.hidden { display: none !important; }
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header>
+    <div class="title-area">
+      <div class="icon">🌱</div>
+      <h1>そろばんシミュレーター</h1>
+    </div>
+    <p class="header-desc">そろばんの部分の名前や使い方を学び、いろいろな数をそろばんに入れたり、計算したりしてみよう。</p>
+  </header>
+
+  <main>
+    <!-- 教科書の内容セクション -->
+    <div class="textbook-panel">
+      <h2>📖 教科書で学ぼう</h2>
+      
+      <div class="text-grid">
+        <div class="text-box">
+          <h3>数の表し方（p.95）</h3>
+          <p><strong>定位点（ていいてん）</strong>のあるけたを<span class="highlight-text">一の位</span>として、そこからじゅんに位取りをします。定位点の右は<span class="highlight-text">小数第一位</span>です。</p>
+          <p>【例】「200」や「35.8」を入れてみよう。</p>
+        </div>
+        <div class="text-box">
+          <h3>数の入れ方と取り方（指の使い方）</h3>
+          <p><strong>入れるときは：</strong> 人さし指と親指を使います。（3を入れる、5を入れる、7を入れる）</p>
+          <p><strong>取るときは：</strong> 人さし指を使います。（7を取る時は、①一珠を2個取る ②五珠を取る）</p>
+        </div>
+      </div>
+
+      <div class="text-box" style="margin-top: 10px;">
+        <h3>たし算のしかた（p.96）</h3>
+        <p>大きい位の数から計算していくよ。</p>
+        
+        <div class="math-example">
+          <h4>例題1：64 ＋ 23 ＝ 87</h4>
+          <ol>
+            <li><strong>64を入れる。</strong></li>
+            <li><strong>23の20をたす。</strong></li>
+            <li><strong>23の3をたす。</strong>（五だまを入れて、一だまを2こ取ります。）</li>
+          </ol>
+        </div>
+
+        <div class="math-example">
+          <h4>例題2：70 ＋ 48 ＝ 118</h4>
+          <ol>
+            <li><strong>70を入れる。</strong></li>
+            <li><strong>48の40をたす。</strong>（40をたすには、60を取って、100を入れます。）</li>
+            <li><strong>48の8をたす。</strong></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- モード選択 -->
+    <div class="controls">
+      <button class="mode-btn active" onclick="setMode('free')">自由に使う</button>
+      <button class="mode-btn" onclick="setMode('text_200')">練習: 200</button>
+      <button class="mode-btn" onclick="setMode('text_35_8')">練習: 35.8</button>
+      <button class="mode-btn" onclick="setMode('calc_1')">たし算: 64+23</button>
+      <button class="mode-btn" onclick="setMode('calc_2')">たし算: 70+48</button>
+    </div>
+
+    <!-- 問題エリア -->
+    <div id="question-area" class="panel hidden">
+      <div class="question-header">
+        <span class="question-mark">💡</span>
+        <h2>そろばんに、下の数（答え）を入れましょう。</h2>
+      </div>
+      <div class="question-content">
+        <span id="q-number" class="highlight-number"></span>
+        <span id="q-desc" class="desc-text"></span>
+      </div>
+      
+      <div class="hint-section">
+        <button id="hint-btn" onclick="showHint()">ヒントを見る</button>
+        <p id="hint-text" class="hidden"></p>
+      </div>
+    </div>
+
+    <!-- 自由入力エリア -->
+    <div id="free-input-area" class="panel">
+      <label for="free-input">好きな数を入れてみよう（全角・半角どちらでもOK）:</label>
+      <input type="text" id="free-input" placeholder="例: 123.45" onchange="handleFreeInput()">
+      <button onclick="handleFreeInput()">設定</button>
+    </div>
+
+    <!-- そろばん本体 -->
+    <div class="soroban-wrapper">
+      <div class="soroban" id="soroban">
+        <div class="beam" id="beam"></div>
+        <div class="rods-container" id="rods-container"></div>
+      </div>
+    </div>
+
+    <div class="display-area">
+      <div class="speech-bubble">
+        <p class="bubble-title">現在の数</p>
+        <div id="current-val" class="current-number">0</div>
+      </div>
+    </div>
+
+    <div id="success-msg" class="success-overlay hidden">
+      <div class="success-box">
+        <h3>🎉 大正解！ 🎉</h3>
+        <p>よくできました！次の問題にも挑戦してみよう。</p>
+        <button onclick="closeSuccess()">とじる</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const RODS = 21; 
+let state = Array(RODS).fill(null).map(() => ({ go: 0, ichi: 0 }));
+let currentMode = 'free';
+let targetValueStr = "";
+
+const placeNames = [
+  "100分の1", "10分の1", "一", "十", "百", "千", "一万", "十万", "百万", "千万",
+  "一億", "十億", "百億", "千億", "一兆", "十兆", "百兆", "千兆", "一京", "十京", "百京"
+];
+
+// 教科書の内容に基づく問題データ
+const questions = {
+  text_200: { num: "200", desc: "定位点に注意して「200」を入れよう！" },
+  text_35_8: { num: "35.8", desc: "定位点の右は小数第一位だよ。「35.8」を入れよう！" },
+  calc_1: { num: "87", desc: "【64 + 23】をやってみよう！まず64を入れ、大きい位の20をたし、次に3をたすよ。" },
+  calc_2: { num: "118", desc: "【70 + 48】をやってみよう！まず70を入れ、40をたすために60を取って100を入れるよ。" }
+};
+
+function zenkakuToHankaku(str) {
+  return str.replace(/[０-９．]/g, function(s) {
+    if (s === '．') return '.';
+    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+  });
+}
+
+function initSoroban() {
+  const container = document.getElementById('rods-container');
+  container.innerHTML = '';
+
+  for (let i = RODS - 1; i >= 0; i--) {
+    const col = document.createElement('div');
+    col.className = 'rod-col';
+    col.dataset.index = i;
+
+    // 定位点（一の位、千の位、百万の位...）を配置
+    if (i >= 2 && (i - 2) % 3 === 0) {
+      const dot = document.createElement('div');
+      dot.className = 'teiiten';
+      col.appendChild(dot); 
+    }
+
+    const goBead = document.createElement('div');
+    goBead.className = 'bead go-bead';
+    goBead.onclick = () => toggleGoBead(i);
+    col.appendChild(goBead);
+
+    for (let j = 1; j <= 4; j++) {
+      const ichiBead = document.createElement('div');
+      ichiBead.className = `bead ichi-bead-${j}`;
+      ichiBead.onclick = () => toggleIchiBead(i, j);
+      col.appendChild(ichiBead);
+    }
+
+    container.appendChild(col);
+  }
+  updateUI();
+}
+
+function toggleGoBead(rodIndex) {
+  state[rodIndex].go = state[rodIndex].go === 0 ? 1 : 0;
+  updateUI();
+  checkAnswer();
+}
+
+function toggleIchiBead(rodIndex, beadIndex) {
+  const currentIchi = state[rodIndex].ichi;
+  
+  if (currentIchi >= beadIndex) {
+    state[rodIndex].ichi = beadIndex - 1;
+  } else {
+    state[rodIndex].ichi = beadIndex;
+  }
+  updateUI();
+  checkAnswer();
+}
+
+function updateUI() {
+  for (let i = 0; i < RODS; i++) {
+    const colIndex = RODS - 1 - i;
+    const col = document.querySelectorAll('.rod-col')[colIndex];
+    
+    const goBead = col.querySelector('.go-bead');
+    if (state[i].go === 1) goBead.classList.add('active');
+    else goBead.classList.remove('active');
+
+    for (let j = 1; j <= 4; j++) {
+      const ichiBead = col.querySelector(`.ichi-bead-${j}`);
+      if (j <= state[i].ichi) ichiBead.classList.add('active');
+      else ichiBead.classList.remove('active');
+    }
+  }
+  
+  let intPart = "";
+  let decPart = "";
+  let started = false;
+
+  for (let i = RODS - 1; i >= 0; i--) {
+    let val = state[i].go * 5 + state[i].ichi;
+    if (i >= 2) { 
+      if (val > 0 || started || i === 2) {
+        intPart += val;
+        started = true;
+      }
+    } else { 
+      decPart += val;
+    }
+  }
+
+  if (intPart === "") intPart = "0";
+  decPart = decPart.replace(/0+$/, '');
+
+  let displayStr = "";
+  if (decPart.length > 0) {
+    displayStr = BigInt(intPart).toLocaleString('ja-JP') + '.' + decPart;
+  } else {
+    displayStr = BigInt(intPart).toLocaleString('ja-JP');
+  }
+
+  document.getElementById('current-val').innerText = displayStr;
+}
+
+function resetSoroban() {
+  state = Array(RODS).fill(null).map(() => ({ go: 0, ichi: 0 }));
+  document.getElementById('hint-text').classList.add('hidden');
+  updateUI();
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  resetSoroban();
+
+  const qArea = document.getElementById('question-area');
+  const fArea = document.getElementById('free-input-area');
+
+  if (mode === 'free') {
+    qArea.classList.add('hidden');
+    fArea.classList.remove('hidden');
+    targetValueStr = "";
+  } else {
+    fArea.classList.add('hidden');
+    qArea.classList.remove('hidden');
+    
+    const q = questions[mode];
+    document.getElementById('q-number').innerText = q.num;
+    document.getElementById('q-desc').innerText = q.desc;
+    targetValueStr = q.num;
+  }
+}
+
+function handleFreeInput() {
+  const input = document.getElementById('free-input').value;
+  const normalized = zenkakuToHankaku(input).replace(/,/g, '');
+  if (!isNaN(Number(normalized)) && normalized !== "") {
+    targetValueStr = normalized.toString(); 
+  } else {
+     targetValueStr = ""; 
+  }
+}
+
+function checkAnswer() {
+  if (currentMode === 'free' || !targetValueStr) return;
+
+  let intPart = "";
+  let decPart = "";
+  let started = false;
+  for (let i = RODS - 1; i >= 0; i--) {
+    let val = state[i].go * 5 + state[i].ichi;
+    if (i >= 2) {
+      if (val > 0 || started || i === 2) { intPart += val; started = true; }
+    } else {
+      decPart += val;
+    }
+  }
+  decPart = decPart.replace(/0+$/, '');
+  let currentValStr = decPart.length > 0 ? `${intPart}.${decPart}` : intPart;
+
+  if (currentValStr === targetValueStr) {
+    setTimeout(() => {
+      document.getElementById('success-msg').classList.remove('hidden');
+    }, 200);
+  }
+}
+
+function showHint() {
+  if (!targetValueStr) return;
+
+  let targetArray = Array(RODS).fill(0);
+  let parts = targetValueStr.split('.');
+  let intPart = parts[0] || "0";
+  let decPart = parts[1] || "";
+
+  for (let i = 0; i < intPart.length; i++) {
+    let digit = parseInt(intPart[intPart.length - 1 - i]);
+    if (i + 2 < RODS) targetArray[i + 2] = digit;
+  }
+  for (let i = 0; i < decPart.length; i++) {
+    let digit = parseInt(decPart[i]);
+    if (1 - i >= 0) targetArray[1 - i] = digit;
+  }
+
+  for (let i = RODS - 1; i >= 0; i--) {
+    let currentVal = state[i].go * 5 + state[i].ichi;
+    if (currentVal !== targetArray[i]) {
+      const hintEl = document.getElementById('hint-text');
+      hintEl.innerText = `💡 ヒント：『${placeNames[i]}』の位の珠が違うみたい。もう一度よく見てみよう！`;
+      hintEl.classList.remove('hidden');
+      return; 
+    }
+  }
+}
+
+function closeSuccess() {
+  document.getElementById('success-msg').classList.add('hidden');
+}
+
+window.onload = () => {
+  initSoroban();
+};
+</script>
+</body>
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

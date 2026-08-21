@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【体験・思考型】三角形と角（第5時）</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff9800;
+      --primary-dark: #f57c00;
+      --accent: #2196f3;
+      --success: #4caf50;
+      --warning: #ff5722;
+      --bg-gradient: linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-main: #3e2723;
+      --grid-color: rgba(255, 152, 0, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* メインコンテナ */
+    .app-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      width: 100%;
+      max-width: 900px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      position: relative;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      padding: 15px;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.02);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 200px;
+      max-width: 280px;
+      padding: 15px;
+      text-align: center;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      background: white;
+      color: #95a5a6;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+    }
+    .tab:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); }
+    .tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 8px 15px rgba(255, 152, 0, 0.3);
+    }
+
+    /* コンテンツエリア */
+    .content-area {
+      padding: 30px;
+      display: none;
+      animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .content-area.active { display: block; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* インストラクション */
+    .instruction-bubble {
+      position: relative;
+      background: white;
+      border: 3px solid var(--primary);
+      padding: 20px 30px;
+      border-radius: 20px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.3s ease;
+    }
+    .instruction-bubble::before { content: '👨‍🏫'; font-size: 2.5rem; }
+    
+    .instruction-bubble.discussion-mode {
+      border-color: var(--warning);
+      background: #fff3e0;
+    }
+    .instruction-bubble.discussion-mode::before { content: '🗣️'; }
+    .instruction-bubble.think-mode {
+      border-color: var(--accent);
+      background: #e3f2fd;
+    }
+    .instruction-bubble.think-mode::before { content: '🤔'; }
+
+    /* インタラクティブ・キャンバス */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      background-color: #fff;
+      background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 16px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.02), 0 10px 20px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      border: 4px solid #fff3e0;
+      touch-action: none;
+    }
+
+    /* キャンバス上のナビゲーション指示 */
+    .canvas-prompt {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--warning);
+      border: 3px solid var(--warning);
+      box-shadow: 0 5px 15px rgba(255, 87, 34, 0.2);
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .canvas-prompt.done { color: var(--success); border-color: var(--success); }
+    .canvas-prompt.drag-mode { color: var(--accent); border-color: var(--accent); }
+
+    svg { width: 100%; height: 100%; overflow: visible; }
+
+    /* 黒板・まとめ */
+    .board-plan {
+      background: #2c3e50; color: white; border: 6px solid #f1c40f; padding: 30px;
+      border-radius: 12px; margin-top: 20px; text-align: left; font-weight: 800;
+      font-size: 1.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.15); display: none;
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      line-height: 2;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* めくりカード */
+    .hidden-word {
+      display: inline-block; background: #ff9800; color: transparent;
+      padding: 0 20px; border-radius: 8px; cursor: pointer; position: relative;
+      box-shadow: 0 4px 0 #e65100; transition: transform 0.1s;
+      min-width: 100px; text-align: center; vertical-align: middle; user-select: none;
+    }
+    .hidden-word:active { transform: translateY(4px); box-shadow: 0 0 0 #e65100; }
+    .hidden-word::after {
+      content: '？'; color: white; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%); font-size: 1.4rem;
+    }
+    .hidden-word.revealed {
+      background: transparent; color: #ffeb3b; border-bottom: 4px dashed #ffeb3b;
+      box-shadow: none; cursor: default; transform: none;
+    }
+    .hidden-word.revealed::after { display: none; }
+
+    /* ボタン群 */
+    .btn {
+      padding: 15px 30px; font-size: 1.2rem; font-weight: 800; color: white;
+      background: linear-gradient(135deg, var(--text-main), #576574);
+      border: none; border-radius: 50px; cursor: pointer;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); transition: all 0.2s;
+    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3); }
+    .btn-action { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 8px 15px rgba(255, 152, 0, 0.3); }
+    .btn-outline { background: white; color: var(--accent); border: 3px solid var(--accent); }
+    .btn-outline:hover { background: var(--accent); color: white; }
+
+    #confetti-container {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none; z-index: 9999; overflow: hidden;
+    }
+    .confetti { position: absolute; width: 15px; height: 15px; animation: fall 3s linear forwards; }
+    @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+    .tool-box {
+      display: flex; gap: 15px; justify-content: center; margin-top: 15px;
+      background: white; padding: 20px; border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="confetti-container"></div>
+
+  <div class="app-container">
+    <div class="header">
+      <h1>📐 三角形と角（かど）</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tab1')">① かどの形を調べよう</button>
+      <button class="tab" onclick="switchTab('tab2')">② 大きさをくらべよう</button>
+      <button class="tab" onclick="switchTab('tab3')">③ 【実験】角の大きさのヒミツ</button>
+    </div>
+
+    <!-- タブ1 -->
+    <div id="tab1" class="content-area active">
+      <div class="instruction-bubble" id="inst1">
+        <span>三角じょうぎの「かど」の形を調べてみよう！<br>まずは、<strong>直角（ちょっかく）</strong>になっているかどをタップして見つけてね。</span>
+      </div>
+      <div class="canvas-container">
+        <div class="canvas-prompt" id="prompt1">直角はどこかな？（２つあるよ！）</div>
+        <svg id="svg1"></svg>
+      </div>
+      <div id="discussion-btn1" style="display:none; text-align:center; margin-bottom: 20px;">
+        <button class="btn btn-action" onclick="showBoard1()">新しい言葉をおぼえよう！</button>
+      </div>
+      <div id="board1" class="board-plan">
+        💡 <strong>【新しい言葉】</strong><br>
+        １つの <span class="hidden-word" data-word="ちょう点"></span> からでている、２つの <span class="hidden-word" data-word="辺"></span> がつくる形を<br>
+        <strong>「<span class="hidden-word" style="color:transparent;" data-word="角（かく）"></span>」</strong>といいます。<br>
+        角をつくっている辺の <span class="hidden-word" data-word="開きぐあい"></span> を、角の大きさと呼びます。
+      </div>
+    </div>
+
+    <!-- タブ2 -->
+    <div id="tab2" class="content-area">
+      <div class="instruction-bubble think-mode" id="inst2">
+        <span>教室にある「先生の大きい三角じょうぎ」と、「みんなの小さい三角じょうぎ」。<br><strong>右下の角の大きさはどちらが大きいかな？まずは予想しよう！</strong></span>
+      </div>
+      <div id="prediction-area" class="tool-box" style="flex-direction:column; align-items:center;">
+        <h2 style="margin-top:0; color:var(--text-main);">みんなはどう思う？</h2>
+        <div style="display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
+          <button class="btn btn-outline" onclick="makePrediction('先生のほうが大きい！')">先生のほうが大きい！</button>
+          <button class="btn btn-outline" onclick="makePrediction('みんなのほうが大きい！')">みんなのほうが大きい！</button>
+          <button class="btn btn-outline" onclick="makePrediction('まったく同じ！')">まったく同じ！</button>
+        </div>
+      </div>
+      <div class="canvas-container" id="canvas-container-2" style="display:none;">
+        <div class="canvas-prompt drag-mode" id="prompt2">小さい三角じょうぎを指で動かして、先生の角に重ねてみよう！</div>
+        <svg id="svg2"></svg>
+      </div>
+      <div id="discussion-btn2" style="display:none; text-align:center; margin-bottom: 20px;">
+        <button class="btn btn-action" onclick="showBoard2()">話し合ったら、タップしてまとめへ！</button>
+      </div>
+      <div id="board2" class="board-plan">
+        💡 小さい三角じょうぎも、大きい三角じょうぎも…<br>
+        角の部分が <span class="hidden-word" data-word="ぴったり重なった"></span> ！<br>
+        ということは、２つの角の大きさは <span class="hidden-word" data-word="同じ（等しい）"></span> だね。
+      </div>
+    </div>
+
+    <!-- タブ3 -->
+    <div id="tab3" class="content-area">
+      <div class="instruction-bubble" id="inst3">
+        <span>【シミュレーション】角の大きさのヒミツをあばこう！<br>下のボタンを押して、図形がどう変わるか実験してね。</span>
+      </div>
+      <div class="canvas-container" style="height: 400px;">
+        <div class="canvas-prompt" id="prompt3">ボタンを押して実験しよう！</div>
+        <svg id="svg3"></svg>
+      </div>
+      <div class="tool-box">
+        <button class="btn" style="background:#4caf50;" onclick="extendSides()">📏 辺をのばす</button>
+        <button class="btn" style="background:#e91e63;" onclick="widenAngle()">📐 開きぐあいを変える</button>
+      </div>
+      <div style="text-align:center; margin-top: 25px;">
+        <button class="btn btn-action" onclick="showBoard3()">実験がわかったら、今日のまとめへ！</button>
+      </div>
+      <div id="board3" class="board-plan">
+        💡 <strong>【今日のまとめ】</strong><br>
+        角の大きさは、 <span class="hidden-word" data-word="辺の長さ"></span> には関係なく、<br>
+        辺の <span class="hidden-word" data-word="開きぐあい"></span> だけで決まる！
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------------
+    // グローバル関数（環境依存エラーを防ぐためWindowに登録）
+    // ------------------------------------
+    window.switchTab = switchTab;
+    window.showBoard1 = showBoard1;
+    window.makePrediction = makePrediction;
+    window.showBoard2 = showBoard2;
+    window.showBoard3 = showBoard3;
+    window.extendSides = extendSides;
+    window.widenAngle = widenAngle;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+      
+      if (tabId === 'tab1') startEngine1();
+      if (tabId === 'tab2') resetEngine2(); 
+      if (tabId === 'tab3') startEngine3();
+    }
+
+    // SVG属性が確実に適用されるよう明示的にセット
+    function createSVGElement(name, attrs) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (let key in attrs) {
+        if (key === 'class') {
+          el.setAttribute('class', attrs[key]);
+        } else {
+          el.setAttribute(key, attrs[key]);
+        }
+      }
+      return el;
+    }
+
+    function throwConfetti(isSmall = false) {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#ff9800', '#2196f3', '#4caf50', '#e91e63', '#ffeb3b'];
+      const count = isSmall ? 15 : 70;
+      for (let i = 0; i < count; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        const shape = Math.random();
+        if (shape < 0.3) confetti.style.borderRadius = '50%';
+        else if (shape < 0.6) confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+        container.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+      }
+    }
+
+    function setupHiddenWords() {
+      document.querySelectorAll('.hidden-word').forEach(el => {
+        el.classList.remove('revealed');
+        el.textContent = '';
+        el.onclick = function() {
+          if(this.classList.contains('revealed')) return;
+          this.classList.add('revealed');
+          this.textContent = this.getAttribute('data-word');
+          if(this.textContent === "角（かく）") this.style.color = "#ffeb3b"; 
+          throwConfetti(true);
+          this.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 300 });
+        };
+      });
+    }
+
+    // ------------------------------------
+    // Tab 1
+    // ------------------------------------
+    function startEngine1() {
+      const svg = document.getElementById('svg1');
+      const prompt = document.getElementById('prompt1');
+      document.getElementById('board1').style.display = 'none';
+      document.getElementById('discussion-btn1').style.display = 'none';
+      setupHiddenWords();
+      svg.innerHTML = '';
+      let foundRightAngles = 0; let step = 1;
+
+      const g1 = createSVGElement('g', {});
+      g1.appendChild(createSVGElement('polygon', { 
+        points: "100,350 350,350 100,100", 
+        fill: "rgba(33, 150, 243, 0.2)", stroke: "#2196f3", "stroke-width": 4, "stroke-linejoin": "round"
+      }));
+      g1.appendChild(createSVGElement('polygon', { 
+        points: "125,325 290,325 125,160", 
+        fill: "#fff", stroke: "#2196f3", "stroke-width": 2 
+      }));
+      
+      const g2 = createSVGElement('g', {});
+      g2.appendChild(createSVGElement('polygon', { 
+        points: "500,350 700,350 500,50", 
+        fill: "rgba(33, 150, 243, 0.2)", stroke: "#2196f3", "stroke-width": 4, "stroke-linejoin": "round"
+      }));
+      g2.appendChild(createSVGElement('polygon', { 
+        points: "525,325 640,325 525,120", 
+        fill: "#fff", stroke: "#2196f3", "stroke-width": 2 
+      }));
+
+      svg.append(g1, g2);
+
+      const makeHitbox = (x, y, type, targetEl, onHit) => {
+        const hit = createSVGElement('circle', { cx: x, cy: y, r:30, fill:'transparent', cursor:'pointer' });
+        hit.onmouseenter = () => hit.setAttribute('fill', 'rgba(255, 235, 59, 0.4)');
+        hit.onmouseleave = () => hit.setAttribute('fill', 'transparent');
+        hit.onclick = () => {
+          if (type === 'right' && step === 1) {
+            hit.remove();
+            const rect = createSVGElement('polyline', { 
+              points: `${x},${y-30} ${x+30},${y-30} ${x+30},${y}`, 
+              fill: 'none', stroke: '#e91e63', 'stroke-width': 5 
+            });
+            targetEl.appendChild(rect);
+            onHit();
+          } else if (type === 'sharp' && step === 2) {
+            hit.remove();
+            const arc = createSVGElement('path', { 
+              d: `M ${x},${y+40} A 40 40 0 0 1 ${x+22},${y+34}`, 
+              fill: 'none', stroke: '#e91e63', 'stroke-width': 5 
+            });
+            targetEl.appendChild(arc);
+            onHit();
+          } else {
+            hit.animate([{transform:'translateX(-5px)'}, {transform:'translateX(5px)'}, {transform:'translateX(0)'}], {duration:200});
+          }
+        };
+        return hit;
+      };
+
+      svg.append(
+        makeHitbox(100, 350, 'right', g1, () => { foundRightAngles++; checkRightAngles(); }),
+        makeHitbox(500, 350, 'right', g2, () => { foundRightAngles++; checkRightAngles(); })
+      );
+
+      const sharpHit = makeHitbox(500, 50, 'sharp', g2, () => {
+        prompt.textContent = "大正解！一番とがっている角だね！"; prompt.classList.add('done'); throwConfetti();
+        document.getElementById('discussion-btn1').style.display = 'block';
+        setTimeout(() => {
+          const v = createSVGElement('text', {x: 420, y: 30, fill: '#e91e63', 'font-size': '22px', 'font-weight': '800'}); v.textContent = "← ちょう点";
+          const e1 = createSVGElement('text', {x: 450, y: 150, fill: '#e91e63', 'font-size': '22px', 'font-weight': '800'}); e1.textContent = "辺";
+          const e2 = createSVGElement('text', {x: 580, y: 70, fill: '#e91e63', 'font-size': '22px', 'font-weight': '800'}); e2.textContent = "辺";
+          const a = createSVGElement('text', {x: 520, y: 110, fill: '#e91e63', 'font-size': '22px', 'font-weight': '800'}); a.textContent = "角";
+          g2.append(v, e1, e2, a);
+        }, 1000);
+      });
+      svg.append(sharpHit, makeHitbox(100, 100, 'other', g1, ()=>{}), makeHitbox(350, 350, 'other', g1, ()=>{}), makeHitbox(700, 350, 'other', g2, ()=>{}));
+
+      function checkRightAngles() {
+        if (foundRightAngles === 2) {
+          step = 2; prompt.textContent = "いいね！次は、６つの角の中で【いちばんとがっている角】をタップしよう！";
+          prompt.style.borderColor = "#2196f3"; prompt.style.color = "#2196f3";
+        }
+      }
+    }
+
+    function showBoard1() {
+      document.getElementById('discussion-btn1').style.display = 'none';
+      document.getElementById('board1').style.display = 'block';
+    }
+
+    // ------------------------------------
+    // Tab 2: ドラッグ操作による主体的な検証
+    // ------------------------------------
+    let userPrediction = "";
+
+    function resetEngine2() {
+      document.getElementById('prediction-area').style.display = 'flex';
+      document.getElementById('canvas-container-2').style.display = 'none';
+      document.getElementById('board2').style.display = 'none';
+      document.getElementById('discussion-btn2').style.display = 'none';
+      
+      const inst = document.getElementById('inst2');
+      inst.classList.add('think-mode');
+      inst.classList.remove('discussion-mode');
+      inst.innerHTML = `<span>教室にある「先生の大きい三角じょうぎ」と、「みんなの小さい三角じょうぎ」。<br><strong>右下の角の大きさはどちらが大きいかな？まずは予想しよう！</strong></span>`;
+    }
+
+    function makePrediction(prediction) {
+      userPrediction = prediction;
+      document.getElementById('prediction-area').style.display = 'none';
+      document.getElementById('canvas-container-2').style.display = 'block';
+      
+      const inst = document.getElementById('inst2');
+      inst.classList.remove('think-mode');
+      inst.innerHTML = `<span>「${prediction}」と予想したね！<br>ほんとうかな？<strong>小さい三角じょうぎを指で動かして</strong>、先生の角に重ねてたしかめよう！</span>`;
+      
+      startDragEngine2();
+    }
+
+    function startDragEngine2() {
+      const svg = document.getElementById('svg2');
+      const prompt = document.getElementById('prompt2');
+      prompt.textContent = "小さい三角じょうぎをドラッグして、先生の定規の角に重ねよう！";
+      prompt.classList.remove('done');
+      prompt.classList.add('drag-mode');
+      setupHiddenWords();
+      svg.innerHTML = '';
+
+      const gBig = createSVGElement('g', {});
+      gBig.appendChild(createSVGElement('polygon', { 
+        points: "200,400 700,400 200,100", 
+        fill: "rgba(255, 152, 0, 0.2)", stroke: "#ff9800", "stroke-width": 4, "stroke-linejoin": "round"
+      }));
+      gBig.appendChild(createSVGElement('polygon', { 
+        points: "230,370 600,370 230,160", 
+        fill: "#fff", stroke: "#ff9800", "stroke-width": 2
+      }));
+      const txtBig = createSVGElement('text', {
+        x: 400, y: 350, fill: '#f57c00', 'font-size': '24px', 'font-weight': '800'
+      }); 
+      txtBig.textContent = "先生の";
+      
+      const targetMarker = createSVGElement('circle', { 
+        cx: 700, cy: 400, r: 25, fill: 'none', stroke: '#2196f3', 'stroke-width': 4, 'stroke-dasharray': '6 6'
+      });
+      targetMarker.style.animation = "rotateDash 2s linear infinite";
+      gBig.append(txtBig, targetMarker);
+      
+      const gSmall = createSVGElement('g', { cursor: 'grab' });
+      const smallPoly = createSVGElement('polygon', { 
+        points: "100,250 270,250 100,150", 
+        fill: "rgba(33, 150, 243, 0.4)", stroke: "#2196f3", "stroke-width": 4, "stroke-linejoin": "round" 
+      });
+      const smallInner = createSVGElement('polygon', { 
+        points: "115,235 220,235 115,175", 
+        fill: "#fff", stroke: "#2196f3", "stroke-width": 2, "pointer-events": "none" 
+      });
+      const txtSmall = createSVGElement('text', {
+        x: 130, y: 220, fill: '#333', 'font-size': '24px', 'font-weight': '800', "pointer-events": "none"
+      }); 
+      txtSmall.textContent = "みんなの";
+      gSmall.append(smallPoly, smallInner, txtSmall);
+
+      svg.append(gBig, gSmall);
+
+      let isDragging = false;
+      let offset = { x: 0, y: 0 };
+      let currentTransform = { x: 0, y: 0 }; 
+
+      function getMousePosition(evt) {
+        const CTM = svg.getScreenCTM();
+        if (!CTM) return { x: 0, y: 0 };
+        let clientX = evt.clientX;
+        let clientY = evt.clientY;
+        if (evt.touches && evt.touches.length > 0) {
+          clientX = evt.touches[0].clientX;
+          clientY = evt.touches[0].clientY;
+        } else if (evt.changedTouches && evt.changedTouches.length > 0) {
+          clientX = evt.changedTouches[0].clientX;
+          clientY = evt.changedTouches[0].clientY;
+        }
+        return {
+          x: (clientX - CTM.e) / CTM.a,
+          y: (clientY - CTM.f) / CTM.d
+        };
+      }
+
+      function startDrag(evt) {
+        if (evt.cancelable) evt.preventDefault(); 
+        isDragging = true;
+        const mousePos = getMousePosition(evt);
+        offset.x = mousePos.x - currentTransform.x;
+        offset.y = mousePos.y - currentTransform.y;
+        gSmall.setAttribute('cursor', 'grabbing');
+      }
+
+      function drag(evt) {
+        if (!isDragging) return;
+        if (evt.cancelable) evt.preventDefault();
+        const mousePos = getMousePosition(evt);
+        currentTransform.x = mousePos.x - offset.x;
+        currentTransform.y = mousePos.y - offset.y;
+        gSmall.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y})`);
+      }
+
+      function endDrag(evt) {
+        if (!isDragging) return;
+        isDragging = false;
+        gSmall.setAttribute('cursor', 'grab');
+
+        const targetX = 430;
+        const targetY = 150;
+        const distance = Math.hypot(currentTransform.x - targetX, currentTransform.y - targetY);
+
+        if (distance < 50) {
+          currentTransform.x = targetX;
+          currentTransform.y = targetY;
+          gSmall.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y})`);
+          
+          gSmall.removeEventListener('mousedown', startDrag);
+          gSmall.removeEventListener('touchstart', startDrag);
+          svg.removeEventListener('mousemove', drag);
+          svg.removeEventListener('touchmove', drag);
+          svg.removeEventListener('mouseup', endDrag);
+          svg.removeEventListener('touchend', endDrag);
+          svg.removeEventListener('mouseleave', endDrag);
+
+          targetMarker.style.display = 'none'; 
+          triggerSuccess();
+        }
+      }
+
+      gSmall.addEventListener('mousedown', startDrag);
+      gSmall.addEventListener('touchstart', startDrag, {passive: false});
+      svg.addEventListener('mousemove', drag);
+      svg.addEventListener('touchmove', drag, {passive: false});
+      svg.addEventListener('mouseup', endDrag);
+      svg.addEventListener('touchend', endDrag);
+      svg.addEventListener('mouseleave', endDrag);
+
+      function triggerSuccess() {
+        prompt.textContent = "🎉 ぴったり重なった！！";
+        prompt.classList.remove('drag-mode');
+        prompt.classList.add('done');
+        throwConfetti();
+        
+        const highlightLines = createSVGElement('polyline', { 
+          points: "500,400 700,400 500,282",
+          fill: "none", stroke: "#e91e63", "stroke-width": 8, "stroke-linejoin": "round", "stroke-linecap": "round"
+        });
+        svg.appendChild(highlightLines);
+        
+        highlightLines.animate([
+          { opacity: 1, strokeWidth: 8 },
+          { opacity: 0.5, strokeWidth: 15 },
+          { opacity: 1, strokeWidth: 8 }
+        ], { duration: 1000, iterations: 3 });
+
+        setTimeout(() => {
+          const inst = document.getElementById('inst2');
+          inst.classList.add('discussion-mode');
+          inst.innerHTML = `<span><strong>ぴったり重なったね！辺の長さはちがうのに、不思議だね。</strong><br>このことから、「角の大きさ」についてどんなことが言えるか話し合おう！</span>`;
+          document.getElementById('discussion-btn2').style.display = 'block';
+        }, 1500);
+      }
+    }
+
+    function showBoard2() {
+      document.getElementById('discussion-btn2').style.display = 'none';
+      document.getElementById('board2').style.display = 'block';
+    }
+
+
+    // ------------------------------------
+    // Tab 3: 角の大きさのヒミツ実験
+    // ------------------------------------
+    let engine3State = { angle: 45, length: 200 };
+
+    function startEngine3() {
+      engine3State = { angle: 45, length: 200 };
+      document.getElementById('board3').style.display = 'none';
+      setupHiddenWords();
+      drawEngine3();
+    }
+
+    function drawEngine3() {
+      const svg = document.getElementById('svg3');
+      svg.innerHTML = '';
+      
+      const cx = 250, cy = 350; 
+      const len = engine3State.length;
+      const angleRad = engine3State.angle * (Math.PI / 180);
+
+      // 明示的に属性を付与してCSSのバグを回避
+      svg.appendChild(createSVGElement('line', { 
+        x1: cx, y1: cy, x2: cx + len, y2: cy, 
+        stroke: '#3e2723', 'stroke-width': 6, 'stroke-linecap': 'round' 
+      }));
+      
+      const ex = cx + len * Math.cos(angleRad);
+      const ey = cy - len * Math.sin(angleRad); 
+      svg.appendChild(createSVGElement('line', { 
+        x1: cx, y1: cy, x2: ex, y2: ey, 
+        stroke: '#3e2723', 'stroke-width': 6, 'stroke-linecap': 'round' 
+      }));
+      
+      svg.appendChild(createSVGElement('circle', { 
+        cx: cx, cy: cy, r: 10, fill: '#e91e63' 
+      }));
+      
+      const vLbl = createSVGElement('text', {
+        x: cx - 40, y: cy + 30, fill: '#e91e63', 'font-size': '22px', 'font-weight': '800'
+      }); 
+      vLbl.textContent = "ちょう点";
+      svg.appendChild(vLbl);
+
+      if (engine3State.angle > 0) {
+        const arcR = 50;
+        const ax = cx + arcR * Math.cos(angleRad);
+        const ay = cy - arcR * Math.sin(angleRad);
+        const sweep = 0; 
+        const d = `M ${cx + arcR} ${cy} A ${arcR} ${arcR} 0 0 ${sweep} ${ax} ${ay}`;
+        
+        const arc = createSVGElement('path', { 
+          d: d, 
+          fill: 'rgba(233, 30, 99, 0.3)', 
+          stroke: '#e91e63', 
+          'stroke-width': 4 
+        });
+        svg.appendChild(arc);
+        
+        const aLbl = createSVGElement('text', {
+          x: cx + 70, y: cy - 20, 
+          fill: '#e91e63', 'font-size': '22px', 'font-weight': '800'
+        }); 
+        aLbl.textContent = "角の大きさ";
+        svg.appendChild(aLbl);
+      }
+    }
+
+    function extendSides() {
+      if(engine3State.length >= 450) {
+        document.getElementById('prompt3').textContent = "これ以上辺はのばせないよ！";
+        return;
+      }
+      engine3State.length += 100;
+      drawEngine3();
+      document.getElementById('prompt3').textContent = "辺が長くなった！でも、角の大きさ（開きぐあい）は…？";
+    }
+
+    function widenAngle() {
+      if(engine3State.angle >= 135) {
+        document.getElementById('prompt3').textContent = "これ以上は開かないよ！";
+        return;
+      }
+      engine3State.angle += 30;
+      drawEngine3();
+      document.getElementById('prompt3').textContent = "パカッ！辺の開きぐあいが変わった！角の大きさは…？";
+    }
+
+    function showBoard3() {
+      document.getElementById('board3').style.display = 'block';
+      document.getElementById('prompt3').textContent = "まとめを完成させよう！";
+      document.getElementById('prompt3').classList.add('done');
+    }
+
+    window.onload = () => {
+      startEngine1();
+    };
+  </script>
+</body>
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
