@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>４年　０１　１億より大きな数を調べよう　４</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10倍・1/10と 位の変化 ツールボックス</title>
+  <style>
+    :root {
+      /* テーマカラー（第3時のグリーンベース） */
+      --theme: #2b8a3e;
+      --bg-theme: #ebfbee;
+      --border: #ced4da;
+      --bg: #f4f6f8;
+      /* 4桁ごとのカラー */
+      --cho-bg: #f3d9fa;
+      --cho-border: #da77f2;
+      --oku-bg: #ffe3e3;
+      --oku-border: #ff8787;
+      --man-bg: #d0ebff;
+      --man-border: #74c0fc;
+      --ichi-bg: #fff3bf;
+      --ichi-border: #fcc419;
+      --danger: #fa5252;
+      --success: #40c057;
+      --primary: #1971c2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: #343a40;
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-theme);
+      padding: 15px;
+      text-align: center;
+      border-bottom: 3px solid var(--theme);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      color: var(--theme);
+      font-size: 1.6rem;
+    }
+
+    .notebook-prompt {
+      display: inline-block;
+      background: white;
+      border: 2px solid #51cf66;
+      color: var(--theme);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: white;
+      border: 2px solid #adb5bd;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 1.1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: #e9ecef;
+    }
+
+    .tab-btn.active {
+      border-color: var(--theme);
+      background: var(--theme);
+      color: white;
+    }
+
+    /* --- メイン学習画面 --- */
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .story-card {
+      background: white;
+      border: 2px solid var(--theme);
+      border-left: 8px solid var(--theme);
+      padding: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    /* 位取り表 */
+    .pv-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    .pv-table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .pv-table th,
+    .pv-table td {
+      border: 2px solid #adb5bd;
+      padding: 0;
+      width: 6.25%;
+    }
+
+    .pv-group-cho {
+      background: var(--cho-bg);
+      border: 3px solid var(--cho-border) !important;
+      color: #a61e4d;
+    }
+
+    .pv-group-oku {
+      background: var(--oku-bg);
+      border: 3px solid var(--oku-border) !important;
+      color: #e03131;
+    }
+
+    .pv-group-man {
+      background: var(--man-bg);
+      border: 3px solid var(--man-border) !important;
+      color: #1971c2;
+    }
+
+    .pv-group-ichi {
+      background: var(--ichi-bg);
+      border: 3px solid var(--ichi-border) !important;
+      color: #e67700;
+    }
+
+    .pv-header-main {
+      font-size: 1.4rem;
+      letter-spacing: 5px;
+      padding: 8px 0 !important;
+    }
+
+    .pv-header-sub th {
+      font-size: 0.95rem;
+      color: #495057;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 5px 0 !important;
+    }
+
+    /* 児童が直接入力できるセル */
+    .digit-cell {
+      height: 60px;
+      background: white;
+      position: relative;
+    }
+
+    .digit-input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #212529;
+      outline: none;
+      cursor: text;
+      transition: all 0.2s ease;
+    }
+
+    .digit-input:focus {
+      background: #fff9db;
+      box-shadow: inset 0 0 0 3px #fcc419;
+    }
+
+    .digit-input.highlight {
+      background: #ffe066;
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(252, 196, 25, 0.5);
+      z-index: 10;
+      position: relative;
+    }
+
+    /* ボタン類 */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 12px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.1rem;
+      transition: transform 0.1s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+    }
+
+    .btn-green {
+      background: #40c057;
+      color: white;
+      border: 2px solid #2b8a3e;
+      box-shadow: 0 4px 0 #2b8a3e;
+    }
+
+    .btn-red {
+      background: #ff6b6b;
+      color: white;
+      border: 2px solid #e03131;
+      box-shadow: 0 4px 0 #e03131;
+    }
+
+    .btn-blue {
+      background: #4dabf7;
+      color: white;
+      border: 2px solid #1971c2;
+      box-shadow: 0 4px 0 #1971c2;
+    }
+
+    .btn-gray {
+      background: #dee2e6;
+      color: #495057;
+      border: 2px solid #adb5bd;
+      box-shadow: 0 4px 0 #adb5bd;
+    }
+
+    /* 押下時のボタン沈み込み */
+    .btn:active {
+      box-shadow: 0 0 0 transparent;
+      transform: translateY(4px);
+    }
+
+    .number-display-area {
+      text-align: center;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px dashed var(--border);
+      position: relative;
+    }
+
+    .read-text {
+      font-size: 2rem;
+      color: var(--danger);
+      font-weight: bold;
+      margin-top: 10px;
+      min-height: 45px;
+      letter-spacing: 2px;
+    }
+
+    .hint-box {
+      background: #e6fcf5;
+      border: 2px solid #20c997;
+      color: #087f5b;
+      padding: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    /* アニメーション用エフェクト */
+    .shift-arrow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      font-weight: bold;
+      color: rgba(250, 82, 82, 0.8);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 20;
+    }
+
+    @keyframes slideLeft {
+      0% {
+        opacity: 0;
+        transform: translate(-30%, -50%);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translate(-70%, -50%);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-100%, -50%);
+      }
+    }
+
+    @keyframes slideRight {
+      0% {
+        opacity: 0;
+        transform: translate(-70%, -50%);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translate(-30%, -50%);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(0%, -50%);
+      }
+    }
+
+    .anim-left {
+      animation: slideLeft 0.8s ease-out;
+    }
+
+    .anim-right {
+      animation: slideRight 0.8s ease-out;
+    }
+
+    /* --- 練習問題エリア --- */
+    .practice-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .practice-card {
+      background: white;
+      border: 2px solid #99e9f2;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .q-title {
+      font-size: 1.2rem;
+      color: #0b7285;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .q-num {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #e67700;
+      margin-bottom: 15px;
+      border-bottom: 2px dashed #fcc419;
+      display: inline-block;
+      padding-bottom: 5px;
+    }
+
+    .q-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .q-label {
+      font-weight: bold;
+      font-size: 1.2rem;
+      width: 140px;
+      color: #495057;
+    }
+
+    .q-input {
+      flex: 1;
+      padding: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+    }
+
+    .btn-ans {
+      background: #e3fafc;
+      border: 2px solid #99e9f2;
+      color: #0b7285;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .btn-try {
+      background: #fff4e6;
+      border: 2px solid #ffd8a8;
+      color: #e67700;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .ans-box {
+      color: #fa5252;
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-left: 10px;
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>10倍・1/10と 位の変化 ツールボックス</h1>
+      <div class="notebook-prompt">
+        ✏️ 10倍、1/10にすると、数字は右・左のどちらに動くかたしかめよう！
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① 調べる（位の変化）</button>
+      <button class="tab-btn" onclick="switchTab(2)">② 練習問題</button>
+    </div>
+
+    <!-- タブ1: メイン学習 -->
+    <div id="section-1" class="section active">
+      <div class="story-card" id="main-story">
+        【問題】25億を10倍した数はいくつですか。<br>
+        また、25億を 1/10 にした数（10でわった数）はいくつですか。
+      </div>
+
+      <div class="controls-grid">
+        <button class="btn btn-green" onclick="presetNumber('2500000000')">✏️ 25億を入れる</button>
+        <button class="btn btn-red" onclick="multiplyBy10()">✖ 10倍する</button>
+        <button class="btn btn-blue" onclick="divideBy10()">➗ 1/10にする</button>
+        <button class="btn btn-gray" onclick="clearTable()">🗑️ 消す</button>
+      </div>
+
+      <div class="number-display-area">
+        <div id="shift-anim" class="shift-arrow"></div>
+        <div style="font-size: 1.2rem; font-weight: bold; color: #495057;">▼ 自分で数字を入れてもOK！ ▼</div>
+
+        <div class="pv-table-wrapper" style="margin-top: 10px;">
+          <table class="pv-table">
+            <tr>
+              <th colspan="4" class="pv-group-cho pv-header-main">兆</th>
+              <th colspan="4" class="pv-group-oku pv-header-main">億</th>
+              <th colspan="4" class="pv-group-man pv-header-main">万</th>
+              <th colspan="4" class="pv-group-ichi pv-header-main">一</th>
+            </tr>
+            <tr class="pv-header-sub">
+              <th class="pv-group-cho">千</th>
+              <th class="pv-group-cho">百</th>
+              <th class="pv-group-cho">十</th>
+              <th class="pv-group-cho">一</th>
+              <th class="pv-group-oku">千</th>
+              <th class="pv-group-oku">百</th>
+              <th class="pv-group-oku">十</th>
+              <th class="pv-group-oku">一</th>
+              <th class="pv-group-man">千</th>
+              <th class="pv-group-man">百</th>
+              <th class="pv-group-man">十</th>
+              <th class="pv-group-man">一</th>
+              <th class="pv-group-ichi">千</th>
+              <th class="pv-group-ichi">百</th>
+              <th class="pv-group-ichi">十</th>
+              <th class="pv-group-ichi">一</th>
+            </tr>
+            <tr id="digits-row">
+              <!-- JSで16桁分の入力セルを生成 -->
+            </tr>
+          </table>
+        </div>
+
+        <div style="font-weight:bold; color:#868e96;">今の数は…</div>
+        <div class="read-text" id="read-text-display">位取り表に数字を入れてみよう！</div>
+      </div>
+
+      <div class="hint-box" style="margin-top: 20px;">
+        📖 まとめ：<br>
+        ・整数を 10倍 すると、位は 1けたずつ上がる（左へうごく）。<br>
+        ・整数を 1/10 にすると、位は 1けたずつ下がる（右へうごく）。
+      </div>
+    </div>
+
+    <!-- タブ2: 練習問題 -->
+    <div id="section-2" class="section">
+      <div class="story-card">
+        下の数を10倍した数、1/10 にした数はいくつですか。<br>
+        「位取り表でためす」ボタンをおすと、前の画面に数がセットされるよ！
+      </div>
+
+      <div class="practice-grid" id="practice-grid">
+        <!-- JSで生成 -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 16桁の配列 [千兆...一]
+    let currentDigits = Array(16).fill('');
+    document.addEventListener('DOMContentLoaded', () => {
+      initTable();
+      renderPracticeProblems();
+    });
+
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) sec.classList.add('active');
+        else sec.classList.remove('active');
+      });
+    }
+    // --- メイン学習機能 ---
+    function initTable() {
+      const row = document.getElementById('digits-row');
+      row.innerHTML = '';
+      for (let i = 0; i < 16; i++) {
+        const td = document.createElement('td');
+        td.className = 'digit-cell';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 1;
+        input.className = 'digit-input';
+        input.id = `input-digit-${i}`;
+        input.addEventListener('input', (e) => handleInput(i, e.target.value));
+        input.addEventListener('keydown', (e) => handleKeydown(i, e));
+        input.addEventListener('focus', (e) => e.target.select());
+        td.appendChild(input);
+        row.appendChild(td);
+      }
+      updateTableDisplay();
+    }
+
+    function handleInput(index, val) {
+      val = val.replace(/[^0-9０-９]/g, '');
+      if (val) val = String.fromCharCode(val.charCodeAt(0) - (val.charCodeAt(0) >= 0xFF10 ? 0xFEE0 : 0));
+      document.getElementById(`input-digit-${index}`).value = val;
+      currentDigits[index] = val;
+      updateReading();
+    }
+
+    function handleKeydown(index, e) {
+      if (e.key === 'ArrowRight' && index < 15) {
+        document.getElementById(`input-digit-${index + 1}`).focus();
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft' && index > 0) {
+        document.getElementById(`input-digit-${index - 1}`).focus();
+        e.preventDefault();
+      } else if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+        const prev = document.getElementById(`input-digit-${index - 1}`);
+        prev.focus();
+        prev.value = '';
+        currentDigits[index - 1] = '';
+        updateReading();
+      }
+    }
+
+    function presetNumber(numStr) {
+      clearTable();
+      const arr = numStr.split('').reverse();
+      for (let i = 0; i < arr.length; i++) {
+        if (i < 16) currentDigits[15 - i] = arr[i];
+      }
+      updateTableDisplay();
+    }
+
+    function clearTable() {
+      currentDigits = Array(16).fill('');
+      updateTableDisplay();
+    }
+    // 10倍 (左へシフト)
+    function multiplyBy10() {
+      if (currentDigits.every(v => v === '')) return; // 空なら何もしない
+      for (let i = 0; i < 15; i++) {
+        currentDigits[i] = currentDigits[i + 1];
+      }
+      currentDigits[15] = '0'; // 1の位に0を補充
+      updateTableDisplay();
+      highlightAll();
+      playAnim('left', '← 1けた上がる');
+    }
+    // 1/10 (右へシフト)
+    function divideBy10() {
+      if (currentDigits.every(v => v === '')) return; // 空なら何もしない
+      for (let i = 15; i > 0; i--) {
+        currentDigits[i] = currentDigits[i - 1];
+      }
+      currentDigits[0] = ''; // 千兆の位を空に
+      updateTableDisplay();
+      highlightAll();
+      playAnim('right', '1けた下がる →');
+    }
+
+    function updateTableDisplay() {
+      for (let i = 0; i < 16; i++) {
+        document.getElementById(`input-digit-${i}`).value = currentDigits[i];
+      }
+      updateReading();
+    }
+
+    function highlightAll() {
+      for (let i = 0; i < 16; i++) {
+        if (currentDigits[i] !== '') {
+          const input = document.getElementById(`input-digit-${i}`);
+          input.classList.add('highlight');
+          setTimeout(() => input.classList.remove('highlight'), 400);
+        }
+      }
+    }
+
+    function playAnim(direction, text) {
+      const animDiv = document.getElementById('shift-anim');
+      animDiv.innerText = text;
+      animDiv.className = `shift-arrow anim-${direction}`;
+      setTimeout(() => animDiv.className = 'shift-arrow', 800);
+    }
+    // 数字を「25億」などの表記に変換する
+    function updateReading() {
+      let displayStr = currentDigits.map(v => v === '' ? '0' : v).join('').replace(/^0+/, '');
+      const readDisplay = document.getElementById('read-text-display');
+      if (displayStr === '') {
+        readDisplay.innerText = '位取り表に数字を入れてみよう！';
+        readDisplay.style.color = '#868e96';
+      } else {
+        readDisplay.innerText = formatArabicUnit(displayStr);
+        readDisplay.style.color = 'var(--danger)';
+      }
+    }
+
+    function formatArabicUnit(numStr) {
+      // 16桁のゼロ埋め
+      let padded = numStr.padStart(16, '0');
+      let cho = parseInt(padded.slice(0, 4), 10);
+      let oku = parseInt(padded.slice(4, 8), 10);
+      let man = parseInt(padded.slice(8, 12), 10);
+      let ichi = parseInt(padded.slice(12, 16), 10);
+      let res = '';
+      if (cho > 0) res += cho + '兆';
+      if (oku > 0) res += oku + '億';
+      if (man > 0) res += man + '万';
+      if (ichi > 0 || res === '') res += ichi; // 全て0の場合や一の位がある場合
+      // 一の位が0で、上の位がある場合は一の位の0を消す (例: 25億0 -> 25億)
+      if (ichi === 0 && res.length > 1) {
+        res = res.replace(/0$/, '');
+      }
+      return res;
+    }
+    // --- 練習問題 ---
+    const practiceQuestions = [{
+        no: '①',
+        q: '80億',
+        val: '8000000000',
+        a10: '800億',
+        a1_10: '8億'
+      },
+      {
+        no: '②',
+        q: '5000億',
+        val: '500000000000',
+        a10: '5兆',
+        a1_10: '500億'
+      },
+      {
+        no: '③',
+        q: '3兆',
+        val: '3000000000000',
+        a10: '30兆',
+        a1_10: '3000億'
+      }
+    ];
+
+    function renderPracticeProblems() {
+      const grid = document.getElementById('practice-grid');
+      practiceQuestions.forEach((q, idx) => {
+        const div = document.createElement('div');
+        div.className = 'practice-card';
+        div.innerHTML = `
+          <div class="q-title">
+            <span>${q.no}</span>
+            <button class="btn-try" onclick="tryInTable('${q.val}')">🔍 位取り表でためす</button>
+          </div>
+          <div class="q-num">${q.q}</div>
+          
+          <div class="q-row">
+            <div class="q-label">10倍した数</div>
+            <input type="text" class="q-input" placeholder="入力">
+            <button class="btn-ans" onclick="showAnswer('ans-10-${idx}')">こたえ</button>
+            <div class="ans-box" id="ans-10-${idx}">${q.a10}</div>
+          </div>
+          
+          <div class="q-row">
+            <div class="q-label">1/10にした数</div>
+            <input type="text" class="q-input" placeholder="入力">
+            <button class="btn-ans" onclick="showAnswer('ans-1_10-${idx}')">こたえ</button>
+            <div class="ans-box" id="ans-1_10-${idx}">${q.a1_10}</div>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function showAnswer(id) {
+      const box = document.getElementById(id);
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function tryInTable(val) {
+      presetNumber(val);
+      switchTab(1);
+    }
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

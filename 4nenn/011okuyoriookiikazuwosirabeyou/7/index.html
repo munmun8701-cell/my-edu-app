@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>４年　０１　１億より大きな数を調べよう　６</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3けた×3けたの筆算（主体的に学ぶ特別版）</title>
+  <style>
+    :root {
+      --theme: #0ca678;
+      --bg-theme: #e6fcf5;
+      --border: #ced4da;
+      --bg: #f4f6f8;
+      --danger: #fa5252;
+      --highlight: #ffe066;
+      --text-main: #343a40;
+      --shift-bg: #ffe3e3;
+      --shift-color: #e03131;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-theme);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--theme);
+      font-size: 1.5rem;
+    }
+
+    .goal-badge {
+      background: white;
+      border: 2px solid var(--theme);
+      color: var(--theme);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 1.1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme);
+      background: white;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* --- メイン授業エリア --- */
+    .lesson-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    /* 左側：筆算ボード */
+    .hissan-box {
+      flex: 1;
+      min-width: 350px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .hissan-grid {
+      display: grid;
+      grid-template-columns: 30px repeat(5, 45px) 150px;
+      gap: 5px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      align-items: center;
+    }
+
+    .grid-cell {
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .border-bottom-grid {
+      grid-column: 1 / 7;
+      border-bottom: 3px solid var(--text-main);
+      height: 10px;
+    }
+
+    .step-note {
+      font-size: 1.1rem;
+      color: #adb5bd;
+      text-align: left;
+      padding-left: 10px;
+      font-family: 'Hiragino Maru Gothic ProN', sans-serif;
+    }
+
+    .anim-zero {
+      color: var(--shift-color);
+      background: var(--shift-bg);
+      border-radius: 6px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* 右側：思考パネル（コントロール） */
+    .control-panel {
+      flex: 1;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .step-box {
+      background: white;
+      border: 2px solid #99e9f2;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      transition: 0.3s;
+    }
+
+    .step-box.locked {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .step-box.completed {
+      border-color: #ced4da;
+      background: #f8f9fa;
+    }
+
+    .step-title {
+      font-weight: bold;
+      color: #0b7285;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .step-input-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .calc-input {
+      width: 120px;
+      padding: 8px;
+      font-size: 1.2rem;
+      text-align: center;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .calc-input:focus {
+      border-color: #0ca678;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(12, 166, 120, 0.2);
+    }
+
+    .btn-check {
+      background: #0b7285;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-check:hover {
+      background: #0c8599;
+    }
+
+    .btn-shift {
+      background: #fff4e6;
+      border: 2px solid #ff922b;
+      color: #d9480f;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: none;
+      animation: pulse 1.5s infinite;
+    }
+
+    .btn-shift:hover {
+      background: #ffe8cc;
+    }
+
+    .feedback {
+      font-size: 0.95rem;
+      font-weight: bold;
+      min-height: 20px;
+      color: var(--danger);
+    }
+
+    /* --- 練習問題エリア --- */
+    .practice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .p-card {
+      background: white;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .p-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 2px dashed #e9ecef;
+      padding-bottom: 10px;
+    }
+
+    .p-num {
+      background: var(--text-main);
+      color: white;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    /* 練習問題の筆算テーブル */
+    .p-hissan-table {
+      margin: 0 auto 20px auto;
+      font-family: 'Courier New', monospace;
+      font-size: 1.6rem;
+      font-weight: bold;
+      border-collapse: collapse;
+    }
+
+    .p-hissan-table td {
+      width: 30px;
+      height: 35px;
+      text-align: center;
+      vertical-align: middle;
+      border: 1px dashed rgba(206, 212, 218, 0.4);
+      /* 方眼ノート風 */
+    }
+
+    .p-hissan-table .p-border-bottom {
+      border-bottom: 3px solid var(--text-main);
+    }
+
+    .p-hissan-table .p-op {
+      border: none;
+    }
+
+    /* 練習問題のコントロールエリア */
+    .p-controls {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      margin-top: auto;
+    }
+
+    .p-prompt {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #343a40;
+    }
+
+    .p-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .p-btn-hint {
+      background: white;
+      border: 2px solid #fcc419;
+      color: #e67700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .p-hint-text {
+      background: #fff9db;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #d9480f;
+      margin-bottom: 10px;
+      border-left: 4px solid #fcc419;
+      line-height: 1.5;
+    }
+
+    .p-feedback {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--danger);
+      min-height: 20px;
+    }
+
+    .p-success {
+      text-align: center;
+      color: var(--theme);
+      font-weight: bold;
+      font-size: 1.5rem;
+      animation: popIn 0.5s ease-out;
+    }
+
+    /* --- アニメーション --- */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.1) translateY(-20px);
+      }
+
+      70% {
+        transform: scale(1.2) translateY(0);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 146, 43, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(255, 146, 43, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 146, 43, 0);
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2b8a3e;
+      border: 10px solid #8b4513;
+      border-radius: 8px;
+      padding: 20px;
+      color: white;
+      display: flex;
+      gap: 20px;
+      min-height: 400px;
+      flex-wrap: wrap;
+    }
+
+    .bb-col {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .bb-title {
+      border: 2px solid white;
+      padding: 5px 10px;
+      display: inline-block;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .bb-text {
+      line-height: 1.8;
+      font-size: 1.1rem;
+    }
+
+    .bb-box {
+      border: 2px solid #ffd8a8;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+
+    .bb-highlight {
+      color: #ffd8a8;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>3けた×3けたの筆算（主体的に学ぶ特別版）</h1>
+      <div class="goal-badge">めあて：412×198を筆算でしましょう。</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① 筆算のしかた</button>
+      <button class="tab-btn" onclick="switchTab(2)">② 実践！自分の力で解く</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ 黒板のまとめ</button>
+    </div>
+
+    <!-- メイン授業 -->
+    <div id="section-1" class="section active">
+      <div class="lesson-container">
+
+        <!-- 左：筆算ボード -->
+        <div class="hissan-box">
+          <div class="hissan-grid" id="h-grid">
+            <!-- 1行目 (412) -->
+            <div></div>
+            <div></div>
+            <div class="grid-cell">4</div>
+            <div class="grid-cell">1</div>
+            <div class="grid-cell">2</div>
+            <div></div>
+            <div class="step-note"></div>
+            <!-- 2行目 (× 198) -->
+            <div>×</div>
+            <div></div>
+            <div></div>
+            <div class="grid-cell">1</div>
+            <div class="grid-cell">9</div>
+            <div class="grid-cell">8</div>
+            <div class="step-note"></div>
+            <div class="border-bottom-grid"></div>
+            <div></div>
+
+            <!-- 3行目 (×8) -->
+            <div></div>
+            <div class="grid-cell" id="r3-1"></div>
+            <div class="grid-cell" id="r3-2"></div>
+            <div class="grid-cell" id="r3-3"></div>
+            <div class="grid-cell" id="r3-4"></div>
+            <div class="grid-cell" id="r3-5"></div>
+            <div class="step-note" id="note-3"></div>
+
+            <!-- 4行目 (×90) -->
+            <div></div>
+            <div class="grid-cell" id="r4-1"></div>
+            <div class="grid-cell" id="r4-2"></div>
+            <div class="grid-cell" id="r4-3"></div>
+            <div class="grid-cell" id="r4-4"></div>
+            <div class="grid-cell" id="r4-5"></div>
+            <div class="step-note" id="note-4"></div>
+
+            <!-- 5行目 (×100) -->
+            <div></div>
+            <div class="grid-cell" id="r5-1"></div>
+            <div class="grid-cell" id="r5-2"></div>
+            <div class="grid-cell" id="r5-3"></div>
+            <div class="grid-cell" id="r5-4"></div>
+            <div class="grid-cell" id="r5-5"></div>
+            <div class="step-note" id="note-5"></div>
+
+            <div class="border-bottom-grid"></div>
+            <div></div>
+
+            <!-- 6行目 (答え) -->
+            <div></div>
+            <div class="grid-cell" id="r6-1" style="color:var(--danger)"></div>
+            <div class="grid-cell" id="r6-2" style="color:var(--danger)"></div>
+            <div class="grid-cell" id="r6-3" style="color:var(--danger)"></div>
+            <div class="grid-cell" id="r6-4" style="color:var(--danger)"></div>
+            <div class="grid-cell" id="r6-5" style="color:var(--danger)"></div>
+            <div class="step-note"></div>
+          </div>
+        </div>
+
+        <!-- 右：思考パネル -->
+        <div class="control-panel">
+
+          <div class="step-box" id="step-1">
+            <div class="step-title">① 一の位の計算</div>
+            <div style="margin-bottom: 5px;">412 × <strong style="color:var(--danger);">8</strong> はいくつ？</div>
+            <div class="step-input-area">
+              <input type="text" class="calc-input" id="in-1" placeholder="答えを入力">
+              <button class="btn-check" onclick="checkStep1()">確認</button>
+            </div>
+            <div class="feedback" id="fb-1"></div>
+          </div>
+
+          <div class="step-box locked" id="step-2">
+            <div class="step-title">② 十の位の計算</div>
+            <div style="margin-bottom: 5px;">まずは 412 × <strong style="color:var(--danger);">9</strong> を計算しよう。</div>
+            <div class="step-input-area" id="area-2a">
+              <input type="text" class="calc-input" id="in-2" placeholder="答えを入力">
+              <button class="btn-check" onclick="checkStep2()">確認</button>
+            </div>
+            <div class="feedback" id="fb-2"></div>
+            <button class="btn-shift" id="btn-shift-2" onclick="shiftStep2()">
+              ✨ 10倍して位をそろえよう！ (×10)
+            </button>
+          </div>
+
+          <div class="step-box locked" id="step-3">
+            <div class="step-title">③ 百の位の計算</div>
+            <div style="margin-bottom: 5px;">まずは 412 × <strong style="color:var(--danger);">1</strong> を計算しよう。</div>
+            <div class="step-input-area" id="area-3a">
+              <input type="text" class="calc-input" id="in-3" placeholder="答えを入力">
+              <button class="btn-check" onclick="checkStep3()">確認</button>
+            </div>
+            <div class="feedback" id="fb-3"></div>
+            <button class="btn-shift" id="btn-shift-3" onclick="shiftStep3()">
+              ✨ 100倍して位をそろえよう！ (×100)
+            </button>
+          </div>
+
+          <div class="step-box locked" id="step-4">
+            <div class="step-title">④ たして答えを出す</div>
+            <div style="margin-bottom: 5px;">3296 + 37080 + 41200 は？</div>
+            <div class="step-input-area">
+              <input type="text" class="calc-input" id="in-4" placeholder="答えを入力">
+              <button class="btn-check" onclick="checkStep4()">確認</button>
+            </div>
+            <div class="feedback" id="fb-4"></div>
+          </div>
+
+          <button onclick="location.reload()" style="padding: 10px; background: #f1f3f5; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; color: #495057;">
+            🔄 最初からやり直す
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ2: 練習問題 -->
+    <div id="section-2" class="section">
+      <div style="margin-bottom: 20px; font-weight: bold; background: #fff4e6; padding: 15px; border-left: 5px solid #ff922b; border-radius: 4px;">
+        💡 アプリで直接ひっ算を完成させよう！<br>
+        順番に計算して、位をそろえる（10倍・100倍）ボタンをおして進めてね。わからない時は「ヒント」をおそう！
+      </div>
+      <div class="practice-grid" id="practice-container">
+        <!-- JSで動的に生成します -->
+      </div>
+    </div>
+
+    <!-- タブ3: 板書計画 -->
+    <div id="section-3" class="section">
+      <div class="blackboard">
+        <!-- 黒板の内容（変更なし） -->
+        <div class="bb-col">
+          <div class="bb-text">4月17日</div>
+          <div class="bb-title">412 × 198を筆算でしましょう。</div>
+          <div class="bb-text" style="display: flex; gap: 20px;">
+            <div>
+              412×98ならできる。<br><br>
+              答えの見当<br>
+              400×100=40000<br>
+              →40000より大きい。<br>
+              400×200=80000<br>
+              →80000くらい。
+            </div>
+            <div style="font-family: monospace; font-size: 1.2rem; text-align: right;">
+              412<br>
+              × 98<br>
+              ----<br>
+              3296<br>
+              3708 <br>
+              -----<br>
+              40376
+            </div>
+          </div>
+        </div>
+        <div class="bb-col">
+          <div class="bb-text bb-highlight">？ 筆算のしかたを考えよう。</div>
+          <div style="font-family: monospace; font-size: 1.5rem; text-align: center; margin: 15px 0;">
+            412<br>
+            ×198<br>
+            ----<br>
+            3296 ･･･412×8<br>
+            37080 ･･･412×90<br>
+            41200 ･･･412×100<br>
+            -----<br>
+            81576
+          </div>
+          <div class="bb-box">
+            ⑦(412)を左へ2けたずらして書いた理由は？<br><br>
+            <span style="color: #ffd8a8; font-weight: bold;">×100だから 左へ2けたずらす。</span>
+          </div>
+        </div>
+        <div class="bb-col">
+          <div class="bb-box" style="border-color: white;">
+            かけ算の答え ･･･ 積<br>
+            たし算の答え ･･･ 和<br>
+            ひき算の答え ･･･ 差<br>
+            わり算の答え ･･･ 商とあまり
+          </div>
+          <div class="bb-text">
+            △ 筆算で計算しましょう。<br>
+            ① 295×317 ② 384×563<br>
+            ③ 776×892 ④ 104×762<br>
+            ⑤ 407×935 ⑥ 950×413<br>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 半角数字への変換ユーティリティ
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+      });
+    }
+    // --- タブ切り替え ---
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) sec.classList.add('active');
+        else sec.classList.remove('active');
+      });
+    }
+    // ==========================================
+    // メイン授業のロジック (Tab 1)
+    // ==========================================
+    function setCells(row, digitsArray) {
+      for (let i = 0; i < 5; i++) {
+        document.getElementById(`r${row}-${i+1}`).innerHTML = digitsArray[i] || '';
+      }
+    }
+
+    function getEl(id) {
+      return document.getElementById(id);
+    }
+
+    function checkStep1() {
+      const val = toHalfWidth(getEl('in-1').value.trim());
+      const fb = getEl('fb-1');
+      if (val === '3296') {
+        fb.style.color = '#0ca678';
+        fb.innerText = '正解！ 412×8=3296 です。';
+        setCells(3, ['', '3', '2', '9', '6']);
+        getEl('note-3').innerHTML = '･･･ 412 × <span style="color:var(--danger)">8</span>';
+        getEl('step-1').classList.add('completed');
+        getEl('step-2').classList.remove('locked');
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。もう一度計算してみよう。';
+      }
+    }
+
+    function checkStep2() {
+      const val = toHalfWidth(getEl('in-2').value.trim());
+      const fb = getEl('fb-2');
+      if (val === '3708') {
+        fb.style.color = '#0ca678';
+        fb.innerText = '正解！ 412×9=3708 です。';
+        setCells(4, ['', '3', '7', '0', '8']);
+        getEl('note-4').innerHTML = '･･･ 412 × <span style="color:#adb5bd">9</span>';
+        getEl('area-2a').classList.add('hidden');
+        getEl('btn-shift-2').style.display = 'block';
+        fb.innerText = 'でも待って！本当は「90」をかけているよね。10倍して位をそろえよう！';
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。もう一度計算してみよう。';
+      }
+    }
+
+    function shiftStep2() {
+      getEl('btn-shift-2').style.display = 'none';
+      getEl('fb-2').innerText = '10倍したから、左へ1けたずれて「0」が入ったね！';
+      setCells(4, ['', '', '', '', '']);
+      setTimeout(() => {
+        getEl('r4-1').innerText = '3';
+        getEl('r4-2').innerText = '7';
+        getEl('r4-3').innerText = '0';
+        getEl('r4-4').innerText = '8';
+        getEl('r4-5').innerHTML = '<div class="anim-zero">0</div>';
+        getEl('note-4').innerHTML = '･･･ 412 × <span style="color:var(--danger)">90</span>';
+        getEl('step-2').classList.add('completed');
+        getEl('step-3').classList.remove('locked');
+      }, 100);
+    }
+
+    function checkStep3() {
+      const val = toHalfWidth(getEl('in-3').value.trim());
+      const fb = getEl('fb-3');
+      if (val === '412') {
+        fb.style.color = '#0ca678';
+        fb.innerText = '正解！ 412×1=412 です。';
+        setCells(5, ['', '', '4', '1', '2']);
+        getEl('note-5').innerHTML = '･･･ 412 × <span style="color:#adb5bd">1</span>';
+        getEl('area-3a').classList.add('hidden');
+        getEl('btn-shift-3').style.display = 'block';
+        fb.innerText = 'これは百の位（100）の計算だから、100倍して位をそろえよう！';
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。もう一度計算してみよう。';
+      }
+    }
+
+    function shiftStep3() {
+      getEl('btn-shift-3').style.display = 'none';
+      getEl('fb-3').innerText = '100倍したから、左へ2けたずれて「0」が2つ入ったね！';
+      setCells(5, ['', '', '', '', '']);
+      setTimeout(() => {
+        getEl('r5-1').innerText = '4';
+        getEl('r5-2').innerText = '1';
+        getEl('r5-3').innerText = '2';
+        getEl('r5-4').innerHTML = '<div class="anim-zero">0</div>';
+        getEl('r5-5').innerHTML = '<div class="anim-zero">0</div>';
+        getEl('note-5').innerHTML = '･･･ 412 × <span style="color:var(--danger)">100</span>';
+        getEl('step-3').classList.add('completed');
+        getEl('step-4').classList.remove('locked');
+      }, 100);
+    }
+
+    function checkStep4() {
+      const val = toHalfWidth(getEl('in-4').value.trim());
+      const fb = getEl('fb-4');
+      if (val === '81576') {
+        fb.style.color = '#0ca678';
+        fb.innerText = '大正解！ 筆算が完成しました🎉';
+        setCells(6, ['8', '1', '5', '7', '6']);
+        getEl('step-4').classList.add('completed');
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。もう一度たし算してみよう。';
+      }
+    }
+    // ==========================================
+    // 練習問題のロジック (Tab 2)
+    // ==========================================
+    const practiceProblems = [{
+        id: 1,
+        n1: 295,
+        n2: 317,
+        ans: 93515
+      },
+      {
+        id: 2,
+        n1: 384,
+        n2: 563,
+        ans: 216192
+      },
+      {
+        id: 3,
+        n1: 776,
+        n2: 892,
+        ans: 692192
+      },
+      {
+        id: 4,
+        n1: 104,
+        n2: 762,
+        ans: 79248
+      },
+      {
+        id: 5,
+        n1: 407,
+        n2: 935,
+        ans: 380545
+      },
+      {
+        id: 6,
+        n1: 950,
+        n2: 413,
+        ans: 392350
+      }
+    ];
+    let pState = {};
+
+    function initPractice() {
+      const container = document.getElementById('practice-container');
+      container.innerHTML = '';
+      practiceProblems.forEach(p => {
+        // 各問題の状態を初期化
+        pState[p.id] = {
+          step: 1,
+          n1: p.n1,
+          n2: p.n2,
+          ans: p.ans,
+          d1: p.n2 % 10,
+          d2: Math.floor((p.n2 % 100) / 10),
+          d3: Math.floor(p.n2 / 100)
+        };
+        const card = document.createElement('div');
+        card.className = 'p-card';
+        // 6桁のマス目 (0〜5)
+        card.innerHTML = `
+          <div class="p-header">
+            <div class="p-num">${['①','②','③','④','⑤','⑥'][p.id-1]}</div>
+            <div style="font-weight:bold; font-size:1.2rem;">${p.n1} × ${p.n2}</div>
+          </div>
+          
+          <table class="p-hissan-table" id="ptable-${p.id}">
+            <tr><td class="p-op"></td><td id="p${p.id}-r1-1"></td><td id="p${p.id}-r1-2"></td><td id="p${p.id}-r1-3">${Math.floor(p.n1/100)}</td><td id="p${p.id}-r1-4">${Math.floor((p.n1%100)/10)}</td><td id="p${p.id}-r1-5">${p.n1%10}</td></tr>
+            <tr class="p-border-bottom"><td class="p-op">×</td><td id="p${p.id}-r2-1"></td><td id="p${p.id}-r2-2"></td><td id="p${p.id}-r2-3">${pState[p.id].d3}</td><td id="p${p.id}-r2-4">${pState[p.id].d2}</td><td id="p${p.id}-r2-5">${pState[p.id].d1}</td></tr>
+            <tr id="p${p.id}-row3" style="color:#868e96"><td class="p-op"></td><td id="p${p.id}-r3-1"></td><td id="p${p.id}-r3-2"></td><td id="p${p.id}-r3-3"></td><td id="p${p.id}-r3-4"></td><td id="p${p.id}-r3-5"></td></tr>
+            <tr id="p${p.id}-row4" style="color:#868e96"><td class="p-op"></td><td id="p${p.id}-r4-1"></td><td id="p${p.id}-r4-2"></td><td id="p${p.id}-r4-3"></td><td id="p${p.id}-r4-4"></td><td id="p${p.id}-r4-5"></td></tr>
+            <tr id="p${p.id}-row5" class="p-border-bottom" style="color:#868e96"><td class="p-op"></td><td id="p${p.id}-r5-1"></td><td id="p${p.id}-r5-2"></td><td id="p${p.id}-r5-3"></td><td id="p${p.id}-r5-4"></td><td id="p${p.id}-r5-5"></td></tr>
+            <tr id="p${p.id}-row6" style="color:var(--danger); font-weight:bold;"><td class="p-op"></td><td id="p${p.id}-r6-1"></td><td id="p${p.id}-r6-2"></td><td id="p${p.id}-r6-3"></td><td id="p${p.id}-r6-4"></td><td id="p${p.id}-r6-5"></td></tr>
+          </table>
+
+          <div class="p-controls" id="pctrl-${p.id}"></div>
+        `;
+        container.appendChild(card);
+        renderPracticeControl(p.id);
+      });
+    }
+    // テーブルの指定行に数字（文字列）を右詰めでセットする関数
+    function setPRow(pId, rowNum, valStr, isShifted = false) {
+      let str = valStr.padStart(5, ' '); // 5桁分（10万の位〜一の位）
+      for (let i = 0; i < 5; i++) {
+        const cell = document.getElementById(`p${pId}-r${rowNum}-${i+1}`);
+        if (cell) {
+          if (str[i] !== ' ') {
+            // 10倍、100倍で追加された「0」をアニメーション表示
+            if (isShifted && ((rowNum === 4 && i === 4) || (rowNum === 5 && (i === 3 || i === 4)))) {
+              cell.innerHTML = `<div class="anim-zero">0</div>`;
+            } else {
+              cell.innerText = str[i];
+            }
+          } else {
+            cell.innerText = '';
+          }
+        }
+      }
+    }
+
+    function renderPracticeControl(id) {
+      const state = pState[id];
+      const ctrl = document.getElementById(`pctrl-${id}`);
+      if (state.step === 1) {
+        ctrl.innerHTML = `
+          <div class="p-prompt">① ${state.n1} × <span style="color:var(--danger)">${state.d1}</span> は？</div>
+          <button class="p-btn-hint" onclick="togglePHint(${id}, 1)">💡 ヒントを見る</button>
+          <div id="phint-${id}" class="p-hint-text hidden"></div>
+          <div class="p-input-group">
+            <input type="text" id="pin-${id}" class="calc-input" placeholder="答え">
+            <button class="btn-check" onclick="checkP(${id})">確認</button>
+          </div>
+          <div id="pfb-${id}" class="p-feedback"></div>
+        `;
+      } else if (state.step === 2) {
+        ctrl.innerHTML = `
+          <div class="p-prompt">② ${state.n1} × <span style="color:var(--danger)">${state.d2}</span> は？</div>
+          <button class="p-btn-hint" onclick="togglePHint(${id}, 2)">💡 ヒントを見る</button>
+          <div id="phint-${id}" class="p-hint-text hidden"></div>
+          <div class="p-input-group">
+            <input type="text" id="pin-${id}" class="calc-input" placeholder="答え">
+            <button class="btn-check" onclick="checkP(${id})">確認</button>
+          </div>
+          <div id="pfb-${id}" class="p-feedback"></div>
+        `;
+      } else if (state.step === 2.5) {
+        ctrl.innerHTML = `
+          <div class="p-feedback" style="color:var(--theme); margin-bottom:10px;">正解！でも十の位の計算だから、位をそろえよう。</div>
+          <button class="btn-shift" style="display:block;" onclick="shiftP(${id})">✨ 10倍して位をそろえる</button>
+        `;
+      } else if (state.step === 3) {
+        ctrl.innerHTML = `
+          <div class="p-prompt">③ ${state.n1} × <span style="color:var(--danger)">${state.d3}</span> は？</div>
+          <button class="p-btn-hint" onclick="togglePHint(${id}, 3)">💡 ヒントを見る</button>
+          <div id="phint-${id}" class="p-hint-text hidden"></div>
+          <div class="p-input-group">
+            <input type="text" id="pin-${id}" class="calc-input" placeholder="答え">
+            <button class="btn-check" onclick="checkP(${id})">確認</button>
+          </div>
+          <div id="pfb-${id}" class="p-feedback"></div>
+        `;
+      } else if (state.step === 3.5) {
+        ctrl.innerHTML = `
+          <div class="p-feedback" style="color:var(--theme); margin-bottom:10px;">正解！百の位の計算だから、位をそろえよう。</div>
+          <button class="btn-shift" style="display:block;" onclick="shiftP(${id})">✨ 100倍して位をそろえる</button>
+        `;
+      } else if (state.step === 4) {
+        ctrl.innerHTML = `
+          <div class="p-prompt">④ 最後にすべてたし算しよう！（積）</div>
+          <div class="p-input-group">
+            <input type="text" id="pin-${id}" class="calc-input" placeholder="答え">
+            <button class="btn-check" onclick="checkP(${id})">確認</button>
+          </div>
+          <div id="pfb-${id}" class="p-feedback"></div>
+        `;
+      } else if (state.step === 5) {
+        ctrl.innerHTML = `<div class="p-success">見事クリア！🎉</div>`;
+      }
+    }
+
+    function togglePHint(id, step) {
+      const el = document.getElementById(`phint-${id}`);
+      const state = pState[id];
+      const h100 = Math.floor(state.n1 / 100) * 100;
+      const h10 = Math.floor((state.n1 % 100) / 10) * 10;
+      const h1 = state.n1 % 10;
+      let d = step === 1 ? state.d1 : (step === 2 ? state.d2 : state.d3);
+      el.innerHTML = `
+        わからなくなったら、位ごとにわけて計算しよう。<br>
+        (${h100} × ${d}) ＋ (${h10} × ${d}) ＋ (${h1} × ${d}) <br>
+        = <strong>${h100*d} ＋ ${h10*d} ＋ ${h1*d}</strong>
+      `;
+      el.classList.toggle('hidden');
+    }
+
+    function checkP(id) {
+      const state = pState[id];
+      const val = toHalfWidth(document.getElementById(`pin-${id}`).value.trim());
+      const fb = document.getElementById(`pfb-${id}`);
+      if (state.step === 1) {
+        const correct = (state.n1 * state.d1).toString();
+        if (val === correct) {
+          setPRow(id, 3, correct);
+          state.step = 2;
+          renderPracticeControl(id);
+        } else {
+          fb.innerText = 'ちがうよ。「ヒントを見る」をおして確かめよう。';
+        }
+      } else if (state.step === 2) {
+        const correct = (state.n1 * state.d2).toString();
+        if (val === correct) {
+          setPRow(id, 4, correct); // 一時的に右詰めで表示
+          state.step = 2.5;
+          renderPracticeControl(id);
+        } else {
+          fb.innerText = 'ちがうよ。「ヒントを見る」をおして確かめよう。';
+        }
+      } else if (state.step === 3) {
+        const correct = (state.n1 * state.d3).toString();
+        if (val === correct) {
+          setPRow(id, 5, correct);
+          state.step = 3.5;
+          renderPracticeControl(id);
+        } else {
+          fb.innerText = 'ちがうよ。「ヒントを見る」をおして確かめよう。';
+        }
+      } else if (state.step === 4) {
+        if (val === state.ans.toString()) {
+          setPRow(id, 6, val);
+          state.step = 5;
+          renderPracticeControl(id);
+        } else {
+          fb.innerText = 'たし算の計算がまちがっているみたい。もう一度！';
+        }
+      }
+    }
+
+    function shiftP(id) {
+      const state = pState[id];
+      if (state.step === 2.5) {
+        const correct = (state.n1 * state.d2).toString();
+        setPRow(id, 4, ""); // 一度消す
+        setTimeout(() => {
+          setPRow(id, 4, correct + "0", true); // 10倍して描画
+          state.step = 3;
+          renderPracticeControl(id);
+        }, 100);
+      } else if (state.step === 3.5) {
+        const correct = (state.n1 * state.d3).toString();
+        setPRow(id, 5, "");
+        setTimeout(() => {
+          setPRow(id, 5, correct + "00", true); // 100倍して描画
+          state.step = 4;
+          renderPracticeControl(id);
+        }, 100);
+      }
+    }
+    // 初期化処理
+    window.onload = () => {
+      initPractice();
+    };
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

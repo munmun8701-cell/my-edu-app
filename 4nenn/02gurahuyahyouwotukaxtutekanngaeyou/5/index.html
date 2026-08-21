@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>４年　０２　グラフや表を使って考えよう　０５</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>グラフや表を使って考えよう（第5時）</title>
+  <style>
+    :root {
+      --theme: #d9480f;
+      /* 5時目のテーマカラー: オレンジ系 */
+      --bg-theme: #fff4e6;
+      --border: #ced4da;
+      --bg: #f4f6f8;
+      --danger: #fa5252;
+      --highlight: #ffe066;
+      --text-main: #343a40;
+      --blue: #339af0;
+      --green: #2b8a3e;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-theme);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--theme);
+      font-size: 1.5rem;
+    }
+
+    .goal-badge {
+      background: white;
+      border: 2px solid var(--theme);
+      color: var(--theme);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 1.1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme);
+      background: white;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* --- メイン授業エリア --- */
+    .lesson-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .graph-box {
+      flex: 1.5;
+      min-width: 450px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    canvas {
+      background: #fff;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #dee2e6;
+    }
+
+    .graph-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+
+    .control-panel {
+      flex: 1;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .step-box {
+      background: white;
+      border: 2px solid #ffc078;
+      border-radius: 8px;
+      padding: 15px;
+      transition: 0.3s;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .step-box.locked {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .step-box.completed {
+      border-color: #ced4da;
+      background: #f8f9fa;
+    }
+
+    .step-title {
+      font-weight: bold;
+      color: var(--theme);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    /* 思考・判断・表現用の記述エリア */
+    .thought-textarea {
+      width: 100%;
+      height: 80px;
+      padding: 10px;
+      border: 2px solid #ced4da;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+      margin-top: 10px;
+      font-family: inherit;
+    }
+
+    .thought-textarea:focus {
+      border-color: var(--theme);
+      outline: none;
+    }
+
+    .peer-hint {
+      background: #e7f5ff;
+      border: 2px solid #74c0fc;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 15px;
+      font-size: 0.95rem;
+      display: none;
+      /* 初期は非表示 */
+      animation: fadeIn 0.5s ease-out;
+      position: relative;
+    }
+
+    .peer-icon {
+      position: absolute;
+      top: -15px;
+      left: 15px;
+      background: white;
+      border: 2px solid #74c0fc;
+      padding: 2px 10px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #1864ab;
+    }
+
+    .btn-action {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #228be6;
+    }
+
+    .btn-action.recorded {
+      background: #40c057;
+    }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2b8a3e;
+      border: 10px solid #8b4513;
+      border-radius: 8px;
+      padding: 20px;
+      color: white;
+      display: flex;
+      gap: 15px;
+      min-height: 400px;
+      flex-wrap: wrap;
+    }
+
+    .bb-col {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .bb-title {
+      border: 2px solid white;
+      padding: 5px 10px;
+      display: inline-block;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .bb-text {
+      line-height: 1.8;
+      font-size: 1.05rem;
+      margin-bottom: 15px;
+    }
+
+    .bb-box {
+      border: 2px solid #ffd8a8;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .bb-box.clickable {
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.2);
+      transition: 0.2s;
+      text-align: center;
+    }
+
+    .bb-box.clickable:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .bb-hidden-text {
+      visibility: hidden;
+    }
+
+    .bb-goal {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+
+    .bb-goal-icon {
+      background: #2b8a3e;
+      color: white;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      color: black;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .data-table th,
+    .data-table td {
+      border: 1px solid #ced4da;
+      padding: 4px;
+    }
+
+    .data-table th {
+      background: #f1f3f5;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>グラフや表を使って考えよう（第5時）</h1>
+      <div class="goal-badge">めあて：折れ線グラフの読み取り方のくふうについて考え、説明しよう。</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① ゆかさんのグラフ</button>
+      <button class="tab-btn" onclick="switchTab(2)">② グラフから読み取る</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ 黒板のまとめ</button>
+    </div>
+
+    <!-- タブ1: ゆかさんのグラフの課題 -->
+    <div id="section-1" class="section active">
+      <div class="lesson-container">
+        <!-- 左：グラフ描画エリア -->
+        <div class="graph-box">
+          <div class="graph-title">1日の気温の変わり方（ゆかさんのグラフ）</div>
+          <canvas id="canvas-tab1" width="500" height="320"></canvas>
+          <div style="font-size: 0.8rem; color:#868e96; margin-top:5px;">横のじく: 時こく(時) ／ たてのじく: 気温(度)</div>
+        </div>
+
+        <!-- 右：思考パネル -->
+        <div class="control-panel">
+
+          <div class="step-box" id="t1-step1">
+            <div class="step-title">① グラフを見て考えよう</div>
+            <div style="font-size: 0.95rem; margin-bottom: 10px;">
+              ゆかさんがかいた左のグラフを見て、気づいたことや、おかしいなと思うことを自分の言葉で書いてみよう。
+            </div>
+            <textarea class="thought-textarea" id="ta-t1-1" placeholder="例：横のじくをよく見ると…"></textarea>
+            <button class="btn-action" id="btn-t1-1" onclick="recordThought('ta-t1-1', 'btn-t1-1', 't1-peer1', 't1-step2')">📝 考えを記録する</button>
+
+            <div class="peer-hint" id="t1-peer1">
+              <div class="peer-icon">👦 りく</div>
+              横のじくに<strong>午前11時</strong>がないことに気づいたよ！
+            </div>
+          </div>
+
+          <div class="step-box locked" id="t1-step2">
+            <div class="step-title">② 急に上がったように見えるのはなぜ？</div>
+            <div style="font-size: 0.95rem; margin-bottom: 5px;">
+              午前10時から急に気温の上がり方が大きくなったように見えるけれど、本当にそうなのかな？<br>
+              そのように見える<strong>理由</strong>を説明してみよう。
+            </div>
+            <textarea class="thought-textarea" id="ta-t1-2" placeholder="例：10時の右の1めもりが…"></textarea>
+            <button class="btn-action" id="btn-t1-2" onclick="recordThought('ta-t1-2', 'btn-t1-2', 't1-peer2', null)">📝 考えを記録する</button>
+
+            <div class="peer-hint" id="t1-peer2">
+              <div class="peer-icon">👦 りく</div>
+              午前10時の右だけ、<strong>1めもりが2時間分</strong>になっているから、そうとは言い切れないね。
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ2: 点と点の間の読み取り -->
+    <div id="section-2" class="section">
+      <div style="margin-bottom: 15px; font-weight: bold; background: #e7f5ff; padding: 10px; border-radius: 4px; color: #1864ab;">
+        💡 横のじくを等しい間かく（同じ時間ごと）になおしたグラフを見て考えよう。
+      </div>
+      <div class="lesson-container">
+        <!-- 左：グラフ描画エリア -->
+        <div class="graph-box">
+          <div class="graph-title">1日の気温の変わり方 (横じくを直したグラフ)</div>
+          <canvas id="canvas-tab2" width="500" height="320"></canvas>
+          <div style="font-size: 0.8rem; color:#868e96; margin-top:5px;">横のじく: 時こく(時) ／ たてのじく: 気温(度)</div>
+        </div>
+
+        <!-- 右：思考パネル -->
+        <div class="control-panel">
+
+          <div class="step-box" id="t2-step1">
+            <div class="step-title">① 11時の気温は何度？</div>
+            <div style="font-size: 0.95rem; margin-bottom: 5px;">
+              実際の11時の気温は表にないけれど、グラフの線をたどると、だいたい何度だと考えられるかな？
+            </div>
+            <textarea class="thought-textarea" id="ta-t2-1" style="height: 50px;" placeholder="だいたい〇〇度くらい"></textarea>
+            <button class="btn-action" id="btn-t2-1" onclick="recordThought('ta-t2-1', 'btn-t2-1', 't2-peer1', 't2-step2')">📝 考えを記録する</button>
+
+            <div class="peer-hint" id="t2-peer1">
+              <div class="peer-icon">👧 しほ</div>
+              グラフの線を見ると、だいたい<strong>19.5度</strong>になりそうな形になるね。
+            </div>
+          </div>
+
+          <div class="step-box locked" id="t2-step2">
+            <div class="step-title">② 必ずその温度だと言い切れる？</div>
+            <div style="font-size: 0.95rem; margin-bottom: 5px;">
+              11時はだいたい19.5度だと考えられるけれど、点と点の間の気温は、必ず正かと言えるかな？あなたの考えとその理由を書いてみよう。
+            </div>
+            <textarea class="thought-textarea" id="ta-t2-2" placeholder="例：必ず正かとはいえない。なぜなら…"></textarea>
+            <button class="btn-action" id="btn-t2-2" onclick="recordThought('ta-t2-2', 'btn-t2-2', 't2-peer2', null)">📝 考えを記録する</button>
+
+            <div class="peer-hint" id="t2-peer2" style="border-color:#fcc419; background:#fff9db;">
+              <div class="peer-icon" style="color:#d9480f; border-color:#fcc419;">👦 はると</div>
+              点と点の間の気温は、<strong>必ず正かとはいえない</strong>よ。10時半に急に風が吹いて気温が変わったかもしれないからね。
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ3: 板書計画 (タップで答えを表示するインタラクティブ黒板) -->
+    <div id="section-3" class="section">
+      <div style="margin-bottom: 15px; font-weight: bold; background: #fff4e6; padding: 10px; border-radius: 4px; color: #d9480f;">
+        👆 オレンジ色のわくをタップすると、まとめの言葉が見えるよ。自分の考えとくらべてみよう。
+      </div>
+      <div class="blackboard">
+
+        <!-- 左列 -->
+        <div class="bb-col">
+          <div class="bb-text">4月28日</div>
+
+          <table class="data-table">
+            <tr>
+              <th rowspan="2">時こく(時)</th>
+              <th colspan="4">午前</th>
+              <th colspan="5">午後</th>
+            </tr>
+            <tr>
+              <th>8</th>
+              <th>9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>0</th>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+              <th>4</th>
+              <th>5</th>
+            </tr>
+            <tr>
+              <td>気温(度)</td>
+              <td>16</td>
+              <td>17</td>
+              <td>18</td>
+              <td></td>
+              <td>21</td>
+              <td>22</td>
+              <td>23</td>
+              <td>22</td>
+              <td>21</td>
+              <td>19</td>
+            </tr>
+          </table>
+
+          <div class="bb-title">上の気温を、折れ線グラフに表しましょう。</div>
+
+          <div class="bb-text" style="font-size: 0.95rem; margin-top: 10px;">
+            ・11時の気温はわからないので、とばしてかいている。<br>
+            ・横のじくに11時がない。
+          </div>
+
+          <div class="bb-box clickable" onclick="toggleVisibility('bb-ans-1')">
+            10時から12時の間に急に気温が上がったように見えるけど？<br>
+            <span id="bb-ans-1" class="bb-hidden-text" style="color: #ffd8a8; display: block; margin-top: 10px; border-top: 1px dashed white; padding-top: 5px;">
+              👉 10時の右の1めもりは2時間だから、そうとはいいきれない。
+            </span>
+          </div>
+        </div>
+
+        <!-- 中列 -->
+        <div class="bb-col" style="flex: 1.1;">
+          <div class="bb-goal">
+            <div class="bb-goal-icon">?</div>
+            <div>折れ線グラフに表したり読み取ったり<br>するときに、注意することを考えよう。</div>
+          </div>
+
+          <div class="bb-text" style="margin-top: 20px;">
+            下のグラフのように、横のじくのめもりの間かくは同じにしないといけない。
+          </div>
+
+          <div style="background: white; height: 180px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #868e96; font-size: 0.9rem; margin-bottom: 20px;">
+            [ 正しい間かくの折れ線グラフ図 ]
+          </div>
+        </div>
+
+        <!-- 右列 -->
+        <div class="bb-col">
+          <div class="bb-box clickable" onclick="toggleVisibility('bb-ans-2')">
+            点と点の間の気温は？<br>
+            <span id="bb-ans-2" class="bb-hidden-text" style="color: #ffd8a8; display: block; margin-top: 10px; border-top: 1px dashed white; padding-top: 5px;">
+              👉 11時はだいたい19.5度と考えられる。必ず19.5度だというわけではない。
+            </span>
+          </div>
+
+          <div class="bb-box" style="border: 2px solid white; border-radius: 8px; margin-top:30px; background: transparent;">
+            【まとめ】<br><br>
+            ・横のじくのめもりが<strong>同じ間かく</strong>になっているかをたしかめることが大事。<br><br>
+            ・点と点の間の気温は、<strong>必ず正かとはいえない。</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // データ設定
+    const yukaXLabels = ['8', '9', '10', '0(12)', '1', '2', '3', '4', '5'];
+    const yukaData = [16, 17, 18, 21, 22, 23, 22, 21, 19];
+    const correctXLabels = ['8', '9', '10', '11', '0(12)', '1', '2', '3', '4', '5'];
+    const correctData = [16, 17, 18, null, 21, 22, 23, 22, 21, 19]; // 11時がnull
+    // タブ切り替え
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) {
+          sec.classList.add('active');
+          if (tabIndex === 1) renderGraph('canvas-tab1', yukaXLabels, yukaData, false);
+          if (tabIndex === 2) renderGraph('canvas-tab2', correctXLabels, correctData, true);
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+    }
+    // 考えを記録する（記述後にヒントと次のステップを開放する）
+    function recordThought(textareaId, btnId, peerId, nextStepId) {
+      const ta = document.getElementById(textareaId);
+      const btn = document.getElementById(btnId);
+      if (ta.value.trim() === "") {
+        alert("あなたの考えをかいてみよう！");
+        return;
+      }
+      // ボタンの状態変更
+      btn.innerText = "✔️ 記録しました";
+      btn.classList.add("recorded");
+      ta.disabled = true; // 編集不可にして「提出済み」感を出す
+      // 仲間の考えを表示
+      document.getElementById(peerId).style.display = "block";
+      // 次のステップのロック解除
+      if (nextStepId) {
+        document.getElementById(nextStepId).classList.remove('locked');
+      }
+    }
+    // 黒板の答え表示トグル
+    function toggleVisibility(id) {
+      const el = document.getElementById(id);
+      if (el.style.visibility === "visible") {
+        el.style.visibility = "hidden";
+      } else {
+        el.style.visibility = "visible";
+      }
+    }
+    // --- 波線の描画ロジック ---
+    function drawWavyLine(ctx, startX, endX, y) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = '#868e96';
+      ctx.lineWidth = 1.5;
+      const waveLength = 10;
+      const amplitude = 3;
+      ctx.moveTo(startX, y - 4);
+      for (let x = startX; x < endX; x += waveLength) {
+        ctx.quadraticCurveTo(x + waveLength / 4, y - 4 - amplitude, x + waveLength / 2, y - 4);
+        ctx.quadraticCurveTo(x + (waveLength * 3) / 4, y - 4 + amplitude, x + waveLength, y - 4);
+      }
+      ctx.moveTo(startX, y + 2);
+      for (let x = startX; x < endX; x += waveLength) {
+        ctx.quadraticCurveTo(x + waveLength / 4, y + 2 - amplitude, x + waveLength / 2, y + 2);
+        ctx.quadraticCurveTo(x + (waveLength * 3) / 4, y + 2 + amplitude, x + waveLength, y + 2);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+    // --- グラフ描画 ---
+    function renderGraph(canvasId, labels, data, drawDashedAtNull) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const originX = 40;
+      const stepX = 40;
+      const endX = originX + (labels.length + 0.5) * stepX;
+      const originY = 270;
+      // Y軸は15度〜25度を描画 (省略波線あり)
+      const minVal = 15;
+      const maxVal = 25;
+      const stepY = 220 / (maxVal - minVal);
+      ctx.lineWidth = 1;
+      // 横線の描画
+      for (let temp = minVal; temp <= maxVal; temp++) {
+        let y = originY - ((temp - minVal) * stepY);
+        ctx.beginPath();
+        ctx.strokeStyle = (temp % 5 === 0) ? '#a5d8ff' : '#e7f5ff';
+        ctx.moveTo(originX, y);
+        ctx.lineTo(endX, y);
+        ctx.stroke();
+        ctx.fillStyle = '#495057';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(temp, originX - 5, y + 4);
+      }
+      // 縦線とXラベルの描画
+      for (let i = 0; i < labels.length; i++) {
+        let x = originX + ((i + 1) * stepX);
+        ctx.beginPath();
+        ctx.strokeStyle = '#e7f5ff';
+        ctx.moveTo(x, originY);
+        ctx.lineTo(x, originY - 220);
+        ctx.stroke();
+        ctx.fillStyle = '#343a40';
+        ctx.textAlign = 'center';
+        if (i === 0) ctx.fillText("午前", x, originY + 20);
+        if (labels[i] === '0(12)') ctx.fillText("午後", x, originY + 20);
+        let labelText = labels[i] === '0(12)' ? '0' : labels[i];
+        ctx.fillText(labelText, x, originY + 35);
+      }
+      // L字の太い軸線
+      ctx.beginPath();
+      ctx.strokeStyle = '#343a40';
+      ctx.lineWidth = 2;
+      ctx.moveTo(originX, originY - 220);
+      ctx.lineTo(originX, originY);
+      ctx.lineTo(endX, originY);
+      ctx.stroke();
+      // 波線（0〜15の省略）
+      ctx.clearRect(originX - 10, originY - 2, endX - originX + 20, 15);
+      drawWavyLine(ctx, originX - 5, endX + 5, originY + 5);
+      ctx.fillStyle = '#495057';
+      ctx.textAlign = 'right';
+      ctx.fillText("0", originX - 5, originY + 20);
+      // --- 折れ線データの描画 ---
+      ctx.save();
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.strokeStyle = 'var(--blue)';
+      let isFirstPoint = true;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i] !== null) {
+          let x = originX + ((i + 1) * stepX);
+          let y = originY - ((data[i] - minVal) * stepY);
+          if (isFirstPoint) {
+            ctx.moveTo(x, y);
+            isFirstPoint = false;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+      }
+      ctx.stroke();
+      // 点を描画
+      for (let i = 0; i < data.length; i++) {
+        let x = originX + ((i + 1) * stepX);
+        if (data[i] !== null) {
+          let y = originY - ((data[i] - minVal) * stepY);
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = 'var(--blue)';
+          ctx.fill();
+        } else if (drawDashedAtNull) {
+          // 11時の推測値 (19.5度) に赤い印をつける
+          let y10 = originY - ((18 - minVal) * stepY);
+          let y12 = originY - ((21 - minVal) * stepY);
+          let midY = (y10 + y12) / 2;
+          ctx.beginPath();
+          ctx.arc(x, midY, 5, 0, Math.PI * 2);
+          ctx.fillStyle = 'white';
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = 'var(--danger)';
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = '#fa5252';
+          ctx.moveTo(x, originY);
+          ctx.lineTo(x, midY);
+          ctx.moveTo(originX, midY);
+          ctx.lineTo(x, midY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+      ctx.restore();
+    }
+    window.onload = () => {
+      renderGraph('canvas-tab1', yukaXLabels, yukaData, false);
+    };
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>４年　０１　１億より大きな数を調べよう　２</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大きい数のしくみ（兆まで） ツールボックス</title>
+  <style>
+    :root {
+      /* 単元のテーマカラー（グリーン・オレンジ系） */
+      --theme: #e67700;
+      --bg-theme: #fff4e6;
+      --border: #ced4da;
+      --bg: #f4f6f8;
+      /* 位取り表のカラー（4桁ごとの区切りを明確に） */
+      --cho-bg: #f3d9fa;
+      --cho-border: #da77f2;
+      --oku-bg: #ffe3e3;
+      --oku-border: #ff8787;
+      --man-bg: #d0ebff;
+      --man-border: #74c0fc;
+      --ichi-bg: #fff3bf;
+      --ichi-border: #fcc419;
+      --danger: #fa5252;
+      --success: #40c057;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: #343a40;
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    /* Header & Mission */
+    header {
+      background: var(--bg-theme);
+      padding: 15px;
+      text-align: center;
+      border-bottom: 3px solid var(--theme);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      color: var(--theme);
+      font-size: 1.5rem;
+    }
+
+    .notebook-prompt {
+      display: inline-block;
+      background: white;
+      border: 2px solid #ff922b;
+      color: var(--theme);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .mission-bar {
+      background: #f8f9fa;
+      padding: 15px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 15px;
+      background: white;
+      border: 2px solid #adb5bd;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: #e9ecef;
+    }
+
+    .tab-btn.active {
+      border-color: var(--theme);
+      background: var(--theme);
+      color: white;
+    }
+
+    .story-problem {
+      background: white;
+      border: 2px solid var(--theme);
+      border-left: 8px solid var(--theme);
+      padding: 12px;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      font-weight: bold;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    /* Controls */
+    .global-controls {
+      display: flex;
+      gap: 15px;
+      padding: 15px;
+      background: white;
+      border-bottom: 3px dashed var(--border);
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .control-group {
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 2px solid var(--border);
+      background: #f8f9fa;
+    }
+
+    .group-title {
+      font-weight: bold;
+      font-size: 0.95rem;
+      text-align: center;
+      color: #495057;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: transform 0.1s;
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+    }
+
+    .btn-blue {
+      background: #4dabf7;
+      color: white;
+    }
+
+    .btn-orange {
+      background: #ff922b;
+      color: white;
+    }
+
+    .btn-green {
+      background: #40c057;
+      color: white;
+    }
+
+    .btn-purple {
+      background: #cc5de8;
+      color: white;
+    }
+
+    .btn-dark {
+      background: #343a40;
+      color: white;
+    }
+
+    .btn-gray {
+      background: #dee2e6;
+      color: #495057;
+    }
+
+    .btn-red-outline {
+      background: white;
+      border: 2px solid var(--danger);
+      color: var(--danger);
+    }
+
+    /* Visual Area (Place Value Chart) */
+    .visual-container {
+      padding: 20px;
+      background: white;
+      overflow-x: auto;
+    }
+
+    .pv-table-wrapper {
+      min-width: 900px;
+      /* 16桁なので少し広めに */
+      margin: 0 auto;
+    }
+
+    .pv-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .pv-table th,
+    .pv-table td {
+      border: 2px solid #adb5bd;
+      padding: 8px 2px;
+      width: 6.25%;
+      /* 16列等分 */
+    }
+
+    /* 4桁ごとの太線と背景色 */
+    .pv-group-cho {
+      background: var(--cho-bg);
+      border: 3px solid var(--cho-border) !important;
+      color: #a61e4d;
+    }
+
+    .pv-group-oku {
+      background: var(--oku-bg);
+      border: 3px solid var(--oku-border) !important;
+      color: #e03131;
+    }
+
+    .pv-group-man {
+      background: var(--man-bg);
+      border: 3px solid var(--man-border) !important;
+      color: #1971c2;
+    }
+
+    .pv-group-ichi {
+      background: var(--ichi-bg);
+      border: 3px solid var(--ichi-border) !important;
+      color: #e67700;
+    }
+
+    .pv-header-main {
+      font-size: 1.3rem;
+      letter-spacing: 5px;
+    }
+
+    .pv-header-sub th {
+      font-size: 0.9rem;
+      color: #495057;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 5px 0;
+    }
+
+    .digit-cell {
+      height: 50px;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #212529;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .digit-cell.highlight {
+      background: #ffe066;
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(252, 196, 25, 0.5);
+      z-index: 10;
+      position: relative;
+    }
+
+    .number-display {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--theme);
+      margin: 20px 0;
+      letter-spacing: 2px;
+    }
+
+    /* 話し合いボード */
+    .discussion-area {
+      background: #f8f9fa;
+      padding: 20px;
+      border-top: 3px dashed var(--border);
+    }
+
+    .discussion-topic {
+      background: #e6fcf5;
+      border: 2px solid #20c997;
+      border-left: 8px solid #20c997;
+      color: #087f5b;
+      padding: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-bottom: 0;
+    }
+
+    /* Notebook Guide & Support Tool */
+    .notebook-guide {
+      background: #fff9db;
+      padding: 20px;
+      border-top: 3px dashed #fcc419;
+    }
+
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .guide-header h3 {
+      margin: 0;
+      color: #d4a017;
+    }
+
+    .btn-support {
+      background: #fff;
+      border: 2px dashed #f59f00;
+      color: #d9480f;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-support:hover {
+      background: #fff4e6;
+    }
+
+    .support-tool {
+      background: #fff;
+      border: 2px solid #fcc419;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      margin-top: 15px;
+    }
+
+    .support-title {
+      color: #e67700;
+      font-weight: bold;
+      margin-top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .template-box {
+      font-size: 1.1rem;
+      line-height: 2.2;
+      color: #343a40;
+      background: #fdfaf0;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .sel-box {
+      font-size: 1.1rem;
+      padding: 5px;
+      margin: 0 5px;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      background: #fff;
+      font-weight: bold;
+      color: #495057;
+      cursor: pointer;
+    }
+
+    /* 発表モード用ボタン */
+    .btn-presentation {
+      background: #e67700;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* はっぴょうボード */
+    .presentation-board {
+      background: #fff;
+      border: 4px solid #e67700;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 0 20px 20px 20px;
+      position: relative;
+      animation: fadeIn 0.4s;
+    }
+
+    .presentation-board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 2px dashed #ffd8a8;
+      padding-bottom: 10px;
+    }
+
+    .presentation-board-header h3 {
+      margin: 0;
+      color: #e67700;
+      font-size: 1.3rem;
+    }
+
+    .btn-close-board {
+      background: #fff4e6;
+      border: 2px solid #ffc078;
+      color: #d9480f;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .presentation-text {
+      font-size: 1.5rem;
+      line-height: 1.8;
+      color: #343a40;
+      font-weight: bold;
+    }
+
+    .presentation-text span {
+      color: #d9480f;
+      border-bottom: 4px solid #fcc419;
+      padding: 0 5px;
+    }
+
+    /* Free Progress Section */
+    .free-progress-section {
+      background: #e3fafc;
+      padding: 20px;
+      border-top: 5px solid #15aabf;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .fp-header h2 {
+      color: #0b7285;
+      margin-top: 0;
+      font-size: 1.3rem;
+      text-align: center;
+    }
+
+    .fp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 15px;
+    }
+
+    .practice-card {
+      background: white;
+      border: 2px solid #99e9f2;
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pc-problem-area {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #343a40;
+      line-height: 1.5;
+    }
+
+    .pc-input {
+      width: 100%;
+      padding: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      margin-top: 5px;
+    }
+
+    .pc-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-pc-ans {
+      flex: 1;
+      padding: 10px;
+      background: #e3fafc;
+      border: 2px solid #99e9f2;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 6px;
+      color: #0b7285;
+    }
+
+    .pc-answer-box {
+      background: #ffe3e3;
+      color: #fa5252;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 6px;
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>大きい数のしくみ（兆まで） ツールボックス</h1>
+      <div class="notebook-prompt">
+        ✏️ アプリで位取り表をうごかして、わかったことをノートに書こう！
+      </div>
+    </header>
+
+    <div class="mission-bar">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setMission(1)">① 10億・100億・1000億</button>
+        <button class="tab-btn" onclick="setMission(2)">② 千億より大きい数（一兆）</button>
+        <button class="tab-btn" onclick="setMission(3)">③ 何倍になるか調べよう</button>
+      </div>
+
+      <div class="story-problem" id="story-text">
+        世界の人口は「7876932000人」です。一億の左の位はどのようになっているかな？
+      </div>
+    </div>
+
+    <div class="global-controls">
+      <div class="control-group">
+        <div class="group-title">📍 調べる数をいれる</div>
+        <div class="btn-row">
+          <button class="btn btn-blue" onclick="loadNumber('7876932000')">世界の人口</button>
+          <button class="btn btn-purple" onclick="loadNumber('1208000000000')">紙の本のはん売がく</button>
+          <button class="btn btn-dark" onclick="loadNumber('1')">「１」からスタート</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="group-title">⚙️ くらいを移動する（倍のしくみ）</div>
+        <div class="btn-row">
+          <button class="btn btn-red-outline" onclick="multiply(1)">× 10倍 (1つ左)</button>
+          <button class="btn btn-red-outline" onclick="multiply(2)">× 100倍 (2つ左)</button>
+          <button class="btn btn-red-outline" onclick="multiply(3)">× 1000倍 (3つ左)</button>
+          <button class="btn btn-gray" onclick="clearTable()">クリア</button>
+        </div>
+      </div>
+    </div>
+
+    <main>
+      <div class="visual-container">
+        <div class="number-display" id="number-display">0</div>
+
+        <div class="pv-table-wrapper">
+          <table class="pv-table">
+            <tr>
+              <th colspan="4" class="pv-group-cho pv-header-main">兆</th>
+              <th colspan="4" class="pv-group-oku pv-header-main">億</th>
+              <th colspan="4" class="pv-group-man pv-header-main">万</th>
+              <th colspan="4" class="pv-group-ichi pv-header-main">一</th>
+            </tr>
+            <tr class="pv-header-sub">
+              <th class="pv-group-cho">千</th>
+              <th class="pv-group-cho">百</th>
+              <th class="pv-group-cho">十</th>
+              <th class="pv-group-cho">一</th>
+              <th class="pv-group-oku">千</th>
+              <th class="pv-group-oku">百</th>
+              <th class="pv-group-oku">十</th>
+              <th class="pv-group-oku">一</th>
+              <th class="pv-group-man">千</th>
+              <th class="pv-group-man">百</th>
+              <th class="pv-group-man">十</th>
+              <th class="pv-group-man">一</th>
+              <th class="pv-group-ichi">千</th>
+              <th class="pv-group-ichi">百</th>
+              <th class="pv-group-ichi">十</th>
+              <th class="pv-group-ichi">一</th>
+            </tr>
+            <tr id="digits-row">
+              <!-- JSで16桁分のセルを生成 -->
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 発表ボード -->
+      <div id="presentation-board" class="presentation-board hidden">
+        <div class="presentation-board-header">
+          <h3>📢 わたしの考え（位取り表からわかったこと）</h3>
+          <button class="btn-close-board" onclick="closePresentation()">✖ 閉じる</button>
+        </div>
+        <div class="presentation-text" id="presentation-text"></div>
+      </div>
+
+      <div class="discussion-area">
+        <div class="discussion-topic" id="discussion-topic">
+          🗣️ 万のときと同じように考えると、一億の位の左はどうなるかな？
+        </div>
+      </div>
+
+      <!-- サポートツール -->
+      <div class="notebook-guide">
+        <div class="guide-header">
+          <h3>📓 数のしくみの「きまり」をまとめよう</h3>
+          <button class="btn btn-support" onclick="toggleSupportTool()">🆘 まとめのヒント（せつめいメーカー）を開く</button>
+        </div>
+
+        <div id="support-tool" class="support-tool hidden">
+          <div class="support-title">
+            <span>▼ えらんで、文章を完成させよう！</span>
+            <button class="btn-presentation" onclick="showPresentation()">📢 はっぴょうボードにうつす</button>
+          </div>
+          <div class="template-box">
+            整数は、位が <select id="sel-shift1" class="sel-box">
+              <option value="?">❓</option>
+              <option value="１つ">１つ</option>
+              <option value="２つ">２つ</option>
+            </select> 左へ進むごとに、
+            <select id="sel-bai1" class="sel-box">
+              <option value="?">❓</option>
+              <option value="10倍">10倍</option>
+              <option value="100倍">100倍</option>
+            </select> になるしくみになっています。<br><br>
+            だから、位が２つ左に進むと <select id="sel-bai2" class="sel-box">
+              <option value="?">❓</option>
+              <option value="100倍">100倍</option>
+              <option value="1000倍">1000倍</option>
+            </select> 、<br>
+            ３つ左に進むと <select id="sel-bai3" class="sel-box">
+              <option value="?">❓</option>
+              <option value="100倍">100倍</option>
+              <option value="1000倍">1000倍</option>
+            </select> になることが分かります。<br><br>
+            また、億や兆になっても、<select id="sel-kurai" class="sel-box">
+              <option value="?">❓</option>
+              <option value="万">万</option>
+              <option value="千">千</option>
+            </select>のときと同じように、一、十、百、千となっています。
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 自由進度コーナー -->
+    <div class="free-progress-section">
+      <div class="fp-header">
+        <h2>🌟 練習コーナー（右・左から何番目？ 漢字と数字）</h2>
+      </div>
+
+      <div class="fp-grid" id="practice-grid">
+        <!-- JSで問題を生成 -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- 状態管理 ---
+    // 16桁 [千兆, 百兆, 十兆, 一兆, 千億, 百億, 十億, 一億, 千万, 百万, 十万, 一万, 千, 百, 十, 一]
+    let currentDigits = Array(16).fill('');
+    document.addEventListener('DOMContentLoaded', () => {
+      initTable();
+      setMission(1);
+      renderPracticeProblems();
+    });
+
+    function initTable() {
+      const row = document.getElementById('digits-row');
+      row.innerHTML = '';
+      for (let i = 0; i < 16; i++) {
+        const td = document.createElement('td');
+        td.className = 'digit-cell';
+        td.id = `digit-${i}`;
+        row.appendChild(td);
+      }
+      updateTableDisplay();
+    }
+    // --- タブとミッションの切り替え ---
+    function setMission(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      const storyText = document.getElementById('story-text');
+      const topicBox = document.getElementById('discussion-topic');
+      closePresentation();
+      if (tabIndex === 1) {
+        storyText.innerHTML = "世界の人口は「7876932000人」です。一億の左の位はどのようになっているかな？";
+        topicBox.innerHTML = "🗣️ 万のときと同じように考えると、一億の位の左はどうなるかな？";
+        loadNumber('7876932000');
+      } else if (tabIndex === 2) {
+        storyText.innerHTML = "紙の本のはん売がくは「1208000000000円」です。千億より大きい数を調べよう。";
+        topicBox.innerHTML = "🗣️ 千億の10倍を「一兆」といいます。位取り表に入れて読んでみよう。";
+        loadNumber('1208000000000');
+      } else if (tabIndex === 3) {
+        storyText.innerHTML = "位が左に進むと、数は何倍になるしくみになっているか調べよう。";
+        topicBox.innerHTML = "🗣️ 「1」をスタートにして、10倍、100倍、1000倍のボタンを押して法則を見つけよう！";
+        loadNumber('1');
+      }
+    }
+    // --- 数値操作 ---
+    function loadNumber(numStr) {
+      clearTable();
+      const arr = numStr.split('').reverse();
+      for (let i = 0; i < arr.length; i++) {
+        if (i < 16) {
+          currentDigits[15 - i] = arr[i];
+        }
+      }
+      updateTableDisplay();
+      highlightSpecialPlaces(numStr);
+    }
+
+    function clearTable() {
+      currentDigits = Array(16).fill('');
+      updateTableDisplay();
+      clearHighlights();
+    }
+    // shiftCount: 1(10倍), 2(100倍), 3(1000倍)
+    function multiply(shiftCount) {
+      for (let step = 0; step < shiftCount; step++) {
+        // 左に1つシフトする
+        for (let i = 0; i < 15; i++) {
+          currentDigits[i] = currentDigits[i + 1];
+        }
+        // 一の位に0を入れる（元が空でなければ）
+        if (currentDigits.join('') !== '') {
+          currentDigits[15] = '0';
+        }
+      }
+      updateTableDisplay();
+      highlightShift();
+    }
+    // --- 描画とアニメーション ---
+    function updateTableDisplay() {
+      let displayStr = '';
+      let started = false;
+      for (let i = 0; i < 16; i++) {
+        const cell = document.getElementById(`digit-${i}`);
+        const val = currentDigits[i];
+        cell.innerText = val;
+        if (val !== '') started = true;
+        if (started) displayStr += (val === '' ? '0' : val);
+      }
+      const numDisplay = document.getElementById('number-display');
+      if (displayStr === '') {
+        numDisplay.innerText = '0';
+      } else {
+        // カンマ区切りで表示（日本式ではなく3桁区切りが標準JS仕様だが、全体像把握のため）
+        numDisplay.innerText = BigInt(displayStr).toLocaleString('ja-JP');
+      }
+    }
+
+    function clearHighlights() {
+      for (let i = 0; i < 16; i++) {
+        document.getElementById(`digit-${i}`).classList.remove('highlight');
+      }
+    }
+
+    function highlightSpecialPlaces(numStr) {
+      clearHighlights();
+      // 世界の人口の「十億・百億」などを強調
+      if (numStr === '7876932000') {
+        document.getElementById('digit-5').classList.add('highlight'); // 十億
+        document.getElementById('digit-6').classList.add('highlight'); // 一億
+      }
+      // 兆の位を強調
+      if (numStr === '1208000000000') {
+        document.getElementById('digit-3').classList.add('highlight'); // 一兆
+      }
+    }
+
+    function highlightShift() {
+      clearHighlights();
+      // 全体を一瞬光らせる
+      for (let i = 0; i < 16; i++) {
+        if (currentDigits[i] !== '') {
+          const cell = document.getElementById(`digit-${i}`);
+          cell.classList.add('highlight');
+          setTimeout(() => cell.classList.remove('highlight'), 400);
+        }
+      }
+    }
+    // --- せつめいメーカー ---
+    function toggleSupportTool() {
+      document.getElementById('support-tool').classList.toggle('hidden');
+    }
+
+    function showPresentation() {
+      const s1 = document.getElementById('sel-shift1').value;
+      const b1 = document.getElementById('sel-bai1').value;
+      const b2 = document.getElementById('sel-bai2').value;
+      const b3 = document.getElementById('sel-bai3').value;
+      const k1 = document.getElementById('sel-kurai').value;
+      const textHTML = `
+        整数は、位が <span>${s1}</span> 左へ進むごとに、
+        <span>${b1}</span> になるしくみになっています。<br>
+        だから、位が２つ左に進むと <span>${b2}</span>、３つ左に進むと <span>${b3}</span> になることが分かります。<br>
+        また、億や兆になっても、<span>${k1}</span>のときと同じように、一、十、百、千となっています。
+      `;
+      document.getElementById('presentation-text').innerHTML = textHTML;
+      const board = document.getElementById('presentation-board');
+      board.classList.remove('hidden');
+      board.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+
+    function closePresentation() {
+      document.getElementById('presentation-board').classList.add('hidden');
+    }
+    // --- 練習問題 ---
+    const practiceList = [{
+        no: '①',
+        q: '125927902 について答えましょう。',
+        text: '左から2ばんめの「2」は、何が何こあることを表していますか。',
+        ans: '1000万が2こ'
+      },
+      {
+        no: '②',
+        q: '125927902 について答えましょう。',
+        text: '右から5ばんめの「2」は、何が何こあることを表していますか。',
+        ans: '1万が2こ'
+      },
+      {
+        no: '③',
+        q: '次の数を漢字で書きましょう。（茨城県の農業産出がく）',
+        text: '426300000000',
+        ans: '四千二百六十三億'
+      },
+      {
+        no: '④',
+        q: '次の数を漢字で書きましょう。（日本の米の生産量）',
+        text: '7270000000',
+        ans: '七十二億七千万'
+      },
+      {
+        no: '⑤',
+        q: '次の数を漢字で書きましょう。（全国の鉄道の乗客数）',
+        text: '18810000000',
+        ans: '百八十八億千万'
+      }
+    ];
+
+    function renderPracticeProblems() {
+      const grid = document.getElementById('practice-grid');
+      grid.innerHTML = '';
+      practiceList.forEach((p, index) => {
+        const card = document.createElement('div');
+        card.className = 'practice-card';
+        card.innerHTML = `
+          <div class="pc-problem-area">
+            <span style="color: #0b7285; font-size: 0.9rem;">${p.no} ${p.q}</span><br>
+            <span style="color: #e67700; font-size: 1.2rem;">${p.text}</span>
+            <input type="text" class="pc-input" id="input-${index}" placeholder="答えを入力">
+          </div>
+          <div class="pc-actions">
+            <button class="btn-pc-ans" onclick="toggleAnswer(${index})">✅ こたえを見る</button>
+          </div>
+          <div class="pc-answer-box" id="ans-${index}">${p.ans}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleAnswer(index) {
+      const box = document.getElementById(`ans-${index}`);
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

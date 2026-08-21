@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>４年　０２　グラフや表を使って考えよう　０２</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>グラフや表を使って考えよう（第2時）</title>
+  <style>
+    :root {
+      --theme: #0ca678;
+      --bg-theme: #e6fcf5;
+      --border: #ced4da;
+      --bg: #f4f6f8;
+      --danger: #fa5252;
+      --highlight: #ffe066;
+      --text-main: #343a40;
+      --kobe: #339af0;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-theme);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--theme);
+      font-size: 1.5rem;
+    }
+
+    .goal-badge {
+      background: white;
+      border: 2px solid var(--theme);
+      color: var(--theme);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 1.1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme);
+      background: white;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* --- メイン授業エリア --- */
+    .lesson-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .graph-box {
+      flex: 1.5;
+      min-width: 450px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      background: #fff;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #dee2e6;
+    }
+
+    .graph-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+
+    .control-panel {
+      flex: 1;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .step-box {
+      background: white;
+      border: 2px solid #99e9f2;
+      border-radius: 8px;
+      padding: 15px;
+      transition: 0.3s;
+      position: relative;
+    }
+
+    .step-box.locked {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .step-box.completed {
+      border-color: #ced4da;
+      background: #f8f9fa;
+    }
+
+    .student-icon {
+      position: absolute;
+      top: -15px;
+      left: 15px;
+      background: white;
+      border: 2px solid #ced4da;
+      padding: 2px 10px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #495057;
+    }
+
+    .step-input-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+      font-weight: bold;
+    }
+
+    .calc-input {
+      width: 60px;
+      padding: 6px;
+      font-size: 1.1rem;
+      text-align: center;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      font-weight: bold;
+      color: var(--danger);
+    }
+
+    .calc-input:focus {
+      border-color: #0ca678;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(12, 166, 120, 0.2);
+    }
+
+    .btn-check {
+      background: #0b7285;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: auto;
+    }
+
+    .btn-check:hover {
+      background: #0c8599;
+    }
+
+    .feedback {
+      font-size: 0.9rem;
+      font-weight: bold;
+      min-height: 20px;
+      color: var(--danger);
+      margin-top: 8px;
+    }
+
+    .summary-box {
+      background: #ebfbee;
+      border: 3px solid var(--theme);
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #2b8a3e;
+      display: none;
+      animation: popIn 0.5s ease-out;
+      line-height: 1.6;
+    }
+
+    /* --- かたむき図鑑 --- */
+    .slope-gallery {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .slope-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      width: 140px;
+    }
+
+    .slope-card svg {
+      width: 100%;
+      height: 100px;
+      background: #e7f5ff;
+      border: 1px solid #74c0fc;
+      margin-bottom: 10px;
+    }
+
+    .slope-label {
+      font-weight: bold;
+      color: #343a40;
+      font-size: 0.9rem;
+    }
+
+    .slope-sub {
+      font-size: 0.8rem;
+      color: #868e96;
+    }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2b8a3e;
+      border: 10px solid #8b4513;
+      border-radius: 8px;
+      padding: 20px;
+      color: white;
+      display: flex;
+      gap: 20px;
+      min-height: 400px;
+      flex-wrap: wrap;
+    }
+
+    .bb-col {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .bb-title {
+      border: 2px solid white;
+      padding: 5px 10px;
+      display: inline-block;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .bb-text {
+      line-height: 1.8;
+      font-size: 1.05rem;
+      margin-bottom: 15px;
+    }
+
+    .bb-box {
+      border: 2px solid #ffd8a8;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .bb-highlight {
+      color: #ffd8a8;
+      font-weight: bold;
+    }
+
+    .reason-arrow {
+      color: #ffd8a8;
+      margin-right: 5px;
+    }
+
+    .focus-points {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .focus-point {
+      background: white;
+      color: #d9480f;
+      border: 2px solid #fcc419;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex: 1;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>折れ線グラフの変化を調べよう</h1>
+      <div class="goal-badge">めあて：変わり方をくわしく調べるために、グラフのどんなところに注目すればよいか考えよう。</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① みんなの考え</button>
+      <button class="tab-btn" onclick="switchTab(2)">② かたむき図鑑</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ 黒板のまとめ</button>
+    </div>
+
+    <!-- タブ1: メイン授業 -->
+    <div id="section-1" class="section active">
+      <div style="margin-bottom: 15px; font-weight: bold; background: #e7f5ff; padding: 10px; border-radius: 4px; color: #1864ab;">
+        📝 グラフを見ながら、4人の考えの空いているところ（□）に入る月を答えよう！
+      </div>
+
+      <div class="lesson-container">
+        <!-- 左：グラフ描画エリア -->
+        <div class="graph-box">
+          <div class="graph-title">1年間の気温の変わり方 (神戸)</div>
+          <canvas id="lineGraph" width="500" height="320"></canvas>
+          <div style="font-size: 0.8rem; color:#868e96; margin-top:5px;">横のじく: 月 ／ たてのじく: 温度(度)</div>
+        </div>
+
+        <!-- 右：思考パネル -->
+        <div class="control-panel">
+
+          <!-- Q1: こうた -->
+          <div class="step-box" id="step-1">
+            <div class="student-icon">👦 こうた</div>
+            <div class="step-input-area">
+              2月から <input type="text" class="calc-input" id="in-1" placeholder="月"> 月までは、<br>気温が上がっています。
+              <button class="btn-check" onclick="checkStep1()">確認</button>
+            </div>
+            <div class="feedback" id="fb-1">グラフが「右に上がっている」のは何月までかな？</div>
+          </div>
+
+          <!-- Q2: みさき -->
+          <div class="step-box locked" id="step-2">
+            <div class="student-icon">👧 みさき</div>
+            <div class="step-input-area">
+              <input type="text" class="calc-input" id="in-2" placeholder="月"> 月から12月までは、<br>気温が下がっています。
+              <button class="btn-check" onclick="checkStep2()">確認</button>
+            </div>
+            <div class="feedback" id="fb-2">グラフが「右に下がっている」のは何月からかな？</div>
+          </div>
+
+          <!-- Q3: しほ -->
+          <div class="step-box locked" id="step-3">
+            <div class="student-icon">👩 しほ</div>
+            <div class="step-input-area">
+              気温の上がり方がいちばん大きいのは、<br>
+              <input type="text" class="calc-input" id="in-3a" placeholder="月"> 月から
+              <input type="text" class="calc-input" id="in-3b" placeholder="月"> 月です。
+              <button class="btn-check" onclick="checkStep3()">確認</button>
+            </div>
+            <div class="feedback" id="fb-3">グラフの上がり方が「いちばん急」なところを探そう！</div>
+          </div>
+
+          <!-- Q4: りく -->
+          <div class="step-box locked" id="step-4">
+            <div class="student-icon">👦 りく</div>
+            <div class="step-input-area">
+              気温の下がり方がいちばん小さいのは、<br>
+              <input type="text" class="calc-input" id="in-4a" placeholder="月"> 月から
+              <input type="text" class="calc-input" id="in-4b" placeholder="月"> 月です。
+              <button class="btn-check" onclick="checkStep4()">確認</button>
+            </div>
+            <div class="feedback" id="fb-4">グラフの下がり方が「いちばんゆるやか」なところは？</div>
+          </div>
+
+          <!-- まとめ -->
+          <div class="summary-box" id="summary-box">
+            🌟 【まとめ】<br>
+            折れ線グラフでは、<strong>「線のかたむき」に注目する</strong>と、変わり方がくわしくわかります。<br>
+            線のかたむきが急であるほど、変わり方が大きいことを表しているね。
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ2: かたむき図鑑 -->
+    <div id="section-2" class="section">
+      <h2 style="color: var(--theme); text-align:center;">🔍 線のかたむき図鑑</h2>
+      <p style="text-align:center; font-weight:bold;">線のかたむきに注目すると、変わり方が一目でわかります。</p>
+
+      <div class="slope-gallery">
+        <!-- 上がる (ふえる) -->
+        <div class="slope-card">
+          <svg viewBox="0 0 100 100">
+            <!-- グリッド -->
+            <path d="M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100" stroke="#a5d8ff" stroke-width="1" />
+            <!-- 線 -->
+            <line x1="10" y1="80" x2="90" y2="50" stroke="#343a40" stroke-width="4" />
+            <circle cx="10" cy="80" r="4" fill="#343a40" />
+            <circle cx="90" cy="50" r="4" fill="#343a40" />
+          </svg>
+          <div class="slope-label">上がる</div>
+          <div class="slope-sub">(ふえる)</div>
+        </div>
+
+        <!-- 大きく上がる -->
+        <div class="slope-card" style="border-color: #ff922b;">
+          <svg viewBox="0 0 100 100">
+            <path d="M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100" stroke="#a5d8ff" stroke-width="1" />
+            <line x1="20" y1="90" x2="80" y2="10" stroke="#ff922b" stroke-width="5" />
+            <circle cx="20" cy="90" r="5" fill="#ff922b" />
+            <circle cx="80" cy="10" r="5" fill="#ff922b" />
+          </svg>
+          <div class="slope-label">大きく上がる</div>
+          <div class="slope-sub">(かたむきが急)</div>
+        </div>
+
+        <!-- 変わらない -->
+        <div class="slope-card">
+          <svg viewBox="0 0 100 100">
+            <path d="M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100" stroke="#a5d8ff" stroke-width="1" />
+            <line x1="10" y1="50" x2="90" y2="50" stroke="#343a40" stroke-width="4" />
+            <circle cx="10" cy="50" r="4" fill="#343a40" />
+            <circle cx="90" cy="50" r="4" fill="#343a40" />
+          </svg>
+          <div class="slope-label">変わらない</div>
+          <div class="slope-sub">(水平)</div>
+        </div>
+
+        <!-- 下がる (へる) -->
+        <div class="slope-card">
+          <svg viewBox="0 0 100 100">
+            <path d="M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100" stroke="#a5d8ff" stroke-width="1" />
+            <line x1="10" y1="30" x2="90" y2="60" stroke="#343a40" stroke-width="4" />
+            <circle cx="10" cy="30" r="4" fill="#343a40" />
+            <circle cx="90" cy="60" r="4" fill="#343a40" />
+          </svg>
+          <div class="slope-label">下がる</div>
+          <div class="slope-sub">(へる)</div>
+        </div>
+
+        <!-- 大きく下がる -->
+        <div class="slope-card" style="border-color: #339af0;">
+          <svg viewBox="0 0 100 100">
+            <path d="M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100" stroke="#a5d8ff" stroke-width="1" />
+            <line x1="20" y1="10" x2="80" y2="90" stroke="#339af0" stroke-width="5" />
+            <circle cx="20" cy="10" r="5" fill="#339af0" />
+            <circle cx="80" cy="90" r="5" fill="#339af0" />
+          </svg>
+          <div class="slope-label">大きく下がる</div>
+          <div class="slope-sub">(かたむきが急)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ3: 板書計画 -->
+    <div id="section-3" class="section">
+      <div class="blackboard">
+        <!-- 左列 -->
+        <div class="bb-col">
+          <div class="bb-text">4月21日</div>
+          <div class="bb-title">前のページの折れ線グラフ<br>を見て、神戸の気温の変わ<br>り方をくわしく調べましょ<br>う。</div>
+          <div class="bb-text bb-highlight" style="margin-top:20px;">
+            <span style="background:green; color:white; padding:2px 6px; border-radius:50%;">?</span>
+            変わり方をくわしく調べるために、折れ線グラフのどんなところに注目すればよいか考えよう。
+          </div>
+        </div>
+
+        <!-- 中列 -->
+        <div class="bb-col" style="flex: 1.2;">
+          <div class="bb-text">
+            ・2月から8月までは、<br> 気温が上がっている。<br>
+            <span class="reason-arrow">→</span>グラフが右に<br> 上がっているから。
+          </div>
+          <div class="bb-text">
+            ・8月から12月までは、<br> 気温が下がっている。<br>
+            <span class="reason-arrow">→</span>グラフが右に<br> 下がっているから。
+          </div>
+          <div class="bb-text">
+            ・気温の上がり方がいちばん<br> 大きいのは、3月から4月です。<br>
+            <span class="reason-arrow">→</span>グラフの上がり方が<br> いちばん急だから。
+          </div>
+          <div class="bb-text">
+            ・気温の下がり方がいちばん<br> 小さいのは、8月から9月です。<br>
+            <span class="reason-arrow">→</span>グラフの下がり方が<br> いちばんゆるやかだから。
+          </div>
+
+          <div class="bb-box" style="text-align:center; background:#fff3bf; color:#343a40; border-color:#fcc419;">
+            どこに注目するといいかな？
+          </div>
+          <div class="focus-points">
+            <div class="focus-point">上がっているか、<br>下がっているか。</div>
+            <div class="focus-point">かたむきは急か、<br>急でないか。</div>
+          </div>
+        </div>
+
+        <!-- 右列 -->
+        <div class="bb-col">
+          <div class="bb-box" style="border-color:white; border-radius: 8px;">
+            ✏️ 折れ線グラフでは、線のかたむきに注目すると、変わり方がくわしくわかる。<br>
+            線のかたむきが急であるほど、変わり方が大きいことを表している。
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:100px; background:white; padding:5px;"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100' stroke='%23a5d8ff'/><line x1='10' y1='80' x2='90' y2='50' stroke='black' stroke-width='4'/></svg>" width="100%"></div>
+              <div>上がる (ふえる)</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:100px; background:white; padding:5px;"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100' stroke='%23a5d8ff'/><line x1='20' y1='90' x2='80' y2='10' stroke='black' stroke-width='4'/></svg>" width="100%"></div>
+              <div style="color:#ffd8a8;">大きく<br>上がっている</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:100px; background:white; padding:5px;"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100' stroke='%23a5d8ff'/><line x1='10' y1='50' x2='90' y2='50' stroke='black' stroke-width='4'/></svg>" width="100%"></div>
+              <div>変わらない</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:100px; background:white; padding:5px;"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M0,20 L100,20 M0,40 L100,40 M0,60 L100,60 M0,80 L100,80 M20,0 L20,100 M40,0 L40,100 M60,0 L60,100 M80,0 L80,100' stroke='%23a5d8ff'/><line x1='10' y1='30' x2='90' y2='60' stroke='black' stroke-width='4'/></svg>" width="100%"></div>
+              <div>下がる (へる)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 半角変換
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+      }).trim();
+    }
+    // タブ切り替え
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) {
+          sec.classList.add('active');
+          if (tabIndex === 1) drawGraph();
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+    }
+    const getEl = (id) => document.getElementById(id);
+    // --- グラフ描画ロジック ---
+    const canvas = document.getElementById('lineGraph');
+    const ctx = canvas.getContext('2d');
+    // 神戸のデータ (1月〜12月)
+    const kobeData = [6, 6, 9, 15, 19, 23, 27, 28, 25, 19, 14, 8];
+    const originX = 40;
+    const originY = 280;
+    const stepX = 35;
+    const stepY = 8;
+
+    function drawGraph(highlightMode = 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // 1. 方眼線の描画
+      ctx.lineWidth = 1;
+      for (let temp = 0; temp <= 30; temp++) {
+        let y = originY - (temp * stepY);
+        ctx.beginPath();
+        ctx.strokeStyle = (temp % 5 === 0) ? '#a5d8ff' : '#e7f5ff';
+        ctx.moveTo(originX, y);
+        ctx.lineTo(originX + 12 * stepX, y);
+        ctx.stroke();
+        if (temp % 5 === 0) {
+          ctx.fillStyle = '#495057';
+          ctx.font = '12px sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(temp, originX - 5, y + 4);
+        }
+      }
+      for (let month = 1; month <= 12; month++) {
+        let x = originX + (month * stepX);
+        ctx.beginPath();
+        ctx.strokeStyle = '#a5d8ff';
+        ctx.moveTo(x, originY);
+        ctx.lineTo(x, originY - 30 * stepY);
+        ctx.stroke();
+        ctx.fillStyle = '#495057';
+        ctx.textAlign = 'center';
+        ctx.fillText(month, x, originY + 20);
+      }
+      // 軸のベースライン
+      ctx.beginPath();
+      ctx.strokeStyle = '#343a40';
+      ctx.lineWidth = 2;
+      ctx.moveTo(originX, originY - 30 * stepY);
+      ctx.lineTo(originX, originY);
+      ctx.lineTo(originX + 12 * stepX, originY);
+      ctx.stroke();
+      // 2. ハイライトの描画 (基本線の前に太線を描く)
+      if (highlightMode !== 0) {
+        drawHighlights(highlightMode);
+      }
+      // 3. データの描画 (基本の折れ線)
+      ctx.beginPath();
+      ctx.strokeStyle = '#343a40';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 12; i++) {
+        let x = originX + ((i + 1) * stepX);
+        let y = originY - (kobeData[i] * stepY);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      // 4. データ点の描画
+      for (let i = 0; i < 12; i++) {
+        let x = originX + ((i + 1) * stepX);
+        let y = originY - (kobeData[i] * stepY);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#343a40';
+        ctx.fill();
+      }
+    }
+    // 特定の区間をハイライトする関数
+    function drawHighlights(mode) {
+      ctx.save();
+      ctx.lineJoin = 'round';
+      if (mode === 1) {
+        // 2月〜8月 (上がっている区間)
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255, 146, 43, 0.5)'; // オレンジ太線
+        ctx.lineWidth = 12;
+        for (let i = 1; i <= 7; i++) {
+          let x = originX + ((i + 1) * stepX);
+          let y = originY - (kobeData[i] * stepY);
+          if (i === 1) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      } else if (mode === 2) {
+        // 8月〜12月 (下がっている区間)
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(51, 154, 240, 0.5)'; // 青太線
+        ctx.lineWidth = 12;
+        for (let i = 7; i <= 11; i++) {
+          let x = originX + ((i + 1) * stepX);
+          let y = originY - (kobeData[i] * stepY);
+          if (i === 7) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      } else if (mode === 3) {
+        // 3月〜4月 (上がり方が一番大きい)
+        ctx.beginPath();
+        ctx.strokeStyle = '#fa5252'; // 赤太線
+        ctx.lineWidth = 6;
+        let x1 = originX + (3 * stepX);
+        let y1 = originY - (kobeData[2] * stepY);
+        let x2 = originX + (4 * stepX);
+        let y2 = originY - (kobeData[3] * stepY);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        // 丸で囲む
+        ctx.beginPath();
+        ctx.arc((x1 + x2) / 2, (y1 + y2) / 2, 25, 0, Math.PI * 2);
+        ctx.strokeStyle = '#fa5252';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+      } else if (mode === 4) {
+        // 8月〜9月 (下がり方が一番小さい)
+        ctx.beginPath();
+        ctx.strokeStyle = '#20c997'; // 緑太線
+        ctx.lineWidth = 6;
+        let x1 = originX + (8 * stepX);
+        let y1 = originY - (kobeData[7] * stepY);
+        let x2 = originX + (9 * stepX);
+        let y2 = originY - (kobeData[8] * stepY);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        // 丸で囲む
+        ctx.beginPath();
+        ctx.arc((x1 + x2) / 2, (y1 + y2) / 2, 20, 0, Math.PI * 2);
+        ctx.strokeStyle = '#20c997';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+    // --- 入力チェックロジック ---
+    function checkStep1() {
+      const val = toHalfWidth(getEl('in-1').value);
+      const fb = getEl('fb-1');
+      if (val === '8') {
+        fb.style.color = 'var(--theme)';
+        fb.innerHTML = '大正解！ グラフが右に<strong>上がっている</strong>のは8月までだね。<br><span style="color:#868e96; font-size:0.8rem;">(グラフがオレンジ色になったよ)</span>';
+        getEl('step-1').classList.add('completed');
+        getEl('step-2').classList.remove('locked');
+        drawGraph(1);
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。一番高くなっている山は何月かな？';
+      }
+    }
+
+    function checkStep2() {
+      const val = toHalfWidth(getEl('in-2').value);
+      const fb = getEl('fb-2');
+      if (val === '8') {
+        fb.style.color = 'var(--theme)';
+        fb.innerHTML = '大正解！ 8月をすぎると、グラフは右に<strong>下がっている</strong>ね。<br><span style="color:#868e96; font-size:0.8rem;">(グラフが青色になったよ)</span>';
+        getEl('step-2').classList.add('completed');
+        getEl('step-3').classList.remove('locked');
+        drawGraph(2);
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。下がり始めているのは何月からかな？';
+      }
+    }
+
+    function checkStep3() {
+      const vA = toHalfWidth(getEl('in-3a').value);
+      const vB = toHalfWidth(getEl('in-3b').value);
+      const fb = getEl('fb-3');
+      if (vA === '3' && vB === '4') {
+        fb.style.color = 'var(--theme)';
+        fb.innerHTML = '大正解！ 線のかたむきが<strong>いちばん急に上がっている</strong>ね。<br><span style="color:#868e96; font-size:0.8rem;">(9度から15度まで、6度も上がっているよ！)</span>';
+        getEl('step-3').classList.add('completed');
+        getEl('step-4').classList.remove('locked');
+        drawGraph(3);
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。線が一番「急な坂道」になっているところを探そう。';
+      }
+    }
+
+    function checkStep4() {
+      const vA = toHalfWidth(getEl('in-4a').value);
+      const vB = toHalfWidth(getEl('in-4b').value);
+      const fb = getEl('fb-4');
+      if (vA === '8' && vB === '9') {
+        fb.style.color = 'var(--theme)';
+        fb.innerHTML = '大正解！ 下がっている中で、線のかたむきが<strong>いちばんゆるやか</strong>だね。<br><span style="color:#868e96; font-size:0.8rem;">(28度から25度まで、3度しか下がっていないね)</span>';
+        getEl('step-4').classList.add('completed');
+        getEl('summary-box').style.display = 'block';
+        drawGraph(4);
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'ちがうよ。下がっている坂道の中で、いちばん「ゆるやか（なだらか）」なのはどこかな？';
+      }
+    }
+    window.onload = () => {
+      drawGraph();
+    };
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
