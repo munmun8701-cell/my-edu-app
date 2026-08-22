@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>わり算の筆算(1) - 第3時</title>
+  <style>
+    :root {
+      --theme: #f59f00;
+      --bg-theme: #fff9db;
+      --border: #ced4da;
+      --bg: #f4f6f8;
+      --danger: #fa5252;
+      --highlight: #20c997;
+      --text-main: #343a40;
+      --kobe: #339af0;
+      --grid-line: #a5d8ff;
+      /* 算数ノートの水色マス目 */
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1050px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-theme);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: #d9480f;
+      font-size: 1.5rem;
+    }
+
+    .goal-badge {
+      background: white;
+      border: 2px solid var(--theme);
+      color: #d9480f;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: #d9480f;
+      background: white;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* --- メイン授業エリア --- */
+    .lesson-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .object-box {
+      flex: 1.2;
+      min-width: 400px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .box-title {
+      font-weight: bold;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      border-left: 5px solid var(--theme);
+      padding-left: 10px;
+    }
+
+    .control-panel {
+      flex: 1;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .step-box {
+      background: white;
+      border: 2px solid var(--theme);
+      border-radius: 8px;
+      padding: 20px 15px 15px;
+      transition: 0.3s;
+      position: relative;
+    }
+
+    .step-box.locked {
+      opacity: 0.4;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .step-box.completed {
+      border-color: #ced4da;
+      background: #f8f9fa;
+    }
+
+    .step-title {
+      font-weight: bold;
+      color: #d9480f;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .step-input-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      font-size: 1.05rem;
+      font-weight: bold;
+    }
+
+    .calc-input {
+      width: 50px;
+      padding: 6px;
+      font-size: 1.1rem;
+      text-align: center;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      font-weight: bold;
+      color: var(--danger);
+    }
+
+    .calc-input.large {
+      width: 70px;
+    }
+
+    .btn-check {
+      background: var(--theme);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: auto;
+    }
+
+    .btn-check:hover {
+      background: #e67700;
+    }
+
+    .feedback {
+      font-size: 0.9rem;
+      font-weight: bold;
+      min-height: 20px;
+      color: var(--danger);
+      margin-top: 8px;
+    }
+
+    .summary-box {
+      background: #e6fcf5;
+      border: 3px solid var(--highlight);
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #087f5b;
+      display: none;
+      animation: popIn 0.5s ease-out;
+      line-height: 1.6;
+    }
+
+    /* --- 筆算グリッドスタイル（教科書忠実再現） --- */
+    .hissan-container {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .hissan-grid {
+      display: inline-grid;
+      grid-template-columns: repeat(4, 45px);
+      grid-auto-rows: 45px;
+      gap: 1px;
+      /* マス目の線幅 */
+      background-color: var(--grid-line);
+      /* 水色の線 */
+      border: 1px solid var(--grid-line);
+      padding: 0;
+    }
+
+    .hc {
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #343a40;
+      position: relative;
+    }
+
+    /* 筆算の黒い太線 */
+    .b-top-black::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #343a40;
+      z-index: 2;
+    }
+
+    .hc-input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #343a40;
+      background: transparent;
+      outline: none;
+      font-family: inherit;
+      padding: 0;
+      margin: 0;
+    }
+
+    .hc-input:focus {
+      background-color: #fff3bf;
+    }
+
+    .hc-input.correct {
+      color: #2b8a3e;
+    }
+
+    .hc-input.error {
+      color: #fa5252;
+      background-color: #ffe3e3;
+    }
+
+    .text-danger {
+      color: var(--danger);
+    }
+
+    .text-anim {
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .desc-box {
+      color: #e64980;
+      font-weight: bold;
+      font-size: 0.95rem;
+      border-left: 4px solid #fcc2d7;
+      padding-left: 10px;
+      margin-bottom: 25px;
+      line-height: 1.5;
+      background: white;
+      padding: 5px 10px;
+      border-radius: 0 4px 4px 0;
+      box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* --- 練習問題エリア --- */
+    .quiz-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+    }
+
+    .quiz-item {
+      background: white;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 260px;
+    }
+
+    .q-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2b8a3e;
+      border: 10px solid #8b4513;
+      border-radius: 8px;
+      padding: 20px;
+      color: white;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .bb-col {
+      flex: 1;
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bb-title {
+      border: 2px solid white;
+      padding: 5px 10px;
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1.05rem;
+    }
+
+    .bb-text {
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+
+    .bb-box {
+      border: 2px solid #fff3bf;
+      padding: 10px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 0.95rem;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      80% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>どんな計算になるかな？</h1>
+      <div class="goal-badge">めあて：筆算のしかたを調べよう。（72÷3）</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① 十の位の計算</button>
+      <button class="tab-btn" onclick="switchTab(2)">② 一の位の計算</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ けん算</button>
+      <button class="tab-btn" onclick="switchTab(4)">④ 練習問題</button>
+      <button class="tab-btn" onclick="switchTab(5)">⑤ 板書（まとめ）</button>
+    </div>
+
+    <!-- タブ1: 十の位の計算 -->
+    <div id="section-1" class="section active">
+      <div class="lesson-container">
+
+        <div class="object-box">
+          <div class="box-title">十の位の計算</div>
+          <div class="hissan-container">
+            <div style="padding-top: 55px;">
+              <div class="desc-box">10の束7束を<br>分ける操作に<br>対応</div>
+            </div>
+            <div class="hissan-grid">
+              <!-- 行1: 商 -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc text-danger" id="g1-q10"></div>
+              <div class="hc"></div>
+              <!-- 行2: 式 -->
+              <div class="hc">3</div>
+              <div class="hc">)</div>
+              <div class="hc b-top-black">7</div>
+              <div class="hc b-top-black">2</div>
+              <!-- 行3: かける -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc text-danger" id="g1-m10"></div>
+              <div class="hc"></div>
+              <!-- 行4: ひく -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc b-top-black text-danger" id="g1-s10"></div>
+              <div class="hc"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-panel">
+          <div class="step-box" id="t1-step1">
+            <div class="step-title">① たてる</div>
+            <div style="font-size:0.95rem;">十の位の 7 を 3 でわり、商 <input type="text" class="calc-input" id="t1-s1-1" style="width:40px;"> を十の位にたてる。</div>
+            <div class="step-input-area" style="justify-content:flex-end; margin-top:5px;">
+              <button class="btn-check" onclick="checkT1S1()">確認</button>
+            </div>
+            <div class="feedback" id="t1-fb1"></div>
+          </div>
+
+          <div class="step-box locked" id="t1-step2">
+            <div class="step-title">② かける ＆ ③ ひく</div>
+            <div class="step-input-area">
+              [かける] 3 と 2 をかける。<br>
+              3 × 2 = <input type="text" class="calc-input" id="t1-s2-1">
+            </div>
+            <div class="step-input-area" style="margin-top: 10px;">
+              [ひく] 7 から 6 をひく。<br>
+              7 - 6 = <input type="text" class="calc-input" id="t1-s2-2">
+              <button class="btn-check" onclick="checkT1S2()">確認</button>
+            </div>
+            <div class="feedback" id="t1-fb2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ2: 一の位の計算 -->
+    <div id="section-2" class="section">
+      <div class="lesson-container">
+
+        <div class="object-box">
+          <div class="box-title">一の位の計算</div>
+          <div class="hissan-container" style="gap:15px;">
+            <div style="padding-top: 140px; display:flex; flex-direction:column; gap:25px;">
+              <div class="desc-box" style="margin:0;">10の束1束を<br>ばらにする<br>操作に対応</div>
+              <div class="desc-box" style="margin:0;">10の束1束と<br>ばら2枚を分ける<br>操作に対応</div>
+            </div>
+            <div class="hissan-grid" style="grid-template-rows: repeat(6, 45px);">
+              <!-- 行1: 商 -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc">2</div>
+              <div class="hc text-danger" id="g2-q1"></div>
+              <!-- 行2: 式 -->
+              <div class="hc">3</div>
+              <div class="hc">)</div>
+              <div class="hc b-top-black">7</div>
+              <div class="hc b-top-black">2</div>
+              <!-- 行3: かける(十) -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc">6</div>
+              <div class="hc"></div>
+              <!-- 行4: ひく(十) ＆ おろす -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc b-top-black">1</div>
+              <div class="hc text-danger" id="g2-drop"></div>
+              <!-- 行5: かける(一) -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc text-danger" id="g2-m10"></div>
+              <div class="hc text-danger" id="g2-m1"></div>
+              <!-- 行6: ひく(一) -->
+              <div class="hc"></div>
+              <div class="hc"></div>
+              <div class="hc b-top-black"></div>
+              <div class="hc b-top-black text-danger" id="g2-remain"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-panel">
+          <div class="step-box" id="t2-step1">
+            <div class="step-title">④ おろす</div>
+            <div class="step-input-area">
+              一の位の <input type="text" class="calc-input" id="t2-s1-1"> をおろす。
+              <button class="btn-check" onclick="checkT2S1()">確認</button>
+            </div>
+            <div class="feedback" id="t2-fb1"></div>
+          </div>
+
+          <div class="step-box locked" id="t2-step2">
+            <div class="step-title">⑤たてる ⑥かける ⑦ひく</div>
+            <div class="step-input-area" style="font-size:0.95rem;">
+              [たてる] 12 を 3 でわり、商 <input type="text" class="calc-input" id="t2-s2-1" style="width:40px;"> を一の位にたてる。
+            </div>
+            <div class="step-input-area">
+              [かける] 3 と 4 をかける。<br>
+              3 × 4 = <input type="text" class="calc-input large" id="t2-s2-2">
+            </div>
+            <div class="step-input-area">
+              [ひく] 12 から 12 をひく。<br>
+              12 - 12 = <input type="text" class="calc-input" id="t2-s2-3">
+              <button class="btn-check" onclick="checkT2S2()">確認</button>
+            </div>
+            <div class="feedback" id="t2-fb2"></div>
+          </div>
+
+          <div class="summary-box" id="summary-t2">
+            🌟 【筆算のじゅんばん】<br>
+            「<strong>たてる → かける → ひく → おろす</strong>」<br>
+            わり算の筆算は、大きい位から順番にこのくり返しで計算するんだね！
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ3: けん算 -->
+    <div id="section-3" class="section">
+      <div class="lesson-container">
+        <div class="object-box" style="align-items: center; justify-content: center;">
+          <div class="box-title" style="align-self: flex-start;">けん算をしよう</div>
+          <div style="background:#e6fcf5; border: 2px solid #20c997; padding:15px; border-radius:10px; font-weight:bold; color:#087f5b; font-size:1.1rem; text-align:center; margin-bottom: 20px;">
+            🌱 答えをたしかめる計算を、<br>「けん算」というよ。
+          </div>
+          <div style="font-size: 1.5rem; font-weight: bold; border-bottom: 2px dashed #ced4da; padding-bottom: 10px;">
+            72 ÷ 3 = 24
+          </div>
+        </div>
+
+        <div class="control-panel">
+          <div class="step-box" id="t3-step1">
+            <div class="step-title">かけ算でたしかめよう</div>
+            <div style="font-size:0.95rem; margin-bottom:10px;">わる数と商をかけると、わられる数になるかな？</div>
+            <div class="step-input-area">
+              <input type="text" class="calc-input" id="t3-1"> × <input type="text" class="calc-input large" id="t3-2"> = <input type="text" class="calc-input large" id="t3-3">
+              <button class="btn-check" onclick="checkT3()">確認</button>
+            </div>
+            <div class="feedback" id="t3-fb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ4: 練習問題 -->
+    <div id="section-4" class="section">
+      <div style="margin-bottom: 15px; font-weight: bold; background: #fff4e6; padding: 10px; border-radius: 4px; color: #d9480f;">
+        ✏️ 空いているマス目に数字を入力して、筆算を完成させよう！
+      </div>
+
+      <div class="quiz-grid" id="quiz-area">
+        <!-- JSで筆算グリッドを生成 -->
+      </div>
+    </div>
+
+    <!-- タブ5: 板書計画 -->
+    <div id="section-5" class="section">
+      <div class="blackboard">
+        <!-- 左列 -->
+        <div class="bb-col" style="flex: 1.2;">
+          <div class="bb-text">5月17日</div>
+          <div class="bb-title" style="border-radius: 20px; padding: 5px 15px; background: white; color: #2b8a3e; margin-bottom: 15px;">
+            ? 筆算のしかたを調べよう。
+          </div>
+
+          <div style="background:white; padding:10px; border-radius:8px; text-align:center; color:black; font-family:'Courier New', monospace; font-size:1.5rem; font-weight:bold; width: 150px; margin: 0 auto;">
+            <div style="display:flex; justify-content:flex-end;">24</div>
+            <div style="border-bottom:2px solid black; display:flex; justify-content:space-between;">
+              <span>3)</span><span>72</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">6&nbsp;</div>
+            <div style="border-top:2px solid black; display:flex; justify-content:flex-end;">12</div>
+            <div style="display:flex; justify-content:flex-end;">12</div>
+            <div style="border-top:2px solid black; display:flex; justify-content:flex-end;">0</div>
+          </div>
+
+          <div class="bb-text" style="font-size:0.85rem; margin-top:10px; text-align:center;">
+            [10のたばを分けてばらす図]
+          </div>
+        </div>
+
+        <!-- 中列 -->
+        <div class="bb-col" style="flex: 2;">
+          <div style="border: 2px solid white; border-radius: 8px; padding: 15px;">
+            <div style="font-weight:bold; margin-bottom:10px;">72÷3の筆算のしかた</div>
+            <table style="width:100%; font-size:0.95rem; border-spacing: 5px;">
+              <tr>
+                <td>①たてる</td>
+                <td>→</td>
+                <td>2</td>
+                <td>← ⑤たてる</td>
+              </tr>
+              <tr>
+                <td>②かける</td>
+                <td>→</td>
+                <td>6</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>③ひく</td>
+                <td>→</td>
+                <td>12</td>
+                <td>← ④おろす</td>
+              </tr>
+              <tr>
+                <td>⑥かける</td>
+                <td>→</td>
+                <td>12</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>⑦ひく</td>
+                <td>→</td>
+                <td>0</td>
+                <td>⑧おろせなくなったら終わり</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="margin: 15px 0; font-size:0.95rem; font-weight:bold; text-align:center;">
+            ① → ② → ③ → ④ → ⑤ → ⑥ → ⑦ → ⑧<br>
+            たてる かける ひく おろす たてる かける ひく (おろす)
+          </div>
+
+          <div class="bb-text" style="margin-bottom:10px;">
+            しほさんやりくさんの考えは、筆算のしかたでどのように使われているかな？
+          </div>
+
+          <div style="display:flex; gap:10px;">
+            <div class="bb-box" style="flex:1;">
+              筆算で上の位から計算していることは、はじめに10まいのたばを分けたことと同じ。
+            </div>
+            <div class="bb-box" style="flex:1;">
+              筆算の「おろす」は位を下げることで、10まいのたばをばらしたことと同じ。
+            </div>
+          </div>
+        </div>
+
+        <!-- 右列 -->
+        <div class="bb-col" style="flex: 1.2;">
+          <div class="bb-text">答えのたしかめをしよう。</div>
+          <div style="background: rgba(255,255,255,0.8); color: black; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 20px;">
+            けん算<br>
+            72 ÷ 3 = 24<br>
+            3 × 24 = 72
+          </div>
+
+          <div style="border: 3px solid #fcc419; background: white; color: #d9480f; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: auto;">
+            わり算の筆算のしかたは、色紙を分けたときと同じ考えでできている。
+          </div>
+
+          <div class="bb-box" style="margin-top: 15px; border-color: #ffd8a8; background: #fff4e6; color: #d9480f; text-align: center;">
+            あまりのあるわり算も<br>できるのかな？
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+      }).trim();
+    }
+
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) sec.classList.add('active');
+        else sec.classList.remove('active');
+      });
+    }
+    // --- タブ1: 十の位 ---
+    function checkT1S1() {
+      const v1 = toHalfWidth(document.getElementById('t1-s1-1').value);
+      const fb = document.getElementById('t1-fb1');
+      if (v1 === '2') {
+        fb.style.color = 'var(--highlight)';
+        fb.innerText = '正解！ 筆算の十の位に「2」がたったね。';
+        document.getElementById('g1-q10').innerText = '2';
+        document.getElementById('g1-q10').classList.add('text-anim');
+        document.getElementById('t1-step1').classList.add('completed');
+        document.getElementById('t1-step2').classList.remove('locked');
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = '7÷3 の答えをいれてね。';
+      }
+    }
+
+    function checkT1S2() {
+      const v1 = toHalfWidth(document.getElementById('t1-s2-1').value);
+      const v2 = toHalfWidth(document.getElementById('t1-s2-2').value);
+      const fb = document.getElementById('t1-fb2');
+      if (v1 === '6' && v2 === '1') {
+        fb.style.color = 'var(--highlight)';
+        fb.innerText = '大正解！ 十の位の計算が終わりました。上のタブから「②一の位の計算」へ進もう！';
+        document.getElementById('g1-m10').innerText = '6';
+        document.getElementById('g1-m10').classList.add('text-anim');
+        document.getElementById('g1-s10').innerText = '1';
+        document.getElementById('g1-s10').classList.add('text-anim');
+        document.getElementById('t1-step2').classList.add('completed');
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'かけ算とひき算の答えをたしかめよう。';
+      }
+    }
+    // --- タブ2: 一の位 ---
+    function checkT2S1() {
+      const v1 = toHalfWidth(document.getElementById('t2-s1-1').value);
+      const fb = document.getElementById('t2-fb1');
+      if (v1 === '2') {
+        fb.style.color = 'var(--highlight)';
+        fb.innerText = '正解！ 次は「12」を3でわっていこう。';
+        document.getElementById('g2-drop').innerText = '2';
+        document.getElementById('g2-drop').classList.add('text-anim');
+        document.getElementById('t2-step1').classList.add('completed');
+        document.getElementById('t2-step2').classList.remove('locked');
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = '一の位の数字をそのまま下におろすよ。';
+      }
+    }
+
+    function checkT2S2() {
+      const v1 = toHalfWidth(document.getElementById('t2-s2-1').value);
+      const v2 = toHalfWidth(document.getElementById('t2-s2-2').value);
+      const v3 = toHalfWidth(document.getElementById('t2-s2-3').value);
+      const fb = document.getElementById('t2-fb2');
+      if (v1 === '4' && v2 === '12' && v3 === '0') {
+        fb.style.color = 'var(--highlight)';
+        fb.innerText = '大正解！ 筆算が完成したね。';
+        document.getElementById('g2-q1').innerText = '4';
+        document.getElementById('g2-q1').classList.add('text-anim');
+        document.getElementById('g2-m10').innerText = '1';
+        document.getElementById('g2-m10').classList.add('text-anim');
+        document.getElementById('g2-m1').innerText = '2';
+        document.getElementById('g2-m1').classList.add('text-anim');
+        document.getElementById('g2-remain').innerText = '0';
+        document.getElementById('g2-remain').classList.add('text-anim');
+        document.getElementById('t2-step2').classList.add('completed');
+        document.getElementById('summary-t2').style.display = 'block';
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = '計算をたしかめよう。';
+      }
+    }
+    // --- タブ3: けん算 ---
+    function checkT3() {
+      const v1 = toHalfWidth(document.getElementById('t3-1').value);
+      const v2 = toHalfWidth(document.getElementById('t3-2').value);
+      const v3 = toHalfWidth(document.getElementById('t3-3').value);
+      const fb = document.getElementById('t3-fb');
+      if (v1 === '3' && v2 === '24' && v3 === '72') {
+        fb.style.color = 'var(--highlight)';
+        fb.innerText = '大正解！ けん算でもちゃんと72になったね。';
+        document.getElementById('t3-step1').classList.add('completed');
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = 'わる数(3)と商(24)をかけてみてね。';
+      }
+    }
+    // --- タブ4: 練習問題 (動的生成) ---
+    const quizData = [{
+        id: 1,
+        eq: "① 52 ÷ 4",
+        div: "4",
+        w1: "5",
+        w2: "2",
+        ans: {
+          r1c3: "1",
+          r1c4: "3",
+          r3c3: "4",
+          r4c3: "1",
+          r4c4: "2",
+          r5c3: "1",
+          r5c4: "2",
+          r6c4: "0"
+        }
+      },
+      {
+        id: 2,
+        eq: "② 81 ÷ 3",
+        div: "3",
+        w1: "8",
+        w2: "1",
+        ans: {
+          r1c3: "2",
+          r1c4: "7",
+          r3c3: "6",
+          r4c3: "2",
+          r4c4: "1",
+          r5c3: "2",
+          r5c4: "1",
+          r6c4: "0"
+        }
+      },
+      {
+        id: 3,
+        eq: "③ 85 ÷ 5",
+        div: "5",
+        w1: "8",
+        w2: "5",
+        ans: {
+          r1c3: "1",
+          r1c4: "7",
+          r3c3: "5",
+          r4c3: "3",
+          r4c4: "5",
+          r5c3: "3",
+          r5c4: "5",
+          r6c4: "0"
+        }
+      },
+      {
+        id: 4,
+        eq: "④ 96 ÷ 4",
+        div: "4",
+        w1: "9",
+        w2: "6",
+        ans: {
+          r1c3: "2",
+          r1c4: "4",
+          r3c3: "8",
+          r4c3: "1",
+          r4c4: "6",
+          r5c3: "1",
+          r5c4: "6",
+          r6c4: "0"
+        }
+      }
+    ];
+
+    function initQuiz() {
+      const area = document.getElementById('quiz-area');
+      area.innerHTML = '';
+      quizData.forEach(q => {
+        area.innerHTML += `
+          <div class="quiz-item">
+            <div class="q-header">
+              <span>${q.eq}</span>
+              <button class="btn-check" onclick="checkHissan(${q.id})">確認</button>
+            </div>
+            <div class="hissan-grid">
+              <div class="hc"></div><div class="hc"></div><div class="hc"><input id="q${q.id}-r1c3" class="hc-input" maxlength="1"></div><div class="hc"><input id="q${q.id}-r1c4" class="hc-input" maxlength="1"></div>
+              <div class="hc">${q.div}</div><div class="hc">)</div><div class="hc b-top-black">${q.w1}</div><div class="hc b-top-black">${q.w2}</div>
+              <div class="hc"></div><div class="hc"></div><div class="hc"><input id="q${q.id}-r3c3" class="hc-input" maxlength="1"></div><div class="hc"></div>
+              <div class="hc"></div><div class="hc"></div><div class="hc b-top-black"><input id="q${q.id}-r4c3" class="hc-input" maxlength="1"></div><div class="hc"><input id="q${q.id}-r4c4" class="hc-input" maxlength="1"></div>
+              <div class="hc"></div><div class="hc"></div><div class="hc"><input id="q${q.id}-r5c3" class="hc-input" maxlength="1"></div><div class="hc"><input id="q${q.id}-r5c4" class="hc-input" maxlength="1"></div>
+              <div class="hc"></div><div class="hc"></div><div class="hc b-top-black"></div><div class="hc b-top-black"><input id="q${q.id}-r6c4" class="hc-input" maxlength="1"></div>
+            </div>
+            <div class="feedback" id="fb-q${q.id}" style="text-align:center; margin-top:10px;"></div>
+          </div>
+        `;
+      });
+    }
+
+    function checkHissan(qId) {
+      const q = quizData.find(d => d.id === qId);
+      let allCorrect = true;
+      for (let key in q.ans) {
+        const el = document.getElementById(`q${qId}-${key}`);
+        if (!el) continue;
+        const val = toHalfWidth(el.value);
+        if (val === q.ans[key]) {
+          el.classList.remove('error');
+          el.classList.add('correct');
+        } else {
+          el.classList.remove('correct');
+          el.classList.add('error');
+          allCorrect = false;
+        }
+      }
+      const fb = document.getElementById(`fb-q${qId}`);
+      if (allCorrect) {
+        fb.style.color = 'var(--highlight)';
+        fb.innerText = '⭕️ 完璧です！';
+      } else {
+        fb.style.color = 'var(--danger)';
+        fb.innerText = '❌ まちがっているところ（赤色）をなおそう。';
+      }
+    }
+    window.onload = () => {
+      initQuiz();
+    };
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

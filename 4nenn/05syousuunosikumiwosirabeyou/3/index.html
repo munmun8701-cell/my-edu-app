@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>4年　０５　小数の仕組みを調べよう　３時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小数のしくみマスター</title>
+    <style>
+        :root {
+            --primary-color: #00796b;
+            --primary-light: #e0f2f1;
+            --accent-color: #ff9800;
+            --bg-color: #f0f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --correct-color: #4caf50;
+            --error-color: #f44336;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 2px solid var(--primary-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* タブナビゲーション */
+        .tabs {
+            display: flex;
+            background: #b2dfdb;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #004d40;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-btn:hover { background: #80cbc4; }
+        .tab-btn.active {
+            background: var(--card-bg);
+            border-top: 4px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            margin: 20px 0 10px;
+            color: #444;
+            border-left: 5px solid var(--primary-color);
+            padding-left: 10px;
+        }
+
+        /* アニメーションシミュレーター */
+        .sim-container {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #81c784;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .place-value-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            height: 100px;
+        }
+
+        .digit-box {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #ccc;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 5px;
+            font-size: 36px;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .digit-box.active {
+            border-color: var(--accent-color);
+            background: #fff3e0;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .decimal-point {
+            font-size: 48px;
+            color: red;
+            align-self: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: center;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .label-box {
+            width: 80px;
+            text-align: center;
+            margin: 0 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        .ctrl-btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn-times10 { background: #ff9800; }
+        .btn-div10 { background: #03a9f4; }
+        .btn-reset { background: #9e9e9e; }
+
+        /* 視覚的ブロック表現 */
+        .block-visual {
+            margin: 20px auto;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .block-1 { width: 120px; height: 120px; background: #81d4fa; border: 2px solid #0288d1; }
+        .block-01 { width: 12px; height: 120px; background: #81d4fa; border: 1px solid #0288d1; display:flex; flex-direction:column; }
+        .block-01 div { flex:1; border-bottom: 1px solid #e1f5fe; }
+        .block-001 { width: 12px; height: 12px; background: #81d4fa; border: 1px solid #0288d1; }
+        .block-0001 { width: 4px; height: 4px; background: #81d4fa; }
+
+        /* 問題スタイル */
+        .question-block {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 18px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 18px;
+            width: 80px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        }
+        .check-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .check-btn:hover { background: #00695c; }
+        .feedback {
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .success { color: var(--correct-color); }
+        .error { color: var(--error-color); }
+
+        .hint-btn {
+            background: #fff3e0;
+            border: 1px solid #ffb74d;
+            color: #e65100;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .hint-text {
+            display: none;
+            background: #fffde7;
+            padding: 15px;
+            border-left: 5px solid #fdd835;
+            margin-top: 10px;
+            font-size: 15px;
+            border-radius: 4px;
+        }
+
+        /* 分数入力用 */
+        .fraction-input {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+        }
+        .fraction-input input {
+            width: 70px;
+            padding: 5px;
+            font-size: 16px;
+        }
+        .fraction-line {
+            width: 100%;
+            height: 2px;
+            background-color: #333;
+            margin: 2px 0;
+        }
+
+        .summary-box {
+            background: #e0f7fa;
+            border: 2px solid #00acc1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .summary-box .speech {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .speech-bubble {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #b2ebf2;
+            position: relative;
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 10px 10px 0;
+            border-style: solid;
+            border-color: transparent white transparent transparent;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>小数のしくみマスター</h1>
+        <p>10倍、10分の1にすると、数はどう変わるかな？</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('tab1')">1. 動かして発見しよう</button>
+        <button class="tab-btn" onclick="showTab('tab2')">2. たしかめ問題（練習）</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <h2>1 と 0.1、0.01、0.001 の関係を調べましょう</h2>
+        
+        <div class="sim-container">
+            <p style="font-size: 18px; font-weight: bold; margin-bottom:10px;">「10倍」や「10分の1」ボタンを押して、数字の動きを観察しよう！</p>
+            
+            <div class="label-row">
+                <div class="label-box">十の位</div>
+                <div class="label-box">一の位</div>
+                <div class="label-box" style="width:20px;"></div> <div class="label-box"><span style="font-size:12px;">10分の1の位</span></div>
+                <div class="label-box"><span style="font-size:12px;">100分の1の位</span></div>
+                <div class="label-box"><span style="font-size:12px;">1000分の1の位</span></div>
+            </div>
+
+            <div class="place-value-display" id="pv-display">
+                <div class="digit-box" id="box-10">0</div>
+                <div class="digit-box active" id="box-1">1</div>
+                <div class="decimal-point">.</div>
+                <div class="digit-box" id="box-01">0</div>
+                <div class="digit-box" id="box-001">0</div>
+                <div class="digit-box" id="box-0001">0</div>
+            </div>
+
+            <div class="block-visual" id="block-visual">
+                <div class="block-1"></div>
+            </div>
+            <p id="current-val-text" style="font-size: 20px; font-weight: bold; color: #0288d1;">現在の数： 1</p>
+
+            <div class="controls">
+                <button class="ctrl-btn btn-times10" onclick="multiply10()">× 10倍する ➔</button>
+                <button class="ctrl-btn btn-div10" onclick="divide10()">⇦ 10分の1にする (÷10)</button>
+            </div>
+            <button class="ctrl-btn btn-reset" style="margin-top: 15px;" onclick="resetSim()">1にもどす</button>
+        </div>
+
+        <div class="summary-box">
+            <div class="speech">
+                <div style="font-size: 40px;">👦</div>
+                <div class="speech-bubble">
+                    <strong>気づいたこと：</strong><br>
+                    小数のしくみも、整数のしくみと同じように...<br>
+                    ・<strong>10倍</strong> すると、位が <strong>1つ左</strong> に上がる！<br>
+                    ・<strong>10分の1</strong> にすると、位が <strong>1つ右</strong> に下がるんだね！
+                </div>
+            </div>
+        </div>
+
+        <button class="check-btn" style="display:block; margin: 30px auto;" onclick="showTab('tab2')">たしかめ問題にちょうせん！ ➔</button>
+    </div>
+
+    <div id="tab2" class="tab-content">
+        <h2>2. たしかめ問題（教科書）</h2>
+        
+        <div class="question-block">
+            <h3>① 0.1、0.01、0.001は、それぞれ 1 の何分の一ですか。</h3>
+            
+            <div class="input-group">
+                <p>・<strong>0.1</strong> は 1 の </p>
+                <div class="fraction-input">
+                    <input type="text" id="q1_1_num" value="1" readonly style="background:#eee; text-align:center;">
+                    <div class="fraction-line"></div>
+                    <input type="text" id="q1_1_den" placeholder="分母を入力">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <p>・<strong>0.01</strong> は 1 の </p>
+                <div class="fraction-input">
+                    <input type="text" id="q1_2_num" value="1" readonly style="background:#eee; text-align:center;">
+                    <div class="fraction-line"></div>
+                    <input type="text" id="q1_2_den" placeholder="分母を入力">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <p>・<strong>0.001</strong> は 1 の </p>
+                <div class="fraction-input">
+                    <input type="text" id="q1_3_num" value="1" readonly style="background:#eee; text-align:center;">
+                    <div class="fraction-line"></div>
+                    <input type="text" id="q1_3_den" placeholder="分母を入力">
+                </div>
+            </div>
+
+            <button class="check-btn" onclick="checkQ1()">こたえあわせ</button>
+            <div id="fb_q1" class="feedback"></div>
+            
+            <button class="hint-btn" onclick="toggleHint('hint_q1')">💡 ヒントをみる</button>
+            <div id="hint_q1" class="hint-text">
+                「10分の1」をもう1回「10分の1」にすると、いくつに分けたことになるかな？<br>
+                10 × 10 = 100 だから...？
+            </div>
+        </div>
+
+        <div class="question-block">
+            <h3>② 0.1、0.01、0.001は、それぞれ何倍すると 1 になりますか。</h3>
+            
+            <div class="input-group">
+                <p>・<strong>0.1</strong> は </p>
+                <input type="text" id="q2_1"> 倍
+            </div>
+            
+            <div class="input-group">
+                <p>・<strong>0.01</strong> は </p>
+                <input type="text" id="q2_2"> 倍
+            </div>
+            
+            <div class="input-group">
+                <p>・<strong>0.001</strong> は </p>
+                <input type="text" id="q2_3"> 倍
+            </div>
+
+            <button class="check-btn" onclick="checkQ2()">こたえあわせ</button>
+            <div id="fb_q2" class="feedback"></div>
+            
+            <button class="hint-btn" onclick="toggleHint('hint_q2')">💡 ヒントをみる</button>
+            <div id="hint_q2" class="hint-text">
+                タブ1の「1にもどす」ボタンを押して、0.01を作ってから「×10倍する」ボタンを何回押せば1になるか、たしかめてみよう！<br>
+                0.01 を 10倍すると 0.1。さらにもう10倍すると 1 になるね。10倍の10倍は...？
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 全角を半角に変換するヘルパー関数
+    function toHalfWidth(str) {
+        if (!str) return "";
+        return str.replace(/[！-～]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xfee0);
+        }).replace(/ /g, '');
+    }
+
+    // タブ切り替え
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // ヒント開閉
+    function toggleHint(id) {
+        const el = document.getElementById(id);
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    /* ---------------------------------
+       シミュレーター制御（タブ1）
+       --------------------------------- */
+    // 状態管理: index 0(10), 1(1), 2(0.1), 3(0.01), 4(0.001)
+    let currentIdx = 1; 
+    const textValues = ["10", "1", "0.1", "0.01", "0.001"];
+    const boxIds = ["box-10", "box-1", "box-01", "box-001", "box-0001"];
+
+    function updateSim() {
+        // すべてのボックスの表示をリセット
+        boxIds.forEach(id => {
+            document.getElementById(id).innerText = "0";
+            document.getElementById(id).classList.remove("active");
+        });
+
+        // 現在の位に「1」をセット
+        document.getElementById(boxIds[currentIdx]).innerText = "1";
+        document.getElementById(boxIds[currentIdx]).classList.add("active");
+
+        // テキストの更新
+        document.getElementById("current-val-text").innerText = "現在の数： " + textValues[currentIdx];
+
+        // 視覚的ブロックの更新
+        const visual = document.getElementById("block-visual");
+        visual.innerHTML = "";
+        
+        if (currentIdx === 0) {
+            visual.innerHTML = "<div style='font-size:20px; font-weight:bold;'>正方形のブロックが10こ</div>";
+        } else if (currentIdx === 1) {
+            visual.innerHTML = "<div class='block-1'></div>";
+        } else if (currentIdx === 2) {
+            let sticks = "";
+            for(let i=0; i<10; i++) sticks += "<div></div>";
+            visual.innerHTML = "<div class='block-01'>" + sticks + "</div>";
+        } else if (currentIdx === 3) {
+            visual.innerHTML = "<div class='block-001'></div>";
+        } else if (currentIdx === 4) {
+            visual.innerHTML = "<div class='block-0001'></div>";
+        }
+    }
+
+    function multiply10() {
+        if (currentIdx > 0) {
+            currentIdx--;
+            updateSim();
+        } else {
+            alert("これ以上大きくなれません！");
+        }
+    }
+
+    function divide10() {
+        if (currentIdx < 4) {
+            currentIdx++;
+            updateSim();
+        } else {
+            alert("これ以上小さくなれません！");
+        }
+    }
+
+    function resetSim() {
+        currentIdx = 1;
+        updateSim();
+    }
+
+    // 初期化
+    window.onload = function() {
+        updateSim();
+    };
+
+    /* ---------------------------------
+       たしかめ問題判定（タブ2）
+       --------------------------------- */
+    function checkQ1() {
+        const d1 = toHalfWidth(document.getElementById('q1_1_den').value);
+        const d2 = toHalfWidth(document.getElementById('q1_2_den').value);
+        const d3 = toHalfWidth(document.getElementById('q1_3_den').value);
+        const fb = document.getElementById('fb_q1');
+        
+        if (d1 === '10' && d2 === '100' && d3 === '1000') {
+            fb.className = 'feedback success'; 
+            fb.innerHTML = '🎉 ぜんぶ大正解！<br>0.1は 10分の1、0.01は 100分の1、0.001は 1000分の1 だね！';
+        } else {
+            fb.className = 'feedback error'; 
+            let msg = '❌ ちがうところがあるよ。<br>';
+            if (d1 !== '10') msg += '・0.1 は 1 を何等分したか思い出そう。<br>';
+            if (d2 !== '100') msg += '・0.01 は 0.1(1/10) をさらに 10等分 したものだよ。<br>';
+            if (d3 !== '1000') msg += '・0.001 は 0.01(1/100) をさらに 10等分 したものだよ。<br>';
+            fb.innerHTML = msg;
+        }
+    }
+
+    function checkQ2() {
+        const a1 = toHalfWidth(document.getElementById('q2_1').value);
+        const a2 = toHalfWidth(document.getElementById('q2_2').value);
+        const a3 = toHalfWidth(document.getElementById('q2_3').value);
+        const fb = document.getElementById('fb_q2');
+        
+        if (a1 === '10' && a2 === '100' && a3 === '1000') {
+            fb.className = 'feedback success'; 
+            fb.innerHTML = '🎉 ぜんぶ大正解！すばらしい！<br>位が上がるごとに 10倍、100倍、1000倍 となるしくみがわかったね！';
+        } else {
+            fb.className = 'feedback error'; 
+            let msg = '❌ どこかまちがっているよ。<br>';
+            if (a1 !== '10') msg += '・0.1 を 1 にするには、位を1つ上げる（何倍？）必要があるね。<br>';
+            if (a2 !== '100') msg += '・0.01 を 1 にするには、位を2つ上げる（10倍のさらに10倍）必要があるよ。<br>';
+            if (a3 !== '1000') msg += '・0.001 を 1 にするには、位を3つ上げる（10×10×10）必要があるよ。<br>';
+            fb.innerHTML = msg;
+        }
+    }
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>

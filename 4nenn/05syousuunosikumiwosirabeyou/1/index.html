@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>０５　4年　小数の仕組みを調べよう　1時間目</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最強学習支援アプリ：小数のしくみを調べよう</title>
+    <style>
+        :root {
+            --primary-color: #2ca58d;
+            --primary-light: #e8f6f3;
+            --accent-color: #ff6b6b;
+            --bg-color: #f7f9fa;
+            --text-color: #333333;
+            --container-bg: #ffffff;
+            --border-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 3px solid var(--primary-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        /* タブメニュー */
+        .tabs {
+            display: flex;
+            background: #e0f2f1;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 10px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #00796b;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: #b2dfdb;
+        }
+
+        .tab-button.active {
+            background: var(--container-bg);
+            color: var(--primary-color);
+            border-top: 4px solid var(--primary-color);
+            margin-top: -4px;
+        }
+
+        /* コンテンツエリア */
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-left: 6px solid var(--primary-color);
+            padding-left: 12px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            color: #444;
+        }
+
+        p { margin-bottom: 15px; }
+
+        .intro-box {
+            background: #fff8e1;
+            border-left: 6px solid #ffb300;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* シミュレーターエリア */
+        .simulator-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .beaker-container {
+            flex: 1;
+            min-width: 300px;
+            background: #f1f8e9;
+            border: 2px dashed #8bc34a;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .beaker-wrapper {
+            position: relative;
+            width: 140px;
+            /* 1.5L 分の高さを確保 (1L = 300px, 1.5L = 450px) + 余白 */
+            height: 480px; 
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        .beaker-outer {
+            width: 100%;
+            height: 100%;
+            border: 4px solid #78909c;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #29b6f6, #4fc3f7);
+            height: 0px;
+            transition: height 0.4s ease-in-out;
+            border-top: 2px solid #0288d1;
+        }
+
+        .beaker-ticks {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        .tick {
+            position: absolute; left: 0; width: 15px;
+            border-top: 2px solid #78909c;
+        }
+
+        .tick.major {
+            width: 25px; border-top: 3px solid #455a64;
+        }
+
+        .tick-label {
+            position: absolute; 
+            left: 35px;
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #455a64;
+            transform: translateY(-50%); /* 目盛り線の中央に高さを合わせる */
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .unit-label {
+            position: absolute;
+            top: -25px;
+            left: 35px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #455a64;
+        }
+
+        .digital-display {
+            font-size: 36px; font-weight: bold; color: #0288d1;
+            background: #e1f5fe; padding: 15px 30px;
+            border-radius: 12px; border: 2px solid #b3e5fc;
+            text-align: center; width: 100%;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .controls-container {
+            flex: 1.2; min-width: 300px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        .btn-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+        }
+
+        button.action-btn {
+            padding: 15px 10px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 10px; cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            transition: all 0.1s;
+        }
+
+        button.action-btn:active {
+            transform: translateY(4px); box-shadow: none;
+        }
+
+        .btn-1l { background-color: #ffcc80; color: #e65100; }
+        .btn-01l { background-color: #81c784; color: #1b5e20; }
+        .btn-001l { background-color: #4fc3f7; color: #0d47a1; }
+        .btn-reset { background-color: #e0e0e0; color: #424242; grid-column: span 3; font-size: 16px;}
+
+        .mission-box {
+            background-color: var(--primary-light);
+            border: 2px solid var(--primary-color);
+            padding: 15px; border-radius: 10px; text-align: center;
+        }
+
+        /* クイズと入力 */
+        .quiz-card {
+            background: #fff; border: 2px solid #e0e0e0;
+            border-radius: 12px; padding: 20px; margin-bottom: 20px;
+        }
+
+        .quiz-card.correct { border-color: #4caf50; background-color: #e8f5e9; }
+
+        .input-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .input-text { padding: 10px; font-size: 18px; width: 120px; border: 2px solid #ccc; border-radius: 8px; text-align: center; }
+        .check-btn { padding: 10px 20px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;}
+        .check-btn:hover { background-color: #238471; }
+        
+        .hint-btn { padding: 8px 15px; background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: bold;}
+        .hint-text { display: none; background: #fffde7; padding: 12px; border-left: 4px solid #fff176; margin-top: 10px; font-size: 14px; }
+        .feedback { margin-top: 10px; font-weight: bold; }
+        .feedback.success { color: #2e7d32; }
+        .feedback.error { color: #c62828; }
+
+        /* 数直線インタラクティブ */
+        .number-line-container { width: 100%; overflow-x: auto; background: #fafafa; padding: 30px 10px; border-radius: 8px; border: 1px solid #ddd; margin: 20px 0; }
+        .number-line-wrapper { position: relative; width: 800px; height: 120px; margin: 0 auto; }
+        canvas { display: block; }
+        .arrow-interactive-zone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+        .placed-arrow { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+        .placed-arrow .arrow-text { background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .placed-arrow .arrow-shaft { width: 3px; height: 25px; background: var(--accent-color); position: relative; }
+        .placed-arrow .arrow-shaft::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 100%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--accent-color); }
+        .point-label { position: absolute; bottom: 65px; transform: translateX(-50%); background: #3f51b5; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        .point-label::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #3f51b5; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>小数のしくみを調べよう</h1>
+        <p>〜0.01の位（小数第二位）をマスターしよう〜</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab(event, 'step1')">1. めあてと発見</button>
+        <button class="tab-button" onclick="openTab(event, 'step2')">2. 水のかさ操作ツール</button>
+        <button class="tab-button" onclick="openTab(event, 'step3')">3. たしかめ問題</button>
+    </div>
+
+    <div id="step1" class="tab-content active">
+        <h2>0.1Lより小さいかさを表す方法を調べよう</h2>
+        <div class="intro-box">
+            <p><strong>【ふくしゅう】</strong></p>
+            <p>1Lを10等分した1つ分を<strong>0.1L（れいてんいちリットル）</strong>と表すことを学習しました。</p>
+            <p><strong>1.3L</strong> は、1L と 0.3L をあわせたかさで、0.1L を <strong>13こ</strong> 集めたかさです。</p>
+        </div>
+        <h3>0.01 のたんじょう</h3>
+        <p>1.2Lと1.3Lの間の水のかさを表すには、1Lますの0.2と0.3の間を、さらに10等分します。</p>
+        <p>0.1L をさらに <strong>10等分</strong> したかさを、<strong>0.01L（れいてんれいいちリットル）</strong> と書きます。</p>
+        <p>1.2L と 0.08L をあわせたかさを、<strong>1.28L（いったんにはちリットル）</strong> と書きます。</p>
+        
+        <button class="check-btn" style="display: block; margin: 30px auto;" onclick="document.querySelectorAll('.tab-button')[1].click();">
+            次のステップ：水のかさを自分で操作してみよう！ ➔
+        </button>
+    </div>
+
+    <div id="step2" class="tab-content">
+        <h2>2. 水のかさを自分で作ってみよう！</h2>
+        <div class="mission-box">
+            <p>🌟 <strong>ミッション</strong> 🌟</p>
+            <p style="font-size: 26px; font-weight: bold; color: #2ca58d; margin: 10px 0;">「1.28 L」 の水をつくってみよう！</p>
+            <p id="mission-status" style="font-weight: bold; color: #e65100; font-size: 18px;">あと 1.28 L 必要です</p>
+        </div>
+
+        <div class="simulator-layout">
+            <div class="beaker-container">
+                <h3 style="margin-top:0;">1 L ます</h3>
+                <div class="beaker-wrapper">
+                    <div class="unit-label">(L)</div>
+                    <div class="beaker-outer">
+                        <div id="water-layer" class="water"></div>
+                        <div class="beaker-ticks" id="beaker-ticks-container"></div>
+                    </div>
+                </div>
+                <div id="digital-val" class="digital-display">0.00 L</div>
+            </div>
+
+            <div class="controls-container">
+                <h3>水をいれる・だす</h3>
+                <div class="btn-grid">
+                    <button class="action-btn btn-1l" onclick="addWater(1.0)">+1 L</button>
+                    <button class="action-btn btn-01l" onclick="addWater(0.1)">+0.1 L</button>
+                    <button class="action-btn btn-001l" onclick="addWater(0.01)">+0.01 L</button>
+                </div>
+                <div class="btn-grid" style="margin-top: 5px;">
+                    <button class="action-btn btn-1l" style="background:#ffe0b2;" onclick="addWater(-1.0)">-1 L</button>
+                    <button class="action-btn btn-01l" style="background:#c8e6c9;" onclick="addWater(-0.1)">-0.1 L</button>
+                    <button class="action-btn btn-001l" style="background:#b3e5fc;" onclick="addWater(-0.01)">-0.01 L</button>
+                </div>
+                <div class="btn-grid" style="margin-top: 15px;">
+                    <button class="action-btn btn-reset" onclick="resetWater()">からっぽにする</button>
+                </div>
+
+                <div class="quiz-card" style="margin-top: 20px;">
+                    <p style="font-weight: bold;">じっくり観察してみよう：</p>
+                    <p style="font-size: 15px; color: #555; margin-top: 10px;">「+0.01 L」を10回押すと、何Lになるかな？<br>ボタンを押して、目盛りと数字の変化を確かめてみよう！</p>
+                    <button class="hint-btn" onclick="toggleHint('hint-sim')">💡 ヒントをみる</button>
+                    <div id="hint-sim" class="hint-text">0.01L が 10こ 集まると 0.1L に繰り上がるよ！</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="step3" class="tab-content">
+        <h2>3. たしかめ問題</h2>
+        
+        <div class="quiz-card">
+            <h3>【問題 1】 0.01L が 何こ集まったかさかな？</h3>
+            <p>① 0.05 L は、0.01 L を何こ集めたかさですか。</p>
+            <div class="input-group">
+                <input type="text" id="q1_1_input" class="input-text" placeholder="例: 5"> <span>こ</span>
+                <button class="check-btn" onclick="checkQ1_1()">こたえあわせ</button>
+            </div>
+            <div id="q1_1_feedback" class="feedback"></div>
+
+            <p style="margin-top:20px;">② 0.1 L は、0.01 L を何こ集めたかさですか。</p>
+            <div class="input-group">
+                <input type="text" id="q1_2_input" class="input-text" placeholder="例: 10"> <span>こ</span>
+                <button class="check-btn" onclick="checkQ1_2()">こたえあわせ</button>
+            </div>
+            <div id="q1_2_feedback" class="feedback"></div>
+        </div>
+
+        <div class="quiz-card" id="q2-card">
+            <h3>【問題 2】 下の数直線を見て答えましょう。</h3>
+            <div class="number-line-container">
+                <div class="number-line-wrapper" id="num-line-wrapper">
+                    <canvas id="mainNumberLine" width="800" height="120"></canvas>
+                    <div class="point-label" style="left: 80px;">ア</div>
+                    <div class="point-label" style="left: 215px;">イ</div>
+                    <div class="point-label" style="left: 410px;">ウ</div>
+                    <div class="point-label" style="left: 515px;">エ</div>
+                    <div class="point-label" style="left: 695px;">オ</div>
+                    <div class="arrow-interactive-zone" id="interactive-zone" onclick="placeUserArrow(event)"></div>
+                    <div id="arrow-container-055" class="placed-arrow" style="left: 335px; bottom: 5px; display:none;">
+                        <span class="arrow-text" style="background:#ff5722;">0.55m</span>
+                        <div class="arrow-shaft" style="background:#ff5722;"></div>
+                    </div>
+                    <div id="arrow-container-108" class="placed-arrow" style="left: 653px; bottom: 5px; display:none;">
+                        <span class="arrow-text" style="background:#e91e63;">1.08m</span>
+                        <div class="arrow-shaft" style="background:#e91e63;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p>① いちばん小さい 1めもりは、どんな大きさを表していますか。</p>
+            <div class="input-group">
+                <input type="text" id="q2_1_input" class="input-text" placeholder="例: 0.01"> <span>m</span>
+                <button class="check-btn" onclick="checkQ2_1()">こたえあわせ</button>
+            </div>
+            <div id="q2_1_feedback" class="feedback"></div>
+
+            <p style="margin-top:20px;">② ア〜オのめもりが表す長さは何mですか。</p>
+            <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:10px;">
+                <label>ア: <input type="text" id="input_a" class="input-text" style="width:70px;"></label>
+                <label>イ: <input type="text" id="input_b" class="input-text" style="width:70px;"></label>
+                <label>ウ: <input type="text" id="input_c" class="input-text" style="width:70px;"></label>
+                <label>エ: <input type="text" id="input_d" class="input-text" style="width:70px;"></label>
+                <label>オ: <input type="text" id="input_e" class="input-text" style="width:70px;"></label>
+            </div>
+            <button class="check-btn" style="margin-top: 15px;" onclick="checkQ2_2()">ア〜オのこたえあわせ</button>
+            <div id="q2_2_feedback" class="feedback"></div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+            <p style="margin-top:15px; font-weight: bold;">③ 0.55m と 1.08m を表すめもりに、↑をかきましょう。</p>
+            <p style="font-size:15px; color:#ef6c00;">★上の数直線の正しい目盛りのあたりをタッチ（クリック）してみてね！</p>
+            <div style="display: flex; gap: 20px; margin-top: 15px;">
+                <div id="status-055" style="padding: 10px; background: #ffe0b2; border-radius: 8px; font-weight: bold; color: #e65100;">🔴 0.55m に↑をつけてね</div>
+                <div id="status-108" style="padding: 10px; background: #ffe0b2; border-radius: 8px; font-weight: bold; color: #e65100;">🔴 1.08m に↑をつけてね</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 全角数字を半角に変換する関数
+    function toHalfWidth(str) {
+        if (!str) return "";
+        return str.replace(/[！-～]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xfee0);
+        }).replace(/．/g, '.').replace(/ /g, '');
+    }
+
+    // タブの切り替え処理
+    function openTab(evt, tabName) {
+        const tabcontents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontents.length; i++) tabcontents[i].classList.remove("active");
+        
+        const tabbuttons = document.getElementsByClassName("tab-button");
+        for (let i = 0; i < tabbuttons.length; i++) tabbuttons[i].classList.remove("active");
+        
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+        
+        if (tabName === 'step3') drawNumberLine();
+    }
+
+    // ヒントの開閉
+    function toggleHint(id) {
+        const hint = document.getElementById(id);
+        hint.style.display = (hint.style.display === "block") ? "none" : "block";
+    }
+
+    /* =====================================
+       水のかさシミュレーター（完全修正版）
+       ===================================== */
+    let currentWater = 0.0;
+    
+    // ますの目盛りを生成 (1.5L まで対応)
+    function createBeakerTicks() {
+        const container = document.getElementById("beaker-ticks-container");
+        container.innerHTML = "";
+        
+        // 1L = 300px, 0.1L = 30px, 0.01L = 3px
+        // 150は 1.50L を表す (0 から 150 まで)
+        const maxUnits = 150; 
+        const pxPerUnit = 3; // 0.01L あたり 3px
+        
+        for (let i = 0; i <= maxUnits; i++) {
+            // 0.05L (5ユニット) ごとに目盛り線を描画
+            if (i % 5 === 0) {
+                const tick = document.createElement("div");
+                tick.className = "tick " + (i % 10 === 0 ? "major" : "");
+                tick.style.bottom = (i * pxPerUnit) + "px";
+                
+                // 0.1L (10ユニット) ごとに数値を描画
+                if (i % 10 === 0) {
+                    const label = document.createElement("span");
+                    label.className = "tick-label";
+                    // 【修正箇所】 (i/100) に修正し、正しく 0.1, 0.2 と表示させる
+                    label.innerText = (i / 100).toFixed(1);
+                    tick.appendChild(label);
+                }
+                container.appendChild(tick);
+            }
+        }
+    }
+
+    // 水を出し入れする処理
+    function addWater(amount) {
+        // 小数点の計算誤差を防ぐため、一度整数（×100）にしてから計算
+        let waterInt = Math.round(currentWater * 100);
+        let amountInt = Math.round(amount * 100);
+        let newWaterInt = waterInt + amountInt;
+        
+        // 上限・下限のチェック
+        if (newWaterInt < 0) newWaterInt = 0;
+        if (newWaterInt > 150) newWaterInt = 150; // 最大 1.5L
+        
+        currentWater = newWaterInt / 100;
+        updateBeakerUI();
+    }
+
+    // リセット処理
+    function resetWater() { 
+        currentWater = 0.0; 
+        updateBeakerUI(); 
+    }
+
+    // 画面の表示を更新する
+    function updateBeakerUI() {
+        document.getElementById("digital-val").innerText = currentWater.toFixed(2) + " L";
+        
+        // 高さをピクセルで指定 (1L = 300px)
+        const pxHeight = currentWater * 300;
+        document.getElementById("water-layer").style.height = pxHeight + "px";
+        
+        const target = 1.28;
+        const statusText = document.getElementById("mission-status");
+        
+        // 目標値に達したかの判定
+        if (Math.abs(currentWater - target) < 0.001) {
+            statusText.innerHTML = "🎉 大正解！！ 1.28L ぴったり作れました！";
+            statusText.style.color = "#2e7d32";
+        } else if (currentWater < target) {
+            statusText.innerHTML = "あと " + (target - currentWater).toFixed(2) + " L たりないよ。";
+            statusText.style.color = "#e65100";
+        } else {
+            statusText.innerHTML = "あっ、入れすぎちゃった！ " + (currentWater - target).toFixed(2) + " L 多いよ。";
+            statusText.style.color = "#c62828";
+        }
+    }
+
+    /* =====================================
+       たしかめ問題チェック処理
+       ===================================== */
+    function checkQ1_1() {
+        const val = toHalfWidth(document.getElementById("q1_1_input").value);
+        const fb = document.getElementById("q1_1_feedback");
+        if (val === "5") { fb.className = "feedback success"; fb.innerText = "⭕ 正解！"; }
+        else { fb.className = "feedback error"; fb.innerText = "❌ ちがうよ。もういちど数えよう。"; }
+    }
+    
+    function checkQ1_2() {
+        const val = toHalfWidth(document.getElementById("q1_2_input").value);
+        const fb = document.getElementById("q1_2_feedback");
+        if (val === "10") { fb.className = "feedback success"; fb.innerText = "⭕ 大正解！ 0.01が10こで0.1だよ。"; }
+        else { fb.className = "feedback error"; fb.innerText = "❌ 残念。0.1になるには何こ必要か考えてね。"; }
+    }
+    
+    function checkQ2_1() {
+        const val = toHalfWidth(document.getElementById("q2_1_input").value);
+        const fb = document.getElementById("q2_1_feedback");
+        if (val === "0.01" || val === ".01" || val === "0.01m") { 
+            fb.className = "feedback success"; 
+            fb.innerText = "⭕ 大正解！ 1めもりは 0.01m です。"; 
+        } else { 
+            fb.className = "feedback error"; 
+            fb.innerText = "❌ ちがうよ。0から0.1までの間が10こに分かれているよ。"; 
+        }
+    }
+
+    const ansQ2 = { a: "0.12", b: "0.35", c: "0.68", d: "0.85", e: "1.15" };
+    function checkQ2_2() {
+        const a = toHalfWidth(document.getElementById("input_a").value);
+        const b = toHalfWidth(document.getElementById("input_b").value);
+        const c = toHalfWidth(document.getElementById("input_c").value);
+        const d = toHalfWidth(document.getElementById("input_d").value);
+        const e = toHalfWidth(document.getElementById("input_e").value);
+        const fb = document.getElementById("q2_2_feedback");
+        
+        if (a === ansQ2.a && b === ansQ2.b && c === ansQ2.c && d === ansQ2.d && e === ansQ2.e) {
+            fb.className = "feedback success"; fb.innerText = "🎉 ア〜オまですべて大正解！すばらしい！";
+        } else {
+            fb.className = "feedback error"; fb.innerText = "❌ まちがっているところがあるよ。1めもり(0.01)を数え直してみよう。";
+        }
+    }
+
+    /* =====================================
+       数直線とクリック判定（Canvas）
+       ===================================== */
+    const startX = 20, endX = 780, totalLength = 760, maxVal = 1.3;
+    function valToX(val) { return startX + (val / maxVal) * totalLength; }
+    function xToVal(x) { return ((x - startX) / totalLength) * maxVal; }
+
+    function drawNumberLine() {
+        const canvas = document.getElementById("mainNumberLine");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const lineY = 60;
+        ctx.beginPath(); 
+        ctx.moveTo(10, lineY); 
+        ctx.lineTo(790, lineY);
+        ctx.strokeStyle = "#333"; 
+        ctx.lineWidth = 2; 
+        ctx.stroke();
+
+        for (let i = 0; i <= 130; i++) {
+            const v = i / 100;
+            const x = valToX(v);
+            ctx.beginPath(); 
+            ctx.moveTo(x, lineY);
+            
+            if (i % 10 === 0) {
+                // 大目盛り
+                ctx.lineTo(x, lineY + 15); 
+                ctx.lineWidth = 2; 
+                ctx.stroke();
+                ctx.font = "bold 13px sans-serif"; 
+                ctx.fillText(v.toFixed(1) + "m", x - 12, lineY + 32);
+            } else if (i % 5 === 0) {
+                // 中目盛り
+                ctx.lineTo(x, lineY + 10); 
+                ctx.lineWidth = 1.5; 
+                ctx.stroke();
+            } else {
+                // 小目盛り
+                ctx.lineTo(x, lineY + 6); 
+                ctx.lineWidth = 1; 
+                ctx.stroke();
+            }
+        }
+    }
+
+    function placeUserArrow(event) {
+        const rect = document.getElementById("interactive-zone").getBoundingClientRect();
+        const clickedVal = xToVal(event.clientX - rect.left);
+        
+        if (Math.abs(clickedVal - 0.55) <= 0.015) {
+            document.getElementById("arrow-container-055").style.display = "flex";
+            const s = document.getElementById("status-055"); 
+            s.innerHTML = "🎉 0.55m にバッチリ↑をつけられました！"; 
+            s.style.backgroundColor = "#c8e6c9"; 
+            s.style.color = "#2e7d32";
+        } else if (Math.abs(clickedVal - 1.08) <= 0.015) {
+            document.getElementById("arrow-container-108").style.display = "flex";
+            const s = document.getElementById("status-108"); 
+            s.innerHTML = "🎉 1.08m にバッチリ↑をつけられました！"; 
+            s.style.backgroundColor = "#c8e6c9"; 
+            s.style.color = "#2e7d32";
+        } else {
+            alert("おしい！そこは " + clickedVal.toFixed(2) + "m のあたりだよ。もう一回よく目盛りを数えてみてね！");
+        }
+    }
+
+    // ページ読み込み時に初期化
+    window.onload = function() { 
+        createBeakerTicks(); 
+        updateBeakerUI(); 
+    };
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
