@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配り係チーム・コントロール</title>
+  <style>
+    :root {
+      --bg-dark: #050a15;
+      --card-bg: rgba(15, 25, 45, 0.6);
+      --card-border: rgba(0, 243, 255, 0.2);
+      --cyan: #00f3ff;
+      --cyan-glow: rgba(0, 243, 255, 0.5);
+      --green: #00ff88;
+      --green-glow: rgba(0, 255, 136, 0.6);
+      --red: #ff0055;
+      --text-main: #ffffff;
+      --text-sub: #8899aa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-dark); color: var(--text-main);
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden; transition: background-color 0.5s;
+    }
+
+    rt { opacity: 0; font-size: 0; transition: all 0.3s ease; line-height: 0; display: block; text-align: center;}
+    ruby { ruby-align: center; }
+    body.hiragana-mode rt { opacity: 1; font-size: 0.65em; line-height: 1; color: #ff00ff; margin-bottom: 2px;}
+    body.hiragana-mode ruby { margin: 0 2px; }
+
+    #bg-canvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: -1; pointer-events: none;
+      background: radial-gradient(circle at center, #0a1128 0%, #02040a 100%);
+    }
+
+    .top-nav {
+      width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 30px; padding: 12px 20px; background: rgba(5, 10, 20, 0.8);
+      border: 1px solid var(--cyan); border-radius: 30px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      backdrop-filter: blur(5px); z-index: 10; flex-wrap: wrap; gap: 15px; transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    body.hiragana-mode .top-nav { border-color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.2); }
+
+    .nav-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-btn {
+      background: transparent; color: var(--text-sub); border: 1px solid var(--text-sub);
+      padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: all 0.3s;
+    }
+    .nav-btn.active { background: rgba(0, 243, 255, 0.15); color: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); }
+    body.hiragana-mode .nav-btn.active { background: rgba(255, 0, 255, 0.15); color: #ff00ff; border-color: #ff00ff; box-shadow: 0 0 10px rgba(255, 0, 255, 0.5); }
+    .nav-btn:hover:not(.active) { color: var(--text-main); border-color: var(--text-main); }
+
+    .lang-toggle { display: flex; align-items: center; gap: 10px; }
+    .lang-label { font-size: 0.85rem; font-weight: bold; color: var(--text-sub); transition: color 0.3s; }
+    .active-lang { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
+    body.hiragana-mode .active-lang { color: #ff00ff; text-shadow: 0 0 8px rgba(255, 0, 255, 0.5); }
+
+    .toggle-switch {
+      position: relative; width: 44px; height: 24px; background: rgba(0, 243, 255, 0.1); border: 1px solid var(--cyan);
+      border-radius: 12px; cursor: pointer; transition: all 0.3s;
+    }
+    .toggle-knob {
+      position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: var(--cyan); border-radius: 50%;
+      transition: all 0.3s; box-shadow: 0 0 8px var(--cyan-glow);
+    }
+    body.hiragana-mode .toggle-switch { border-color: #ff00ff; background: rgba(255, 0, 255, 0.1); }
+    body.hiragana-mode .toggle-knob { left: 22px; background: #ff00ff; box-shadow: 0 0 8px rgba(255, 0, 255, 0.5); }
+
+    .screen-container { width: 100%; max-width: 1000px; display: none; flex-direction: column; align-items: center; z-index: 1; animation: fadeIn 0.4s ease-out; }
+    .screen-container.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .header { text-align: center; margin-bottom: 40px; width: 100%;}
+    h1 { font-size: 2.2rem; color: var(--text-main); text-shadow: 0 0 10px var(--cyan-glow), 0 0 20px var(--cyan-glow); margin-bottom: 15px; letter-spacing: 2px; transition: all 0.3s; }
+    body.hiragana-mode h1 { text-shadow: 0 0 10px rgba(255, 0, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.5); }
+
+    #date-display {
+      font-size: 1.1rem; color: var(--cyan); background: rgba(0, 243, 255, 0.1); border: 1px solid var(--cyan);
+      display: inline-block; padding: 6px 20px; border-radius: 30px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transition: all 0.3s;
+    }
+    body.hiragana-mode #date-display { color: #ff00ff; background: rgba(255, 0, 255, 0.1); border-color: #ff00ff; }
+
+    /* メイン画面：タスクリスト */
+    .team-info-box { background: rgba(0,243,255,0.1); border: 1px dashed var(--cyan); border-radius: 12px; padding: 15px; width: 100%; margin-bottom: 25px; text-align: center; }
+    body.hiragana-mode .team-info-box { background: rgba(255,0,255,0.1); border-color: #ff00ff;}
+    
+    #task-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; }
+    .task-card {
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 25px;
+      backdrop-filter: blur(10px); display: flex; flex-direction: column; position: relative; overflow: hidden; transition: all 0.3s;
+    }
+    .task-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); transition: all 0.3s; }
+    body.hiragana-mode .task-card::before { background: #ff00ff; box-shadow: 0 0 10px #ff00ff; }
+    
+    /* チームワークパーフェクト演出 */
+    .task-card.perfect-card::before { background: var(--green); box-shadow: 0 0 15px var(--green); width: 8px;}
+    .task-card.perfect-card { border-color: var(--green); box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+    .perfect-badge { display: none; color: var(--green); font-weight: bold; font-size: 0.9rem; margin-top: 5px; text-shadow: 0 0 5px var(--green-glow); animation: pop 0.3s;}
+    .task-card.perfect-card .perfect-badge { display: block; }
+    @keyframes pop { 0% {transform: scale(0.8); opacity:0;} 100% {transform: scale(1); opacity:1;} }
+
+    .card-header { display: flex; align-items: center; margin-bottom: 20px; }
+    .icon-box {
+      width: 50px; height: 50px; background: rgba(0, 243, 255, 0.1); border-radius: 12px;
+      display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
+      border: 1px solid rgba(0, 243, 255, 0.3); margin-right: 15px;
+    }
+    .task-title { font-size: 1.25rem; font-weight: bold; color: var(--text-main); }
+    
+    .crew-selection { margin-bottom: 20px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px;}
+    .crew-selection-title { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; }
+    .crew-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .crew-chip {
+      background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub);
+      padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; user-select: none;
+    }
+    .crew-chip.active { background: rgba(0, 243, 255, 0.2); border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); }
+    .perfect-card .crew-chip.active { background: rgba(0, 255, 136, 0.2); border-color: var(--green); color: var(--green); box-shadow: 0 0 10px var(--green-glow); }
+
+    .no-task-btn {
+      width: 100%; background: transparent; border: 1px dashed var(--text-sub); color: var(--text-sub);
+      padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; margin-top: 10px;
+    }
+    .no-task-btn.active { background: rgba(255, 170, 0, 0.15); border-color: #ffaa00; color: #ffaa00; }
+
+    /* 記録エリア */
+    .record-area { width: 100%; max-width: 800px; margin-top: 40px; display: flex; flex-direction: column; align-items: center; }
+    .save-btn {
+      background: transparent; color: var(--cyan); border: 2px solid var(--cyan);
+      font-size: 1.2rem; font-weight: bold; padding: 15px 40px; border-radius: 30px;
+      cursor: pointer; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); margin-bottom: 30px; transition: all 0.3s; width: 100%; max-width: 400px; text-align: center;
+    }
+    body.hiragana-mode .save-btn { color: #ff00ff; border-color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.3); }
+    .save-btn:hover { transform: scale(1.05); }
+
+    /* 履歴ボックス */
+    #history-box {
+      background: rgba(5, 10, 20, 0.8); border: 1px solid rgba(255, 0, 85, 0.3);
+      border-left: 4px solid var(--red); border-radius: 8px; padding: 20px;
+      width: 100%; text-align: left; font-family: 'Consolas', 'Courier New', monospace;
+    }
+    #history-alert-title { margin-top: 0; font-size: 1.1rem; color: var(--red); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+    .history-item { font-size: 0.95rem; color: #cccccc; padding: 10px 0; border-bottom: 1px dashed rgba(255, 0, 85, 0.2); line-height: 1.6; }
+    .history-item strong { color: var(--text-main); }
+    .history-item:last-child { border-bottom: none; }
+
+    /* 評価マトリクス画面 */
+    .stats-container { width: 100%; display: flex; flex-direction: column; gap: 20px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .stat-header { display: flex; justify-content: space-between; align-items: flex-end; }
+    .stat-name { font-size: 1.3rem; font-weight: bold; color: var(--cyan); }
+    body.hiragana-mode .stat-name { color: #ff00ff; }
+    .stat-numbers { font-size: 0.9rem; color: var(--text-sub); }
+    .stat-bar-bg { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease-out; }
+    .stat-perfect { border-color: var(--green); box-shadow: 0 0 15px var(--green-glow); }
+    .stat-perfect .stat-name { color: var(--green); }
+
+    /* 設定画面 */
+    .settings-section { width: 100%; background: var(--card-bg); border: 1px solid var(--cyan); padding: 25px; border-radius: 16px; margin-bottom: 25px; }
+    body.hiragana-mode .settings-section { border-color: #ff00ff; }
+    .settings-title { color: var(--cyan); font-size: 1.3rem; border-bottom: 1px solid rgba(0, 243, 255, 0.3); padding-bottom: 10px; margin-bottom: 15px; }
+    body.hiragana-mode .settings-title { color: #ff00ff; border-bottom-color: rgba(255, 0, 255, 0.3); }
+    
+    .role-setup-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .role-input-group { display: flex; gap: 10px; align-items: center; }
+    .role-input { flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--text-sub); color: var(--text-main); border-radius: 6px; }
+    .role-input:focus { outline: none; border-color: var(--cyan); }
+    
+    .table-wrapper { overflow-x: auto; margin-top: 15px;}
+    .data-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .data-table th, .data-table td { border: 1px solid rgba(0, 243, 255, 0.2); padding: 10px; text-align: center; }
+    .data-table th { background: rgba(0, 243, 255, 0.1); color: var(--cyan); }
+    .cell-input { width: 90%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid var(--text-sub); color: white; text-align: center; border-radius: 4px; }
+    .cell-input:focus { border-color: var(--cyan); outline: none; }
+
+    .action-btn { padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s; background: rgba(0, 243, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+    body.hiragana-mode .action-btn { background: rgba(255, 0, 255, 0.15); color: #ff00ff; border-color: #ff00ff; }
+    .action-btn:hover { box-shadow: 0 0 15px var(--cyan-glow); }
+    .danger-btn { background: rgba(255, 0, 85, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 0.85rem; padding: 8px 15px; margin-top: 10px;}
+    .del-role-btn { background: rgba(255, 0, 85, 0.2); color: var(--red); border: 1px solid var(--red); border-radius: 6px; padding: 8px; cursor: pointer;}
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="top-nav">
+    <div class="nav-buttons">
+      <button class="nav-btn active" id="nav-main" onclick="switchTab('main')">💻 ミッション</button>
+      <button class="nav-btn" id="nav-stats" onclick="switchTab('stats')">📊 評価マトリクス</button>
+      <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">⚙️ システム設定</button>
+    </div>
+    <div class="lang-toggle">
+      <span class="lang-label active-lang" id="label-kanji">漢字</span>
+      <div class="toggle-switch" onclick="toggleLanguage()"><div class="toggle-knob"></div></div>
+      <span class="lang-label" id="label-hiragana">ひらがな</span>
+    </div>
+  </div>
+
+  <!-- ================= メイン画面 ================= -->
+  <div id="screen-main" class="screen-container active">
+    <div class="header">
+      <h1 id="title-main">配り係 チーム・コントロール</h1>
+      <div id="date-display"></div>
+    </div>
+    
+    <div class="team-info-box">
+      <strong style="color: var(--cyan);" id="label-today-crew">👥 今日の配り係チーム:</strong> 
+      <span id="today-crew-list" style="font-size: 1.1rem; font-weight: bold; margin-left: 10px;"></span>
+    </div>
+
+    <div id="task-list"></div>
+    
+    <div class="record-area">
+      <button class="save-btn" id="btn-record" onclick="saveAndReset()">▶ ミッションログを記録して終了する</button>
+      <div id="history-box">
+        <h2 id="history-alert-title"><span style="font-size: 1.4rem;">⚠️</span> SYSTEM ALERT: ミッション履歴</h2>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 評価マトリクス画面 ================= -->
+  <div id="screen-stats" class="screen-container">
+    <div class="header">
+      <h1 id="title-stats">クルー評価マトリクス</h1>
+      <p style="color: var(--text-sub);" id="desc-stats">> 各クルーのミッション達成率（参加率）を可視化しています。</p>
+    </div>
+    <div class="stats-container" id="stats-list"></div>
+  </div>
+
+  <!-- ================= 設定画面 ================= -->
+  <div id="screen-settings" class="screen-container">
+    <div class="header">
+      <h1 id="title-settings">システム構造定義（管理者用）</h1>
+    </div>
+    
+    <!-- 役割の設定 -->
+    <div class="settings-section">
+      <h2 class="settings-title" id="title-role-setup">📝 配るタイミングの定義</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-role-setup">
+        > 配り物が発生するタイミング（行間休み、昼休みなど）を追加・削除できます。
+      </p>
+      <div class="role-setup-grid" id="role-setup-container"></div>
+      <button class="action-btn" style="margin-top: 15px; padding: 8px 15px; font-size: 0.9rem;" onclick="addRole()">+ タイミングを追加</button>
+    </div>
+
+    <!-- スケジュールの設定 -->
+    <div class="settings-section">
+      <h2 class="settings-title" id="title-schedule-setup">📅 係メンバー・スケジュール</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-schedule-setup">
+        > その日に担当する「係のメンバー全員」を入力してください。（1日最大5人まで）
+      </p>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr id="schedule-thead-tr">
+              <th>CYCLE</th>
+              <th>メンバー1</th><th>メンバー2</th><th>メンバー3</th><th>メンバー4</th><th>メンバー5</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <button class="action-btn" id="btn-save-config" onclick="saveConfiguration()">💾 データベースを上書き保存する</button>
+    
+    <div style="margin-top: 40px; text-align: center; border-top: 1px dashed var(--text-sub); padding-top: 20px; width: 100%;">
+      <p style="color: var(--text-sub); font-size: 0.85rem;" id="desc-reset">> 評価データ（達成率）をすべてゼロに戻す場合は以下を実行してください。</p>
+      <button class="action-btn danger-btn" id="btn-reset-stats" onclick="resetStats()">⚠️ 評価データを初期化</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 初期データ構造（チーム配り係用） ---
+    const defaultTimings = [
+      { id: "t1", name: "行間休みの配付", icon: "🕙" },
+      { id: "t2", name: "昼休みの配付", icon: "🍱" },
+      { id: "t3", name: "帰りの会の配付", icon: "🎒" }
+    ];
+    // スケジュールは「その日のチームメンバー」を定義する
+    const defaultSchedule = {
+      "月": { m1: "Aさん", m2: "Bさん", m3: "Cさん", m4: "", m5: "" },
+      "火": { m1: "Dさん", m2: "Eさん", m3: "Fさん", m4: "", m5: "" },
+      "水": { m1: "Gさん", m2: "Aさん", m3: "Bさん", m4: "", m5: "" },
+      "木": { m1: "Cさん", m2: "Dさん", m3: "Eさん", m4: "", m5: "" },
+      "金": { m1: "Fさん", m2: "Gさん", m3: "Aさん", m4: "", m5: "" },
+      "土": {}, "日": {}
+    };
+
+    // --- データ読み込み ---
+    let appConfig = JSON.parse(localStorage.getItem('kubariTeamConfig')) || { timings: defaultTimings, schedule: defaultSchedule };
+    let appStats = JSON.parse(localStorage.getItem('kubariTeamStats')) || {}; 
+    let historyData = JSON.parse(localStorage.getItem('kubariTeamHistory')) || []; 
+    let currentMode = localStorage.getItem('kubariTeamLang') || 'kanji';
+    
+    // taskState = { "t1": { participants: ["Aさん"], noTask: false } }
+    let taskState = {};
+    const daysKey = ["日", "月", "火", "水", "木", "金", "土"];
+    const today = new Date();
+    const dayOfWeekKey = daysKey[today.getDay()];
+    let todaysAssigns = appConfig.schedule[dayOfWeekKey] || {};
+
+    // 今日のチームメンバー配列を作成
+    let todayCrew = [];
+    ['m1','m2','m3','m4','m5'].forEach(k => {
+      const p = todaysAssigns[k];
+      if(p && p !== "なし" && p.toUpperCase() !== "OFFLINE" && p !== "おやすみ") todayCrew.push(p);
+    });
+
+    // --- 言語ディクショナリ ---
+    const i18n = {
+      kanji: {
+        navMain: "💻 ミッション", navStats: "📊 評価マトリクス", navSettings: "⚙️ システム設定",
+        titleMain: "配り係 チーム・コントロール", btnRecord: "▶ ミッションログを記録して終了する",
+        labelTodayCrew: "👥 今日の配り係チーム:",
+        checkInstruction: "いっしょに配った人（タップしてチェック）",
+        btnNoTask: "※今日は配るものなし（全員クリア）",
+        perfectBadge: "✨ PERFECT TEAMWORK ✨",
+        titleStats: "クルー評価マトリクス", descStats: "> 各クルーのミッション達成率（参加率）を可視化しています。",
+        titleSettings: "システム構造定義（管理者用）",
+        titleRole: "📝 配るタイミングの定義", descRole: "> 配り物が発生するタイミング（行間休み、昼休みなど）を追加・削除できます。",
+        titleSch: "📅 係メンバー・スケジュール", descSch: "> その日に担当する「係のメンバー全員」を入力してください。（1日最大5人まで）",
+        btnSaveConfig: "💾 データベースを上書き保存する",
+        descReset: "> 評価データ（達成率）をすべてゼロに戻す場合は以下を実行してください。", btnReset: "⚠️ 評価データを初期化",
+        dayNames: ["日", "月", "火", "水", "木", "金", "土"],
+        msgOffline: "本日のシステムはオフライン（チーム未設定）です。", sysOffline: "SYSTEM OFFLINE",
+        historyTitle: "SYSTEM ALERT: ミッション履歴", msgNoLog: "> ログデータがありません。正常稼働中です。",
+        msgSaved: "ミッションログと評価データを記録しました！", msgConfigSaved: "システム設定を保存しました。",
+        msgReset: "評価データをすべて初期化しました。"
+      },
+      hiragana: {
+        navMain: "💻 ミッション", navStats: "📊 みんなの がんばり", navSettings: "⚙️ せってい（せんせい）",
+        titleMain: "くばりがかり チーム・コントロール", btnRecord: "▶ ミッションログをきろくして おわる",
+        labelTodayCrew: "👥 きょうの かかりチーム:",
+        checkInstruction: "いっしょに くばった 人（タップしてチェック）",
+        btnNoTask: "※きょうは くばるもの なし（ぜんいんクリア）",
+        perfectBadge: "✨ チームワーク かんぺき！ ✨",
+        titleStats: "クルー がんばりデータ", descStats: "> みんなが どれくらい ミッションに さんか したか わかります。",
+        titleSettings: "システム せってい（せんせいよう）",
+        titleRole: "📝 くばる タイミングを きめる", descRole: "> くばる タイミング（ぎょうかんやすみ、ひるやすみ など）を なおせます。",
+        titleSch: "📅 かかりメンバーの よてい", descSch: "> そのひに たんとうする「かかりの メンバーぜんいん」を いれてください。",
+        btnSaveConfig: "💾 データベースを うわがきする",
+        descReset: "> がんばりデータを ぜんぶ ゼロに もどすときは ここを おしてください。", btnReset: "⚠️ データを ゼロに 戻す",
+        dayNames: ["にち", "げつ", "か", "すい", "もく", "きん", "ど"],
+        msgOffline: "きょうの チームは ありません（おやすみ）です。", sysOffline: "おやすみ",
+        historyTitle: "SYSTEM ALERT: これまでの きろく", msgNoLog: "> ログデータが ありません。",
+        msgSaved: "ミッションログを きろくしました！", msgConfigSaved: "せっていを ほぞんしました。",
+        msgReset: "がんばりデータを ぜんぶ ゼロに もどしました。"
+      }
+    };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`screen-${tabId}`).classList.add('active');
+      document.getElementById(`nav-${tabId}`).classList.add('active');
+      if (tabId === 'main') renderMain();
+      if (tabId === 'stats') renderStats();
+      if (tabId === 'settings') renderSettings();
+    }
+
+    // --- メイン画面描画 ---
+    function renderMain() {
+      const t = i18n[currentMode];
+      
+      const crewListStr = todayCrew.length > 0 ? todayCrew.join("、 ") : t.sysOffline;
+      document.getElementById('today-crew-list').innerText = crewListStr;
+
+      const taskListDiv = document.getElementById('task-list');
+      taskListDiv.innerHTML = ""; 
+
+      if (todayCrew.length === 0) {
+        taskListDiv.innerHTML = `<p style="color: var(--text-sub); text-align:center; width:100%;">${t.msgOffline}</p>`;
+        renderHistory();
+        return;
+      }
+
+      appConfig.timings.forEach(timing => {
+        if (!timing.name.trim()) return; 
+        
+        if (!taskState[timing.id]) taskState[timing.id] = { participants: [], noTask: false };
+        const state = taskState[timing.id];
+        
+        let chipsHTML = "";
+        let activeCount = 0;
+        
+        todayCrew.forEach(p => {
+          const isActive = state.participants.includes(p) || state.noTask;
+          if(isActive) activeCount++;
+          chipsHTML += `<div class="crew-chip ${isActive ? 'active' : ''}" onclick="toggleParticipant('${timing.id}', '${p}')">${p}</div>`;
+        });
+
+        const isPerfect = (activeCount === todayCrew.length && todayCrew.length > 0);
+        const cardClass = isPerfect ? 'perfect-card' : '';
+
+        const cardHTML = `
+          <div class="task-card ${cardClass}">
+            <div class="card-header">
+              <div class="icon-box">${timing.icon || "📄"}</div>
+              <div>
+                <div class="task-title">${timing.name}</div>
+                <div class="perfect-badge">${t.perfectBadge}</div>
+              </div>
+            </div>
+            
+            <div class="crew-selection">
+              <div class="crew-selection-title">${t.checkInstruction}</div>
+              <div class="crew-chips">${chipsHTML}</div>
+              <button class="no-task-btn ${state.noTask ? 'active' : ''}" onclick="toggleNoTask('${timing.id}')">${t.btnNoTask}</button>
+            </div>
+          </div>
+        `;
+        taskListDiv.insertAdjacentHTML('beforeend', cardHTML);
+      });
+      
+      renderHistory(); 
+    }
+
+    window.toggleParticipant = function(taskId, person) {
+      const state = taskState[taskId];
+      if (state.noTask) state.noTask = false; // "なし"状態を解除
+
+      const idx = state.participants.indexOf(person);
+      if (idx > -1) state.participants.splice(idx, 1);
+      else state.participants.push(person);
+      renderMain();
+    };
+
+    window.toggleNoTask = function(taskId) {
+      const state = taskState[taskId];
+      state.noTask = !state.noTask;
+      if(state.noTask) {
+        state.participants = [...todayCrew]; // 全員を参加済みにする
+      } else {
+        state.participants = [];
+      }
+      renderMain();
+    };
+
+    // --- 履歴描画 ---
+    function renderHistory() {
+      const t = i18n[currentMode];
+      const historyListDiv = document.getElementById('history-list');
+      if (historyData.length === 0) {
+        historyListDiv.innerHTML = `<div class="history-item">${t.msgNoLog}</div>`;
+        return;
+      }
+      historyListDiv.innerHTML = "";
+      [...historyData].reverse().forEach(record => {
+        historyListDiv.insertAdjacentHTML('beforeend', `<div class="history-item">> ${record.replace(/\n/g, '<br>> ')}</div>`);
+      });
+    }
+
+    // --- 記録保存と評価データ（Stats）の更新 ---
+    window.saveAndReset = function() {
+      const t = i18n[currentMode];
+      if (todayCrew.length === 0) return alert(t.msgOffline);
+
+      let logEntries = [];
+      
+      appConfig.timings.forEach(timing => {
+        if (!timing.name.trim()) return;
+        const state = taskState[timing.id];
+        
+        let doneMembers = [];
+        let missedMembers = [];
+
+        todayCrew.forEach(p => {
+          if (!appStats[p]) appStats[p] = { total: 0, done: 0 };
+          appStats[p].total++;
+          
+          if (state.participants.includes(p)) {
+            appStats[p].done++;
+            doneMembers.push(p);
+          } else {
+            missedMembers.push(p);
+          }
+        });
+
+        if (state.noTask) {
+          logEntries.push(`[スキップ] ${timing.name}: 配るものなし（全員クリア）`);
+        } else if (doneMembers.length === todayCrew.length) {
+          logEntries.push(`[PERFECT] ${timing.name}: チーム全員で協力して配りました！`);
+        } else if (doneMembers.length > 0) {
+          logEntries.push(`[完了] ${timing.name}: ${doneMembers.join(', ')} が配りました。（未参加: ${missedMembers.join(', ')}）`);
+        } else {
+          logEntries.push(`[未完了] ${timing.name}: 誰も配りませんでした。`);
+        }
+      });
+
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const dateStringLog = `<strong>[LOG: ${y}.${m}.${d}]</strong>\n` + logEntries.join('\n');
+      
+      historyData.push(dateStringLog);
+
+      localStorage.setItem('kubariTeamStats', JSON.stringify(appStats));
+      localStorage.setItem('kubariTeamHistory', JSON.stringify(historyData));
+      
+      // 全タスクをリセット
+      appConfig.timings.forEach(timing => {
+        taskState[timing.id] = { participants: [], noTask: false };
+      });
+      alert(t.msgSaved);
+      renderMain();
+    };
+
+    // --- 評価マトリクス（STATS）描画 ---
+    function renderStats() {
+      const container = document.getElementById('stats-list');
+      container.innerHTML = "";
+      
+      const persons = Object.keys(appStats);
+      if (persons.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-sub); text-align:center;">> データがありません。</p>`;
+        return;
+      }
+
+      persons.sort((a, b) => {
+        const rateA = appStats[a].total > 0 ? (appStats[a].done / appStats[a].total) : 0;
+        const rateB = appStats[b].total > 0 ? (appStats[b].done / appStats[b].total) : 0;
+        return rateB - rateA;
+      });
+
+      persons.forEach(person => {
+        const stat = appStats[person];
+        const rate = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0;
+        
+        let barColor = 'var(--cyan)';
+        let shadow = 'var(--cyan-glow)';
+        let isPerfect = false;
+        
+        if (rate === 100 && stat.total >= 1) {
+          barColor = 'var(--green)'; shadow = 'var(--green-glow)'; isPerfect = true;
+        } else if (rate < 50) {
+          barColor = 'var(--red)'; shadow = 'rgba(255,0,85,0.5)';
+        } else if (currentMode === 'hiragana') {
+          barColor = '#ff00ff'; shadow = 'rgba(255,0,255,0.5)';
+        }
+
+        const html = `
+          <div class="stat-card ${isPerfect ? 'stat-perfect' : ''}">
+            <div class="stat-header">
+              <span class="stat-name">${person}</span>
+              <span class="stat-numbers">参加: ${stat.done} / 割当: ${stat.total} ( <strong>${rate}%</strong> )</span>
+            </div>
+            <div class="stat-bar-bg">
+              <div class="stat-bar-fill" style="width: ${rate}%; background: ${barColor}; box-shadow: 0 0 10px ${shadow};"></div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      });
+    }
+
+    // --- 設定画面描画 ---
+    window.addRole = function() {
+      const newId = 't' + Date.now();
+      appConfig.timings.push({ id: newId, name: "", icon: "📄" });
+      renderSettings();
+    };
+
+    window.removeRole = function(id) {
+      if(confirm("このタイミングを削除しますか？")) {
+        appConfig.timings = appConfig.timings.filter(t => t.id !== id);
+        renderSettings();
+      }
+    };
+
+    function renderSettings() {
+      const roleContainer = document.getElementById('role-setup-container');
+      roleContainer.innerHTML = "";
+      
+      appConfig.timings.forEach((timing, index) => {
+        roleContainer.insertAdjacentHTML('beforeend', `
+          <div class="role-input-group">
+            <span style="color: var(--cyan); width: 60px;">タイ<br>ミング${index + 1}</span>
+            <input type="text" class="role-input" id="cfg-icon-${timing.id}" value="${timing.icon}" style="max-width: 60px;" placeholder="絵文字">
+            <input type="text" class="role-input" id="cfg-name-${timing.id}" value="${timing.name}" placeholder="例: 行間休みの配付">
+            <button class="del-role-btn" onclick="removeRole('${timing.id}')">✖</button>
+          </div>
+        `);
+      });
+
+      const tbody = document.getElementById('schedule-tbody');
+      tbody.innerHTML = "";
+      const daysList = ["月", "火", "水", "木", "金"];
+      daysList.forEach(day => {
+        let trHTML = `<tr><td style="font-weight: bold; color: inherit;">${day}</td>`;
+        ['m1','m2','m3','m4','m5'].forEach(mKey => {
+          const val = (appConfig.schedule[day] && appConfig.schedule[day][mKey]) ? appConfig.schedule[day][mKey] : "";
+          trHTML += `<td><input type="text" class="cell-input" id="cfg-sch-${day}-${mKey}" value="${val}" placeholder="..."></td>`;
+        });
+        trHTML += `</tr>`;
+        tbody.insertAdjacentHTML('beforeend', trHTML);
+      });
+    }
+
+    window.saveConfiguration = function() {
+      const t = i18n[currentMode];
+      
+      appConfig.timings.forEach(timing => {
+        const iconInput = document.getElementById(`cfg-icon-${timing.id}`);
+        const nameInput = document.getElementById(`cfg-name-${timing.id}`);
+        if(iconInput) timing.icon = iconInput.value || "📄";
+        if(nameInput) timing.name = nameInput.value;
+      });
+
+      const daysList = ["月", "火", "水", "木", "金"];
+      daysList.forEach(day => {
+        if (!appConfig.schedule[day]) appConfig.schedule[day] = {};
+        ['m1','m2','m3','m4','m5'].forEach(mKey => {
+          const cellInput = document.getElementById(`cfg-sch-${day}-${mKey}`);
+          if(cellInput) appConfig.schedule[day][mKey] = cellInput.value;
+        });
+      });
+
+      localStorage.setItem('kubariTeamConfig', JSON.stringify(appConfig));
+      
+      // Update variables
+      todaysAssigns = appConfig.schedule[dayOfWeekKey] || {};
+      todayCrew = [];
+      ['m1','m2','m3','m4','m5'].forEach(k => {
+        const p = todaysAssigns[k];
+        if(p && p !== "なし" && p.toUpperCase() !== "OFFLINE" && p !== "おやすみ") todayCrew.push(p);
+      });
+      
+      alert(t.msgConfigSaved);
+      applyLanguage(); 
+    };
+
+    window.resetStats = function() {
+      const t = i18n[currentMode];
+      if(confirm(t.descReset + "\n本当によろしいですか？")) {
+        appStats = {};
+        localStorage.setItem('kubariTeamStats', JSON.stringify(appStats));
+        alert(t.msgReset);
+        renderSettings();
+      }
+    }
+
+    function toggleLanguage() {
+      currentMode = currentMode === 'kanji' ? 'hiragana' : 'kanji';
+      localStorage.setItem('kubariTeamLang', currentMode);
+      applyLanguage();
+    }
+
+    function applyLanguage() {
+      const t = i18n[currentMode];
+      
+      if (currentMode === 'hiragana') {
+        document.body.classList.add('hiragana-mode');
+        document.getElementById('label-hiragana').classList.add('active-lang');
+        document.getElementById('label-kanji').classList.remove('active-lang');
+      } else {
+        document.body.classList.remove('hiragana-mode');
+        document.getElementById('label-kanji').classList.add('active-lang');
+        document.getElementById('label-hiragana').classList.remove('active-lang');
+      }
+
+      document.getElementById('nav-main').innerText = t.navMain;
+      document.getElementById('nav-stats').innerText = t.navStats;
+      document.getElementById('nav-settings').innerText = t.navSettings;
+      
+      document.getElementById('title-main').innerText = t.titleMain;
+      document.getElementById('btn-record').innerText = t.btnRecord;
+      document.getElementById('history-alert-title').innerHTML = `<span style="font-size: 1.4rem;">⚠️</span> ${t.historyTitle}`;
+      
+      document.getElementById('label-today-crew').innerText = t.labelTodayCrew;
+
+      document.getElementById('title-stats').innerText = t.titleStats;
+      document.getElementById('desc-stats').innerText = t.descStats;
+      
+      document.getElementById('title-settings').innerText = t.titleSettings;
+      document.getElementById('title-role-setup').innerText = t.titleRole;
+      document.getElementById('desc-role-setup').innerText = t.descRole;
+      document.getElementById('title-schedule-setup').innerText = t.titleSch;
+      document.getElementById('desc-schedule-setup').innerText = t.descSch;
+      document.getElementById('btn-save-config').innerText = t.btnSaveConfig;
+      document.getElementById('desc-reset').innerText = t.descReset;
+      document.getElementById('btn-reset-stats').innerText = t.btnReset;
+
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      document.getElementById('date-display').innerText = `CURRENT CYCLE: ${y}.${m}.${d} [${t.dayNames[today.getDay()]}]`;
+
+      if (document.getElementById('screen-main').classList.contains('active')) renderMain();
+      if (document.getElementById('screen-stats').classList.contains('active')) renderStats();
+      if (document.getElementById('screen-settings').classList.contains('active')) renderSettings();
+    }
+
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    const particles = [];
+    for (let i = 0; i < 70; i++) {
+      particles.push({
+        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+        size: Math.random() * 1.5 + 0.5, speedX: Math.random() * 0.4 - 0.2, speedY: Math.random() * 0.4 - 0.2,
+        opacity: Math.random(), fade: Math.random() > 0.5 ? 0.005 : -0.005
+      });
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.speedX; p.y += p.speedY; p.opacity += p.fade;
+        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
+        if (p.x > canvas.width) p.x = 0; if (p.x < 0) p.x = canvas.width;
+        if (p.y > canvas.height) p.y = 0; if (p.y < 0) p.y = canvas.height;
+        ctx.fillStyle = `rgba(0, 243, 255, ${p.opacity})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    applyLanguage();
+  </script>
+</body>
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

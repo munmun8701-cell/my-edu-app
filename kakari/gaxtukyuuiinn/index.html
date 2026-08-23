@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学級委員マスターコンソール v3</title>
+  <style>
+    :root {
+      --bg-dark: #0a0510;
+      --card-bg: rgba(20, 10, 35, 0.75);
+      --card-border: rgba(255, 170, 0, 0.3);
+      --gold: #ffaa00;
+      --gold-glow: rgba(255, 170, 0, 0.5);
+      --cyan: #00f3ff;
+      --cyan-glow: rgba(0, 243, 255, 0.5);
+      --red: #ff0055;
+      --red-glow: rgba(255, 0, 85, 0.5);
+      --green: #00ff88;
+      --text-main: #f0f0f5;
+      --text-sub: #aa99bb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      overflow-x: hidden;
+    }
+
+    /* === フリガナ（ルビ）の制御 === */
+    rt {
+      opacity: 0;
+      font-size: 0;
+      transition: all 0.3s ease;
+      line-height: 0;
+      display: block;
+      text-align: center;
+    }
+
+    ruby {
+      ruby-align: center;
+    }
+
+    body.furigana-mode rt {
+      opacity: 1;
+      font-size: 0.65em;
+      line-height: 1;
+      color: var(--gold);
+      margin-bottom: 2px;
+    }
+
+    body.furigana-mode ruby {
+      margin: 0 2px;
+    }
+
+    /* 背景キャンバス＆アラート */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at center, #150a20 0%, #05020a 100%);
+    }
+
+    #alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 0, 85, 0.3);
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      display: none;
+    }
+
+    .flash-anim {
+      animation: flashRed 0.5s infinite;
+      display: block !important;
+    }
+
+    @keyframes flashRed {
+
+      0%,
+      100% {
+        opacity: 0;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* === トップバー === */
+    .top-bar {
+      width: 100%;
+      max-width: 1500px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 5, 20, 0.8);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 15px 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px var(--gold-glow);
+      backdrop-filter: blur(10px);
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .title-area h1 {
+      font-size: 1.8rem;
+      color: var(--gold);
+      text-shadow: 0 0 10px var(--gold-glow);
+      margin-bottom: 5px;
+    }
+
+    .exp-bar-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--cyan);
+    }
+
+    .exp-bar-bg {
+      width: 150px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .exp-bar-fill {
+      height: 100%;
+      background: var(--cyan);
+      width: 0%;
+      transition: width 0.5s;
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: rgba(255, 170, 0, 0.15);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .btn:hover {
+      background: rgba(255, 170, 0, 0.3);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .btn-cyan {
+      background: rgba(0, 243, 255, 0.15);
+      color: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .btn-cyan:hover {
+      background: rgba(0, 243, 255, 0.3);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .btn-red {
+      background: rgba(255, 0, 85, 0.15);
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .btn-red:hover {
+      background: rgba(255, 0, 85, 0.3);
+      box-shadow: 0 0 10px var(--red-glow);
+    }
+
+    /* === メイングリッド === */
+    .dashboard-grid {
+      width: 100%;
+      max-width: 1500px;
+      display: grid;
+      grid-template-columns: 1fr 1.6fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .panel-header {
+      font-size: 1.15rem;
+      color: var(--cyan);
+      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+      padding-bottom: 10px;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--text-sub);
+      color: var(--text-main);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    /* === 左：タスク＆データ === */
+    .task-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .priority-sel {
+      width: 70px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 4px solid var(--text-sub);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .task-item.pri-high {
+      border-left-color: var(--red);
+    }
+
+    .task-item.pri-med {
+      border-left-color: var(--gold);
+    }
+
+    .task-item.pri-low {
+      border-left-color: var(--cyan);
+    }
+
+    .task-item.done {
+      opacity: 0.5;
+      text-decoration: line-through;
+      border-left-color: var(--green);
+    }
+
+    .db-item {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px dashed var(--text-sub);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .db-item input,
+    .db-item textarea {
+      margin-top: 5px;
+      font-size: 0.85rem;
+    }
+
+    .db-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    /* === 中央：学級会＆投票 === */
+    .script-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px dashed var(--cyan);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .script-step {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .script-step:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .script-speaker {
+      color: var(--gold);
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 1.1rem;
+    }
+
+    .script-guide {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-top: 5px;
+      display: block;
+    }
+
+    /* ダイナミック投票 */
+    .vote-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .vote-card {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 案のタイトル用テキストエリア（長文対応） */
+    .vote-title-input {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 5px;
+      background: rgba(0, 0, 0, 0.6);
+      color: var(--gold);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 44px;
+    }
+
+    .vote-title-input:focus {
+      border-color: var(--gold);
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    .vote-card textarea.vote-memo {
+      font-size: 0.8rem;
+      min-height: 60px;
+      margin-bottom: 5px;
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      padding: 5px;
+      flex-grow: 1;
+    }
+
+    .vote-count {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--cyan);
+      margin: 5px 0;
+    }
+
+    .vote-controls {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .del-vote-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 投票履歴 */
+    .history-box {
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px dashed var(--text-sub);
+    }
+
+    .history-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 5px;
+      margin-bottom: 5px;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    /* ブレインストーミング（意見箱） */
+    #brainstorm-board {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .bs-chip {
+      background: var(--cyan);
+      color: #000;
+      padding: 3px 10px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* === 右：ツール群 === */
+    .tool-box {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 15px;
+    }
+
+    .timer-display {
+      font-size: 3rem;
+      font-family: monospace;
+      color: var(--gold);
+      text-shadow: 0 0 10px var(--gold-glow);
+      margin: 0 0 10px 0;
+      line-height: 1;
+    }
+
+    .timer-inputs {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .timer-inputs input {
+      width: 60px;
+      text-align: center;
+      font-size: 1.2rem;
+      background: rgba(255, 170, 0, 0.1);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    .setting-row input,
+    .setting-row select {
+      width: 90px;
+      text-align: right;
+    }
+
+    .headcount-select {
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 1.5rem;
+      padding: 5px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      width: 100px;
+      cursor: pointer;
+    }
+
+    .group-result {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px dashed var(--cyan);
+      padding: 10px;
+      text-align: left;
+      font-size: 0.9rem;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    /* フルスクリーンモード */
+    .fullscreen-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1000;
+      background: var(--bg-dark);
+      padding: 40px;
+      overflow-y: auto;
+      max-height: none;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--cyan);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+  <div id="alert-overlay"></div>
+
+  <!-- ================= トップバー ================= -->
+  <div class="top-bar">
+    <div class="title-area">
+      <h1><ruby>学級委員<rt>がっきゅういいん</rt></ruby>マスターコンソール v3</h1>
+      <div id="date-display" style="color:var(--text-sub); font-size: 0.9rem;"></div>
+      <div class="exp-bar-container">
+        <span>LV.<span id="lvl-display">1</span></span>
+        <div class="exp-bar-bg">
+          <div class="exp-bar-fill" id="exp-fill"></div>
+        </div>
+        <span id="exp-text">0 / 100 EXP</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="class-goal" placeholder="今週のクラス目標..." style="width: 200px; border-color: var(--cyan); color: var(--cyan);">
+      <button class="btn btn-cyan" onclick="toggleFurigana()">🔤 <ruby>漢字<rt>かんじ</rt></ruby>/ルビ切替</button>
+      <button class="btn btn-red" onclick="resetDay()">🔄 <ruby>終礼<rt>しゅうれい</rt></ruby>リセット</button>
+    </div>
+  </div>
+
+  <!-- ================= メインダッシュボード ================= -->
+  <div class="dashboard-grid">
+
+    <!-- ================= 左カラム：タスク＆カスタムDB ================= -->
+    <div class="column">
+
+      <!-- 1. タスク管理 -->
+      <div class="panel">
+        <div class="panel-header">✅ <ruby>臨機応変<rt>りんきおうへん</rt></ruby>タスク</div>
+        <div class="task-input-group">
+          <select class="priority-sel" id="task-pri">
+            <option value="pri-high">高</option>
+            <option value="pri-med" selected>中</option>
+            <option value="pri-low">低</option>
+          </select>
+          <input type="text" id="task-input" placeholder="新しい任務...">
+          <button class="btn" onclick="addTask()">追加</button>
+        </div>
+        <div class="task-list" id="task-list-container"></div>
+      </div>
+
+      <!-- 2. 日常メモ -->
+      <div class="panel">
+        <div class="panel-header">
+          📝 先生への<ruby>報告<rt>ほうこく</rt></ruby>
+          <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="copyToClip('daily-memo')">コピー</button>
+        </div>
+        <textarea id="daily-memo" placeholder="先生に伝えること、今日の気づき..."></textarea>
+      </div>
+
+      <!-- 3. カスタム・データベース -->
+      <div class="panel">
+        <div class="panel-header">
+          💡 お<ruby>役立<rt>やくだ</rt></ruby>ちデータベース
+          <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addDbItem()">+ 新規</button>
+        </div>
+        <span style="font-size: 0.8rem; color: var(--text-sub);">※ レクの案や、係の仕事などを自由に作成・自動保存できます。</span>
+        <div id="db-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+          <!-- JSで生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 中央カラム：学級会コントロール ================= -->
+    <div class="column">
+      <div class="panel" id="meeting-core-panel">
+        <div class="panel-header">
+          🎙️ <ruby>学級会<rt>がっきゅうかい</rt></ruby>コア
+          <div>
+            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="toggleFocus()">全画面</button>
+          </div>
+        </div>
+
+        <!-- ミーティング進行状況 -->
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; border-bottom: 1px dashed var(--text-sub); padding-bottom: 10px; flex-wrap: wrap;">
+          <label><input type="radio" name="m-status" checked> 準備</label>
+          <label><input type="radio" name="m-status"> 提案</label>
+          <label><input type="radio" name="m-status"> 質問・意見</label>
+          <label><input type="radio" name="m-status"> まとめる</label>
+          <label><input type="radio" name="m-status"> 多数決</label>
+        </div>
+
+        <!-- 4. 詳細版・学級会台本 -->
+        <div class="script-box">
+          <div class="script-step">
+            <div class="script-speaker">１．はじめの<ruby>言葉<rt>ことば</rt></ruby></div>
+            「これから、<ruby>第<rt>だい</rt></ruby>〇<ruby>回<rt>かい</rt></ruby> <ruby>学級会<rt>がっきゅうかい</rt></ruby>を<ruby>始<rt>はじ</rt></ruby>めます。<ruby>今日<rt>きょう</rt></ruby>の<ruby>議題<rt>ぎだい</rt></ruby>は『<input type="text" id="meeting-topic" placeholder="例：お楽しみ会について" style="width:200px; padding:2px; display:inline;">』です。」
+          </div>
+          <div class="script-step">
+            <div class="script-speaker">２．<ruby>提案<rt>ていあん</rt></ruby><ruby>理由<rt>りゆう</rt></ruby>の<ruby>発表<rt>はっぴょう</rt></ruby></div>
+            「これを<ruby>話<rt>はな</rt></ruby>し<ruby>合<rt>あ</rt></ruby>う<ruby>理由<rt>りゆう</rt></ruby>を、<ruby>提案者<rt>ていあんしゃ</rt></ruby>の〇〇さん、お<ruby>願<rt>ねが</rt></ruby>いします。」
+          </div>
+          <div class="script-step">
+            <div class="script-speaker">３．<ruby>質問<rt>しつもん</rt></ruby>タイム</div>
+            「いまの<ruby>提案<rt>ていあん</rt></ruby>について、わからないことや、くわしく<ruby>聞<rt>き</rt></ruby>きたいことはありますか？」
+          </div>
+          <div class="script-step">
+            <div class="script-speaker">４．<ruby>意見<rt>いけん</rt></ruby>の<ruby>発表<rt>はっぴょう</rt></ruby></div>
+            「では、みんなの<ruby>意見<rt>いけん</rt></ruby>を<ruby>聞<rt>き</rt></ruby>きます。<ruby>賛成<rt>さんせい</rt></ruby>・<ruby>反対<rt>はんたい</rt></ruby>や、<ruby>新<rt>あたら</rt></ruby>しいアイデアがある<ruby>人<rt>ひと</rt></ruby>は<ruby>手<rt>て</rt></ruby>をあげてください。」
+            <span class="script-guide">※ 司会は「〇〇さん、どうぞ」「同じ意見の人はいますか？」と回そう。</span>
+
+            <!-- 意見出しボード -->
+            <div style="margin-top: 10px;">
+              <input type="text" id="bs-input" placeholder="出た意見をサッと入力してEnter..." onkeypress="addBrainstorm(event)">
+              <div id="brainstorm-board"></div>
+            </div>
+          </div>
+          <div class="script-step">
+            <div class="script-speaker">５．<ruby>意見<rt>いけん</rt></ruby>をまとめる</div>
+            「いろいろな<ruby>意見<rt>いけん</rt></ruby>が<ruby>出<rt>で</rt></ruby>ました。<ruby>合体<rt>がったい</rt></ruby>できる<ruby>意見<rt>いけん</rt></ruby>や、ゆずり<ruby>合<rt>あ</rt></ruby>える<ruby>方法<rt>ほうほう</rt></ruby>はありませんか？」
+          </div>
+          <div class="script-step">
+            <div class="script-speaker">６．<ruby>多数決<rt>たすうけつ</rt></ruby>（きめるとき）</div>
+            「それでは、<ruby>決<rt>き</rt></ruby>を<ruby>採<rt>と</rt></ruby>ります。みなさん、<ruby>机<rt>つくえ</rt></ruby>に<ruby>伏<rt>ふ</rt></ruby>せてください。」<br>
+            「〇〇の<ruby>案<rt>あん</rt></ruby>によいと<ruby>思<rt>おも</rt></ruby>う<ruby>人<rt>ひと</rt></ruby>は、<ruby>手<rt>て</rt></ruby>をあげてください。」
+            <span class="script-guide">※ 下の「ダイナミック投票」でカウント！</span>
+          </div>
+          <div class="script-step" style="border:none;">
+            <div class="script-speaker">７．ふりかえり・おわりの<ruby>言葉<rt>ことば</rt></ruby></div>
+            「<ruby>多数決<rt>たすうけつ</rt></ruby>の<ruby>結果<rt>けっか</rt></ruby>、〇〇に<ruby>決<rt>き</rt></ruby>まりました。」<br>
+            「<ruby>今日<rt>きょう</rt></ruby>の<ruby>話<rt>はな</rt></ruby>し<ruby>合<rt>あ</rt></ruby>いで、よかったことや<ruby>次<rt>つぎ</rt></ruby>にがんばることはありますか？」<br>
+            「これで、<ruby>学級会<rt>がっきゅうかい</rt></ruby>を<ruby>終<rt>お</rt></ruby>わります。」
+          </div>
+        </div>
+
+        <!-- 5. ダイナミック投票システム（初期状態は空欄・履歴保存付き） -->
+        <div style="margin-top: 15px; border-top: 1px dashed var(--cyan); padding-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="color: var(--gold); font-weight: bold;">📊 ダイナミック<ruby>投票<rt>とうひょう</rt></ruby></span>
+            <div style="display:flex; gap:5px;">
+              <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="saveVoteToHistory()">💾 履歴に保存</button>
+              <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addVoteOption()">+ 案を追加</button>
+            </div>
+          </div>
+          <div class="vote-container" id="vote-container">
+            <!-- JSで動的生成 -->
+          </div>
+
+          <!-- 投票履歴エリア -->
+          <div style="margin-top: 15px;">
+            <span style="font-size: 0.85rem; color: var(--cyan);">📁 過去の投票結果</span>
+            <div class="history-box" id="vote-history-box"></div>
+          </div>
+        </div>
+
+        <!-- 6. 議事録メモ -->
+        <div style="margin-top: 15px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span style="color: var(--cyan); font-weight: bold;">📝 <ruby>議事録<rt>ぎじろく</rt></ruby></span>
+            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="copyToClip('meeting-memo')">コピー</button>
+          </div>
+          <textarea id="meeting-memo" placeholder="決定事項や細かいルールをしっかり記録しよう..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 右カラム：戦術ツール ================= -->
+    <div class="column">
+
+      <!-- 7. カスタム・タイマー -->
+      <div class="panel">
+        <div class="panel-header">⏱️ カスタム・タイマー</div>
+        <div class="tool-box">
+          <div class="timer-display" id="timer-display">05:00</div>
+          <div class="timer-inputs">
+            <input type="number" id="t-min" value="5" min="0" onchange="applyCustomTimer()"> <span>分</span>
+            <input type="number" id="t-sec" value="0" min="0" max="59" onchange="applyCustomTimer()"> <span>秒</span>
+          </div>
+          <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 10px;">
+            <button class="btn btn-cyan" onclick="startTimer()">▶ START</button>
+            <button class="btn btn-red" onclick="stopTimer()">⏸ STOP</button>
+          </div>
+
+          <div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px;">
+            <span style="font-size:0.8rem; color:var(--text-sub);">ショートタイマー（意見発表など）</span>
+            <div style="display: flex; gap: 5px; justify-content: center; margin-top: 5px;">
+              <button class="btn" style="font-size:0.8rem; padding:4px 8px;" onclick="quickTimer(1, 0)">1分</button>
+              <button class="btn" style="font-size:0.8rem; padding:4px 8px;" onclick="quickTimer(0, 30)">30秒</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. 変動対応：点呼ドロップダウン ＆ ルーレット -->
+      <div class="panel">
+        <div class="panel-header">👥 メンバー<ruby>管理<rt>かんり</rt></ruby></div>
+
+        <div class="setting-row">
+          <span>クラスの最大人数:</span>
+          <input type="number" id="max-students" value="35" min="1" onchange="saveSettings()">
+        </div>
+
+        <!-- ドロップダウン式の点呼カウンター -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+          <span>点呼カウンター:</span>
+          <select id="headcount-select" class="headcount-select" onchange="changeHeadcount(this.value)">
+            <!-- JSで生成 -->
+          </select>
+        </div>
+
+        <div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px;">
+          <span style="font-size:0.8rem; color:var(--text-sub);">🎲 出席番号ガチャ</span>
+          <div style="font-size: 2.5rem; color: var(--gold); margin: 5px 0; text-align: center;" id="rng-result">--</div>
+          <button class="btn btn-cyan" style="width: 100%;" onclick="spinRoulette()">🎯 抽選スタート</button>
+        </div>
+      </div>
+
+      <!-- 9. ランダムグループ作成 -->
+      <div class="panel">
+        <div class="panel-header">🧩 ランダム班分け</div>
+        <div class="setting-row">
+          <span>グループの数:</span>
+          <input type="number" id="group-count" value="4" min="2" max="10">
+        </div>
+        <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="generateGroups()">実行</button>
+        <div class="group-result" id="group-result">
+          ※ 最大人数の設定を使ってランダムに班を作ります。
+        </div>
+      </div>
+
+      <!-- 10. アテンションツール -->
+      <div class="panel">
+        <div class="panel-header">⚠️ アテンション（<ruby>注目<rt>ちゅうもく</rt></ruby>）</div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-cyan" style="flex: 1;" onclick="playChime()">🔔 チャイム</button>
+          <button class="btn btn-red" style="flex: 1;" onclick="triggerFlare()">🚨 フラッシュ</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. システム初期化 & データ管理 (localStorage)
+    // ==========================================
+    let exp = parseInt(localStorage.getItem('cmdV3Exp')) || 0;
+    let isFurigana = localStorage.getItem('cmdV3Furigana') === 'true';
+    let classGoal = localStorage.getItem('cmdV3Goal') || '';
+    let dailyMemo = localStorage.getItem('cmdV3Daily') || '';
+    let meetingMemo = localStorage.getItem('cmdV3Meeting') || '';
+    let maxStudents = parseInt(localStorage.getItem('cmdV3MaxNum')) || 35;
+    let headcount = parseInt(localStorage.getItem('cmdV3Headcount')) || 0;
+    let tasks = JSON.parse(localStorage.getItem('cmdV3Tasks')) || [];
+    // カスタムデータベース初期値
+    let dbItems = JSON.parse(localStorage.getItem('cmdV3DB')) || [{
+      id: 1,
+      title: '爆弾ゲームのルール',
+      detail: 'タイマーをセットし、しりとりをしながら物を回す。鳴った時に持っていた人が負け。'
+    }];
+    // 投票関連（初期値は「空」にする）
+    let voteOptions = JSON.parse(localStorage.getItem('cmdV3Votes')) || [];
+    let voteHistory = JSON.parse(localStorage.getItem('cmdV3VoteHistory')) || [];
+    // ブレインストーミング
+    let brainstorms = JSON.parse(localStorage.getItem('cmdV3Brainstorm')) || [];
+    // UI反映
+    const dateOpts = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'short'
+    };
+    document.getElementById('date-display').innerText = new Date().toLocaleDateString('ja-JP', dateOpts);
+    document.getElementById('class-goal').value = classGoal;
+    document.getElementById('daily-memo').value = dailyMemo;
+    document.getElementById('meeting-memo').value = meetingMemo;
+    document.getElementById('max-students').value = maxStudents;
+    if (isFurigana) document.body.classList.add('furigana-mode');
+    const saveToLocal = (id, key) => document.getElementById(id).addEventListener('input', (e) => localStorage.setItem(key, e.target.value));
+    saveToLocal('class-goal', 'cmdV3Goal');
+    saveToLocal('daily-memo', 'cmdV3Daily');
+    saveToLocal('meeting-memo', 'cmdV3Meeting');
+    // 最大人数の設定変更時
+    function saveSettings() {
+      maxStudents = parseInt(document.getElementById('max-students').value) || 35;
+      localStorage.setItem('cmdV3MaxNum', maxStudents);
+      renderHeadcountSelect(); // ドロップダウンも更新
+    }
+
+    function updateExp(amount) {
+      exp += amount;
+      let level = Math.floor(exp / 100) + 1;
+      let currentExp = exp % 100;
+      document.getElementById('lvl-display').innerText = level;
+      document.getElementById('exp-text').innerText = `${currentExp} / 100 EXP`;
+      document.getElementById('exp-fill').style.width = `${currentExp}%`;
+      localStorage.setItem('cmdV3Exp', exp);
+    }
+    updateExp(0);
+
+    function toggleFurigana() {
+      isFurigana = !isFurigana;
+      localStorage.setItem('cmdV3Furigana', isFurigana);
+      document.body.classList.toggle('furigana-mode', isFurigana);
+    }
+    // ==========================================
+    // 2. タスク管理
+    // ==========================================
+    function renderTasks() {
+      const container = document.getElementById('task-list-container');
+      container.innerHTML = '';
+      tasks.forEach((task, index) => {
+        const item = document.createElement('div');
+        item.className = `task-item ${task.priority} ${task.done ? 'done' : ''}`;
+        item.innerHTML = `
+          <span>${task.text}</span>
+          <div style="display:flex; gap:5px;">
+            <button class="btn btn-cyan" style="padding: 2px 8px;" onclick="toggleTask(${index})">✔</button>
+            <button class="btn btn-red" style="padding: 2px 8px;" onclick="deleteTask(${index})">✖</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+      localStorage.setItem('cmdV3Tasks', JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      const input = document.getElementById('task-input');
+      const pri = document.getElementById('task-pri').value;
+      if (input.value.trim() === '') return;
+      tasks.push({
+        text: input.value,
+        priority: pri,
+        done: false
+      });
+      input.value = '';
+      renderTasks();
+      updateExp(5);
+    }
+
+    function toggleTask(i) {
+      tasks[i].done = !tasks[i].done;
+      if (tasks[i].done) updateExp(10);
+      renderTasks();
+    }
+
+    function deleteTask(i) {
+      tasks.splice(i, 1);
+      renderTasks();
+    }
+    renderTasks();
+    // ==========================================
+    // 3. お役立ちデータベース
+    // ==========================================
+    function renderDatabase() {
+      const container = document.getElementById('db-container');
+      container.innerHTML = '';
+      dbItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'db-item';
+        div.innerHTML = `
+          <input type="text" value="${item.title}" onchange="updateDb(${item.id}, 'title', this.value)" placeholder="タイトル">
+          <textarea onchange="updateDb(${item.id}, 'detail', this.value)" placeholder="詳しい内容をメモ...">${item.detail}</textarea>
+          <div class="db-actions">
+            <button class="btn btn-red" style="padding: 2px 8px; font-size: 0.75rem;" onclick="deleteDbItem(${item.id})">削除</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+      localStorage.setItem('cmdV3DB', JSON.stringify(dbItems));
+    }
+
+    function addDbItem() {
+      const newId = dbItems.length > 0 ? Math.max(...dbItems.map(d => d.id)) + 1 : 1;
+      dbItems.push({
+        id: newId,
+        title: '',
+        detail: ''
+      });
+      renderDatabase();
+    }
+
+    function updateDb(id, field, value) {
+      const item = dbItems.find(d => d.id === id);
+      if (item) {
+        item[field] = value;
+        localStorage.setItem('cmdV3DB', JSON.stringify(dbItems));
+      }
+    }
+
+    function deleteDbItem(id) {
+      dbItems = dbItems.filter(d => d.id !== id);
+      renderDatabase();
+    }
+    renderDatabase();
+    // ==========================================
+    // 4. ダイナミック投票 ＆ 履歴保存機能
+    // ==========================================
+    function renderVotes() {
+      const container = document.getElementById('vote-container');
+      container.innerHTML = '';
+      if (voteOptions.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-sub); font-size:0.9rem;">「+ 案を追加」ボタンから案を作成してください。</div>';
+      }
+      voteOptions.forEach(opt => {
+        const card = document.createElement('div');
+        card.className = 'vote-card';
+        // タイトルはtextareaを使用して長文を折り返し表示可能に
+        card.innerHTML = `
+          <button class="del-vote-btn" onclick="removeVoteOption(${opt.id})">×</button>
+          <textarea class="vote-title-input" onchange="updateVote(${opt.id}, 'name', this.value)" placeholder="案の名前">${opt.name}</textarea>
+          <textarea class="vote-memo" onchange="updateVote(${opt.id}, 'memo', this.value)" placeholder="内容メモ...">${opt.memo}</textarea>
+          <div class="vote-count">${opt.count}</div>
+          <div class="vote-controls">
+            <button class="btn" onclick="changeVote(${opt.id}, 1)">＋</button>
+            <button class="btn" onclick="changeVote(${opt.id}, -1)">－</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      localStorage.setItem('cmdV3Votes', JSON.stringify(voteOptions));
+    }
+
+    function addVoteOption() {
+      const newId = voteOptions.length > 0 ? Math.max(...voteOptions.map(v => v.id)) + 1 : 1;
+      voteOptions.push({
+        id: newId,
+        name: `新しい案 ${newId}`,
+        memo: '',
+        count: 0
+      });
+      renderVotes();
+    }
+
+    function removeVoteOption(id) {
+      voteOptions = voteOptions.filter(v => v.id !== id);
+      renderVotes();
+    }
+
+    function updateVote(id, field, value) {
+      const opt = voteOptions.find(v => v.id === id);
+      if (opt) {
+        opt[field] = value;
+        localStorage.setItem('cmdV3Votes', JSON.stringify(voteOptions));
+      }
+    }
+
+    function changeVote(id, delta) {
+      const opt = voteOptions.find(v => v.id === id);
+      if (opt) {
+        opt.count = Math.max(0, opt.count + delta);
+        renderVotes();
+      }
+    }
+
+    function resetAllVotes() {
+      if (confirm("すべての票を0に戻しますか？")) {
+        voteOptions.forEach(v => v.count = 0);
+        renderVotes();
+      }
+    }
+    // 履歴機能
+    function renderVoteHistory() {
+      const box = document.getElementById('vote-history-box');
+      box.innerHTML = '';
+      if (voteHistory.length === 0) {
+        box.innerHTML = '<span style="color:var(--text-sub);">履歴はありません。</span>';
+        return;
+      }
+      [...voteHistory].reverse().forEach((history, idx) => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        let resultStr = history.data.map(d => `${d.name}: ${d.count}票`).join(' / ');
+        item.innerHTML = `<strong style="color:var(--gold);">${history.date} - ${history.title}</strong><br>${resultStr}`;
+        box.appendChild(item);
+      });
+    }
+
+    function saveVoteToHistory() {
+      if (voteOptions.length === 0) return alert("保存する案がありません。");
+      const title = prompt("この投票結果に名前をつけて保存しますか？", "〇月〇日の多数決");
+      if (!title) return;
+      voteHistory.push({
+        date: new Date().toLocaleDateString('ja-JP'),
+        title,
+        data: JSON.parse(JSON.stringify(voteOptions))
+      });
+      localStorage.setItem('cmdV3VoteHistory', JSON.stringify(voteHistory));
+      renderVoteHistory();
+      alert("履歴に保存しました！");
+    }
+    renderVotes();
+    renderVoteHistory();
+    // ==========================================
+    // 5. ブレインストーミング（意見箱）
+    // ==========================================
+    function renderBrainstorms() {
+      const board = document.getElementById('brainstorm-board');
+      board.innerHTML = '';
+      brainstorms.forEach((bs, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'bs-chip';
+        chip.innerText = bs + " ✖";
+        chip.onclick = () => {
+          brainstorms.splice(i, 1);
+          renderBrainstorms();
+        };
+        board.appendChild(chip);
+      });
+      localStorage.setItem('cmdV3Brainstorm', JSON.stringify(brainstorms));
+    }
+
+    function addBrainstorm(e) {
+      if (e.key === 'Enter' && e.target.value.trim() !== '') {
+        brainstorms.push(e.target.value.trim());
+        e.target.value = '';
+        renderBrainstorms();
+      }
+    }
+    renderBrainstorms();
+    // ==========================================
+    // 6. カスタム・タイマー (自由設定対応)
+    // ==========================================
+    let timerInterval;
+    let timeLeft = 300;
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function applyCustomTimer() {
+      clearInterval(timerInterval);
+      const m = parseInt(document.getElementById('t-min').value) || 0;
+      const s = parseInt(document.getElementById('t-sec').value) || 0;
+      timeLeft = (m * 60) + s;
+      document.getElementById('timer-display').innerText = formatTime(timeLeft);
+    }
+
+    function quickTimer(m, s) {
+      document.getElementById('t-min').value = m;
+      document.getElementById('t-sec').value = s;
+      applyCustomTimer();
+      startTimer();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      applyCustomTimer(); // 現在の入力値で開始
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          document.getElementById('timer-display').innerText = formatTime(timeLeft);
+        } else {
+          clearInterval(timerInterval);
+          playChime();
+          alert("時間が来ました！");
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+    applyCustomTimer(); // 初期表示
+    // ==========================================
+    // 7. 点呼ドロップダウン ＆ ルーレット
+    // ==========================================
+    function renderHeadcountSelect() {
+      const sel = document.getElementById('headcount-select');
+      sel.innerHTML = '';
+      for (let i = 0; i <= maxStudents; i++) {
+        sel.add(new Option(i + '人', i));
+      }
+      // もし保存された人数が最大人数を超えていたら調整
+      if (headcount > maxStudents) headcount = maxStudents;
+      sel.value = headcount;
+    }
+
+    function changeHeadcount(val) {
+      headcount = parseInt(val);
+      localStorage.setItem('cmdV3Headcount', headcount);
+    }
+    renderHeadcountSelect();
+
+    function spinRoulette() {
+      saveSettings();
+      let counter = 0;
+      const display = document.getElementById('rng-result');
+      const interval = setInterval(() => {
+        display.innerText = Math.floor(Math.random() * maxStudents) + 1;
+        counter++;
+        if (counter > 15) {
+          clearInterval(interval);
+          playBeep();
+        }
+      }, 50);
+    }
+    // ランダム班分け
+    function generateGroups() {
+      saveSettings();
+      const numGroups = parseInt(document.getElementById('group-count').value) || 4;
+      let students = Array.from({
+        length: maxStudents
+      }, (_, i) => i + 1);
+      for (let i = students.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [students[i], students[j]] = [students[j], students[i]];
+      }
+      let groups = Array.from({
+        length: numGroups
+      }, () => []);
+      students.forEach((student, index) => {
+        groups[index % numGroups].push(student);
+      });
+      let resultHtml = "";
+      groups.forEach((g, i) => {
+        resultHtml += `<div style="margin-bottom: 5px;"><strong style="color:var(--gold);">第${i+1}班:</strong> ${g.join(', ')}</div>`;
+      });
+      document.getElementById('group-result').innerHTML = resultHtml;
+      playBeep();
+    }
+    // ==========================================
+    // 8. ユーティリティ（音、フラッシュ、コピペなど）
+    // ==========================================
+    const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+
+    function playBeep() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playChime() {
+      const notes = [523.25, 659.25, 783.99, 523.25];
+      notes.forEach((freq, i) => {
+        setTimeout(() => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 1);
+        }, i * 400);
+      });
+    }
+
+    function triggerFlare() {
+      const overlay = document.getElementById('alert-overlay');
+      overlay.classList.add('flash-anim');
+      setTimeout(() => overlay.classList.remove('flash-anim'), 2000);
+    }
+
+    function copyToClip(id) {
+      const text = document.getElementById(id).value;
+      navigator.clipboard.writeText(text).then(() => alert("クリップボードにコピーしました！"));
+    }
+
+    function toggleFocus() {
+      document.getElementById('meeting-core-panel').classList.toggle('fullscreen-mode');
+    }
+
+    function resetDay() {
+      if (confirm("今日のメモやチェックしたタスクをリセットしますか？（経験値・データベースは残ります）")) {
+        tasks = tasks.filter(t => !t.done);
+        renderTasks();
+        document.getElementById('daily-memo').value = '';
+        localStorage.setItem('cmdV3Daily', '');
+        document.getElementById('meeting-memo').value = '';
+        localStorage.setItem('cmdV3Meeting', '');
+        voteOptions = [];
+        renderVotes(); // 投票案もリセット
+        brainstorms = [];
+        renderBrainstorms();
+        headcount = 0;
+        renderHeadcountSelect();
+        localStorage.setItem('cmdV3Headcount', 0);
+        updateExp(20);
+        alert("今日も一日お疲れ様でした！リセット完了。ボーナスEXPを獲得しました。");
+      }
+    }
+    // ==========================================
+    // 9. 背景パーティクル
+    // ==========================================
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    const particles = [];
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 0.5,
+        speedX: Math.random() * 0.2 - 0.1,
+        speedY: Math.random() * 0.2 - 0.1,
+        opacity: Math.random(),
+        fade: Math.random() > 0.5 ? 0.005 : -0.005
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.opacity += p.fade;
+        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.y > canvas.height) p.y = 0;
+        if (p.y < 0) p.y = canvas.height;
+        ctx.fillStyle = `rgba(255, 170, 0, ${p.opacity * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

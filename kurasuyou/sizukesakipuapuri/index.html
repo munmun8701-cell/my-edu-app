@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>静かさキープアプリ</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>静かさキープ・モンスター（画像対応・本格ファンタジー版）</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+JP:wght@400;700&family=VT323&display=swap');
+
+    :root {
+      --bg-color: #1a2530;
+      --panel-bg: rgba(26, 37, 48, 0.8);
+      --stone-border: #4a5c66;
+      --crystal-glow: #7af;
+      --text-main: #e2e8f0;
+      --gauge-safe: #38b2ac;
+      --gauge-warn: #e6b91e;
+      --gauge-danger: #e53e3e;
+      --ui-border: #3b4e5c;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(20, 30, 40, 0.5) 0%, rgba(10, 15, 20, 0.9) 100%),
+        url('data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="%231a2530"/><path d="M0 0l200 200M200 0L0 200" stroke="%23253545" stroke-width="2" opacity="0.5"/></svg>');
+      background-blend-mode: overlay;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.5s ease;
+    }
+
+    body.angry {
+      background-color: #3b1515;
+      background-image: radial-gradient(circle at 50% 50%, rgba(59, 21, 21, 0.8) 0%, rgba(20, 5, 5, 0.95) 100%);
+    }
+
+    #app {
+      width: 95%;
+      max-width: 1000px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* 上部コントロールパネル */
+    #controls-container {
+      background: var(--panel-bg);
+      border: 4px solid var(--stone-border);
+      border-radius: 12px;
+      padding: 10px 20px;
+      margin-bottom: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    #controls-container::before,
+    #controls-container::after {
+      content: '◆';
+      position: absolute;
+      color: var(--crystal-glow);
+      font-size: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      text-shadow: 0 0 10px var(--crystal-glow);
+    }
+
+    #controls-container::before {
+      left: 15px;
+    }
+
+    #controls-container::after {
+      right: 15px;
+    }
+
+    .control-btn {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 8px 16px;
+      border: 2px solid var(--ui-border);
+      border-radius: 6px;
+      background: linear-gradient(to bottom, #4a6572, #344955);
+      color: #fff;
+      cursor: pointer;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      transition: all 0.1s;
+    }
+
+    #reset-btn {
+      background: linear-gradient(to bottom, #8f6e72, #6b4d51);
+    }
+
+    .control-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .control-btn:disabled {
+      background: #4a4a4a;
+      color: #888;
+      cursor: not-allowed;
+      border-color: #333;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #cbd5e0;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="number"] {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--stone-border);
+      color: white;
+      padding: 4px;
+      border-radius: 4px;
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 120px;
+      background: transparent;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: var(--crystal-glow);
+      cursor: pointer;
+      margin-top: -6px;
+      box-shadow: 0 0 8px var(--crystal-glow);
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: #2d3748;
+      border-radius: 2px;
+      border: 1px solid #1a202c;
+    }
+
+    /* 中央エリア */
+    #center-display {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #timer-crystal {
+      position: relative;
+      margin-bottom: 30px;
+      padding: 10px 40px;
+      background: rgba(135, 206, 250, 0.1);
+      border: 2px solid rgba(135, 206, 250, 0.4);
+      border-radius: 50% 50% 50% 50% / 100% 100% 100% 100%;
+      box-shadow: 0 0 20px rgba(135, 206, 250, 0.2), inset 0 0 15px rgba(135, 206, 250, 0.3);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+
+    #timer-crystal::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: inherit;
+      z-index: -1;
+      filter: blur(5px);
+    }
+
+    #timer-display {
+      font-family: 'VT323', monospace;
+      font-size: 5.5rem;
+      font-weight: bold;
+      color: #e0f7fa;
+      text-shadow: 0 0 15px rgba(135, 206, 250, 0.8);
+      letter-spacing: 2px;
+    }
+
+    body.angry #timer-crystal {
+      background: rgba(255, 100, 100, 0.1);
+      border-color: rgba(255, 50, 50, 0.5);
+      box-shadow: 0 0 20px rgba(255, 50, 50, 0.3), inset 0 0 15px rgba(255, 50, 50, 0.4);
+    }
+
+    body.angry #timer-display {
+      color: #ffebee;
+      text-shadow: 0 0 15px rgba(255, 50, 50, 0.8);
+    }
+
+    /* モンスター表示エリア (台座) */
+    #altar {
+      position: relative;
+      width: 400px;
+      height: 250px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      background: radial-gradient(ellipse at bottom, rgba(74, 92, 102, 0.8) 0%, transparent 70%);
+      border-bottom: 10px solid #2d3748;
+      border-radius: 50% / 20%;
+    }
+
+    /* === ドラゴン画像用のスタイル === */
+    .monster-graphic {
+      width: 300px;
+      /* お手持ちの画像に合わせてサイズを調整してください */
+      height: auto;
+      max-height: 220px;
+      object-fit: contain;
+      position: absolute;
+      bottom: 15px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      filter: drop-shadow(0 15px 15px rgba(0, 0, 0, 0.8));
+    }
+
+    .sleeping {
+      animation: breathe 3s infinite ease-in-out;
+    }
+
+    .angry-monster {
+      animation: shake 0.4s infinite;
+      transform: scale(1.15) translateY(-10px);
+      /* 画像1枚だけでも怒っているように見せるCSSマジック */
+      /* セピア化→色相を赤へシフト→彩度を上げて真っ赤にする */
+      filter: drop-shadow(0 0 30px #ff0000) sepia(1) hue-rotate(-50deg) saturate(5) brightness(0.8);
+    }
+
+    /* Zzzエフェクト */
+    .zzz-container {
+      position: absolute;
+      top: -30px;
+      right: 40px;
+      font-family: 'Cinzel', serif;
+      color: #a0f0d0;
+      text-shadow: 0 0 5px #a0f0d0;
+    }
+
+    .z {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .z-1 {
+      font-size: 2rem;
+      animation: floatZ 3s infinite linear 0s;
+    }
+
+    .z-2 {
+      font-size: 2.5rem;
+      animation: floatZ 3s infinite linear 1s;
+      left: 15px;
+      top: -15px;
+    }
+
+    .z-3 {
+      font-size: 3rem;
+      animation: floatZ 3s infinite linear 2s;
+      left: 35px;
+      top: -35px;
+    }
+
+    /* 下部エリア */
+    #bottom-altar {
+      background: var(--panel-bg);
+      border: 4px solid var(--stone-border);
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    #gauge-pool {
+      height: 40px;
+      background: #1a202c;
+      border: 3px solid #2d3748;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.8);
+      margin-bottom: 25px;
+    }
+
+    #gauge-liquid {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gauge-safe), #4fd1c5);
+      border-radius: 20px 0 0 20px;
+      transition: width 0.1s linear;
+      position: relative;
+      box-shadow: 0 0 15px var(--gauge-safe);
+    }
+
+    #gauge-liquid::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px 0 0 0;
+    }
+
+    .wave {
+      position: absolute;
+      right: -10px;
+      top: 0;
+      width: 20px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.4);
+      filter: blur(2px);
+      animation: pulse-wave 1s infinite alternate;
+    }
+
+    #threshold-marker {
+      position: absolute;
+      top: -5px;
+      bottom: -5px;
+      width: 4px;
+      background-color: #ffd700;
+      z-index: 10;
+      box-shadow: 0 0 8px #ffd700;
+    }
+
+    #threshold-label {
+      position: absolute;
+      top: -22px;
+      transform: translateX(-50%);
+      font-size: 0.8rem;
+      color: #ffd700;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px black;
+      white-space: nowrap;
+    }
+
+    .pool-labels {
+      display: flex;
+      justify-content: space-between;
+      position: absolute;
+      width: 90%;
+      top: 10px;
+      left: 5%;
+      pointer-events: none;
+      z-index: 5;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.6);
+      text-shadow: 1px 1px 2px black;
+    }
+
+    #chest-container {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2d3748;
+      border: 4px solid var(--stone-border);
+      border-radius: 8px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      z-index: 20;
+    }
+
+    .chest-icon {
+      font-size: 2.5rem;
+      filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
+    }
+
+    #chest-text {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #a0aec0;
+    }
+
+    .cleared #chest-text {
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .cleared .chest-icon {
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        transform: scale(1) translateY(0);
+      }
+
+      50% {
+        transform: scale(1.02) translateY(-5px);
+      }
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translate(2px, 2px) scale(1.15);
+      }
+
+      20% {
+        transform: translate(-3px, -2px) scale(1.15);
+      }
+
+      40% {
+        transform: translate(3px, 3px) scale(1.15);
+      }
+
+      60% {
+        transform: translate(-2px, 3px) scale(1.15);
+      }
+
+      80% {
+        transform: translate(3px, -3px) scale(1.15);
+      }
+
+      100% {
+        transform: translate(2px, -2px) scale(1.15);
+      }
+    }
+
+    @keyframes floatZ {
+      0% {
+        transform: translate(0, 0) scale(0.5);
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      80% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(15px, -30px) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    @keyframes pulse-wave {
+      0% {
+        opacity: 0.3;
+        transform: scaleX(1);
+      }
+
+      100% {
+        opacity: 0.8;
+        transform: scaleX(1.5);
+      }
+    }
+
+    @keyframes bounce {
+
+      0%,
+      20%,
+      50%,
+      80%,
+      100% {
+        transform: translateY(0);
+      }
+
+      40% {
+        transform: translateY(-15px);
+      }
+
+      60% {
+        transform: translateY(-7px);
+      }
+    }
+
+    .rune {
+      position: absolute;
+      color: rgba(122, 255, 255, 0.1);
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      z-index: -2;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 背景装飾 -->
+  <div class="rune" style="top: 20%; left: 10%; font-size: 4rem; transform: rotate(15deg);">ᚠ</div>
+  <div class="rune" style="top: 40%; left: 5%; font-size: 5rem; transform: rotate(-10deg);">ᚢ</div>
+  <div class="rune" style="top: 70%; left: 15%; font-size: 3rem; transform: rotate(5deg);">ᚦ</div>
+  <div class="rune" style="top: 25%; right: 12%; font-size: 4.5rem; transform: rotate(-15deg);">ᚨ</div>
+  <div class="rune" style="top: 50%; right: 8%; font-size: 3.5rem; transform: rotate(10deg);">ᚱ</div>
+  <div class="rune" style="top: 80%; right: 10%; font-size: 5rem; transform: rotate(-5deg);">ᚲ</div>
+
+  <div id="app">
+    <div id="controls-container">
+      <button id="start-btn" class="control-btn">▶ スタート (マイク許可)</button>
+      <button id="reset-btn" class="control-btn" disabled>■ リセット</button>
+      <div class="setting-group"><label for="time-input">時間 (分)</label>
+        <div class="setting-row"><input type="number" id="time-input" value="5" min="1" max="60" style="width: 50px; text-align:center;"></div>
+      </div>
+      <div class="setting-group"><label for="sensitivity">怒るライン (感度): <span id="sense-val">18</span>%</label>
+        <div class="setting-row"><input type="range" id="sensitivity" min="5" max="95" value="18"></div>
+      </div>
+    </div>
+
+    <div id="center-display">
+      <div id="timer-crystal">
+        <div id="timer-display">05:00</div>
+      </div>
+      <div id="altar">
+
+        <!-- ========================================== -->
+        <!-- ここでご用意いただいた画像ファイルを指定します -->
+        <!-- src="dragon.png" の部分をご自身のファイル名に変更してください -->
+        <!-- ========================================== -->
+        <img id="monster" src="dragon.png" alt="ドラゴン" class="monster-graphic sleeping" onerror="this.src='https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f409.svg'">
+
+        <div id="zzz" class="zzz-container">
+          <span class="z z-1">Z</span><span class="z z-2">z</span><span class="z z-3">z</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="bottom-altar">
+      <div id="gauge-pool">
+        <div class="pool-labels"><span>静か</span><span>警告</span></div>
+        <div id="gauge-liquid">
+          <div class="wave"></div>
+        </div>
+        <div id="threshold-marker" style="left: 18%;">
+          <div id="threshold-label">18%</div>
+        </div>
+      </div>
+      <div id="chest-container">
+        <div id="chest-icon" class="chest-icon">🔒</div>
+        <div id="chest-text">宝箱は固く閉ざされている</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let audioContext;
+    let analyser;
+    let microphone;
+    let dataArray;
+    let animationId;
+    let timerInterval;
+    let isRunning = false;
+    let remainingSeconds = 300;
+    let threshold = 18;
+    let angryFrames = 0;
+    const startBtn = document.getElementById('start-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const timeInput = document.getElementById('time-input');
+    const sensitivitySlider = document.getElementById('sensitivity');
+    const senseValDisplay = document.getElementById('sense-val');
+    const thresholdLabel = document.getElementById('threshold-label');
+    const timerDisplay = document.getElementById('timer-display');
+    const monster = document.getElementById('monster');
+    const zzz = document.getElementById('zzz');
+    const gaugeLiquid = document.getElementById('gauge-liquid');
+    const thresholdMarker = document.getElementById('threshold-marker');
+    const chestContainer = document.getElementById('chest-container');
+    const chestIcon = document.getElementById('chest-icon');
+    const chestText = document.getElementById('chest-text');
+    const body = document.body;
+    updateTimerDisplay();
+    sensitivitySlider.addEventListener('input', (e) => {
+      threshold = e.target.value;
+      senseValDisplay.textContent = threshold;
+      thresholdLabel.textContent = `${threshold}%`;
+      thresholdMarker.style.left = `${threshold}%`;
+    });
+    timeInput.addEventListener('change', () => {
+      if (!isRunning) {
+        remainingSeconds = timeInput.value * 60;
+        updateTimerDisplay();
+      }
+    });
+    startBtn.addEventListener('click', async () => {
+      if (!audioContext) {
+        await initAudio();
+      }
+      if (audioContext) {
+        startGame();
+      }
+    });
+    resetBtn.addEventListener('click', resetGame);
+    async function initAudio() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
+        audioContext = new(window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        microphone = audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+      } catch (err) {
+        alert('マイクのアクセスが許可されませんでした。');
+      }
+    }
+
+    function startGame() {
+      if (audioContext.state === 'suspended') audioContext.resume();
+      remainingSeconds = timeInput.value * 60;
+      isRunning = true;
+      angryFrames = 0;
+      startBtn.disabled = true;
+      timeInput.disabled = true;
+      resetBtn.disabled = false;
+      chestContainer.classList.remove('cleared');
+      chestIcon.textContent = "🔒";
+      chestText.textContent = "宝箱を守っている...";
+      setMonsterState('sleeping');
+      timerInterval = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          updateTimerDisplay();
+        } else {
+          gameClear();
+        }
+      }, 1000);
+      monitorAudio();
+    }
+
+    function monitorAudio() {
+      if (!isRunning) return;
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      let average = sum / dataArray.length;
+      let volumePercent = Math.min((average / 100) * 100, 100);
+      gaugeLiquid.style.width = `${volumePercent}%`;
+      if (volumePercent < threshold * 0.7) {
+        gaugeLiquid.style.background = 'linear-gradient(90deg, var(--gauge-safe), #4fd1c5)';
+        gaugeLiquid.style.boxShadow = '0 0 15px var(--gauge-safe)';
+      } else if (volumePercent < threshold) {
+        gaugeLiquid.style.background = 'linear-gradient(90deg, var(--gauge-warn), #f6e05e)';
+        gaugeLiquid.style.boxShadow = '0 0 15px var(--gauge-warn)';
+      } else {
+        gaugeLiquid.style.background = 'linear-gradient(90deg, var(--gauge-danger), #fc8181)';
+        gaugeLiquid.style.boxShadow = '0 0 15px var(--gauge-danger)';
+      }
+      if (volumePercent >= threshold) {
+        angryFrames++;
+        if (angryFrames > 30) setMonsterState('angry');
+      } else {
+        angryFrames = 0;
+        setMonsterState('sleeping');
+      }
+      animationId = requestAnimationFrame(monitorAudio);
+    }
+
+    function setMonsterState(state) {
+      if (state === 'sleeping' && !monster.classList.contains('sleeping')) {
+        monster.className = 'monster-graphic sleeping';
+        // 怒った画像と切り替える場合は以下を有効化
+        // monster.src = 'dragon_sleep.png';
+        zzz.style.display = 'block';
+        body.classList.remove('angry');
+      } else if (state === 'angry' && !monster.classList.contains('angry-monster')) {
+        monster.className = 'monster-graphic angry-monster';
+        // 怒った画像と切り替える場合は以下を有効化
+        // monster.src = 'dragon_angry.png';
+        zzz.style.display = 'none';
+        body.classList.add('angry');
+      }
+    }
+
+    function gameClear() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      cancelAnimationFrame(animationId);
+      gaugeLiquid.style.width = '0%';
+      setMonsterState('sleeping');
+      chestContainer.classList.add('cleared');
+      chestIcon.textContent = "💎";
+      chestText.textContent = "伝説の宝箱が開いた！";
+    }
+
+    function resetGame() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      if (animationId) cancelAnimationFrame(animationId);
+      remainingSeconds = timeInput.value * 60;
+      updateTimerDisplay();
+      gaugeLiquid.style.width = '0%';
+      gaugeLiquid.style.background = 'linear-gradient(90deg, var(--gauge-safe), #4fd1c5)';
+      gaugeLiquid.style.boxShadow = 'none';
+      startBtn.disabled = false;
+      timeInput.disabled = false;
+      resetBtn.disabled = true;
+      chestContainer.classList.remove('cleared');
+      chestIcon.textContent = "🔒";
+      chestText.textContent = "宝箱は固く閉ざされている";
+      setMonsterState('sleeping');
+      angryFrames = 0;
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+      const s = (remainingSeconds % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${m}:${s}`;
+    }
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
