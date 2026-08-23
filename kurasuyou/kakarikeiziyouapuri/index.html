@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>係掲示</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クラス係ポスターメーカー PRO</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <style>
+    :root {
+      --primary: #0066ff;
+      --surface: #ffffff;
+      --bg-gray: #f3f4f6;
+      --border: #e5e7eb;
+      --text-main: #1f2937;
+      --text-sub: #6b7280;
+      --font-jp: 'M PLUS Rounded 1c', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-jp);
+      background-color: var(--bg-gray);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 左側：ツールバー */
+    .sidebar {
+      width: 320px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.2rem;
+      color: var(--primary);
+      font-weight: 900;
+    }
+
+    .tools-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    /* 背景デザインボタン */
+    .bg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .bg-btn {
+      height: 60px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .bg-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .bg-btn span {
+      position: absolute;
+      bottom: -22px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    /* 汎用追加ボタン */
+    .action-btn {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.2s;
+    }
+
+    .action-btn:hover {
+      border-color: var(--primary);
+      background: #f0f7ff;
+      color: var(--primary);
+    }
+
+    .action-btn i {
+      font-size: 1.2rem;
+    }
+
+    .primary-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      justify-content: center;
+    }
+
+    .primary-btn:hover {
+      background: #0052cc;
+      color: white;
+    }
+
+    /* 右側：キャンバスエリア */
+    .workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 上部プロパティバー */
+    .top-bar {
+      height: 60px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 15px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      transition: 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-gray);
+      color: var(--primary);
+    }
+
+    .delete-btn {
+      color: #ef4444;
+    }
+
+    .delete-btn:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .notice {
+      margin-left: auto;
+      font-size: 0.9rem;
+      color: #ef4444;
+      font-weight: bold;
+      background: #fee2e2;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    /* キャンバススクロール領域 */
+    .canvas-scroll-area {
+      flex: 1;
+      overflow: auto;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* キャンバスラッパー (A4/B5縦の白銀比率 1:1.414) */
+    .canvas-wrapper {
+      background: white;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-radius: 2px;
+      transform-origin: top center;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 左側ツールバー -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1><i class="fas fa-chalkboard-teacher"></i> 係ポスターメーカー</h1>
+    </div>
+
+    <div class="tools-container">
+      <div class="section-title"><i class="fas fa-image"></i> 1. 背景デザイン (A4/B5縦)</div>
+      <div class="bg-grid" style="margin-bottom: 30px;">
+        <button class="bg-btn" id="bgGrid" style="background-color: #f0f8ff; border-top: 10px solid #FFF6A0;"><span>①マス目</span></button>
+        <button class="bg-btn" id="bgBlackboard" style="background-color: #2c5e4f; border: 4px solid #8b5a2b;"><span>②黒板風</span></button>
+        <button class="bg-btn" id="bgStripe" style="background: repeating-linear-gradient(45deg, #e0f2fe, #e0f2fe 10px, #ffffff 10px, #ffffff 20px);"><span>③ストライプ</span></button>
+        <button class="bg-btn" id="bgDots" style="background-color: #fff0f5; background-image: radial-gradient(#ffb6c1 20%, transparent 20%); background-size: 15px 15px;"><span>④ドット</span></button>
+        <button class="bg-btn" id="bgCork" style="background-color: #deb887; border: 6px solid #a0522d;"><span>⑤コルク風</span></button>
+      </div>
+
+      <div class="section-title"><i class="fas fa-puzzle-piece"></i> 2. 係のパーツを追加</div>
+      <button class="action-btn" id="btnAddTitle">
+        <i class="fas fa-heading"></i> 係名タイトルを追加
+      </button>
+
+      <button class="action-btn" id="btnAddMember">
+        <i class="fas fa-user-plus"></i> 写真と名前を追加
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+      </button>
+
+      <button class="action-btn" id="btnAddJobDesc">
+        <i class="fas fa-clipboard-list"></i> 仕事内容の枠を追加
+      </button>
+
+      <button class="action-btn" id="btnAddTable">
+        <i class="fas fa-table"></i> 当番表(月〜金)を追加
+      </button>
+
+      <button class="action-btn" id="btnAddText">
+        <i class="fas fa-font"></i> 自由な文字を追加
+      </button>
+
+      <div class="section-title" style="margin-top: 40px;"><i class="fas fa-download"></i> 3. 完成したら</div>
+      <button class="action-btn primary-btn" id="btnExport">
+        <i class="fas fa-print"></i> 画像として保存する
+      </button>
+      <p style="font-size: 0.75rem; color: var(--text-sub); text-align: center; margin-top: 8px;">保存した画像はWordや印刷ツールでA4/B5サイズに印刷できます。</p>
+    </div>
+  </aside>
+
+  <!-- 右側キャンバスエリア -->
+  <main class="workspace">
+    <!-- ツールバー -->
+    <div class="top-bar">
+      <button class="icon-btn" id="btnUndo" title="元に戻す"><i class="fas fa-undo"></i></button>
+      <button class="icon-btn" id="btnRedo" title="やり直す"><i class="fas fa-redo"></i></button>
+      <div style="width: 1px; height: 30px; background: var(--border); margin: 0 10px;"></div>
+      <button class="icon-btn" id="btnClone" title="コピー"><i class="fas fa-copy"></i> コピー</button>
+      <button class="icon-btn" id="btnFront" title="前面へ"><i class="fas fa-layer-group"></i> 前へ</button>
+      <button class="icon-btn delete-btn" id="btnDelete" title="削除"><i class="fas fa-trash"></i> 削除</button>
+
+      <span class="notice">
+        <i class="fas fa-mouse-pointer"></i> 編集のコツ：何もない所をクリックして選択解除 → 文字をダブルクリック
+      </span>
+    </div>
+
+    <!-- キャンバス -->
+    <div class="canvas-scroll-area">
+      <div class="canvas-wrapper" id="wrapper">
+        <canvas id="mainCanvas"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- Fabric.js 初期設定 ---
+    fabric.Object.prototype.set({
+      transparentCorners: false,
+      cornerColor: '#0066ff',
+      cornerStrokeColor: '#fff',
+      borderColor: '#0066ff',
+      cornerSize: 10,
+      padding: 5,
+      cornerStyle: 'circle'
+    });
+    // A4/B5の白銀比 (約 1 : 1.414) 印刷画質用
+    const CANVAS_WIDTH = 800;
+    const CANVAS_HEIGHT = 1131;
+    const canvas = new fabric.Canvas('mainCanvas', {
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      backgroundColor: '#ffffff',
+      preserveObjectStacking: true
+    });
+    // 画面サイズに合わせてキャンバスの見た目をズームアウト（解像度はそのまま）
+    function scaleCanvasToFit() {
+      const wrapper = document.getElementById('wrapper');
+      const container = document.querySelector('.canvas-scroll-area');
+      const scale = (container.clientHeight * 0.9) / CANVAS_HEIGHT;
+      if (scale < 1) {
+        wrapper.style.transform = `scale(${scale})`;
+        wrapper.style.marginBottom = `-${CANVAS_HEIGHT * (1 - scale)}px`;
+      }
+    }
+    window.addEventListener('resize', scaleCanvasToFit);
+    setTimeout(scaleCanvasToFit, 100);
+    // --- 履歴管理 (Undo/Redo) ---
+    let stateHistory = [];
+    let historyIndex = -1;
+    let isHistoryAction = false;
+
+    function saveState() {
+      if (isHistoryAction) return;
+      stateHistory = stateHistory.slice(0, historyIndex + 1);
+      stateHistory.push(JSON.stringify(canvas));
+      historyIndex++;
+      if (stateHistory.length > 20) {
+        stateHistory.shift();
+        historyIndex--;
+      }
+    }
+    canvas.on('object:modified', saveState);
+    canvas.on('object:added', (e) => {
+      if (!e.target.excludeFromHistory && !isHistoryAction) saveState();
+    });
+    canvas.on('object:removed', () => {
+      if (!isHistoryAction) saveState();
+    });
+    document.getElementById('btnUndo').onclick = () => {
+      if (historyIndex > 0) {
+        isHistoryAction = true;
+        historyIndex--;
+        canvas.loadFromJSON(stateHistory[historyIndex], () => {
+          canvas.renderAll();
+          isHistoryAction = false;
+        });
+      }
+    };
+    document.getElementById('btnRedo').onclick = () => {
+      if (historyIndex < stateHistory.length - 1) {
+        isHistoryAction = true;
+        historyIndex++;
+        canvas.loadFromJSON(stateHistory[historyIndex], () => {
+          canvas.renderAll();
+          isHistoryAction = false;
+        });
+      }
+    };
+    // --- 共通アクションボタン ---
+    const getAct = () => canvas.getActiveObject();
+    document.getElementById('btnDelete').onclick = () => {
+      const activeObjects = canvas.getActiveObjects();
+      if (activeObjects.length) {
+        activeObjects.forEach(obj => canvas.remove(obj));
+        canvas.discardActiveObject();
+        saveState();
+      }
+    };
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        const o = canvas.getActiveObject();
+        if (o && !o.isEditing) {
+          canvas.getActiveObjects().forEach(obj => canvas.remove(obj));
+          canvas.discardActiveObject();
+          saveState();
+        }
+      }
+    });
+    document.getElementById('btnClone').onclick = () => {
+      const o = getAct();
+      if (o) {
+        o.clone(cloned => {
+          cloned.set({
+            left: cloned.left + 20,
+            top: cloned.top + 20
+          });
+          canvas.add(cloned);
+          canvas.setActiveObject(cloned);
+          saveState();
+        });
+      }
+    };
+    document.getElementById('btnFront').onclick = () => {
+      const o = getAct();
+      if (o) {
+        canvas.bringToFront(o);
+        saveState();
+      }
+    };
+    // --- 1. 背景パターンの生成 ---
+    function clearBackground() {
+      canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+      canvas.backgroundColor = '#ffffff';
+    }
+    document.getElementById('bgGrid').onclick = () => {
+      const pCanvas = document.createElement('canvas');
+      pCanvas.width = 40;
+      pCanvas.height = 40;
+      const pCtx = pCanvas.getContext('2d');
+      pCtx.fillStyle = '#f8fbff';
+      pCtx.fillRect(0, 0, 40, 40);
+      pCtx.strokeStyle = '#dbeafe';
+      pCtx.lineWidth = 2;
+      pCtx.beginPath();
+      pCtx.moveTo(0, 0);
+      pCtx.lineTo(40, 0);
+      pCtx.moveTo(0, 0);
+      pCtx.lineTo(0, 40);
+      pCtx.stroke();
+      const pattern = new fabric.Pattern({
+        source: pCanvas,
+        repeat: 'repeat'
+      });
+      const header = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: CANVAS_WIDTH,
+        height: 120,
+        fill: '#FFF6A0',
+        selectable: false,
+        evented: false,
+        excludeFromHistory: true
+      });
+      canvas.getObjects().forEach(obj => {
+        if (obj.isBgElement) canvas.remove(obj);
+      });
+      header.isBgElement = true;
+      canvas.backgroundColor = pattern;
+      canvas.add(header);
+      canvas.sendToBack(header);
+      canvas.renderAll();
+      saveState();
+    };
+    document.getElementById('bgBlackboard').onclick = () => {
+      canvas.getObjects().forEach(obj => {
+        if (obj.isBgElement) canvas.remove(obj);
+      });
+      clearBackground();
+      canvas.backgroundColor = '#2c5e4f';
+      const frame = new fabric.Rect({
+        left: 10,
+        top: 10,
+        width: CANVAS_WIDTH - 20,
+        height: CANVAS_HEIGHT - 20,
+        fill: 'transparent',
+        stroke: '#8b5a2b',
+        strokeWidth: 15,
+        selectable: false,
+        evented: false,
+        isBgElement: true
+      });
+      canvas.add(frame);
+      canvas.sendToBack(frame);
+      canvas.renderAll();
+      saveState();
+    };
+    document.getElementById('bgStripe').onclick = () => {
+      canvas.getObjects().forEach(obj => {
+        if (obj.isBgElement) canvas.remove(obj);
+      });
+      const pCanvas = document.createElement('canvas');
+      pCanvas.width = 40;
+      pCanvas.height = 40;
+      const pCtx = pCanvas.getContext('2d');
+      pCtx.fillStyle = '#ffffff';
+      pCtx.fillRect(0, 0, 40, 40);
+      pCtx.fillStyle = '#e0f2fe';
+      pCtx.beginPath();
+      pCtx.moveTo(0, 40);
+      pCtx.lineTo(40, 0);
+      pCtx.lineTo(40, 10);
+      pCtx.lineTo(10, 40);
+      pCtx.fill();
+      pCtx.beginPath();
+      pCtx.moveTo(0, 10);
+      pCtx.lineTo(10, 0);
+      pCtx.lineTo(0, 0);
+      pCtx.fill();
+      canvas.backgroundColor = new fabric.Pattern({
+        source: pCanvas,
+        repeat: 'repeat'
+      });
+      canvas.renderAll();
+      saveState();
+    };
+    document.getElementById('bgDots').onclick = () => {
+      canvas.getObjects().forEach(obj => {
+        if (obj.isBgElement) canvas.remove(obj);
+      });
+      const pCanvas = document.createElement('canvas');
+      pCanvas.width = 30;
+      pCanvas.height = 30;
+      const pCtx = pCanvas.getContext('2d');
+      pCtx.fillStyle = '#fff0f5';
+      pCtx.fillRect(0, 0, 30, 30);
+      pCtx.fillStyle = '#ffb6c1';
+      pCtx.beginPath();
+      pCtx.arc(15, 15, 4, 0, Math.PI * 2);
+      pCtx.fill();
+      canvas.backgroundColor = new fabric.Pattern({
+        source: pCanvas,
+        repeat: 'repeat'
+      });
+      canvas.renderAll();
+      saveState();
+    };
+    document.getElementById('bgCork').onclick = () => {
+      canvas.getObjects().forEach(obj => {
+        if (obj.isBgElement) canvas.remove(obj);
+      });
+      clearBackground();
+      canvas.backgroundColor = '#deb887';
+      const frame = new fabric.Rect({
+        left: 5,
+        top: 5,
+        width: CANVAS_WIDTH - 10,
+        height: CANVAS_HEIGHT - 10,
+        fill: 'transparent',
+        stroke: '#a0522d',
+        strokeWidth: 10,
+        selectable: false,
+        evented: false,
+        isBgElement: true
+      });
+      canvas.add(frame);
+      canvas.sendToBack(frame);
+      canvas.renderAll();
+      saveState();
+    };
+    // --- 2. 係パーツの追加機能 (完全独立オブジェクト配置) ---
+    // ① 係名タイトルの追加
+    document.getElementById('btnAddTitle').onclick = () => {
+      const cx = CANVAS_WIDTH / 2;
+      const cy = 150;
+      const rect = new fabric.Rect({
+        width: 400,
+        height: 80,
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeWidth: 4,
+        rx: 15,
+        ry: 15,
+        left: cx,
+        top: cy,
+        originX: 'center',
+        originY: 'center',
+        shadow: new fabric.Shadow({
+          color: '#000',
+          offsetX: 4,
+          offsetY: 4
+        })
+      });
+      const text = new fabric.IText('学級委員', {
+        fontFamily: 'M PLUS Rounded 1c',
+        fontSize: 40,
+        fontWeight: '900',
+        fill: '#000',
+        left: cx,
+        top: cy,
+        originX: 'center',
+        originY: 'center'
+      });
+      // グループ化せずに個別にキャンバスに追加
+      canvas.add(rect, text);
+      // 追加直後だけ、まとめて移動できるように全選択状態にする
+      const sel = new fabric.ActiveSelection([rect, text], {
+        canvas: canvas
+      });
+      canvas.setActiveObject(sel);
+      canvas.requestRenderAll();
+      saveState();
+    };
+    // ② 写真と名前の追加
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('btnAddMember').onclick = () => fileInput.click();
+    fileInput.onchange = (e) => {
+      if (!e.target.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = (f) => {
+        fabric.Image.fromURL(f.target.result, (img) => {
+          const cx = CANVAS_WIDTH / 2;
+          const cy = CANVAS_HEIGHT / 2 - 100;
+          const scale = 200 / img.width;
+          img.set({
+            left: cx,
+            top: cy,
+            originX: 'center',
+            originY: 'top',
+            scaleX: scale,
+            scaleY: scale,
+            stroke: '#000',
+            strokeWidth: 2
+          });
+          const text = new fabric.IText('名前を入力', {
+            fontFamily: 'M PLUS Rounded 1c',
+            fontSize: 24,
+            fontWeight: '700',
+            fill: '#000',
+            left: cx,
+            top: cy + img.height * scale + 10,
+            originX: 'center',
+            originY: 'top',
+            backgroundColor: '#ffffff'
+          });
+          // グループ化せずに個別に追加
+          canvas.add(img, text);
+          const sel = new fabric.ActiveSelection([img, text], {
+            canvas: canvas
+          });
+          canvas.setActiveObject(sel);
+          canvas.requestRenderAll();
+          saveState();
+        });
+      };
+      reader.readAsDataURL(e.target.files[0]);
+      e.target.value = '';
+    };
+    // ③ 仕事内容の枠を追加
+    document.getElementById('btnAddJobDesc').onclick = () => {
+      const cx = CANVAS_WIDTH / 2;
+      const cy = CANVAS_HEIGHT / 2;
+      const mainRect = new fabric.Rect({
+        width: 500,
+        height: 200,
+        fill: '#ffffff',
+        stroke: '#FFF6A0',
+        strokeWidth: 6,
+        rx: 15,
+        ry: 15,
+        left: cx,
+        top: cy,
+        originX: 'center',
+        originY: 'center'
+      });
+      const tagRect = new fabric.Rect({
+        width: 140,
+        height: 40,
+        fill: '#FFF6A0',
+        stroke: '#000',
+        strokeWidth: 3,
+        rx: 20,
+        ry: 20,
+        left: cx,
+        top: cy - 100,
+        originX: 'center',
+        originY: 'center',
+        shadow: new fabric.Shadow({
+          color: '#000',
+          offsetX: 2,
+          offsetY: 2
+        })
+      });
+      const tagText = new fabric.Text('仕事内容', {
+        fontFamily: 'M PLUS Rounded 1c',
+        fontSize: 18,
+        fontWeight: '900',
+        fill: '#000',
+        left: cx,
+        top: cy - 100,
+        originX: 'center',
+        originY: 'center'
+      });
+      // テキストボックス仕様（折り返し対応）
+      const contentText = new fabric.Textbox('ここに仕事内容を入力します。\n・黒板を消す\n・電気を消す', {
+        fontFamily: 'M PLUS Rounded 1c',
+        fontSize: 22,
+        fill: '#333',
+        width: 460,
+        left: cx,
+        top: cy + 10,
+        originX: 'center',
+        originY: 'center',
+        textAlign: 'left'
+      });
+      canvas.add(mainRect, tagRect, tagText, contentText);
+      const sel = new fabric.ActiveSelection([mainRect, tagRect, tagText, contentText], {
+        canvas: canvas
+      });
+      canvas.setActiveObject(sel);
+      canvas.requestRenderAll();
+      saveState();
+    };
+    // ④ 当番表（月〜金）の追加
+    document.getElementById('btnAddTable').onclick = () => {
+      const cols = 5;
+      const rows = 4; // 見出し1行 + 名前3行
+      const cellW = 90;
+      const cellH = 45;
+      const totalW = cols * cellW;
+      const totalH = rows * cellH;
+      const startX = CANVAS_WIDTH / 2 - totalW / 2;
+      const startY = CANVAS_HEIGHT - 250 - totalH / 2;
+      const items = [];
+      // 背景と見出し色
+      items.push(new fabric.Rect({
+        width: totalW,
+        height: totalH,
+        fill: '#fff',
+        stroke: '#000',
+        strokeWidth: 2,
+        left: startX,
+        top: startY
+      }));
+      items.push(new fabric.Rect({
+        width: totalW,
+        height: cellH,
+        fill: '#FFF6A0',
+        stroke: '#000',
+        strokeWidth: 2,
+        left: startX,
+        top: startY
+      }));
+      // 罫線
+      for (let i = 1; i < cols; i++) {
+        items.push(new fabric.Line([startX + i * cellW, startY, startX + i * cellW, startY + totalH], {
+          stroke: '#000',
+          strokeWidth: 2
+        }));
+      }
+      for (let j = 1; j < rows; j++) {
+        items.push(new fabric.Line([startX, startY + j * cellH, startX + totalW, startY + j * cellH], {
+          stroke: '#000',
+          strokeWidth: 2
+        }));
+      }
+      // 曜日テキスト
+      const days = ['月', '火', '水', '木', '金'];
+      days.forEach((day, i) => {
+        items.push(new fabric.Text(day, {
+          fontFamily: 'M PLUS Rounded 1c',
+          fontSize: 20,
+          fontWeight: 'bold',
+          fill: '#000',
+          left: startX + i * cellW + cellW / 2,
+          top: startY + cellH / 2,
+          originX: 'center',
+          originY: 'center'
+        }));
+      });
+      // 入力用名前テキスト
+      for (let r = 1; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          items.push(new fabric.IText('名前', {
+            fontFamily: 'M PLUS Rounded 1c',
+            fontSize: 18,
+            fill: '#333',
+            left: startX + c * cellW + cellW / 2,
+            top: startY + r * cellH + cellH / 2,
+            originX: 'center',
+            originY: 'center'
+          }));
+        }
+      }
+      // バラバラに追加
+      canvas.add(...items);
+      const sel = new fabric.ActiveSelection(items, {
+        canvas: canvas
+      });
+      canvas.setActiveObject(sel);
+      canvas.requestRenderAll();
+      saveState();
+    };
+    // 自由なテキスト追加
+    document.getElementById('btnAddText').onclick = () => {
+      const text = new fabric.IText('自由に文字を入力', {
+        fontFamily: 'M PLUS Rounded 1c',
+        fontSize: 28,
+        fontWeight: '700',
+        fill: '#000',
+        left: CANVAS_WIDTH / 2,
+        top: CANVAS_HEIGHT / 2,
+        originX: 'center',
+        originY: 'center'
+      });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+      saveState();
+    };
+    // --- 3. 画像としてエクスポート ---
+    document.getElementById('btnExport').onclick = () => {
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      const dataURL = canvas.toDataURL({
+        format: 'jpeg',
+        quality: 1,
+        multiplier: 1
+      });
+      const a = document.createElement('a');
+      a.download = `係ポスター_${Date.now()}.jpg`;
+      a.href = dataURL;
+      a.click();
+    };
+    // 初期状態でマス目背景をセット
+    document.getElementById('bgGrid').click();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

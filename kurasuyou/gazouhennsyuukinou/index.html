@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>画像編集プリクラ機能</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DECO STUDIO ULTIMATE</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #020617;
+      --bg-panel: #0F172A;
+      --bg-panel-light: #1E293B;
+      --border-color: #334155;
+      --accent-cyan: #00F0FF;
+      --accent-cyan-dim: rgba(0, 240, 255, 0.2);
+      --accent-pink: #FF003C;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --font-jp: 'M PLUS Rounded 1c', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-jp);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-cyan);
+      border-radius: 3px;
+    }
+
+    /* HEADER */
+    .sys-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 15px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 2px solid var(--accent-cyan);
+      z-index: 100;
+    }
+
+    .sys-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 1.1rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-cyan);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(0.8);
+      }
+
+      50% {
+        transform: scale(1.2);
+      }
+    }
+
+    /* LAYOUT */
+    .app-main {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 45px);
+    }
+
+    .sidebar {
+      width: 360px;
+      background: var(--bg-panel);
+      border-right: 2px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 10;
+    }
+
+    /* CANVAS AREA - NO DEAD SPACE */
+    .canvas-area {
+      flex: 1;
+      background: var(--bg-base);
+      position: relative;
+      padding: 10px;
+      overflow: hidden;
+      display: flex;
+      background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .canvas-wrapper {
+      flex: 1;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      border: 2px solid var(--accent-cyan);
+      border-radius: 6px;
+      position: relative;
+      background: #020617;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* SIDEBAR UI */
+    .toolbar-top {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-color);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.5fr;
+      gap: 4px;
+    }
+
+    .tabs-container {
+      display: flex;
+      background: var(--bg-panel-light);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 0;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 900;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      color: var(--accent-cyan);
+      border-bottom: 2px solid var(--accent-cyan);
+      background: var(--accent-cyan-dim);
+    }
+
+    .tab-content {
+      display: none;
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* COMPONENTS */
+    .section-title {
+      color: var(--accent-cyan);
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn {
+      padding: 8px 4px;
+      background: var(--bg-panel-light);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--border-color);
+    }
+
+    .btn-action {
+      background: var(--accent-cyan);
+      color: #000;
+      border: none;
+    }
+
+    .btn-danger {
+      background: rgba(255, 0, 60, 0.2);
+      border-color: var(--accent-pink);
+      color: #fff;
+    }
+
+    .btn-icon {
+      padding: 8px;
+      font-size: 1rem;
+    }
+
+    /* アイコン専用省スペースボタン */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .control-group {
+      margin-bottom: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.1);
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 900;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-cyan);
+      height: 4px;
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 28px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      background: #000;
+      padding: 0;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .upload-zone input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .stamp-btn {
+      font-size: 1.5rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 0;
+      cursor: pointer;
+      text-align: center;
+      transition: 0.1s;
+    }
+
+    .stamp-btn:hover {
+      border-color: var(--accent-cyan);
+      transform: scale(1.1);
+      background: var(--bg-panel);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="sys-header">
+    <div class="sys-status">
+      <div class="status-dot"></div> STUDIO CORE
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <button class="btn" id="btnSaveJson"><i class="fas fa-save"></i> ﾃﾞｰﾀ保存</button>
+      <label class="btn" style="margin: 0; cursor: pointer;"><i class="fas fa-folder-open"></i> ﾃﾞｰﾀ開く<input type="file" id="btnLoadJson" accept=".json" style="display: none;"></label>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <aside class="sidebar">
+      <div class="toolbar-top">
+        <button class="btn" id="btnUndo"><i class="fas fa-undo"></i> 戻す</button>
+        <button class="btn" id="btnRedo"><i class="fas fa-redo"></i> 進む</button>
+        <button class="btn btn-action" id="btnExport"><i class="fas fa-download"></i> 画像保存</button>
+      </div>
+
+      <div class="tabs-container">
+        <button class="tab-btn active" data-tab="tab-layout">1.画像&形</button>
+        <button class="tab-btn" data-tab="tab-edit">2.編集</button>
+        <button class="tab-btn" data-tab="tab-add">3.文字&ペン</button>
+        <button class="tab-btn" data-tab="tab-stamps">4.絵文字</button>
+      </div>
+
+      <!-- TAB 1: 画像と図形 -->
+      <div class="tab-content active" id="tab-layout">
+        <h3 class="section-title"><i class="fas fa-image"></i> 画像追加 (<span id="imgCount">0</span>/6)</h3>
+        <div class="upload-zone">
+          <i class="fas fa-plus-circle" style="font-size: 1.5rem; color: var(--accent-cyan);"></i>
+          <div style="font-size: 0.85rem; margin-top: 4px;">ここを押して画像を選択</div>
+          <input type="file" id="fileInput" accept="image/*" multiple>
+        </div>
+        <div class="thumb-grid" id="imageList"></div>
+        <button class="btn btn-action" id="btnGenerateGrid" style="width: 100%; margin-bottom: 15px;"><i class="fas fa-bolt"></i> 自動配置</button>
+
+        <h3 class="section-title"><i class="fas fa-shapes"></i> 図形追加 (新機能)</h3>
+        <div class="grid-4">
+          <button class="btn btn-icon" id="addCircle" title="丸"><i class="fas fa-circle"></i></button>
+          <button class="btn btn-icon" id="addRect" title="四角"><i class="fas fa-square"></i></button>
+          <button class="btn btn-icon" id="addTriangle" title="三角"><i class="fas fa-caret-up"></i></button>
+          <button class="btn btn-icon" id="addLine" title="線"><i class="fas fa-minus"></i></button>
+        </div>
+
+        <h3 class="section-title"><i class="fas fa-desktop"></i> キャンバス設定</h3>
+        <div class="control-group control-row">
+          <label style="margin:0; flex:1;">背景色</label>
+          <input type="color" id="canvasBgColor" value="#020617">
+        </div>
+        <div class="grid-2">
+          <button class="btn btn-icon" id="zoomIn" title="ズームイン(新機能)"><i class="fas fa-search-plus"></i></button>
+          <button class="btn btn-icon" id="zoomOut" title="ズームアウト(新機能)"><i class="fas fa-search-minus"></i></button>
+        </div>
+        <button class="btn btn-danger" id="btnClear" style="width: 100%;"><i class="fas fa-trash"></i> 全消去</button>
+      </div>
+
+      <!-- TAB 2: 編集 -->
+      <div class="tab-content" id="tab-edit">
+        <h3 class="section-title"><i class="fas fa-layer-group"></i> 配置・レイヤー (新機能追加)</h3>
+        <div class="grid-4">
+          <button class="btn btn-icon" id="btnFront" title="最前面"><i class="fas fa-angle-double-up"></i></button>
+          <button class="btn btn-icon" id="btnForward" title="1つ手前(新機能)"><i class="fas fa-angle-up"></i></button>
+          <button class="btn btn-icon" id="btnBackward" title="1つ奥(新機能)"><i class="fas fa-angle-down"></i></button>
+          <button class="btn btn-icon" id="btnBack" title="最背面"><i class="fas fa-angle-double-down"></i></button>
+        </div>
+        <div class="grid-4">
+          <button class="btn btn-icon" id="alignCenterH" title="水平中央(新機能)"><i class="fas fa-arrows-alt-h"></i></button>
+          <button class="btn btn-icon" id="alignCenterV" title="垂直中央(新機能)"><i class="fas fa-arrows-alt-v"></i></button>
+          <button class="btn btn-icon" id="btnGroup" title="グループ化(新機能)"><i class="fas fa-object-group"></i></button>
+          <button class="btn btn-icon" id="btnUngroup" title="グループ解除(新機能)"><i class="fas fa-object-ungroup"></i></button>
+        </div>
+        <div class="grid-3">
+          <button class="btn" id="btnClone"><i class="fas fa-clone"></i> コピー</button>
+          <button class="btn" id="btnFlipX"><i class="fas fa-exchange-alt"></i> 左右反転</button>
+          <button class="btn" id="btnLock"><i class="fas fa-lock"></i> ロック</button>
+        </div>
+        <button class="btn btn-danger" id="btnDeleteSelected" style="width:100%; margin-bottom: 15px;"><i class="fas fa-times"></i> 選択削除</button>
+
+        <h3 class="section-title"><i class="fas fa-sliders-h"></i> 調整 & フィルター</h3>
+        <div class="control-group">
+          <label>透明度</label><input type="range" id="objOpacity" min="0" max="1" step="0.1" value="1">
+        </div>
+        <div class="grid-3">
+          <button class="btn btn-icon" id="filterGray" title="白黒"><i class="fas fa-moon"></i></button>
+          <button class="btn btn-icon" id="filterSepia" title="セピア(新機能)"><i class="fas fa-camera-retro"></i></button>
+          <button class="btn btn-icon" id="filterContrast" title="コントラスト(新機能)"><i class="fas fa-adjust"></i></button>
+        </div>
+      </div>
+
+      <!-- TAB 3: 文字とペン -->
+      <div class="tab-content" id="tab-add">
+        <h3 class="section-title"><i class="fas fa-font"></i> 文字設定 (新装飾機能)</h3>
+        <div class="grid-2">
+          <button class="btn" id="btnAddText"><i class="fas fa-plus"></i> 文字追加</button>
+        </div>
+        <div class="grid-4">
+          <button class="btn btn-icon" id="textBold" title="太字(新)"><i class="fas fa-bold"></i></button>
+          <button class="btn btn-icon" id="textItalic" title="斜体(新)"><i class="fas fa-italic"></i></button>
+          <button class="btn btn-icon" id="textUnderline" title="下線(新)"><i class="fas fa-underline"></i></button>
+          <button class="btn btn-icon" id="textStrike" title="取消線(新)"><i class="fas fa-strikethrough"></i></button>
+        </div>
+        <div class="grid-3">
+          <button class="btn btn-icon" id="textAlignL" title="左寄せ(新)"><i class="fas fa-align-left"></i></button>
+          <button class="btn btn-icon" id="textAlignC" title="中央寄せ(新)"><i class="fas fa-align-center"></i></button>
+          <button class="btn btn-icon" id="textAlignR" title="右寄せ(新)"><i class="fas fa-align-right"></i></button>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 15px;"><i class="fas fa-pen"></i> ペンツール</h3>
+        <button class="btn" id="btnDrawMode" style="width:100%; margin-bottom:10px;"><i class="fas fa-pen"></i> お絵かきモード</button>
+        <div class="control-group control-row">
+          <label style="margin:0; flex:1;">メインカラー</label>
+          <input type="color" id="mainColorPicker" value="#00F0FF">
+        </div>
+        <div class="control-group">
+          <label>太さ</label><input type="range" id="mainSizeSlider" min="1" max="100" value="15">
+        </div>
+      </div>
+
+      <!-- TAB 4: スタンプ -->
+      <div class="tab-content" id="tab-stamps">
+        <h3 class="section-title"><i class="fas fa-smile"></i> スタンプ (30種以上追加)</h3>
+        <div class="stamp-grid" id="stampContainer"></div>
+      </div>
+    </aside>
+
+    <section class="canvas-area">
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="mainCanvas"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Fabric 初期設定 (子供向けに操作しやすく)
+    fabric.Object.prototype.set({
+      transparentCorners: false,
+      cornerColor: '#00F0FF',
+      cornerStrokeColor: '#FFFFFF',
+      borderColor: '#FF003C',
+      cornerSize: 12,
+      padding: 8,
+      cornerStyle: 'circle'
+    });
+    // タブ切り替え
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+    // キャンバス初期化＆動的リサイズ（無駄スペースゼロ）
+    const wrapper = document.getElementById('canvasWrapper');
+    let canvas = new fabric.Canvas('mainCanvas', {
+      preserveObjectStacking: true,
+      backgroundColor: document.getElementById('canvasBgColor').value
+    });
+    let currentZoom = 1;
+
+    function fitCanvasToScreen() {
+      // 親の枠サイズからボーダー(2px*2)を引いてピクセルパーフェクトにフィット
+      const w = wrapper.clientWidth - 4;
+      const h = wrapper.clientHeight - 4;
+      canvas.setWidth(w);
+      canvas.setHeight(h);
+      canvas.renderAll();
+    }
+    window.addEventListener('load', fitCanvasToScreen);
+    window.addEventListener('resize', fitCanvasToScreen);
+    // 履歴管理
+    let stateHistory = [];
+    let historyIndex = -1;
+    let isHistoryAction = false;
+
+    function saveState() {
+      if (isHistoryAction) return;
+      stateHistory = stateHistory.slice(0, historyIndex + 1);
+      stateHistory.push(JSON.stringify(canvas));
+      historyIndex++;
+      if (stateHistory.length > 20) {
+        stateHistory.shift();
+        historyIndex--;
+      }
+    }
+    canvas.on('object:modified', saveState);
+    canvas.on('object:added', (e) => {
+      if (!e.target.excludeFromHistory && !isHistoryAction) saveState();
+    });
+    canvas.on('object:removed', () => {
+      if (!isHistoryAction) saveState();
+    });
+    document.getElementById('btnUndo').onclick = () => {
+      if (historyIndex > 0) {
+        isHistoryAction = true;
+        historyIndex--;
+        canvas.loadFromJSON(stateHistory[historyIndex], () => {
+          canvas.renderAll();
+          isHistoryAction = false;
+        });
+      }
+    };
+    document.getElementById('btnRedo').onclick = () => {
+      if (historyIndex < stateHistory.length - 1) {
+        isHistoryAction = true;
+        historyIndex++;
+        canvas.loadFromJSON(stateHistory[historyIndex], () => {
+          canvas.renderAll();
+          isHistoryAction = false;
+        });
+      }
+    };
+    // セーブ・ロード
+    document.getElementById('btnSaveJson').onclick = () => {
+      const b = new Blob([JSON.stringify(canvas)], {
+        type: "application/json"
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = `DATA_${Date.now()}.json`;
+      a.click();
+    };
+    document.getElementById('btnLoadJson').onchange = (e) => {
+      if (!e.target.files[0]) return;
+      const r = new FileReader();
+      r.onload = (f) => {
+        isHistoryAction = true;
+        canvas.loadFromJSON(f.target.result, () => {
+          fitCanvasToScreen();
+          isHistoryAction = false;
+          saveState();
+        });
+      };
+      r.readAsText(e.target.files[0]);
+    };
+    // 🔥【修正】確実に画像保存する処理 (背景色を明示的に塗ってからエクスポート)
+    document.getElementById('btnExport').onclick = () => {
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      // 高画質化 (multiplier) と背景色の確実な反映
+      const dataURL = canvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 2 // 高解像度
+      });
+      const a = document.createElement('a');
+      a.download = `SAIKYOU_GAZOU_${Date.now()}.png`;
+      a.href = dataURL;
+      a.click();
+    };
+    // 画像アップロード
+    let uploadedImages = [];
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(f => {
+        if (uploadedImages.length >= 6) return;
+        const r = new FileReader();
+        r.onload = (ev) => {
+          uploadedImages.push(ev.target.result);
+          updGal();
+        };
+        r.readAsDataURL(f);
+      });
+      e.target.value = '';
+    });
+
+    function updGal() {
+      const l = document.getElementById('imageList');
+      l.innerHTML = '';
+      uploadedImages.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'thumb';
+        img.onclick = () => {
+          uploadedImages.splice(i, 1);
+          updGal();
+        };
+        l.appendChild(img);
+      });
+      document.getElementById('imgCount').textContent = uploadedImages.length;
+    }
+    // 自動配置エンジン
+    document.getElementById('btnGenerateGrid').onclick = async () => {
+      if (uploadedImages.length === 0) return alert("画像を選択してください");
+      canvas.clear();
+      canvas.backgroundColor = document.getElementById('canvasBgColor').value;
+      const count = uploadedImages.length;
+      const pad = 20;
+      let c, r;
+      if (count === 1) {
+        c = 1;
+        r = 1;
+      } else if (count === 2) {
+        c = 2;
+        r = 1;
+      } else if (count <= 4) {
+        c = 2;
+        r = 2;
+      } else {
+        c = 3;
+        r = 2;
+      }
+      const w = (canvas.width - pad * (c + 1)) / c;
+      const h = (canvas.height - pad * (r + 1)) / r;
+      isHistoryAction = true;
+      for (let i = 0; i < count; i++) {
+        let x = pad + (i % c) * (w + pad);
+        const y = pad + Math.floor(i / c) * (h + pad);
+        if (count === 3 && i === 2) x = pad + (canvas.width - w - pad * 2) / 2;
+        else if (count === 5 && i === 3) x = pad + (canvas.width - (w * 2 + pad) - pad * 2) / 2;
+        else if (count === 5 && i === 4) x = pad + (canvas.width - (w * 2 + pad) - pad * 2) / 2 + w + pad;
+        await new Promise(res => {
+          fabric.Image.fromURL(uploadedImages[i], (img) => {
+            const scale = Math.min(w / img.width, h / img.height);
+            img.set({
+              left: x + w / 2,
+              top: y + h / 2,
+              originX: 'center',
+              originY: 'center',
+              scaleX: scale,
+              scaleY: scale
+            });
+            canvas.add(img);
+            res();
+          });
+        });
+      }
+      isHistoryAction = false;
+      saveState();
+    };
+    // 🌟 新機能実装 🌟
+    const getAct = () => canvas.getActiveObject();
+    const getColor = () => document.getElementById('mainColorPicker').value;
+    // 図形追加 (4機能)
+    document.getElementById('addCircle').onclick = () => {
+      canvas.add(new fabric.Circle({
+        radius: 50,
+        fill: getColor(),
+        left: canvas.width / 2,
+        top: canvas.height / 2,
+        originX: 'center',
+        originY: 'center'
+      }));
+      saveState();
+    };
+    document.getElementById('addRect').onclick = () => {
+      canvas.add(new fabric.Rect({
+        width: 100,
+        height: 100,
+        fill: getColor(),
+        left: canvas.width / 2,
+        top: canvas.height / 2,
+        originX: 'center',
+        originY: 'center'
+      }));
+      saveState();
+    };
+    document.getElementById('addTriangle').onclick = () => {
+      canvas.add(new fabric.Triangle({
+        width: 100,
+        height: 100,
+        fill: getColor(),
+        left: canvas.width / 2,
+        top: canvas.height / 2,
+        originX: 'center',
+        originY: 'center'
+      }));
+      saveState();
+    };
+    document.getElementById('addLine').onclick = () => {
+      canvas.add(new fabric.Line([0, 0, 150, 0], {
+        stroke: getColor(),
+        strokeWidth: 5,
+        left: canvas.width / 2,
+        top: canvas.height / 2,
+        originX: 'center',
+        originY: 'center'
+      }));
+      saveState();
+    };
+    // ズーム (2機能)
+    document.getElementById('zoomIn').onclick = () => {
+      currentZoom *= 1.1;
+      canvas.setZoom(currentZoom);
+    };
+    document.getElementById('zoomOut').onclick = () => {
+      currentZoom /= 1.1;
+      canvas.setZoom(currentZoom);
+    };
+    // レイヤー・整列・グループ (8機能)
+    document.getElementById('btnFront').onclick = () => {
+      const o = getAct();
+      if (o) {
+        canvas.bringToFront(o);
+        saveState();
+      }
+    };
+    document.getElementById('btnForward').onclick = () => {
+      const o = getAct();
+      if (o) {
+        canvas.bringForward(o);
+        saveState();
+      }
+    };
+    document.getElementById('btnBackward').onclick = () => {
+      const o = getAct();
+      if (o) {
+        canvas.sendBackwards(o);
+        saveState();
+      }
+    };
+    document.getElementById('btnBack').onclick = () => {
+      const o = getAct();
+      if (o) {
+        canvas.sendToBack(o);
+        saveState();
+      }
+    };
+    document.getElementById('alignCenterH').onclick = () => {
+      const o = getAct();
+      if (o) {
+        o.centerH();
+        o.setCoords();
+        canvas.renderAll();
+        saveState();
+      }
+    };
+    document.getElementById('alignCenterV').onclick = () => {
+      const o = getAct();
+      if (o) {
+        o.centerV();
+        o.setCoords();
+        canvas.renderAll();
+        saveState();
+      }
+    };
+    document.getElementById('btnGroup').onclick = () => {
+      if (!canvas.getActiveObject()) return;
+      if (canvas.getActiveObject().type === 'activeSelection') {
+        canvas.getActiveObject().toGroup();
+        canvas.requestRenderAll();
+        saveState();
+      }
+    };
+    document.getElementById('btnUngroup').onclick = () => {
+      const o = getAct();
+      if (o && o.type === 'group') {
+        o.toActiveSelection();
+        canvas.requestRenderAll();
+        saveState();
+      }
+    };
+    // 基本操作
+    document.getElementById('btnClone').onclick = () => {
+      const o = getAct();
+      if (o) o.clone(c => {
+        c.set({
+          left: o.left + 20,
+          top: o.top + 20
+        });
+        canvas.add(c);
+        canvas.setActiveObject(c);
+        saveState();
+      });
+    };
+    document.getElementById('btnFlipX').onclick = () => {
+      const o = getAct();
+      if (o) {
+        o.set('flipX', !o.flipX);
+        canvas.renderAll();
+        saveState();
+      }
+    };
+    document.getElementById('btnLock').onclick = () => {
+      const o = getAct();
+      if (o) {
+        const l = !o.lockMovementX;
+        o.set({
+          lockMovementX: l,
+          lockMovementY: l,
+          lockScalingX: l,
+          lockScalingY: l,
+          lockRotation: l,
+          hasControls: !l
+        });
+        canvas.renderAll();
+      }
+    };
+    document.getElementById('btnDeleteSelected').onclick = () => {
+      const o = canvas.getActiveObjects();
+      if (o.length) {
+        o.forEach(obj => canvas.remove(obj));
+        canvas.discardActiveObject();
+        saveState();
+      }
+    };
+    document.getElementById('objOpacity').oninput = (e) => {
+      const o = getAct();
+      if (o) {
+        o.set('opacity', parseFloat(e.target.value));
+        canvas.renderAll();
+      }
+    };
+    // フィルター (3機能)
+    function applyF(f) {
+      const o = getAct();
+      if (o && o.type === 'image') {
+        o.filters.push(f);
+        o.applyFilters();
+        canvas.renderAll();
+        saveState();
+      }
+    }
+    document.getElementById('filterGray').onclick = () => applyF(new fabric.Image.filters.Grayscale());
+    document.getElementById('filterSepia').onclick = () => applyF(new fabric.Image.filters.Sepia());
+    document.getElementById('filterContrast').onclick = () => applyF(new fabric.Image.filters.Contrast({
+      contrast: 0.3
+    }));
+    // 文字装飾 (7機能)
+    document.getElementById('btnAddText').onclick = () => {
+      const t = new fabric.IText('テキスト', {
+        left: canvas.width / 2,
+        top: canvas.height / 2,
+        originX: 'center',
+        originY: 'center',
+        fontFamily: 'M PLUS Rounded 1c',
+        fill: getColor(),
+        fontSize: 60
+      });
+      canvas.add(t);
+      canvas.setActiveObject(t);
+      saveState();
+    };
+    const propToggle = (prop, val1, val2) => {
+      const o = getAct();
+      if (o && o.text) {
+        o.set(prop, o[prop] === val1 ? val2 : val1);
+        canvas.renderAll();
+        saveState();
+      }
+    };
+    document.getElementById('textBold').onclick = () => propToggle('fontWeight', 'bold', 'normal');
+    document.getElementById('textItalic').onclick = () => propToggle('fontStyle', 'italic', 'normal');
+    document.getElementById('textUnderline').onclick = () => propToggle('underline', true, false);
+    document.getElementById('textStrike').onclick = () => propToggle('linethrough', true, false);
+    document.getElementById('textAlignL').onclick = () => {
+      const o = getAct();
+      if (o && o.text) {
+        o.set('textAlign', 'left');
+        canvas.renderAll();
+      }
+    };
+    document.getElementById('textAlignC').onclick = () => {
+      const o = getAct();
+      if (o && o.text) {
+        o.set('textAlign', 'center');
+        canvas.renderAll();
+      }
+    };
+    document.getElementById('textAlignR').onclick = () => {
+      const o = getAct();
+      if (o && o.text) {
+        o.set('textAlign', 'right');
+        canvas.renderAll();
+      }
+    };
+    // ペン
+    const btnDraw = document.getElementById('btnDrawMode');
+    const updBrush = () => {
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.color = getColor();
+      canvas.freeDrawingBrush.width = parseInt(document.getElementById('mainSizeSlider').value);
+    };
+    btnDraw.onclick = () => {
+      canvas.isDrawingMode = !canvas.isDrawingMode;
+      btnDraw.style.backgroundColor = canvas.isDrawingMode ? '#FF003C' : '';
+      if (canvas.isDrawingMode) updBrush();
+    };
+    document.getElementById('mainColorPicker').onchange = () => {
+      if (canvas.isDrawingMode) updBrush();
+    };
+    document.getElementById('mainSizeSlider').oninput = () => {
+      if (canvas.isDrawingMode) updBrush();
+    };
+    // 絵文字 (合計40種)
+    const stamps = [
+      "😀", "😎", "🤩", "👻", "👽", "💩", "🔥", "⚡",
+      "🍎", "🍌", "🍉", "🍔", "🍕", "🍦", "🍰", "🍙",
+      "🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐸", "🐷",
+      "🚗", "🚓", "🚒", "🚀", "🛸", "⛵", "⚽", "⚾",
+      "⭐", "✨", "💯", "💢", "💦", "💤", "⚠️", "👑"
+    ];
+    const stampCon = document.getElementById('stampContainer');
+    stamps.forEach(s => {
+      const b = document.createElement('button');
+      b.className = 'stamp-btn';
+      b.textContent = s;
+      b.onclick = () => {
+        const t = new fabric.Text(s, {
+          left: canvas.width / 2,
+          top: canvas.height / 2,
+          originX: 'center',
+          originY: 'center',
+          fontSize: 100
+        });
+        canvas.add(t);
+        canvas.setActiveObject(t);
+        saveState();
+      };
+      stampCon.appendChild(b);
+    });
+    document.getElementById('canvasBgColor').onchange = (e) => {
+      canvas.backgroundColor = e.target.value;
+      canvas.renderAll();
+      saveState();
+    };
+    document.getElementById('btnClear').onclick = () => {
+      if (confirm("全消去しますか？")) {
+        canvas.clear();
+        canvas.backgroundColor = document.getElementById('canvasBgColor').value;
+        currentZoom = 1;
+        canvas.setZoom(1);
+        uploadedImages = [];
+        updGal();
+        saveState();
+      }
+    };
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT') {
+        const o = canvas.getActiveObject();
+        if (o && !o.isEditing) {
+          canvas.remove(...canvas.getActiveObjects());
+          canvas.discardActiveObject();
+          saveState();
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

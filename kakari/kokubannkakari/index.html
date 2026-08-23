@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汎用・統合管理モジュール（マスターコンソール）</title>
+  <style>
+    :root {
+      --bg-dark: #050515;
+      --card-bg: rgba(15, 15, 35, 0.6);
+      --card-border: rgba(0, 243, 255, 0.2);
+      --cyan: #00f3ff;
+      --cyan-glow: rgba(0, 243, 255, 0.5);
+      --purple: #bc13fe;
+      --purple-glow: rgba(188, 19, 254, 0.5);
+      --green: #00ff88;
+      --green-glow: rgba(0, 255, 136, 0.4);
+      --red: #ff0055;
+      --text-main: #f0f8ff;
+      --text-sub: #8a9bb2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      transition: background-color 0.5s;
+    }
+
+    /* 背景キャンバス */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at center, #0a0a1c 0%, #020205 100%);
+    }
+
+    /* 上部ナビゲーション */
+    .top-nav {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 15px 25px;
+      background: rgba(10, 10, 25, 0.8);
+      border: 1px solid var(--purple);
+      border-radius: 30px;
+      box-shadow: 0 0 15px var(--purple-glow);
+      backdrop-filter: blur(5px);
+      z-index: 10;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: var(--text-sub);
+      border: 1px solid var(--text-sub);
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .nav-btn.active {
+      background: rgba(0, 243, 255, 0.15);
+      color: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .nav-btn:hover:not(.active) {
+      color: var(--text-main);
+      border-color: var(--text-main);
+    }
+
+    /* 言語トグル */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--text-sub);
+      transition: color 0.3s;
+    }
+
+    .active-lang {
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    body.hiragana-mode .active-lang {
+      color: var(--purple);
+      text-shadow: 0 0 8px var(--purple-glow);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid var(--cyan);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: var(--cyan);
+      border-radius: 50%;
+      transition: all 0.3s;
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    body.hiragana-mode .toggle-switch {
+      border-color: var(--purple);
+    }
+
+    body.hiragana-mode .toggle-knob {
+      left: 22px;
+      background: var(--purple);
+      box-shadow: 0 0 8px var(--purple-glow);
+    }
+
+    /* 共通コンテナ */
+    .screen-container {
+      width: 100%;
+      max-width: 1000px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .screen-container.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ヘッダー */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--text-main);
+      text-shadow: 0 0 10px var(--cyan-glow);
+      margin-bottom: 15px;
+    }
+
+    #date-display {
+      font-size: 1.1rem;
+      color: var(--cyan);
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid var(--cyan);
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 30px;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+
+    /* タスクリスト（メイン画面） */
+    #task-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+
+    .task-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 25px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .task-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      transition: all 0.3s;
+    }
+
+    .task-card.done-card::before {
+      background: var(--purple);
+      box-shadow: 0 0 15px var(--purple);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .icon-box {
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 243, 255, 0.1);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      margin-right: 15px;
+    }
+
+    .task-title {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .task-person {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      margin-top: 5px;
+    }
+
+    .person-name {
+      color: var(--cyan);
+      font-weight: bold;
+    }
+
+    .done-card .person-name {
+      color: var(--purple);
+    }
+
+    .check-btn {
+      width: 100%;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: auto;
+    }
+
+    .btn-not-done {
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+    }
+
+    .btn-done {
+      background: rgba(188, 19, 254, 0.15);
+      border: 1px solid var(--purple);
+      color: var(--purple);
+      box-shadow: 0 0 15px var(--purple-glow);
+    }
+
+    .btn-disabled {
+      background: transparent;
+      border: 1px dashed var(--text-sub);
+      color: var(--text-sub);
+      cursor: not-allowed;
+    }
+
+    .save-btn {
+      background: transparent;
+      color: var(--cyan);
+      border: 2px solid var(--cyan);
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 15px 40px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+      margin: 40px 0;
+      transition: all 0.3s;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .save-btn:hover {
+      background: rgba(0, 243, 255, 0.15);
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+      transform: scale(1.05);
+    }
+
+    /* データ可視化（STATS）画面 */
+    .stats-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .stat-name {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--cyan);
+    }
+
+    .stat-numbers {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+    }
+
+    .stat-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 1s ease-out;
+    }
+
+    .stat-perfect {
+      box-shadow: 0 0 15px var(--green-glow);
+      border-color: var(--green);
+    }
+
+    .stat-perfect .stat-name {
+      color: var(--green);
+    }
+
+    /* 設定画面 */
+    .settings-section {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--purple);
+      padding: 25px;
+      border-radius: 16px;
+      margin-bottom: 25px;
+    }
+
+    .settings-title {
+      color: var(--purple);
+      font-size: 1.3rem;
+      border-bottom: 1px solid rgba(188, 19, 254, 0.3);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .role-setup-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .role-input-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .role-input {
+      flex: 1;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--text-sub);
+      color: var(--text-main);
+      border-radius: 6px;
+    }
+
+    .role-input:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    .data-table th,
+    .data-table td {
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      padding: 10px;
+      text-align: center;
+    }
+
+    .data-table th {
+      background: rgba(0, 243, 255, 0.1);
+      color: var(--cyan);
+    }
+
+    .cell-input {
+      width: 90%;
+      padding: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--text-sub);
+      color: white;
+      text-align: center;
+      border-radius: 4px;
+    }
+
+    .cell-input:focus {
+      border-color: var(--cyan);
+      outline: none;
+    }
+
+    .action-btn {
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(188, 19, 254, 0.15);
+      color: var(--purple);
+      border: 1px solid var(--purple);
+    }
+
+    .action-btn:hover {
+      background: rgba(188, 19, 254, 0.3);
+      box-shadow: 0 0 15px var(--purple-glow);
+    }
+
+    .danger-btn {
+      background: rgba(255, 0, 85, 0.1);
+      color: var(--red);
+      border: 1px solid var(--red);
+      margin-top: 20px;
+      font-size: 0.8rem;
+      padding: 8px 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ナビゲーションバー -->
+  <div class="top-nav">
+    <div class="nav-buttons">
+      <button class="nav-btn active" id="nav-main" onclick="switchTab('main')">💻 実行モジュール</button>
+      <button class="nav-btn" id="nav-stats" onclick="switchTab('stats')">📊 評価マトリクス</button>
+      <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">⚙️ システム設定</button>
+    </div>
+    <div class="lang-toggle">
+      <span class="lang-label active-lang" id="label-kanji">漢字</span>
+      <div class="toggle-switch" onclick="toggleLanguage()">
+        <div class="toggle-knob"></div>
+      </div>
+      <span class="lang-label" id="label-hiragana">ひらがな</span>
+    </div>
+  </div>
+
+  <!-- ================= メイン画面 ================= -->
+  <div id="screen-main" class="screen-container active">
+    <div class="header">
+      <h1 id="title-main">汎用・統合管理モジュール</h1>
+      <div id="date-display"></div>
+    </div>
+    <div id="task-list"></div>
+    <button class="save-btn" id="btn-record" onclick="saveAndReset()">▶ ミッションログを記録</button>
+  </div>
+
+  <!-- ================= データ可視化画面 ================= -->
+  <div id="screen-stats" class="screen-container">
+    <div class="header">
+      <h1 id="title-stats">エージェント評価マトリクス</h1>
+      <p style="color: var(--text-sub);" id="desc-stats">> 各エージェントの任務達成率を可視化しています。</p>
+    </div>
+    <div class="stats-container" id="stats-list"></div>
+  </div>
+
+  <!-- ================= 設定画面 ================= -->
+  <div id="screen-settings" class="screen-container">
+    <div class="header">
+      <h1 id="title-settings">システム構造定義（管理者用）</h1>
+    </div>
+
+    <!-- 役割の設定 -->
+    <div class="settings-section">
+      <h2 class="settings-title" id="title-role-setup">📝 役割（任務）の定義</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-role-setup">
+        > 最大3つまで任務を設定できます。使わない枠は空欄にしてください。
+      </p>
+      <div class="role-setup-grid" id="role-setup-container">
+        <!-- JSで生成 -->
+      </div>
+    </div>
+
+    <!-- スケジュールの設定 -->
+    <div class="settings-section">
+      <h2 class="settings-title" id="title-schedule-setup">📅 スケジュール・データベース</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-schedule-setup">
+        > 誰がいつ担当するか入力してください。「なし」と入力するとスキップされます。
+      </p>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr id="schedule-thead-tr">
+              <th>CYCLE</th>
+              <th id="th-task1">任務1</th>
+              <th id="th-task2">任務2</th>
+              <th id="th-task3">任務3</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-tbody">
+            <!-- JSで生成 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <button class="action-btn" id="btn-save-config" onclick="saveConfiguration()">💾 データベースを上書き保存する</button>
+
+    <!-- データリセット -->
+    <div style="margin-top: 40px; text-align: center; border-top: 1px dashed var(--text-sub); padding-top: 20px; width: 100%;">
+      <p style="color: var(--text-sub); font-size: 0.85rem;" id="desc-reset">> 評価データ（達成率）をすべてゼロに戻す場合は以下を実行してください。</p>
+      <button class="nav-btn danger-btn" id="btn-reset-stats" onclick="resetStats()">⚠️ 評価データを初期化</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 初期データ構造 ---
+    const defaultRoles = {
+      task1: {
+        name: "黒板を消す",
+        icon: "🟩"
+      },
+      task2: {
+        name: "窓を閉める",
+        icon: "🪟"
+      },
+      task3: {
+        name: "電気を消す",
+        icon: "⚡"
+      }
+    };
+    const defaultSchedule = {
+      "月": {
+        task1: "Aさん",
+        task2: "Bさん",
+        task3: "Cさん"
+      },
+      "火": {
+        task1: "Dさん",
+        task2: "Eさん",
+        task3: "Fさん"
+      },
+      "水": {
+        task1: "Gさん",
+        task2: "Aさん",
+        task3: "Bさん"
+      },
+      "木": {
+        task1: "Cさん",
+        task2: "Dさん",
+        task3: "Eさん"
+      },
+      "金": {
+        task1: "Fさん",
+        task2: "Gさん",
+        task3: "Aさん"
+      }
+    };
+    // --- データ読み込み ---
+    let appConfig = JSON.parse(localStorage.getItem('cyberAppConfig')) || {
+      roles: defaultRoles,
+      schedule: defaultSchedule
+    };
+    let appStats = JSON.parse(localStorage.getItem('cyberAppStats')) || {}; // { "Aさん": { total: 0, done: 0 } }
+    let currentMode = localStorage.getItem('cyberAppLang') || 'kanji';
+    // 今日のタスク状態（チェックボックス）
+    let taskState = {
+      task1: false,
+      task2: false,
+      task3: false
+    };
+    const daysKey = ["日", "月", "火", "水", "木", "金", "土"];
+    const today = new Date();
+    const dayOfWeekKey = daysKey[today.getDay()];
+    // 土日は空のスケジュールにする
+    let todaysAssigns = appConfig.schedule[dayOfWeekKey] || {
+      task1: "なし",
+      task2: "なし",
+      task3: "なし"
+    };
+    // --- 言語ディクショナリ ---
+    const i18n = {
+      kanji: {
+        navMain: "💻 実行モジュール",
+        navStats: "📊 評価マトリクス",
+        navSettings: "⚙️ システム設定",
+        titleMain: "汎用・統合管理モジュール",
+        btnRecord: "▶ ミッションログを記録",
+        titleStats: "エージェント評価マトリクス",
+        descStats: "> 各エージェントの任務達成率を可視化しています。",
+        titleSettings: "システム構造定義（管理者用）",
+        titleRole: "📝 役割（任務）の定義",
+        descRole: "> 最大3つまで任務を設定できます。使わない枠は空欄にしてください。",
+        titleSch: "📅 スケジュール・データベース",
+        descSch: "> 誰がいつ担当するか入力してください。「なし」と入力するとスキップされます。",
+        btnSaveConfig: "💾 データベースを上書き保存する",
+        descReset: "> 評価データ（達成率）をすべてゼロに戻す場合は以下を実行してください。",
+        btnReset: "⚠️ 評価データを初期化",
+        dayNames: ["日", "月", "火", "水", "木", "金", "土"],
+        operator: "担当",
+        none: "なし",
+        btnCheck: "実行する ▶",
+        btnDone: "任務完了！",
+        msgOffline: "本日はオフライン（お休み）です。",
+        sysOffline: "SKIP (任務なし)",
+        msgSaved: "ミッションログと評価データを記録しました！",
+        msgConfigSaved: "システム設定を保存しました。",
+        msgReset: "評価データをすべて初期化しました。"
+      },
+      hiragana: {
+        navMain: "💻 やること じっこう",
+        navStats: "📊 みんなの がんばり",
+        navSettings: "⚙️ せってい（せんせい）",
+        titleMain: "とうごう かんり モジュール",
+        btnRecord: "▶ きょうの きろくを のこす",
+        titleStats: "エージェント がんばりデータ",
+        descStats: "> みんなが どれくらい おしごとを できたか わかります。",
+        titleSettings: "システム せってい（せんせいよう）",
+        titleRole: "📝 おしごとの なまえを きめる",
+        descRole: "> ３つまで つくれます。つかわない ところは からっぽに してください。",
+        titleSch: "📅 １しゅうかんの よてい",
+        descSch: "> だれが いつ やるか いれてください。「なし」と いれると おやすみになります。",
+        btnSaveConfig: "💾 データベースを うわがきする",
+        descReset: "> がんばりデータを ぜんぶ ゼロに もどすときは ここを おしてください。",
+        btnReset: "⚠️ データを ゼロに 戻す",
+        dayNames: ["にち", "げつ", "か", "すい", "もく", "きん", "ど"],
+        operator: "たんとう",
+        none: "なし",
+        btnCheck: "やる ▶",
+        btnDone: "おわった！",
+        msgOffline: "きょうは おやすみ です。",
+        sysOffline: "おやすみ（なし）",
+        msgSaved: "きょうの きろくを のこしました！",
+        msgConfigSaved: "せっていを ほぞんしました。",
+        msgReset: "がんばりデータを ぜんぶ ゼロに もどしました。"
+      }
+    };
+    // --- タブ切り替え ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`screen-${tabId}`).classList.add('active');
+      document.getElementById(`nav-${tabId}`).classList.add('active');
+      if (tabId === 'main') renderMain();
+      if (tabId === 'stats') renderStats();
+      if (tabId === 'settings') renderSettings();
+    }
+    // --- メイン画面描画 ---
+    function renderMain() {
+      const t = i18n[currentMode];
+      const taskListDiv = document.getElementById('task-list');
+      taskListDiv.innerHTML = "";
+      let activeTaskCount = 0;
+      ["task1", "task2", "task3"].forEach(taskId => {
+        const role = appConfig.roles[taskId];
+        if (!role || !role.name.trim()) return; // 役割名が空なら表示しない
+        activeTaskCount++;
+        const person = todaysAssigns[taskId] || t.none;
+        const isOffline = person === t.none || person.toUpperCase() === "OFFLINE" || person === "おやすみ";
+        const isDone = taskState[taskId];
+        const btnText = isOffline ? t.sysOffline : (isDone ? t.btnDone : t.btnCheck);
+        const btnClass = isOffline ? 'btn-disabled' : (isDone ? 'btn-done' : 'btn-not-done');
+        const cardHTML = `
+          <div class="task-card ${isDone ? 'done-card' : ''}" style="opacity: ${isOffline ? 0.4 : 1}">
+            <div class="card-header">
+              <div class="icon-box">${role.icon || "⚙️"}</div>
+              <div>
+                <div class="task-title">${role.name}</div>
+                <div class="task-person">${t.operator}: <span class="person-name">${isOffline ? t.none : person}</span></div>
+              </div>
+            </div>
+            <button class="check-btn ${btnClass}" onclick="toggleTask('${taskId}', ${isOffline})" ${isOffline ? 'disabled' : ''}>
+              ${btnText}
+            </button>
+          </div>
+        `;
+        taskListDiv.insertAdjacentHTML('beforeend', cardHTML);
+      });
+      if (activeTaskCount === 0) {
+        taskListDiv.innerHTML = `<p style="color: var(--text-sub);">※ 現在、設定されている任務がありません。</p>`;
+      }
+    }
+    window.toggleTask = function(taskId, isOffline) {
+      if (isOffline) return;
+      taskState[taskId] = !taskState[taskId];
+      renderMain();
+    };
+    // --- 記録保存とデータ評価（Stats）の更新 ---
+    window.saveAndReset = function() {
+      const t = i18n[currentMode];
+      let hasTaskToday = false;
+      ["task1", "task2", "task3"].forEach(taskId => {
+        const role = appConfig.roles[taskId];
+        if (!role || !role.name.trim()) return;
+        const person = todaysAssigns[taskId];
+        if (person && person !== "なし" && person !== "おやすみ" && person.toUpperCase() !== "OFFLINE") {
+          hasTaskToday = true;
+          // 評価データの更新
+          if (!appStats[person]) appStats[person] = {
+            total: 0,
+            done: 0
+          };
+          appStats[person].total++;
+          if (taskState[taskId]) {
+            appStats[person].done++;
+          }
+        }
+      });
+      if (!hasTaskToday) {
+        alert(t.msgOffline);
+        return;
+      }
+      // データの保存
+      localStorage.setItem('cyberAppStats', JSON.stringify(appStats));
+      // リセット
+      taskState = {
+        task1: false,
+        task2: false,
+        task3: false
+      };
+      alert(t.msgSaved);
+      renderMain();
+    };
+    // --- 評価マトリクス（STATS）描画 ---
+    function renderStats() {
+      const container = document.getElementById('stats-list');
+      container.innerHTML = "";
+      const persons = Object.keys(appStats);
+      if (persons.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-sub); text-align:center;">> データがありません。</p>`;
+        return;
+      }
+      // 達成率順にソート
+      persons.sort((a, b) => {
+        const rateA = appStats[a].total > 0 ? (appStats[a].done / appStats[a].total) : 0;
+        const rateB = appStats[b].total > 0 ? (appStats[b].done / appStats[b].total) : 0;
+        return rateB - rateA;
+      });
+      persons.forEach(person => {
+        const stat = appStats[person];
+        const rate = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0;
+        // 色分けロジック
+        let barColor = 'var(--cyan)';
+        let shadow = 'var(--cyan-glow)';
+        let isPerfect = false;
+        if (rate === 100 && stat.total >= 1) {
+          barColor = 'var(--green)';
+          shadow = 'var(--green-glow)';
+          isPerfect = true;
+        } else if (rate < 50) {
+          barColor = 'var(--red)';
+          shadow = 'rgba(255,0,85,0.5)';
+        } else if (currentMode === 'hiragana') {
+          barColor = 'var(--purple)';
+          shadow = 'var(--purple-glow)';
+        }
+        const html = `
+          <div class="stat-card ${isPerfect ? 'stat-perfect' : ''}">
+            <div class="stat-header">
+              <span class="stat-name">${person}</span>
+              <span class="stat-numbers">達成: ${stat.done} / 割当: ${stat.total} ( <strong>${rate}%</strong> )</span>
+            </div>
+            <div class="stat-bar-bg">
+              <div class="stat-bar-fill" style="width: ${rate}%; background: ${barColor}; box-shadow: 0 0 10px ${shadow};"></div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      });
+    }
+    // --- 設定画面描画 ---
+    function renderSettings() {
+      // 役割入力欄の生成
+      const roleContainer = document.getElementById('role-setup-container');
+      roleContainer.innerHTML = "";
+      ["task1", "task2", "task3"].forEach((taskId, index) => {
+        const role = appConfig.roles[taskId] || {
+          name: "",
+          icon: "⚙️"
+        };
+        roleContainer.insertAdjacentHTML('beforeend', `
+          <div class="role-input-group">
+            <span style="color: var(--cyan); width: 60px;">任務${index + 1}</span>
+            <input type="text" class="role-input" id="cfg-icon-${taskId}" value="${role.icon}" style="max-width: 60px;" placeholder="絵文字">
+            <input type="text" class="role-input" id="cfg-name-${taskId}" value="${role.name}" placeholder="任務の名前（例: 黒板を消す）">
+          </div>
+        `);
+      });
+      // スケジュール表の生成
+      const tbody = document.getElementById('schedule-tbody');
+      tbody.innerHTML = "";
+      const daysList = ["月", "火", "水", "木", "金"];
+      daysList.forEach(day => {
+        let trHTML = `<tr><td style="font-weight: bold; color: inherit;">${day}</td>`;
+        ["task1", "task2", "task3"].forEach(taskId => {
+          const val = (appConfig.schedule[day] && appConfig.schedule[day][taskId]) ? appConfig.schedule[day][taskId] : "";
+          trHTML += `<td><input type="text" class="cell-input" id="cfg-sch-${day}-${taskId}" value="${val}" placeholder="なし"></td>`;
+        });
+        trHTML += `</tr>`;
+        tbody.insertAdjacentHTML('beforeend', trHTML);
+      });
+    }
+    // --- 設定の保存 ---
+    window.saveConfiguration = function() {
+      const t = i18n[currentMode];
+      // 役割の保存
+      ["task1", "task2", "task3"].forEach(taskId => {
+        appConfig.roles[taskId] = {
+          icon: document.getElementById(`cfg-icon-${taskId}`).value || "⚙️",
+          name: document.getElementById(`cfg-name-${taskId}`).value
+        };
+      });
+      // スケジュールの保存
+      const daysList = ["月", "火", "水", "木", "金"];
+      daysList.forEach(day => {
+        if (!appConfig.schedule[day]) appConfig.schedule[day] = {};
+        ["task1", "task2", "task3"].forEach(taskId => {
+          appConfig.schedule[day][taskId] = document.getElementById(`cfg-sch-${day}-${taskId}`).value;
+        });
+      });
+      localStorage.setItem('cyberAppConfig', JSON.stringify(appConfig));
+      todaysAssigns = appConfig.schedule[dayOfWeekKey] || {
+        task1: "なし",
+        task2: "なし",
+        task3: "なし"
+      };
+      alert(t.msgConfigSaved);
+      applyLanguage(); // 見出し更新など
+    };
+    window.resetStats = function() {
+      const t = i18n[currentMode];
+      if (confirm(t.descReset + "\n本当によろしいですか？")) {
+        appStats = {};
+        localStorage.setItem('cyberAppStats', JSON.stringify(appStats));
+        alert(t.msgReset);
+        renderSettings();
+      }
+    }
+    // --- 言語切り替え処理 ---
+    function toggleLanguage() {
+      currentMode = currentMode === 'kanji' ? 'hiragana' : 'kanji';
+      localStorage.setItem('cyberAppLang', currentMode);
+      applyLanguage();
+    }
+
+    function applyLanguage() {
+      const t = i18n[currentMode];
+      if (currentMode === 'hiragana') {
+        document.body.classList.add('hiragana-mode');
+        document.getElementById('label-hiragana').classList.add('active-lang');
+        document.getElementById('label-kanji').classList.remove('active-lang');
+      } else {
+        document.body.classList.remove('hiragana-mode');
+        document.getElementById('label-kanji').classList.add('active-lang');
+        document.getElementById('label-hiragana').classList.remove('active-lang');
+      }
+      // 静的テキスト反映
+      document.getElementById('nav-main').innerText = t.navMain;
+      document.getElementById('nav-stats').innerText = t.navStats;
+      document.getElementById('nav-settings').innerText = t.navSettings;
+      document.getElementById('title-main').innerText = t.titleMain;
+      document.getElementById('btn-record').innerText = t.btnRecord;
+      document.getElementById('title-stats').innerText = t.titleStats;
+      document.getElementById('desc-stats').innerText = t.descStats;
+      document.getElementById('title-settings').innerText = t.titleSettings;
+      document.getElementById('title-role-setup').innerText = t.titleRole;
+      document.getElementById('desc-role-setup').innerText = t.descRole;
+      document.getElementById('title-schedule-setup').innerText = t.titleSch;
+      document.getElementById('desc-schedule-setup').innerText = t.descSch;
+      document.getElementById('btn-save-config').innerText = t.btnSaveConfig;
+      document.getElementById('desc-reset').innerText = t.descReset;
+      document.getElementById('btn-reset-stats').innerText = t.btnReset;
+      // 日付
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      document.getElementById('date-display').innerText = `CURRENT CYCLE: ${y}.${m}.${d} [${t.dayNames[today.getDay()]}]`;
+      // 設定画面のテーブルヘッダー動的更新
+      document.getElementById('th-task1').innerText = appConfig.roles.task1.name || "任務1";
+      document.getElementById('th-task2').innerText = appConfig.roles.task2.name || "任務2";
+      document.getElementById('th-task3').innerText = appConfig.roles.task3.name || "任務3";
+      // 現在開いているタブの再描画
+      if (document.getElementById('screen-main').classList.contains('active')) renderMain();
+      if (document.getElementById('screen-stats').classList.contains('active')) renderStats();
+      if (document.getElementById('screen-settings').classList.contains('active')) renderSettings();
+    }
+    // --- 背景アニメーション ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    const particles = [];
+    for (let i = 0; i < 70; i++) {
+      const isCyan = Math.random() > 0.5;
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 1.5 + 0.5,
+        speedX: Math.random() * 0.4 - 0.2,
+        speedY: Math.random() * 0.4 - 0.2,
+        opacity: Math.random(),
+        fade: Math.random() > 0.5 ? 0.005 : -0.005,
+        color: isCyan ? '0, 243, 255' : '188, 19, 254'
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.opacity += p.fade;
+        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.y > canvas.height) p.y = 0;
+        if (p.y < 0) p.y = canvas.height;
+        ctx.fillStyle = `rgba(${p.color}, ${p.opacity})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+    // 初回起動
+    applyLanguage();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
