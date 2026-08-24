@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>オールマイティー係</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>オールマイティー制御モジュール</title>
+  <style>
+    :root {
+      /* オールマイティー係向けにゴールドとパープルを基調に変更 */
+      --bg-dark: #0a0512;
+      --card-bg: rgba(20, 10, 30, 0.7);
+      --card-border: rgba(255, 215, 0, 0.3);
+      --cyan: #00d4ff;
+      --cyan-glow: rgba(0, 212, 255, 0.5);
+      --gold: #ffd700;
+      --gold-glow: rgba(255, 215, 0, 0.6);
+      --green: #00ff88;
+      --green-glow: rgba(0, 255, 136, 0.5);
+      --purple: #aa00ff;
+      --text-main: #ffffff;
+      --text-sub: #bbaaaa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      transition: background-color 0.5s;
+    }
+
+    /* 背景アニメーション用キャンバス */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at center, #150a25 0%, #05020a 100%);
+    }
+
+    /* フリガナ（ルビ）の制御 */
+    rt {
+      opacity: 0;
+      font-size: 0;
+      transition: all 0.3s ease;
+      line-height: 0;
+      display: block;
+      text-align: center;
+    }
+
+    ruby {
+      ruby-align: center;
+    }
+
+    body.hiragana-mode rt {
+      opacity: 1;
+      font-size: 0.65em;
+      line-height: 1;
+      color: var(--cyan);
+      margin-bottom: 2px;
+    }
+
+    body.hiragana-mode ruby {
+      margin: 0 2px;
+    }
+
+    /* 上部ナビゲーション */
+    .top-nav {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 12px 20px;
+      background: rgba(10, 5, 20, 0.8);
+      border: 1px solid var(--gold);
+      border-radius: 30px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+      backdrop-filter: blur(5px);
+      z-index: 10;
+      flex-wrap: wrap;
+      gap: 15px;
+      transition: all 0.3s;
+    }
+
+    body.hiragana-mode .top-nav {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: var(--text-sub);
+      border: 1px solid var(--text-sub);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .nav-btn.active {
+      background: rgba(255, 215, 0, 0.15);
+      color: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    body.hiragana-mode .nav-btn.active {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .nav-btn:hover:not(.active) {
+      color: var(--text-main);
+      border-color: var(--text-main);
+    }
+
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--text-sub);
+      transition: color 0.3s;
+    }
+
+    .active-lang {
+      color: var(--gold);
+      text-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    body.hiragana-mode .active-lang {
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: var(--gold);
+      border-radius: 50%;
+      transition: all 0.3s;
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    body.hiragana-mode .toggle-switch {
+      border-color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    body.hiragana-mode .toggle-knob {
+      left: 22px;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .screen-container {
+      width: 100%;
+      max-width: 1000px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .screen-container.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ヘッダー */
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--text-main);
+      text-shadow: 0 0 10px var(--gold-glow), 0 0 20px var(--gold-glow);
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+      transition: all 0.3s;
+    }
+
+    body.hiragana-mode h1 {
+      text-shadow: 0 0 10px var(--cyan-glow), 0 0 20px var(--cyan-glow);
+    }
+
+    #date-display {
+      font-size: 1.1rem;
+      color: var(--gold);
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid var(--gold);
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 30px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+      transition: all 0.3s;
+    }
+
+    body.hiragana-mode #date-display {
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+    }
+
+    /* メイン画面：クルー一覧 */
+    .mission-desc {
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    #member-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+
+    .member-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .member-card:hover {
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+    }
+
+    body.hiragana-mode .member-card:hover {
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+    }
+
+    .member-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+      padding-bottom: 10px;
+    }
+
+    .member-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--gold);
+    }
+
+    body.hiragana-mode .member-name {
+      color: var(--cyan);
+    }
+
+    .action-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-trigger-btn {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--text-main);
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    body.hiragana-mode .action-trigger-btn {
+      border-color: var(--cyan);
+    }
+
+    .action-trigger-btn:hover {
+      background: rgba(255, 215, 0, 0.2);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    body.hiragana-mode .action-trigger-btn:hover {
+      background: rgba(0, 212, 255, 0.2);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    /* 今日の活動ログエリア */
+    .today-log-area {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 30px;
+      min-height: 100px;
+    }
+
+    .today-log-title {
+      color: var(--green);
+      font-size: 1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .temp-log-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      animation: fadeIn 0.3s;
+    }
+
+    .cancel-log-btn {
+      background: transparent;
+      border: 1px solid #ff3300;
+      color: #ff3300;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+    }
+
+    .cancel-log-btn:hover {
+      background: rgba(255, 51, 0, 0.2);
+    }
+
+    /* 記録エリア */
+    .record-area {
+      width: 100%;
+      max-width: 800px;
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .save-btn {
+      background: transparent;
+      color: var(--gold);
+      border: 2px solid var(--gold);
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 15px 30px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+      margin-bottom: 30px;
+      transition: all 0.3s;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    body.hiragana-mode .save-btn {
+      color: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    }
+
+    .save-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .save-btn:disabled {
+      color: var(--text-sub);
+      border-color: var(--text-sub);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 履歴ボックス */
+    #history-box {
+      background: rgba(10, 5, 20, 0.8);
+      border: 1px solid rgba(170, 0, 255, 0.3);
+      border-left: 4px solid var(--purple);
+      border-radius: 8px;
+      padding: 20px;
+      width: 100%;
+      text-align: left;
+      font-family: 'Consolas', 'Courier New', monospace;
+    }
+
+    #history-alert-title {
+      margin-top: 0;
+      font-size: 1.1rem;
+      color: #cc66ff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-item {
+      font-size: 0.95rem;
+      color: #cccccc;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(170, 0, 255, 0.2);
+      line-height: 1.6;
+    }
+
+    .history-item strong {
+      color: var(--text-main);
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 評価マトリクス画面（貢献度グラフ） */
+    .stats-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .stat-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--gold);
+    }
+
+    body.hiragana-mode .stat-name {
+      color: var(--cyan);
+    }
+
+    .stat-numbers {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+    }
+
+    .stat-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 1s ease-out;
+    }
+
+    /* 設定画面 */
+    .settings-section {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--gold);
+      padding: 25px;
+      border-radius: 16px;
+      margin-bottom: 25px;
+    }
+
+    body.hiragana-mode .settings-section {
+      border-color: var(--cyan);
+    }
+
+    .settings-title {
+      color: var(--gold);
+      font-size: 1.2rem;
+      border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    body.hiragana-mode .settings-title {
+      color: var(--cyan);
+      border-bottom-color: rgba(0, 212, 255, 0.3);
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .setting-input {
+      flex: 1;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--text-sub);
+      color: var(--text-main);
+      border-radius: 6px;
+    }
+
+    .setting-input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    body.hiragana-mode .setting-input:focus {
+      border-color: var(--cyan);
+    }
+
+    .action-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(255, 215, 0, 0.15);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+
+    body.hiragana-mode .action-btn {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .action-btn:hover {
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+
+    body.hiragana-mode .action-btn:hover {
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .danger-btn {
+      background: rgba(255, 0, 0, 0.1);
+      color: #ff3300;
+      border: 1px solid #ff3300;
+      font-size: 0.85rem;
+      padding: 8px 15px;
+      margin-top: 10px;
+    }
+
+    .del-btn {
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff3300;
+      border: 1px solid #ff3300;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .del-btn:hover {
+      background: rgba(255, 0, 0, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- 上部ナビゲーション -->
+  <div class="top-nav">
+    <div class="nav-buttons">
+      <button class="nav-btn active" id="nav-main" onclick="switchTab('main')">💻 ミッション</button>
+      <button class="nav-btn" id="nav-stats" onclick="switchTab('stats')">📊 貢献(こうけん)データ</button>
+      <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">⚙️ システム設定</button>
+    </div>
+    <div class="lang-toggle">
+      <span class="lang-label active-lang" id="label-kanji">漢字</span>
+      <div class="toggle-switch" onclick="toggleLanguage()">
+        <div class="toggle-knob"></div>
+      </div>
+      <span class="lang-label" id="label-hiragana">ひらがな</span>
+    </div>
+  </div>
+
+  <!-- ================= メイン画面 ================= -->
+  <div id="screen-main" class="screen-container active">
+    <div class="header">
+      <h1 id="title-main">オールマイティー制御モジュール</h1>
+      <div id="date-display"></div>
+    </div>
+
+    <p class="mission-desc" id="desc-main">
+      > 気がついた人が率先して行動する「オールマイティー係」専用システム。<br>
+      > 良いことをしたら、自分の名前のボタンを押して記録しよう！
+    </p>
+
+    <!-- メンバーごとのボタン一覧 -->
+    <div id="member-grid"></div>
+
+    <!-- 未保存の今日のアクション -->
+    <div class="today-log-area">
+      <div class="today-log-title" id="title-today-log">⚡ 本日の未記録アクション（まだ保存されていません）</div>
+      <div id="today-log-list">
+        <p style="color: var(--text-sub); font-size: 0.9rem;" id="msg-no-temp-log">アクションを選択するとここに追加されます。</p>
+      </div>
+    </div>
+
+    <div class="record-area">
+      <button class="save-btn" id="btn-record" onclick="saveAndReset()" disabled>▶ アクションを記録して終了する</button>
+
+      <div id="history-box">
+        <h2 id="history-alert-title"><span style="font-size: 1.4rem;">⚠️</span> SYSTEM ALERT: ミッション履歴</h2>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 貢献データ（評価）画面 ================= -->
+  <div id="screen-stats" class="screen-container">
+    <div class="header">
+      <h1 id="title-stats">クルー貢献度データ</h1>
+      <p style="color: var(--text-sub);" id="desc-stats">> 各クルーが率先して行動した回数を可視化しています。</p>
+    </div>
+    <div class="stats-container" id="stats-list"></div>
+  </div>
+
+  <!-- ================= 設定画面 ================= -->
+  <div id="screen-settings" class="screen-container">
+    <div class="header">
+      <h1 id="title-settings">システム構造定義（管理者用）</h1>
+    </div>
+
+    <!-- メンバーの設定 -->
+    <div class="settings-section">
+      <h2 class="settings-title" id="title-member-setup">👥 オールマイティー係のメンバー</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-member-setup">
+        > 5〜7人など、係の人数に合わせて自由にメンバーを追加・削除できます。
+      </p>
+      <div class="setup-grid" id="member-setup-container"></div>
+      <button class="action-btn" style="margin-top: 15px; font-size: 0.9rem;" onclick="addMember()">+ メンバーを追加</button>
+    </div>
+
+    <!-- アクションの設定 -->
+    <div class="settings-section">
+      <h2 class="settings-title" id="title-action-setup">📝 アクション（ミッション）の種類</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-action-setup">
+        > 係として率先して取り組む内容を定義します。（例：他の係の手伝い、先生のお手伝い）
+      </p>
+      <div class="setup-grid" id="action-setup-container"></div>
+      <button class="action-btn" style="margin-top: 15px; font-size: 0.9rem;" onclick="addMission()">+ アクションを追加</button>
+    </div>
+
+    <button class="action-btn" id="btn-save-config" onclick="saveConfiguration()" style="padding: 15px 40px; font-size: 1.1rem;">💾 設定を保存して更新する</button>
+
+    <!-- データリセット -->
+    <div style="margin-top: 40px; text-align: center; border-top: 1px dashed var(--text-sub); padding-top: 20px; width: 100%;">
+      <p style="color: var(--text-sub); font-size: 0.85rem;" id="desc-reset">> 貢献データ（回数）をすべてゼロに戻す場合は以下を実行してください。</p>
+      <button class="action-btn danger-btn" id="btn-reset-stats" onclick="resetStats()">⚠️ 貢献データを初期化</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 初期データ構造（オールマイティー係用） ---
+    const defaultMembers = [{
+        id: 'm1',
+        name: 'Aさん'
+      },
+      {
+        id: 'm2',
+        name: 'Bさん'
+      },
+      {
+        id: 'm3',
+        name: 'Cさん'
+      },
+      {
+        id: 'm4',
+        name: 'Dさん'
+      },
+      {
+        id: 'm5',
+        name: 'Eさん'
+      }
+    ];
+    const defaultTasks = [{
+        id: 't1',
+        name: '他の係の手伝い',
+        icon: '🤝'
+      },
+      {
+        id: 't2',
+        name: '先生のお手伝い',
+        icon: '🧑‍🏫'
+      }
+    ];
+    // --- データ読み込み ---
+    let appConfig = JSON.parse(localStorage.getItem('almightyDutyConfig')) || {
+      members: defaultMembers,
+      tasks: defaultTasks
+    };
+    let appStats = JSON.parse(localStorage.getItem('almightyDutyStats')) || {};
+    let historyData = JSON.parse(localStorage.getItem('almightyDutyHistory')) || [];
+    let currentMode = localStorage.getItem('almightyDutyLang') || 'kanji';
+    // 今日の未保存アクションを格納する配列
+    let tempTodayLogs = [];
+    const today = new Date();
+    const daysKey = ["日", "月", "火", "水", "木", "金", "土"];
+    // 統計データが存在しないメンバーの初期化
+    appConfig.members.forEach(m => {
+      if (!appStats[m.id]) appStats[m.id] = {
+        name: m.name,
+        done: 0
+      };
+    });
+    // --- 言語ディクショナリ ---
+    const i18n = {
+      kanji: {
+        navMain: "💻 ミッション",
+        navStats: "📊 貢献データ",
+        navSettings: "⚙️ システム設定",
+        titleMain: "オールマイティー制御モジュール",
+        descMain: "> 気がついた人が率先して行動する「オールマイティー係」専用システム。<br>> 良いことをしたら、自分の名前のボタンを押して記録しよう！",
+        btnRecord: "▶ アクションを記録して終了する",
+        titleStats: "クルー貢献度データ",
+        descStats: "> 各クルーが率先して行動した回数を可視化しています。",
+        titleSettings: "システム構造定義（管理者用）",
+        titleMem: "👥 オールマイティー係のメンバー",
+        descMem: "> 5〜7人など、係の人数に合わせて自由にメンバーを追加・削除できます。",
+        titleAct: "📝 アクション（ミッション）の種類",
+        descAct: "> 係として率先して取り組む内容を定義します。（例：他の係の手伝い、先生のお手伝い）",
+        btnSaveConfig: "💾 設定を保存して更新する",
+        descReset: "> 貢献データ（回数）をすべてゼロに戻す場合は以下を実行してください。",
+        btnReset: "⚠️ 貢献データを初期化",
+        dayNames: ["日", "月", "火", "水", "木", "金", "土"],
+        historyTitle: "SYSTEM ALERT: ミッション履歴",
+        msgNoLog: "> ログデータがありません。",
+        msgSaved: "本日のアクションと貢献データを記録しました！",
+        msgConfigSaved: "システム設定を保存しました。",
+        msgReset: "貢献データをすべて初期化しました。",
+        tempLogTitle: "⚡ 本日の未記録アクション（まだ保存されていません）",
+        msgNoTempLog: "アクションを選択するとここに追加されます。",
+        cancel: "取消"
+      },
+      hiragana: {
+        navMain: "💻 ミッション",
+        navStats: "📊 がんばりデータ",
+        navSettings: "⚙️ せってい（せんせい）",
+        titleMain: "オールマイティー・コントロール",
+        descMain: "> じぶんから すすんで かつどうする「オールマイティーがかり」の システムです。<br>> いいことを したら、じぶんの なまえの ボタンを おして きろくしよう！",
+        btnRecord: "▶ アクションを きろくして おわる",
+        titleStats: "クルー がんばりデータ",
+        descStats: "> みんなが どれくらい すすんで かつどうしたかが わかります。",
+        titleSettings: "システム せってい（せんせいよう）",
+        titleMem: "👥 オールマイティーがかりの メンバー",
+        descMem: "> メンバーを ふやしたり へらしたり できます。",
+        titleAct: "📝 アクション（ミッション）の しゅるい",
+        descAct: "> かかりとして すすんで やる ことを きめます。（れい：ほかのかかりを てつだう）",
+        btnSaveConfig: "💾 せっていを ほぞんする",
+        descReset: "> がんばりデータを ぜんぶ ゼロに もどすときは ここを おしてください。",
+        btnReset: "⚠️ データを ゼロに 戻す",
+        dayNames: ["にち", "げつ", "か", "すい", "もく", "きん", "ど"],
+        historyTitle: "SYSTEM ALERT: これまでの きろく",
+        msgNoLog: "> ログデータが ありません。",
+        msgSaved: "きょうの アクションを きろくしました！",
+        msgConfigSaved: "せっていを ほぞんしました。",
+        msgReset: "がんばりデータを ぜんぶ ゼロに もどしました。",
+        tempLogTitle: "⚡ きょうの きろく（まだ ほぞん されていません）",
+        msgNoTempLog: "ボタンを おすと ここに はいります。",
+        cancel: "とりけし"
+      }
+    };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`screen-${tabId}`).classList.add('active');
+      document.getElementById(`nav-${tabId}`).classList.add('active');
+      if (tabId === 'main') renderMain();
+      if (tabId === 'stats') renderStats();
+      if (tabId === 'settings') renderSettings();
+    }
+    // --- メイン画面の描画 ---
+    function renderMain() {
+      const grid = document.getElementById('member-grid');
+      grid.innerHTML = "";
+      appConfig.members.forEach(member => {
+        let buttonsHTML = "";
+        appConfig.tasks.forEach(task => {
+          let tName = task.name;
+          if (currentMode === 'hiragana') {
+            if (task.id === 't1' && task.name === '他の係の手伝い') tName = "ほかのかかりを てつだう";
+            if (task.id === 't2' && task.name === '先生のお手伝い') tName = "せんせいの おてつだい";
+          }
+          buttonsHTML += `
+            <button class="action-trigger-btn" onclick="triggerAction('${member.id}', '${member.name}', '${task.name}', '${tName}', '${task.icon}')">
+              <span style="font-size:1.2rem;">${task.icon}</span> ${tName}
+            </button>
+          `;
+        });
+        const card = `
+          <div class="member-card">
+            <div class="member-header">
+              <div class="member-name">${member.name}</div>
+            </div>
+            <div class="action-btn-group">
+              ${buttonsHTML}
+            </div>
+          </div>
+        `;
+        grid.insertAdjacentHTML('beforeend', card);
+      });
+      renderTempLogs();
+      renderHistory();
+    }
+    // アクションボタンを押した時の処理
+    window.triggerAction = function(memberId, memberName, taskNameKanji, taskNameDisplay, icon) {
+      // 一時ログに追加
+      tempTodayLogs.push({
+        memberId,
+        memberName,
+        taskName: taskNameKanji, // 保存用は本来の名前にする
+        display: taskNameDisplay,
+        icon,
+        time: new Date().toLocaleTimeString('ja-JP', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+      renderTempLogs();
+    };
+    // 一時ログの描画
+    function renderTempLogs() {
+      const t = i18n[currentMode];
+      const listDiv = document.getElementById('today-log-list');
+      const saveBtn = document.getElementById('btn-record');
+      if (tempTodayLogs.length === 0) {
+        listDiv.innerHTML = `<p style="color: var(--text-sub); font-size: 0.9rem;">${t.msgNoTempLog}</p>`;
+        saveBtn.disabled = true;
+        return;
+      }
+      listDiv.innerHTML = "";
+      tempTodayLogs.forEach((log, index) => {
+        // ひらがなモードでの表示切替用
+        let dName = log.taskName;
+        if (currentMode === 'hiragana') {
+          if (log.taskName === '他の係の手伝い') dName = "ほかのかかりを てつだう";
+          if (log.taskName === '先生のお手伝い') dName = "せんせいの おてつだい";
+        }
+        listDiv.insertAdjacentHTML('beforeend', `
+          <div class="temp-log-item">
+            <span>[${log.time}] <strong>${log.memberName}</strong> : ${log.icon} ${dName}</span>
+            <button class="cancel-log-btn" onclick="cancelTempLog(${index})">${t.cancel}</button>
+          </div>
+        `);
+      });
+      saveBtn.disabled = false;
+    }
+    window.cancelTempLog = function(index) {
+      tempTodayLogs.splice(index, 1);
+      renderTempLogs();
+    };
+    // 履歴の描画
+    function renderHistory() {
+      const t = i18n[currentMode];
+      const historyListDiv = document.getElementById('history-list');
+      if (historyData.length === 0) {
+        historyListDiv.innerHTML = `<div class="history-item">${t.msgNoLog}</div>`;
+        return;
+      }
+      historyListDiv.innerHTML = "";
+      [...historyData].reverse().forEach(record => {
+        historyListDiv.insertAdjacentHTML('beforeend', `<div class="history-item">> ${record.replace(/\n/g, '<br>> ')}</div>`);
+      });
+    }
+    // 保存処理（確定）
+    window.saveAndReset = function() {
+      const t = i18n[currentMode];
+      if (tempTodayLogs.length === 0) return;
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const dateStringLog = `${y}.${m}.${d}`;
+      let logLines = [];
+      // アクションの集計と保存
+      tempTodayLogs.forEach(log => {
+        // 統計を加算
+        if (!appStats[log.memberId]) {
+          appStats[log.memberId] = {
+            name: log.memberName,
+            done: 0
+          };
+        } else {
+          appStats[log.memberId].name = log.memberName; // 名前更新対応
+        }
+        appStats[log.memberId].done++;
+        // 履歴テキストを作成
+        logLines.push(`[${log.time}] ${log.memberName} が「${log.taskName}」を実行`);
+      });
+      const recordString = `<strong>[LOG: ${dateStringLog}]</strong>\n` + logLines.join('\n');
+      historyData.push(recordString);
+      // LocalStorage更新
+      localStorage.setItem('almightyDutyStats', JSON.stringify(appStats));
+      localStorage.setItem('almightyDutyHistory', JSON.stringify(historyData));
+      // リセット
+      tempTodayLogs = [];
+      alert(t.msgSaved);
+      renderMain();
+    };
+    // --- 評価マトリクス（グラフ）画面 ---
+    function renderStats() {
+      const container = document.getElementById('stats-list');
+      container.innerHTML = "";
+      // 有効なメンバーのみ抽出
+      const activeIds = appConfig.members.map(m => m.id);
+      let statArray = activeIds.map(id => {
+        return {
+          id: id,
+          name: appStats[id] ? appStats[id].name : (appConfig.members.find(m => m.id === id).name),
+          done: appStats[id] ? appStats[id].done : 0
+        };
+      });
+      // 降順ソート
+      statArray.sort((a, b) => b.done - a.done);
+      // 最大値を求めてバーの割合を計算（誰もやってない場合は1とする）
+      const maxDone = Math.max(...statArray.map(s => s.done), 1);
+      statArray.forEach(stat => {
+        const percentage = (stat.done / maxDone) * 100;
+        let barColor = 'var(--gold)';
+        let shadow = 'var(--gold-glow)';
+        if (currentMode === 'hiragana') {
+          barColor = 'var(--cyan)';
+          shadow = 'var(--cyan-glow)';
+        }
+        // トップ（最大値）の場合は色を変える演出
+        if (stat.done > 0 && stat.done === maxDone) {
+          barColor = 'var(--green)';
+          shadow = 'var(--green-glow)';
+        } else if (stat.done === 0) {
+          barColor = 'rgba(255,255,255,0.2)';
+          shadow = 'none';
+        }
+        const html = `
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-name">${stat.name}</span>
+              <span class="stat-numbers">アクション回数: <strong>${stat.done} 回</strong></span>
+            </div>
+            <div class="stat-bar-bg">
+              <div class="stat-bar-fill" style="width: ${percentage}%; background: ${barColor}; box-shadow: 0 0 10px ${shadow};"></div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      });
+    }
+    // --- 設定画面 ---
+    window.addMember = function() {
+      const newId = 'm' + Date.now();
+      appConfig.members.push({
+        id: newId,
+        name: ""
+      });
+      renderSettings();
+    };
+    window.removeMember = function(id) {
+      if (confirm("このメンバーを削除しますか？")) {
+        appConfig.members = appConfig.members.filter(m => m.id !== id);
+        renderSettings();
+      }
+    };
+    window.addMission = function() {
+      const newId = 't' + Date.now();
+      appConfig.tasks.push({
+        id: newId,
+        name: "",
+        icon: "✨"
+      });
+      renderSettings();
+    };
+    window.removeMission = function(id) {
+      if (confirm("このアクションを削除しますか？")) {
+        appConfig.tasks = appConfig.tasks.filter(t => t.id !== id);
+        renderSettings();
+      }
+    };
+
+    function renderSettings() {
+      // メンバー描画
+      const memContainer = document.getElementById('member-setup-container');
+      memContainer.innerHTML = "";
+      appConfig.members.forEach((m, index) => {
+        memContainer.insertAdjacentHTML('beforeend', `
+          <div class="input-group">
+            <span style="color: var(--cyan); width: 80px;">メンバー${index + 1}</span>
+            <input type="text" class="setting-input" id="cfg-mem-${m.id}" value="${m.name}" placeholder="名前">
+            <button class="del-btn" onclick="removeMember('${m.id}')">✖</button>
+          </div>
+        `);
+      });
+      // アクション描画
+      const actContainer = document.getElementById('action-setup-container');
+      actContainer.innerHTML = "";
+      appConfig.tasks.forEach((t, index) => {
+        actContainer.insertAdjacentHTML('beforeend', `
+          <div class="input-group">
+            <span style="color: var(--cyan); width: 80px;">アクション${index + 1}</span>
+            <input type="text" class="setting-input" id="cfg-icon-${t.id}" value="${t.icon}" style="max-width: 60px;" placeholder="絵文字">
+            <input type="text" class="setting-input" id="cfg-task-${t.id}" value="${t.name}" placeholder="アクション名">
+            <button class="del-btn" onclick="removeMission('${t.id}')">✖</button>
+          </div>
+        `);
+      });
+    }
+    window.saveConfiguration = function() {
+      const t = i18n[currentMode];
+      // メンバー保存
+      appConfig.members.forEach(m => {
+        const input = document.getElementById(`cfg-mem-${m.id}`);
+        if (input) m.name = input.value;
+      });
+      // アクション保存
+      appConfig.tasks.forEach(task => {
+        const iconInput = document.getElementById(`cfg-icon-${task.id}`);
+        const nameInput = document.getElementById(`cfg-task-${task.id}`);
+        if (iconInput) task.icon = iconInput.value || "✨";
+        if (nameInput) task.name = nameInput.value;
+      });
+      localStorage.setItem('almightyDutyConfig', JSON.stringify(appConfig));
+      alert(t.msgConfigSaved);
+      // 未保存のアクションリストがある場合は名前がズレる可能性があるのでクリア
+      tempTodayLogs = [];
+      applyLanguage();
+    };
+    window.resetStats = function() {
+      const t = i18n[currentMode];
+      if (confirm(t.descReset + "\n本当によろしいですか？")) {
+        appStats = {};
+        appConfig.members.forEach(m => {
+          appStats[m.id] = {
+            name: m.name,
+            done: 0
+          };
+        });
+        localStorage.setItem('almightyDutyStats', JSON.stringify(appStats));
+        alert(t.msgReset);
+        renderSettings();
+      }
+    }
+    // --- 言語・表示制御 ---
+    function toggleLanguage() {
+      currentMode = currentMode === 'kanji' ? 'hiragana' : 'kanji';
+      localStorage.setItem('almightyDutyLang', currentMode);
+      applyLanguage();
+    }
+
+    function applyLanguage() {
+      const t = i18n[currentMode];
+      if (currentMode === 'hiragana') {
+        document.body.classList.add('hiragana-mode');
+        document.getElementById('label-hiragana').classList.add('active-lang');
+        document.getElementById('label-kanji').classList.remove('active-lang');
+      } else {
+        document.body.classList.remove('hiragana-mode');
+        document.getElementById('label-kanji').classList.add('active-lang');
+        document.getElementById('label-hiragana').classList.remove('active-lang');
+      }
+      document.getElementById('nav-main').innerText = t.navMain;
+      document.getElementById('nav-stats').innerText = t.navStats;
+      document.getElementById('nav-settings').innerText = t.navSettings;
+      document.getElementById('title-main').innerText = t.titleMain;
+      document.getElementById('desc-main').innerHTML = t.descMain;
+      document.getElementById('btn-record').innerText = t.btnRecord;
+      document.getElementById('history-alert-title').innerHTML = `<span style="font-size: 1.4rem;">⚠️</span> ${t.historyTitle}`;
+      document.getElementById('title-stats').innerText = t.titleStats;
+      document.getElementById('desc-stats').innerText = t.descStats;
+      document.getElementById('title-settings').innerText = t.titleSettings;
+      document.getElementById('title-member-setup').innerText = t.titleMem;
+      document.getElementById('desc-member-setup').innerText = t.descMem;
+      document.getElementById('title-action-setup').innerText = t.titleAct;
+      document.getElementById('desc-action-setup').innerText = t.descAct;
+      document.getElementById('btn-save-config').innerText = t.btnSaveConfig;
+      document.getElementById('desc-reset').innerText = t.descReset;
+      document.getElementById('btn-reset-stats').innerText = t.btnReset;
+      document.getElementById('title-today-log').innerText = t.tempLogTitle;
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      document.getElementById('date-display').innerText = `CURRENT CYCLE: ${y}.${m}.${d} [${t.dayNames[today.getDay()]}]`;
+      if (document.getElementById('screen-main').classList.contains('active')) renderMain();
+      if (document.getElementById('screen-stats').classList.contains('active')) renderStats();
+      if (document.getElementById('screen-settings').classList.contains('active')) renderSettings();
+    }
+    // --- 背景パーティクル ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    const particles = [];
+    for (let i = 0; i < 70; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 1.5 + 0.5,
+        speedX: Math.random() * 0.4 - 0.2,
+        speedY: Math.random() * 0.4 - 0.2,
+        opacity: Math.random(),
+        fade: Math.random() > 0.5 ? 0.005 : -0.005
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.opacity += p.fade;
+        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.y > canvas.height) p.y = 0;
+        if (p.y < 0) p.y = canvas.height;
+        ctx.fillStyle = currentMode === 'hiragana' ? `rgba(0, 212, 255, ${p.opacity})` : `rgba(255, 215, 0, ${p.opacity})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+    applyLanguage();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

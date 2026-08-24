@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>挙手集計シート　全体用</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    body {
+      background-color: #050810;
+    }
+
+    /* さらに少し暗くして緊張感を演出 */
+    .prog-fill {
+      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .pop-in {
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* 危険/ハードモードを示す警告アニメーション */
+    .warning-pulse {
+      animation: warningPulse 2s infinite;
+    }
+
+    @keyframes warningPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        text-shadow: 0 0 8px rgba(244, 63, 94, 0.8);
+      }
+
+      50% {
+        opacity: 0.7;
+        text-shadow: 0 0 2px rgba(244, 63, 94, 0.4);
+      }
+    }
+
+    .confetti {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(720deg);
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen overflow-auto text-slate-200">
+  <div id="app" class="w-full flex flex-col items-center p-6 max-w-6xl mx-auto">
+
+    <!-- ヘッダー部分 -->
+    <header class="text-left mb-8 shrink-0 w-full">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-700/80 pb-4 gap-4">
+        <div>
+          <p class="font-bold tracking-widest text-sm mb-1 flex items-center gap-2">
+            <span class="text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">CLASS QUEST</span>
+            <span class="text-rose-500 text-xs px-2 py-0.5 border border-rose-500/50 rounded bg-rose-950/30 warning-pulse">ADVANCED MISSION</span>
+          </p>
+          <h1 class="text-3xl font-black text-white tracking-widest">挙手モンスター集計表</h1>
+        </div>
+        <div class="text-sm font-bold text-slate-300 bg-[#121826] px-5 py-2.5 rounded-full border border-slate-700/80 shadow-lg flex items-center gap-2">
+          <i data-lucide="siren" class="w-4 h-4 text-rose-500 warning-pulse"></i>
+          <div>
+            <span class="text-rose-400 mr-1 font-black">TARGET:</span>クラス全員で<span class="text-lg text-white mx-1">100</span>体あつめてスペシャルレクを解放せよ！
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- クラス合計・進捗バー -->
+    <div class="w-full shrink-0 bg-[#0f1523] rounded-2xl p-6 md:p-8 border border-slate-700/60 mb-10 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      <!-- 背景のうっすらとしたグリッド模様 -->
+      <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 relative z-10">
+        <div class="relative flex-shrink-0">
+          <i data-lucide="swords" id="boss-icon" class="w-16 h-16 md:w-20 md:h-20 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.7)] transition-all duration-500"></i>
+        </div>
+        <div class="flex-1 w-full text-center md:text-left">
+          <h2 class="text-xl md:text-2xl font-black text-white flex flex-col md:flex-row items-center md:items-baseline gap-2 md:gap-4 mb-2">
+            全クエストクリア達成度
+            <span id="progress-text" class="text-cyan-400 text-3xl md:text-4xl drop-shadow-[0_0_12px_rgba(34,211,238,0.6)] font-mono">0% COMPLETE</span>
+          </h2>
+          <div class="text-sm md:text-base font-bold text-slate-400 mb-6">
+            全 <span class="text-white font-black text-lg">100</span> クエスト中 <span id="total-monsters" class="text-white font-black text-lg">0</span> 個相当をコンプリート！
+          </div>
+
+          <!-- プログレスバー -->
+          <div class="w-full h-3 md:h-4 bg-[#050810] rounded-full overflow-hidden shadow-inner border border-slate-800 relative">
+            <!-- 50%と75%のライン（ハードモードらしさの演出） -->
+            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-slate-600/50 z-10"></div>
+            <div class="absolute left-3/4 top-0 bottom-0 w-px bg-slate-600/50 z-10"></div>
+
+            <div id="class-bar" class="prog-fill h-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,1)] relative" style="width:0%">
+              <div class="absolute right-0 top-0 bottom-0 w-4 bg-white/50 blur-[2px]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 生徒別グリッド -->
+    <div class="w-full">
+      <div class="flex justify-between items-end mb-6">
+        <h3 class="text-lg font-bold text-slate-300 flex items-center gap-2">
+          <i data-lucide="crosshair" class="w-5 h-5 text-rose-500"></i>
+          メンバーミッション
+        </h3>
+        <button onclick="resetData()" class="text-xs text-slate-500 hover:text-rose-400 hover:drop-shadow-[0_0_5px_rgba(244,63,94,0.8)] font-bold transition-all">全データを初期化</button>
+      </div>
+
+      <div id="student-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
+        <!-- JSで描画 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- クリア時のモーダル -->
+  <div id="clear-modal" class="fixed inset-0 bg-black/85 hidden items-center justify-center z-50 backdrop-blur-md">
+    <div class="bg-[#0f1523] rounded-2xl p-8 md:p-12 max-w-lg w-full mx-4 text-center shadow-[0_0_50px_rgba(34,211,238,0.5)] border-2 border-cyan-400/80 transform scale-0 relative overflow-hidden" id="clear-modal-content">
+      <!-- モーダル背景エフェクト -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-rose-500/20 rounded-full blur-3xl"></div>
+
+      <i data-lucide="crown" class="w-24 h-24 mx-auto text-cyan-300 drop-shadow-[0_0_25px_rgba(34,211,238,1)] mb-6 animate-pulse relative z-10"></i>
+      <h2 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] relative z-10">ALL CLEAR!!</h2>
+      <p class="text-lg md:text-xl font-bold text-cyan-100 mb-8 opacity-90 relative z-10">100体のモンスターを撃破！<br>スペシャルレク・アンロック完了！</p>
+      <button onclick="closeClearModal()" class="w-full py-4 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl shadow-[0_0_15px_rgba(34,211,238,0.8)] hover:shadow-[0_0_30px_rgba(34,211,238,1)] transition-all hover:scale-105 relative z-10">REWARD ACCEPT</button>
+    </div>
+  </div>
+
+  <script>
+    // バージョンを変更して、過去の50目標のデータと衝突しないように初期化します
+    const STORAGE_KEY = 'class_monsters_v3_hard';
+    const GOAL = 100; // 難易度アップ：目標を100に変更
+    const STUDENT_COUNT = 35;
+    let studentData = [];
+
+    function init() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        studentData = JSON.parse(saved);
+      } else {
+        studentData = Array.from({
+          length: STUDENT_COUNT
+        }, (_, i) => ({
+          id: i + 1,
+          count: 0
+        }));
+      }
+      renderGrid();
+      updateDashboard();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(studentData));
+      updateDashboard();
+    }
+
+    function updateStudent(index, delta) {
+      const newCount = studentData[index].count + delta;
+      if (newCount >= 0) {
+        studentData[index].count = newCount;
+        const countEl = document.getElementById(`count-${index}`);
+        countEl.textContent = newCount;
+        // クリック時に少し光るエフェクトを追加
+        if (delta > 0) {
+          countEl.classList.add('text-cyan-300', 'drop-shadow-[0_0_10px_rgba(34,211,238,1)]');
+          setTimeout(() => {
+            countEl.classList.remove('text-cyan-300', 'drop-shadow-[0_0_10px_rgba(34,211,238,1)]');
+          }, 300);
+        }
+        saveData();
+      }
+    }
+
+    function resetData() {
+      if (confirm('MISSIONデータを初期化しますか？（現在の進捗はすべて失われます）')) {
+        studentData = Array.from({
+          length: STUDENT_COUNT
+        }, (_, i) => ({
+          id: i + 1,
+          count: 0
+        }));
+        saveData();
+        renderGrid();
+      }
+    }
+
+    function updateDashboard() {
+      const total = studentData.reduce((sum, s) => sum + s.count, 0);
+      const progress = Math.min(100, (total / GOAL) * 100);
+      // カウンターアニメーション（簡易版）
+      document.getElementById('total-monsters').textContent = total;
+      // %の小数点第1位まで表示して、進みにくさ（難易度）を演出
+      document.getElementById('progress-text').textContent = `${progress.toFixed(1)}% COMPLETE`;
+      document.getElementById('class-bar').style.width = `${progress}%`;
+      const bossIcon = document.getElementById('boss-icon');
+      if (total >= GOAL) {
+        bossIcon.setAttribute('class', 'w-16 h-16 md:w-20 md:h-20 text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.9)] animate-pulse transition-all duration-500');
+        showClearModal();
+      } else {
+        bossIcon.setAttribute('class', 'w-16 h-16 md:w-20 md:h-20 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.7)] transition-all duration-500');
+      }
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('student-grid');
+      grid.innerHTML = '';
+      studentData.forEach((student, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-[#121826] rounded-xl p-4 border border-slate-700/60 flex flex-col items-center justify-between gap-3 transition-all duration-200 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:-translate-y-1';
+        card.innerHTML = `
+          <div class="w-full flex justify-between items-center text-slate-300">
+            <span class="text-xs font-mono bg-[#1e293b] px-2 py-1 rounded text-slate-400 border border-slate-700/50">ID:${String(student.id).padStart(2, '0')}</span>
+            <div class="text-xl font-black text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.3)] transition-colors duration-300">
+              <span id="count-${index}" class="transition-all duration-300 inline-block">${student.count}</span><span class="text-xs text-slate-500 ml-1">体</span>
+            </div>
+          </div>
+          <div class="flex gap-2 w-full mt-2">
+            <button onclick="updateStudent(${index}, -1)" class="flex-1 py-1.5 bg-[#1e293b] hover:bg-[#334155] text-slate-400 rounded-md font-bold text-sm transition-colors border border-slate-700/50">−</button>
+            <button onclick="updateStudent(${index}, 1)" class="flex-1 py-1.5 bg-cyan-950/40 hover:bg-cyan-900/80 text-cyan-400 border border-cyan-800/60 hover:border-cyan-400 rounded-md font-black text-lg transition-colors shadow-[0_0_10px_rgba(34,211,238,0.1)] hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] relative overflow-hidden group">
+              <span class="relative z-10">+</span>
+              <div class="absolute inset-0 h-full w-0 bg-cyan-500/20 group-hover:w-full transition-all duration-300"></div>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function fireConfetti() {
+      const colors = ['#06b6d4', '#e11d48', '#8b5cf6', '#e2e8f0', '#0ea5e9'];
+      for (let i = 0; i < 100; i++) {
+        const conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.style.left = Math.random() * 100 + 'vw';
+        conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        conf.style.top = -20 + 'px';
+        const size = Math.random() * 8 + 4;
+        conf.style.width = size + 'px';
+        conf.style.height = (Math.random() > 0.3 ? size : size * 4) + 'px';
+        conf.style.opacity = Math.random() * 0.6 + 0.4;
+        conf.style.boxShadow = `0 0 ${size}px ${conf.style.backgroundColor}`;
+        conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 5000);
+      }
+    }
+    let hasCleared = false;
+
+    function showClearModal() {
+      if (hasCleared) return;
+      hasCleared = true;
+      const modal = document.getElementById('clear-modal');
+      const content = document.getElementById('clear-modal-content');
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        content.classList.add('pop-in');
+        fireConfetti();
+        setInterval(fireConfetti, 3000);
+      }, 10);
+    }
+
+    function closeClearModal() {
+      document.getElementById('clear-modal').style.display = 'none';
+    }
+    init();
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

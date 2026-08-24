@@ -11,529 +11,880 @@
   <body>
   <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>かけ算の筆算マスター</title>
-<style>
-  :root {
-    --primary: #00897B;
-    --secondary: #FF9800;
-    --bg-color: #F4F9F9;
-    --text-color: #333;
-  }
-  
-  body {
-    font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 20px;
-    line-height: 1.6;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>かけ算の筆算（答えが3けた） - 算数</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      /* 教科書のテーマカラー（緑系） */
+      --theme: #4caf50;
+      --theme-dark: #2e7d32;
+      --theme-light: #e8f5e9;
+      --theme-sub: #ff9800; /* オレンジ */
+      --theme-accent: #0288d1; /* 青 */
+      
+      --bg: #f0f4f8;
+      --border: #ced4da;
+      --text-main: #333333;
+      --danger: #e64980; /* ピンク・赤系 */
+    }
 
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    background: #FFF;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    overflow: hidden;
-  }
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'Meiryo', sans-serif;
+    }
 
-  header {
-    background-color: var(--primary);
-    color: #FFF;
-    padding: 20px;
-    text-align: center;
-  }
+    body {
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+    }
 
-  h1 { margin: 0; font-size: 1.8rem; letter-spacing: 2px;}
-  .goal { font-weight: bold; background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 20px; border-radius: 20px; margin-top: 10px;}
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
 
-  .section {
-    padding: 30px;
-    border-bottom: 2px dashed #E0E0E0;
-  }
+    /* --- ヘッダー --- */
+    header {
+      background: var(--theme-light);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
 
-  h2 {
-    color: var(--primary);
-    border-left: 6px solid var(--secondary);
-    padding-left: 12px;
-    font-size: 1.4rem;
-    margin-top: 0;
-  }
+    .unit-num {
+      background: #fff;
+      border: 3px solid var(--theme);
+      border-radius: 8px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: var(--theme);
+      font-weight: bold;
+      line-height: 1;
+    }
+    .unit-num span { font-size: 0.7rem; }
+    .unit-num strong { font-size: 1.4rem; }
 
-  /* ==========================================
-     具体物操作（ブロック）エリア
-     ========================================== */
-  .manipulatives {
-    background: #FFF9C4;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    margin-bottom: 30px;
-    border: 2px solid #FFF59D;
-  }
+    h1 { margin: 0; color: var(--theme-dark); font-size: 1.5rem; }
 
-  .block-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
-    align-items: flex-end;
-    min-height: 140px;
-  }
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
 
-  .b-100 { width: 70px; height: 70px; background-color: #2196F3; border: 2px solid #1976D2; border-radius: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.1); display: inline-block;}
-  .b-10 { width: 14px; height: 70px; background-color: #4CAF50; border: 2px solid #388E3C; border-radius: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.1); display: inline-block;}
-  .b-1 { width: 14px; height: 14px; background-color: #FFEB3B; border: 2px solid #FBC02D; border-radius: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.1); display: inline-block;}
+    .tab-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 5px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #6c757d;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
 
-  .group-box {
-    border: 2px dashed #A5D6A7;
-    padding: 10px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.7);
-    display: flex;
-    gap: 3px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-  .group-label { font-size: 0.95rem; width: 100%; text-align: center; font-weight: bold; margin-bottom: 5px; }
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme-dark);
+      background: white;
+    }
 
-  /* ==========================================
-     筆算UI（完全統一レイアウト）
-     ========================================== */
-  .hissan-card {
-    border: 2px solid #D7CCC8;
-    border-radius: 12px;
-    padding: 25px;
-    display: inline-block;
-    background: #FFF;
-    margin: 10px 0;
-  }
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .section.active { display: block; }
 
-  .hissan-grid {
-    display: grid;
-    /* 左:×/百の位, 中:十の位/繰枠, 右:一の位/乗数 */
-    grid-template-columns: 50px 50px 50px;
-    grid-template-rows: 50px 50px 15px 60px;
-    align-items: center;
-    justify-items: center;
-    font-size: 2.6rem;
-    color: #333;
-    font-family: 'Courier New', Courier, monospace;
-    gap: 2px;
-  }
+    /* --- 見出し・汎用 --- */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .roman-num { background: var(--theme-sub); color: #fff; padding: 2px 10px; border-radius: 5px; }
+    .green-text { color: var(--theme-dark); }
+    
+    .problem-box {
+      border: 2px solid var(--theme); padding: 15px 20px; border-radius: 8px;
+      margin-bottom: 20px; background: white; font-size: 1.2rem; line-height: 1.8; font-weight: bold;
+      text-align: center;
+    }
 
-  /* 上段（かけられる数） */
-  .hg-top-10 { grid-column: 2; grid-row: 1; line-height: 1; }
-  .hg-top-1  { grid-column: 3; grid-row: 1; line-height: 1; }
-  
-  /* 中段（×, 繰り上がり枠, かける数） */
-  .hg-op     { grid-column: 1; grid-row: 2; justify-self: end; padding-right: 5px; line-height: 1; }
-  .hg-bot-1  { grid-column: 3; grid-row: 2; line-height: 1; }
-  
-  /* グレーの繰り上がり枠 */
-  .hg-carry { 
-    grid-column: 2; grid-row: 2; 
-    width: 42px; height: 42px; 
-    border: 2px solid #BDBDBD; 
-    border-radius: 6px; 
-    color: #757575; 
-    text-align: center; 
-    font-size: 1.4rem; 
-    background: #fff;
-    box-sizing: border-box;
-  }
-  .hg-carry::placeholder { color: #BDBDBD; }
-  .hg-carry:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(255,152,0,0.2); }
-  .hg-carry:disabled { background: #F5F5F5; border-color: #E0E0E0; }
+    /* --- 思考を促すUI --- */
+    .think-box {
+      margin-top: 20px; background: #fffcf2; padding: 20px; border-radius: 12px;
+      border: 2px dashed var(--theme-sub); text-align: center;
+    }
+    .think-title {
+      font-weight: bold; color: #d84315; font-size: 1.2rem; margin-bottom: 15px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .hidden-content {
+      display: none; margin-top: 20px; text-align: left; background: white;
+      padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;
+    }
 
-  /* 横線 */
-  .hg-line { grid-column: 1 / 4; grid-row: 3; width: 100%; height: 4px; background: #333; border-radius: 2px; align-self: center;}
-  
-  /* 下段（答えの入力枠） */
-  .hg-ans {
-    width: 46px; height: 55px; 
-    border: 2px solid #9E9E9E; 
-    border-radius: 6px; 
-    text-align: center; 
-    font-size: 2rem; 
-    color: #333;
-    box-sizing: border-box;
-  }
-  .hg-ans:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,137,123,0.2); }
-  
-  .hg-a100 { grid-column: 1; grid-row: 4; }
-  .hg-a10  { grid-column: 2; grid-row: 4; }
-  .hg-a1   { grid-column: 3; grid-row: 4; }
+    /* --- 入力欄とボタン --- */
+    .calc-input {
+      width: 60px; padding: 8px; font-size: 1.2rem; text-align: center;
+      border: 2px solid #90caf9; border-radius: 6px; font-weight: bold; color: #1565c0; transition: 0.2s;
+    }
+    /* iOSでのズーム防止のため 16px 以上に */
+    @media screen and (max-width: 768px) {
+      .calc-input, .h-input, .h-carry-input { font-size: 16px !important; }
+    }
+    .calc-input.correct { background-color: #ebfbee; border-color: #40c057; color: #2b8a3e; }
+    .calc-input.error { background-color: #ffe3e3; border-color: var(--danger); color: var(--danger); animation: shake 0.4s; }
 
-  /* ==========================================
-     ボタン・フィードバック
-     ========================================== */
-  .btn-orange {
-    background-color: #FF9800; color: white; border: none; padding: 10px 20px;
-    font-size: 1.1rem; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
-  }
-  .btn-orange:hover { background-color: #F57C00; transform: translateY(-2px); }
-  
-  .btn-action { background-color: #03A9F4; color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 30px; font-weight: bold; cursor: pointer; margin-top: 10px;}
-  .btn-action:hover { background-color: #0288D1; }
+    .action-row { display: flex; gap: 15px; margin-top: 20px; justify-content: center; }
+    button { font-family: inherit; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+    button:active { transform: scale(0.95); }
+    .check-btn { background: var(--theme-accent); color: white; padding: 12px 30px; font-size: 1.1rem; box-shadow: 0 4px 0 #0277bd; }
+    .check-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
+    .hint-btn { background: var(--theme-sub); color: white; padding: 12px 20px; font-size: 1.1rem; box-shadow: 0 4px 0 #e65100; }
+    .hint-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
+    .reveal-btn { background: #ff9800; color: white; padding: 10px 20px; font-size: 1.1rem; box-shadow: 0 4px 0 #e65100; margin: 0 auto; display: block;}
+    .reveal-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
 
-  .feedback { font-weight: bold; margin-left: 10px; font-size: 1.4rem; display: inline-block; min-width: 30px; vertical-align: middle;}
-  .correct { color: #4CAF50; }
-  .error { color: #F44336; }
+    /* --- キャラクター吹き出し --- */
+    .char-talk {
+      display: none; align-items: flex-start; gap: 15px;
+      background: #e0f7fa; padding: 15px; border-radius: 8px;
+      margin-top: 15px; border: 2px dashed #00bcd4;
+    }
+    .char-icon {
+      width: 50px; height: 50px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; background: #00bcd4;
+    }
+    .char-text { font-size: 1.05rem; line-height: 1.5; font-weight: bold; color: #006064; }
+    .result-msg { font-size: 1.2rem; font-weight: bold; margin-top: 15px; min-height: 30px; text-align: center; }
 
-  /* ==========================================
-     練習問題グリッド
-     ========================================== */
-  .practice-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 25px; }
-  .practice-item { text-align: center; }
-  .practice-num { font-weight: bold; color: var(--primary); text-align: left; margin-bottom: 5px; font-size: 1.2rem;}
+    /* ================= 完璧な筆算レイアウト (3桁対応) ================= */
+    .hissan-wrap {
+      display: inline-block; padding: 10px 15px; background: white;
+      border-radius: 8px; border: 2px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .hissan-grid {
+      display: inline-grid;
+      /* くり上がり記号用, 百の位, 十の位, 一の位 の4列構成 */
+      grid-template-columns: 20px 32px 32px 32px;
+      grid-template-rows: 25px 35px 35px 5px 35px;
+      align-items: center; justify-items: center;
+      font-size: 1.6rem; font-family: 'Courier New', Courier, monospace; font-weight: bold;
+    }
+    .hg-carry { grid-row: 1; }
+    .hg-num1 { grid-row: 2; }
+    .hg-num2 { grid-row: 3; }
+    .hg-line { grid-row: 4; grid-column: 1 / 5; width: 100%; border-bottom: 2px solid #333; margin: 2px 0; }
+    .hg-ans { grid-row: 5; }
 
-</style>
+    .h-carry-input {
+      width: 22px; height: 22px; font-size: 1rem; color: var(--danger); text-align: center;
+      border: 1px dashed var(--danger); border-radius: 4px; background: #fff0f6; font-weight: bold;
+    }
+    .h-input {
+      width: 28px; height: 35px; font-size: 1.4rem; text-align: center; padding: 0;
+      border: 2px solid #a5d8ff; border-radius: 6px; color: #0b7285; font-weight: bold; font-family: inherit;
+    }
+    .h-input:focus, .h-carry-input:focus { outline: none; border-color: var(--theme-sub); background: #fffde7; }
+    .h-input.correct, .h-carry-input.correct { background: #ebfbee; border-color: #40c057; color: #2b8a3e; }
+    .h-input.error, .h-carry-input.error { background: #ffe3e3; border-color: var(--danger); color: var(--danger); animation: shake 0.4s; }
+
+    /* 練習問題用グリッド */
+    .practice-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;
+    }
+    .practice-item { display: flex; gap: 8px; align-items: flex-start; justify-content: center; }
+    .p-num { font-weight: bold; color: #868e96; font-size: 1.1rem; padding-top: 15px; }
+
+    /* --- まとめ枠 --- */
+    .summary-box {
+      border: 3px solid var(--theme-dark); border-radius: 12px; padding: 20px; background: white;
+      text-align: left; position: relative; margin-top: 30px; line-height: 2; font-weight: bold; font-size: 1.15rem;
+    }
+    .summary-label {
+      background: var(--theme-dark); color: white; padding: 4px 15px; border-radius: 20px; font-weight: bold; position: absolute; top: -15px; left: 20px;
+    }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2f9e44; border: 10px solid #8b4513; border-radius: 8px;
+      padding: 15px; color: white; display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.95rem; line-height: 1.5;
+    }
+    .bb-col {
+      flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 10px;
+      border-right: 1px dashed rgba(255, 255, 255, 0.4); padding-right: 15px;
+    }
+    .bb-col:last-child { border-right: none; padding-right: 0; }
+    .bb-badge { background: var(--theme-sub); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }
+    .bb-box { background: white; color: #333; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold;}
+    .bb-yellow-box { border: 2px solid #ffca28; padding: 10px; border-radius: 6px; font-weight: bold; background: white; color: #333;}
+    .bb-green-box { background: var(--theme-dark); color: white; padding: 5px 10px; border-radius: 20px; font-weight: bold; text-align: center; width:fit-content;}
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%, 75% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
-  <header>
-    <h1>算数：かけ算の筆算</h1>
-    <div class="goal">目標：答えが3けたになる筆算と、くり上がりの書き方をマスターしよう！</div>
-  </header>
+  <div class="app-container">
+    <header>
+      <div class="unit-num"><span>第</span><strong>6</strong><span>時</span></div>
+      <h1>答えが3けたになる筆算</h1>
+    </header>
 
-  <div class="section" id="step1">
-    <h2>1. 10のたばが 100 になる計算（42 × 3）</h2>
-    
-    <div class="manipulatives">
-      <div id="desc0" style="font-size: 1.2rem; font-weight: bold; color: #E65100; height: 30px;">10のたばが4つ、1のバラが2つ。それが「3つ分」あるよ。</div>
-      <div id="blocks0" class="block-container"></div>
-      <button id="btn0" class="btn-action" onclick="nextStep0()">① 1のバラをあつめる</button>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① 問題と考え方</button>
+      <button class="tab-btn" onclick="switchTab(2)">② 筆算のしかた</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ 練習問題</button>
+      <button class="tab-btn" onclick="switchTab(4)">④ 黒板(まとめ)</button>
     </div>
 
-    <div style="text-align: center;">
-      <div class="hissan-card">
-        <div class="hissan-grid">
-          <div class="hg-top-10">4</div> 
-          <div class="hg-top-1">2</div>
-          
-          <div class="hg-op">×</div> 
-          <input type="text" class="hg-carry" placeholder="繰" disabled>
-          <div class="hg-bot-1">3</div>
-          
-          <div class="hg-line"></div>
-          
-          <input type="text" id="a0-100" class="hg-ans hg-a100" maxlength="1">
-          <input type="text" id="a0-10"  class="hg-ans hg-a10"  maxlength="1">
-          <input type="text" id="a0-1"   class="hg-ans hg-a1"   maxlength="1">
-        </div>
+    <!-- ================= タブ1: 問題と考え方 ================= -->
+    <div id="section-1" class="section active">
+      <div class="section-title">
+        <span class="roman-num">I</span>
       </div>
-      <div style="margin-top: 15px;">
-        <button class="btn-orange" onclick="checkHissan('a0-100', 'a0-10', 'a0-1', null, '1', '2', '6', null, 'fb0')">筆算の答え合わせ</button>
-        <span id="fb0" class="feedback"></span>
+
+      <div class="problem-box">
+        42 × 3 、 58 × 3 を筆算でしましょう。
       </div>
-    </div>
-  </div>
 
-  <div class="section" id="step2">
-    <h2>2. 大きなくり上がりがある計算（58 × 3）</h2>
-    
-    <div class="manipulatives">
-      <div id="desc1" style="font-size: 1.2rem; font-weight: bold; color: #E65100; height: 30px;">こんどはバラがたくさんあるね。まずは1のバラをあつめよう。</div>
-      <div id="blocks1" class="block-container"></div>
-      <button id="btn1" class="btn-action" onclick="nextStep1()">① 1のバラをあつめる</button>
-    </div>
-
-    <div style="text-align: center;">
-      <div class="hissan-card">
-        <div class="hissan-grid">
-          <div class="hg-top-10">5</div> 
-          <div class="hg-top-1">8</div>
-          
-          <div class="hg-op">×</div> 
-          <input type="text" id="c1" class="hg-carry" placeholder="繰" maxlength="1">
-          <div class="hg-bot-1">3</div>
-          
-          <div class="hg-line"></div>
-          
-          <input type="text" id="a1-100" class="hg-ans hg-a100" maxlength="1">
-          <input type="text" id="a1-10"  class="hg-ans hg-a10"  maxlength="1">
-          <input type="text" id="a1-1"   class="hg-ans hg-a1"   maxlength="1">
+      <!-- 思考を促すUI -->
+      <div class="think-box">
+        <div class="think-title">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--theme-sub); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.8rem;">りく</div>
+          これまでに学習した筆算と、ちがうところはどこかな？
         </div>
-      </div>
-      <div style="margin-top: 15px;">
-        <button class="btn-orange" onclick="checkHissan('a1-100', 'a1-10', 'a1-1', 'c1', '1', '7', '4', '2', 'fb1')">筆算の答え合わせ</button>
-        <span id="fb1" class="feedback"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="section" id="step3">
-    <h2>3. 練習問題にチャレンジ</h2>
-    <p>ぜんぶ同じ書き方で計算できるよ。くり上がりは「×」の横のマスにメモしよう。</p>
-    <div class="practice-container" id="practice-area">
-      </div>
-  </div>
-
-  <div class="section" id="step4">
-    <h2>4. 文章題にチャレンジ</h2>
-    <div style="background: #FFF3E0; padding: 25px; border-radius: 8px;">
-      <p style="font-size: 1.2rem; font-weight:bold;">ゆうかさんの学校の3年は4クラスあって、どのクラスも34人です。<br>3年生は、みんなで何人いますか。</p>
-      <div style="margin-top: 15px; font-size: 1.2rem;">
-        式：<input type="text" id="w-eq" style="width: 180px; padding: 8px; font-size: 1.2rem; border-radius: 6px; border: 2px solid #ccc;"> 
-        <br><br>
-        答え：<input type="text" id="w-ans" style="width: 80px; padding: 8px; font-size: 1.2rem; border-radius: 6px; border: 2px solid #ccc;"> 人
-        <button class="btn-orange" onclick="checkWord()" style="margin-left: 15px;">答え合わせ</button>
-        <span id="w-fb" class="feedback"></span>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<script>
-  // --- 全角半角変換 ---
-  function toHalf(str) {
-    return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-              .replace(/\s+/g, '').replace(/[×ｘ✖]/g, '*');
-  }
-
-  // ================= 具体物アニメーション 42×3 =================
-  let state0 = 0;
-  function renderBlocks0() {
-    const b = document.getElementById('blocks0');
-    if(state0 === 0) {
-      let html = '';
-      for(let i=0; i<3; i++) {
-        html += `<div class="group-box">
-                  <div class="group-label">42が${i+1}つめ</div>
-                  ${'<div class="b-10"></div>'.repeat(4)} <div style="display:flex; flex-wrap:wrap; width:32px;">${'<div class="b-1"></div>'.repeat(2)}</div>
-                 </div>`;
-      }
-      b.innerHTML = html;
-    } else if (state0 === 1) {
-      b.innerHTML = `
-        <div class="group-box" style="border-color:#ccc; opacity:0.8;">
-          <div class="group-label" style="color:#757575;">10のたば</div>
-          ${'<div class="b-10"></div>'.repeat(12)}
-        </div>
-        <div class="group-box" style="background:#FFF9C4; border-color:#FBC02D;">
-          <div class="group-label" style="color:#F57F17;">あつめた1のバラ<br>(2×3＝6)</div>
-          ${'<div class="b-1"></div>'.repeat(6)}
-        </div>
-      `;
-      document.getElementById('desc0').innerHTML = "1のバラは 2×3＝6こ だね。つぎは10のたばをあつめよう。";
-      document.getElementById('btn0').innerText = "② 10のたばをあつめる";
-    } else if (state0 === 2) {
-      b.innerHTML = `
-        <div class="group-box" style="background:#E8F5E9; border-color:#4CAF50;">
-          <div class="group-label" style="color:#2E7D32;">すべての10のたば<br>(4×3＝12)</div>
-          ${'<div class="b-10"></div>'.repeat(12)}
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの1</div>
-          ${'<div class="b-1"></div>'.repeat(6)}
-        </div>
-      `;
-      document.getElementById('desc0').innerHTML = "10のたばは 12こ。10こで100のまとまりを作ろう！";
-      document.getElementById('btn0').innerText = "③ 100のまとまりをつくる";
-    } else if (state0 === 3) {
-      b.innerHTML = `
-        <div class="group-box" style="background:#BBDEFB; border-color:#2196F3;">
-          <div class="group-label" style="color:#1565C0;">100のまとまり</div>
-          <div class="b-100"></div>
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの10</div>
-          ${'<div class="b-10"></div>'.repeat(2)}
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの1</div>
-          ${'<div class="b-1"></div>'.repeat(6)}
-        </div>
-      `;
-      document.getElementById('desc0').innerHTML = "100のまとまりができて、答えは 126！";
-      document.getElementById('btn0').style.display = 'none';
-    }
-  }
-  function nextStep0() { state0++; renderBlocks0(); }
-  renderBlocks0();
-
-  // ================= 具体物アニメーション 58×3 =================
-  let state1 = 0;
-  function renderBlocks1() {
-    const b = document.getElementById('blocks1');
-    if(state1 === 0) {
-      let html = '';
-      for(let i=0; i<3; i++) {
-        html += `<div class="group-box">
-                  <div class="group-label">58が${i+1}つめ</div>
-                  ${'<div class="b-10"></div>'.repeat(5)} <div style="display:flex; flex-wrap:wrap; width:32px;">${'<div class="b-1"></div>'.repeat(8)}</div>
-                 </div>`;
-      }
-      b.innerHTML = html;
-    } else if (state1 === 1) {
-      b.innerHTML = `
-        <div class="group-box" style="border-color:#ccc; opacity:0.8;">
-          <div class="group-label" style="color:#757575;">そのままの10</div>
-          ${'<div class="b-10"></div>'.repeat(15)}
-        </div>
-        <div class="group-box" style="background:#FFF9C4; border-color:#FBC02D; width:180px;">
-          <div class="group-label" style="color:#F57F17;">あつめた1のバラ<br>(8×3＝24)</div>
-          ${'<div class="b-1"></div>'.repeat(24)}
-        </div>
-      `;
-      document.getElementById('desc1').innerHTML = "バラがぜんぶで 8×3＝24 こ になったね。";
-      document.getElementById('btn1').innerText = "② バラを10のたばにする(くり上がり)";
-    } else if (state1 === 2) {
-      b.innerHTML = `
-        <div class="group-box" style="border-color:#ccc; opacity:0.8;">
-          <div class="group-label" style="color:#757575;">そのままの10</div>
-          ${'<div class="b-10"></div>'.repeat(15)}
-        </div>
-        <div class="group-box" style="background:#C8E6C9; border-color:#4CAF50;">
-          <div class="group-label" style="color:#2E7D32;">できた新しい10<br>(くり上がり)</div>
-          ${'<div class="b-10"></div>'.repeat(2)}
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの1</div>
-          ${'<div class="b-1"></div>'.repeat(4)}
-        </div>
-      `;
-      document.getElementById('desc1').innerHTML = "バラ20こが「10のたば2つ」に変身！（これがマスの「2」だよ）";
-      document.getElementById('btn1').innerText = "③ すべての10のたばをあつめる";
-    } else if (state1 === 3) {
-      b.innerHTML = `
-        <div class="group-box" style="background:#E8F5E9; border-color:#4CAF50;">
-          <div class="group-label" style="color:#2E7D32;">すべての10のたば<br>(15＋2＝17)</div>
-          ${'<div class="b-10"></div>'.repeat(17)}
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの1</div>
-          ${'<div class="b-1"></div>'.repeat(4)}
-        </div>
-      `;
-      document.getElementById('desc1').innerHTML = "10のたばは 15＋2＝17こ。さいごに100のまとまりを作ろう！";
-      document.getElementById('btn1').innerText = "④ 100のまとまりをつくる";
-    } else if (state1 === 4) {
-      b.innerHTML = `
-        <div class="group-box" style="background:#BBDEFB; border-color:#2196F3;">
-          <div class="group-label" style="color:#1565C0;">100のまとまり</div>
-          <div class="b-100"></div>
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの10</div>
-          ${'<div class="b-10"></div>'.repeat(7)}
-        </div>
-        <div class="group-box">
-          <div class="group-label">のこりの1</div>
-          ${'<div class="b-1"></div>'.repeat(4)}
-        </div>
-      `;
-      document.getElementById('desc1').innerHTML = "答えは 174！筆算とブロックの動きは同じだね。";
-      document.getElementById('btn1').style.display = 'none';
-    }
-  }
-  function nextStep1() { state1++; renderBlocks1(); }
-  renderBlocks1();
-
-  // ================= 筆算判定 =================
-  function checkHissan(id100, id10, id1, idCarry, ans100, ans10, ans1, ansCarry, fbId) {
-    const v100 = toHalf(document.getElementById(id100).value);
-    const v10 = toHalf(document.getElementById(id10).value);
-    const v1 = toHalf(document.getElementById(id1).value);
-    let vc = idCarry ? toHalf(document.getElementById(idCarry).value) : null;
-    const fb = document.getElementById(fbId);
-
-    let isCorrect = (v100 === ans100 && v10 === ans10 && v1 === ans1);
-    
-    // 繰り上がりが設定されている問題の場合のみチェック
-    if(idCarry && ansCarry) {
-      if(vc !== ansCarry) isCorrect = false;
-    }
-
-    if(isCorrect) {
-      fb.textContent = '⭕'; fb.className = 'feedback correct';
-    } else {
-      fb.textContent = '❌'; fb.className = 'feedback error';
-    }
-  }
-
-  // ================= 練習問題生成 =================
-  const practices = [
-    { num: 1, t: 83, b: 2, c: '', a100: '1', a10: '6', a1: '6' },
-    { num: 2, t: 53, b: 3, c: '', a100: '1', a10: '5', a1: '9' },
-    { num: 3, t: 72, b: 4, c: '', a100: '2', a10: '8', a1: '8' },
-    { num: 4, t: 61, b: 7, c: '', a100: '4', a10: '2', a1: '7' },
-    { num: 5, t: 90, b: 6, c: '', a100: '5', a10: '4', a1: '0' },
-    { num: 6, t: 80, b: 5, c: '', a100: '4', a10: '0', a1: '0' },
-    { num: 7, t: 79, b: 3, c: '2', a100: '2', a10: '3', a1: '7' },
-    { num: 8, t: 56, b: 6, c: '3', a100: '3', a10: '3', a1: '6' },
-    { num: 9, t: 49, b: 8, c: '7', a100: '3', a10: '9', a1: '2' },
-    { num: 10, t: 84, b: 9, c: '3', a100: '7', a10: '5', a1: '6' },
-    { num: 11, t: 95, b: 4, c: '2', a100: '3', a10: '8', a1: '0' },
-    { num: 12, t: 62, b: 5, c: '1', a100: '3', a10: '1', a1: '0' }
-  ];
-
-  function renderPractice() {
-    const container = document.getElementById('practice-area');
-    let html = '';
-    practices.forEach((p, i) => {
-      let t10 = Math.floor(p.t / 10);
-      let t1 = p.t % 10;
-      let carryAttr = p.c === '' ? 'disabled' : '';
-      
-      html += `
-        <div class="practice-item">
-          <div class="practice-num">①${p.num}</div>
-          <div class="hissan-card" style="padding: 15px; margin: 0;">
-            <div class="hissan-grid">
-              <div class="hg-top-10">${t10}</div> 
-              <div class="hg-top-1">${t1}</div>
-              
-              <div class="hg-op">×</div> 
-              <input type="text" id="pc-${i}" class="hg-carry" placeholder="繰" maxlength="1" ${carryAttr}>
-              <div class="hg-bot-1">${p.b}</div>
-              
-              <div class="hg-line"></div>
-              
-              <input type="text" id="pa100-${i}" class="hg-ans hg-a100" maxlength="1">
-              <input type="text" id="pa10-${i}"  class="hg-ans hg-a10"  maxlength="1">
-              <input type="text" id="pa1-${i}"   class="hg-ans hg-a1"   maxlength="1">
+        <div style="font-size:1rem; color:#555; margin-bottom:15px;">（まわりの人と話し合ってみよう）</div>
+        
+        <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
+          <!-- 復習の筆算 -->
+          <div style="text-align:center;">
+            <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">[ふく習1]</div>
+            <div style="font-family:'Courier New', monospace; font-size:1.4rem; font-weight:bold; border:1px solid #ccc; padding:10px; border-radius:6px; background:white;">
+               2 3<br><u>×  3</u><br> 6 9
             </div>
           </div>
-          <div style="margin-top: 10px;">
-            <button class="btn-orange" style="padding: 8px 16px; font-size: 1rem;" onclick="checkP(${i})">答え合わせ</button>
-            <span id="pfb-${i}" class="feedback" style="font-size: 1.2rem;"></span>
+          <div style="text-align:center;">
+            <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">[ふく習2]</div>
+            <div style="font-family:'Courier New', monospace; font-size:1.4rem; font-weight:bold; border:1px solid #ccc; padding:10px; border-radius:6px; background:white; position:relative;">
+               1 6<br><u>×  4</u><br> 6 4
+               <div style="position:absolute; top:35px; left:25px; font-size:0.8rem; color:var(--danger);">2</div>
+            </div>
           </div>
         </div>
-      `;
-    });
-    container.innerHTML = html;
-  }
-  renderPractice();
 
-  function checkP(i) {
-    const p = practices[i];
-    checkHissan(`pa100-${i}`, `pa10-${i}`, `pa1-${i}`, `pc-${i}`, p.a100, p.a10, p.a1, p.c, `pfb-${i}`);
-  }
+        <button id="btn-show-chigai" class="reveal-btn" onclick="showChigai()"><i class="fa-solid fa-comments"></i> 話し合ったら、ここをおす！</button>
+        
+        <!-- 隠し領域：ちがいの確認 -->
+        <div id="box-chigai" class="hidden-content">
+          <div style="font-weight:bold; color:var(--theme-dark); font-size:1.15rem; margin-bottom:10px;">💡 みんなの気づき</div>
+          <ul style="font-size:1.1rem; line-height:1.8; font-weight:bold; color:#333;">
+            <li>「42×3」は、十の位の計算（4×3=12）で <span style="color:var(--danger);">くり上がり</span> がある！</li>
+            <li>「58×3」は、一の位（8×3=24）も、十の位（5×3=15）もくり上がりがある！</li>
+            <li>どちらも、答えが <span style="color:var(--danger);">3けた</span> になりそう！</li>
+          </ul>
+          <div style="text-align:center; margin-top:15px; font-size:1.1rem; font-weight:bold; color:var(--theme-accent);">
+            ➡ 次のタブ「② 筆算のしかた」に進んで、実際に計算してみよう！
+          </div>
+        </div>
+      </div>
+    </div>
 
-  // ================= 文章題 =================
-  function checkWord() {
-    const eq = toHalf(document.getElementById('w-eq').value);
-    const ans = toHalf(document.getElementById('w-ans').value);
-    const fb = document.getElementById('w-fb');
-    if((eq === '34*4' || eq === '4*34') && ans === '136') {
-      fb.textContent = '⭕ 大正解！'; fb.className = 'feedback correct';
-    } else {
-      fb.textContent = '❌ 式か答えをたしかめよう。'; fb.className = 'feedback error';
+
+    <!-- ================= タブ2: 筆算のしかた ================= -->
+    <div id="section-2" class="section">
+      <div class="section-title">
+        <span class="roman-num">II</span> <span class="green-text">筆算のしかたを考えよう。</span>
+      </div>
+
+      <!-- (1) 42×3 -->
+      <div style="background:#e3f2fd; padding:15px; border-radius:12px; border:2px solid #81d4fa; margin-bottom:30px;">
+        <div style="font-weight:bold; font-size:1.2rem; color:#0277bd; margin-bottom:10px;">(1) 42 × 3 の筆算</div>
+        
+        <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; align-items:center;">
+          <!-- 自分で入力する筆算 -->
+          <div class="hissan-wrap">
+            <div class="hissan-grid">
+              <div class="hg-num1" style="grid-column:3;">4</div><div class="hg-num1" style="grid-column:4;">2</div>
+              <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">3</div>
+              <div class="hg-line"></div>
+              <div class="hg-ans" style="grid-column:2;"><input type="tel" id="t2-1-a1" class="h-input" maxlength="1"></div>
+              <div class="hg-ans" style="grid-column:3;"><input type="tel" id="t2-1-a2" class="h-input" maxlength="1"></div>
+              <div class="hg-ans" style="grid-column:4;"><input type="tel" id="t2-1-a3" class="h-input" maxlength="1"></div>
+            </div>
+          </div>
+          
+          <button id="btn-show-way1" class="reveal-btn" style="background:#0288d1; box-shadow:0 4px 0 #01579b;" onclick="showWay1()"><i class="fa-solid fa-lightbulb"></i> 考え方を見る</button>
+        </div>
+
+        <!-- 隠し領域：42x3の考え方 -->
+        <div id="box-way1" class="hidden-content" style="background:white; border-color:#81d4fa;">
+          <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+            <div style="border:1px solid #ccc; padding:10px; border-radius:8px; font-family:'Courier New', monospace; font-size:1.2rem; font-weight:bold; text-align:center;">
+              <div style="font-size:0.9rem; color:#888; font-family:sans-serif; margin-bottom:5px;">分けて計算すると…</div>
+                 4 2<br><u>×    3</u><br>
+                 <span style="color:var(--danger);">   6</span> <span style="font-size:0.8rem; color:#888;">･･･2×3</span><br>
+              <u> <span style="color:var(--theme-sub);">1 2 0</span> </u> <span style="font-size:0.8rem; color:#888;">･･･40×3</span><br>
+               1 2 6
+            </div>
+            <div style="display:flex; flex-direction:column; justify-content:center; gap:10px; font-weight:bold; font-size:1.1rem; line-height:1.6;">
+              ① 一の位： 「三二が <span style="color:var(--danger);">6</span>」<br>
+              ② 十の位： 「三四 <span style="color:var(--theme-sub);">12</span>」<br>
+                ➡ <span style="color:var(--theme-accent);">1 を百の位に書く。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- (2) 58×3 -->
+      <div style="background:#fce4ec; padding:15px; border-radius:12px; border:2px solid #f48fb1;">
+        <div style="font-weight:bold; font-size:1.2rem; color:#c2185b; margin-bottom:10px;">(2) 58 × 3 の筆算</div>
+        
+        <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; align-items:center;">
+          <!-- 自分で入力する筆算 -->
+          <div class="hissan-wrap">
+            <div class="hissan-grid">
+              <div class="hg-carry" style="grid-column:3;"><input type="tel" id="t2-2-c" class="h-carry-input" maxlength="1"></div>
+              <div class="hg-num1" style="grid-column:3;">5</div><div class="hg-num1" style="grid-column:4;">8</div>
+              <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">3</div>
+              <div class="hg-line"></div>
+              <div class="hg-ans" style="grid-column:2;"><input type="tel" id="t2-2-a1" class="h-input" maxlength="1"></div>
+              <div class="hg-ans" style="grid-column:3;"><input type="tel" id="t2-2-a2" class="h-input" maxlength="1"></div>
+              <div class="hg-ans" style="grid-column:4;"><input type="tel" id="t2-2-a3" class="h-input" maxlength="1"></div>
+            </div>
+          </div>
+          
+          <button id="btn-show-way2" class="reveal-btn" style="background:#d81b60; box-shadow:0 4px 0 #880e4f;" onclick="showWay2()"><i class="fa-solid fa-lightbulb"></i> 考え方を見る</button>
+        </div>
+
+        <!-- 隠し領域：58x3の考え方 -->
+        <div id="box-way2" class="hidden-content" style="background:white; border-color:#f48fb1;">
+          <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+            <div style="border:1px solid #ccc; padding:10px; border-radius:8px; font-family:'Courier New', monospace; font-size:1.2rem; font-weight:bold; text-align:center;">
+              <div style="font-size:0.9rem; color:#888; font-family:sans-serif; margin-bottom:5px;">分けて計算すると…</div>
+                 5 8<br><u>×    3</u><br>
+              <span style="color:var(--danger);">   2 4</span> <span style="font-size:0.8rem; color:#888;">･･･8×3</span><br>
+              <u> <span style="color:var(--theme-sub);">1 5 0</span> </u> <span style="font-size:0.8rem; color:#888;">･･･50×3</span><br>
+               1 7 4
+            </div>
+            <div style="display:flex; flex-direction:column; justify-content:center; gap:10px; font-weight:bold; font-size:1.1rem; line-height:1.6;">
+              ① 一の位： 「三八 <span style="color:var(--danger);">24</span>」<br>
+                ➡ 4を一の位に書き、<span style="color:var(--danger);">2を十の位にくり上げる。</span><br>
+              ② 十の位： 「三五 <span style="color:var(--theme-sub);">15</span>」<br>
+                ➡ 15に、<span style="color:var(--danger);">くり上げた2をたす</span>。（15＋2＝17）<br>
+                ➡ 7を十の位に書き、1を百の位に書く。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab2()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint2')">ヒント</button>
+      </div>
+      <div id="hint2" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          ・42×3 は、3×2=6、3×4=12 だから、左から「1」「2」「6」と書くよ。<br>
+          ・58×3 は、一の位の計算で赤いマスに「2」をくり上げるのを忘れないでね！
+        </div>
+      </div>
+      <div id="result2" class="result-msg"></div>
+    </div>
+
+
+    <!-- ================= タブ3: 練習問題 ================= -->
+    <div id="section-3" class="section">
+      <div class="summary-box" style="margin-top:0; margin-bottom:20px;">
+        <div class="summary-label">まとめ</div>
+        答えが3けたになっても、<span style="border-bottom:3px solid var(--theme-sub);">かけ算の筆算のしかたは同じ</span>だね。
+      </div>
+
+      <div class="section-title">
+        <span class="roman-num">III</span> 練習問題
+      </div>
+      
+      <div class="problem-box" style="border-color:#8d6e63; color:#5d4037;">
+        計算をしましょう。（くり上がりの数字もマスに書いてね！）
+      </div>
+
+      <div class="practice-grid">
+        <!-- ① 83x2 = 166 -->
+        <div class="practice-item">
+          <div class="p-num">①</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-num1" style="grid-column:3;">8</div><div class="hg-num1" style="grid-column:4;">3</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">2</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p1-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p1-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p1-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ② 53x3 = 159 -->
+        <div class="practice-item">
+          <div class="p-num">②</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-num1" style="grid-column:3;">5</div><div class="hg-num1" style="grid-column:4;">3</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">3</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p2-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p2-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p2-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ③ 72x4 = 288 -->
+        <div class="practice-item">
+          <div class="p-num">③</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-num1" style="grid-column:3;">7</div><div class="hg-num1" style="grid-column:4;">2</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">4</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p3-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p3-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p3-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ④ 61x7 = 427 -->
+        <div class="practice-item">
+          <div class="p-num">④</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-num1" style="grid-column:3;">6</div><div class="hg-num1" style="grid-column:4;">1</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">7</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p4-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p4-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p4-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ⑤ 90x6 = 540 -->
+        <div class="practice-item">
+          <div class="p-num">⑤</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-num1" style="grid-column:3;">9</div><div class="hg-num1" style="grid-column:4;">0</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">6</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p5-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p5-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p5-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ⑥ 80x5 = 400 -->
+        <div class="practice-item">
+          <div class="p-num">⑥</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-num1" style="grid-column:3;">8</div><div class="hg-num1" style="grid-column:4;">0</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">5</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p6-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p6-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p6-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+        
+        <!-- ⑦ 79x3 = 237 (くり上がりあり) -->
+        <div class="practice-item">
+          <div class="p-num">⑦</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-carry" style="grid-column:3;"><input type="tel" id="p7-c" class="h-carry-input" maxlength="1"></div>
+            <div class="hg-num1" style="grid-column:3;">7</div><div class="hg-num1" style="grid-column:4;">9</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">3</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p7-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p7-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p7-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ⑧ 56x6 = 336 (くり上がりあり) -->
+        <div class="practice-item">
+          <div class="p-num">⑧</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-carry" style="grid-column:3;"><input type="tel" id="p8-c" class="h-carry-input" maxlength="1"></div>
+            <div class="hg-num1" style="grid-column:3;">5</div><div class="hg-num1" style="grid-column:4;">6</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">6</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p8-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p8-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p8-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+        
+        <!-- ⑨ 49x8 = 392 (くり上がりあり) -->
+        <div class="practice-item">
+          <div class="p-num">⑨</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-carry" style="grid-column:3;"><input type="tel" id="p9-c" class="h-carry-input" maxlength="1"></div>
+            <div class="hg-num1" style="grid-column:3;">4</div><div class="hg-num1" style="grid-column:4;">9</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">8</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p9-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p9-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p9-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ⑩ 84x9 = 756 (くり上がりあり) -->
+        <div class="practice-item">
+          <div class="p-num">⑩</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-carry" style="grid-column:3;"><input type="tel" id="p10-c" class="h-carry-input" maxlength="1"></div>
+            <div class="hg-num1" style="grid-column:3;">8</div><div class="hg-num1" style="grid-column:4;">4</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">9</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p10-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p10-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p10-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+        
+        <!-- ⑪ 95x4 = 380 (くり上がりあり) -->
+        <div class="practice-item">
+          <div class="p-num">⑪</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-carry" style="grid-column:3;"><input type="tel" id="p11-c" class="h-carry-input" maxlength="1"></div>
+            <div class="hg-num1" style="grid-column:3;">9</div><div class="hg-num1" style="grid-column:4;">5</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">4</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p11-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p11-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p11-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+        <!-- ⑫ 62x5 = 310 (くり上がりあり) -->
+        <div class="practice-item">
+          <div class="p-num">⑫</div>
+          <div class="hissan-wrap"><div class="hissan-grid">
+            <div class="hg-carry" style="grid-column:3;"><input type="tel" id="p12-c" class="h-carry-input" maxlength="1"></div>
+            <div class="hg-num1" style="grid-column:3;">6</div><div class="hg-num1" style="grid-column:4;">2</div>
+            <div class="hg-num2" style="grid-column:2;">×</div><div class="hg-num2" style="grid-column:4;">5</div>
+            <div class="hg-line"></div>
+            <div class="hg-ans" style="grid-column:2;"><input type="tel" id="p12-a1" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:3;"><input type="tel" id="p12-a2" class="h-input" maxlength="1"></div>
+            <div class="hg-ans" style="grid-column:4;"><input type="tel" id="p12-a3" class="h-input" maxlength="1"></div>
+          </div></div>
+        </div>
+
+      </div>
+      
+      <!-- 文章題 -->
+      <div class="problem-box" style="margin-top:40px; border-color:var(--theme-accent);">
+        ゆうかさんの学校の３年は４クラスあって、どのクラスも３４人です。<br>
+        ３年生は、みんなで何人いますか。
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px; align-items:center;">
+          <div>式：<input type="tel" id="t3-eq1" class="calc-input small"> × <input type="tel" id="t3-eq2" class="calc-input small"> ＝ <input type="tel" id="t3-eq3" class="calc-input"></div>
+          <div>答え：<input type="tel" id="t3-ans" class="calc-input"> 人</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab3()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint3')">ヒント</button>
+      </div>
+      <div id="hint3" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          ⑦〜⑫は一の位でくり上がりがあるよ！<br>
+          赤いマスにくり上がりの数字を書いて、十の位の計算でたすのを忘れないでね。<br>
+          文章題は、「34人が4つ分」だから、かけ算の式になるよ。
+        </div>
+      </div>
+      <div id="result3" class="result-msg"></div>
+    </div>
+
+
+    <!-- ================= タブ4: 黒板(まとめ) ================= -->
+    <div id="section-4" class="section">
+      <div class="blackboard">
+        <!-- 左カラム -->
+        <div class="bb-col">
+          <div style="font-weight:bold; border-bottom:1px solid white; padding-bottom:5px;">
+            <span class="bb-badge">I</span> 10月17日
+          </div>
+          
+          <div style="display:flex; gap:20px; align-items:flex-end; margin-top:10px; background:white; color:#333; padding:10px; border-radius:8px;">
+            <div style="border:1px solid #ccc; padding:2px 8px; border-radius:4px; font-size:0.8rem;">ふく習</div>
+            <div style="font-family:'Courier New', monospace; font-weight:bold; font-size:1.2rem; text-align:center;">
+              2 3<br><u>× 3</u><br>6 9
+            </div>
+            <div style="font-family:'Courier New', monospace; font-weight:bold; font-size:1.2rem; text-align:center; position:relative;">
+              1 6<br><u>× 4</u><br>6 4
+              <span style="position:absolute; top:28px; left:-5px; font-size:0.7rem; color:var(--danger);">2</span>
+            </div>
+          </div>
+          
+          <div class="bb-yellow-box" style="margin-top:10px; font-size:0.9rem;">
+            一の位でくり上がりがあってもかけ算の筆算のしかたは同じ。
+          </div>
+
+          <div class="bb-box" style="padding:10px; border-radius:0; border-color:#333; margin-top:20px;">
+            42×3、58×3を筆算でしましょう。
+          </div>
+        </div>
+
+        <!-- 中央カラム -->
+        <div class="bb-col" style="flex:1.5;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span class="bb-badge">II</span>
+            <div style="font-weight:bold; line-height:1.4;">
+              <span style="background:white; color:#2e7d32; border-radius:50%; width:20px; height:20px; display:inline-block; text-align:center;">?</span>
+              筆算のしかたを考えよう。
+            </div>
+          </div>
+          
+          <div class="bb-yellow-box" style="margin:10px auto; width:fit-content;">
+            16×4とちがうところはどこかな？<br>
+            <div style="text-align:center; color:#ffca28;">▼</div>
+            <div style="background:white; padding:5px; border-radius:4px; font-weight:normal;">
+              ・十の位でもくり上がりがある。<br>
+              ・答えが3けたになりそう。
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <!-- 42x3 図解 -->
+            <div style="flex:1; border:2px solid #a5d6a7; padding:5px; background:white; color:#333; border-radius:6px; font-size:0.8rem; font-weight:bold;">
+              <div style="font-family:'Courier New', monospace; margin-bottom:5px;">
+                4 2<br><u>× 3</u><br>  6 <span style="color:#888; font-size:0.65rem;">･･･2×3</span><br><u>120</u> <span style="color:#888; font-size:0.65rem;">･･･40×3</span><br>126
+              </div>
+              <div style="border-top:1px solid #ccc; padding-top:5px; display:flex; justify-content:space-between; font-family:'Courier New', monospace; font-size:1rem;">
+                <div style="text-align:center;">4 2<br><u>× 3</u><br>  6</div>
+                <div style="text-align:center;">4 2<br><u>× 3</u><br>126</div>
+              </div>
+            </div>
+            
+            <!-- 58x3 図解 -->
+            <div style="flex:1; border:2px solid #a5d6a7; padding:5px; background:white; color:#333; border-radius:6px; font-size:0.8rem; font-weight:bold;">
+              <div style="font-family:'Courier New', monospace; margin-bottom:5px;">
+                5 8<br><u>× 3</u><br> 24 <span style="color:#888; font-size:0.65rem;">･･･8×3</span><br><u>150</u> <span style="color:#888; font-size:0.65rem;">･･･50×3</span><br>174
+              </div>
+              <div style="border-top:1px solid #ccc; padding-top:5px; display:flex; justify-content:space-between; font-family:'Courier New', monospace; font-size:1rem;">
+                <div style="text-align:center; position:relative;">
+                  5 8<br><u>× 3</u><br>  4
+                  <span style="position:absolute; top:25px; left:0; font-size:0.6rem; color:var(--danger);">2</span>
+                </div>
+                <div style="text-align:center;">5 8<br><u>× 3</u><br>174</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右カラム -->
+        <div class="bb-col">
+          <div class="bb-badge" style="margin-bottom:5px;">III</div>
+          <div class="bb-box" style="border:2px solid #81c784; font-size:0.95rem; line-height:1.6;">
+            <i class="fa-solid fa-pen" style="color:#2e7d32;"></i><br>
+            答えが3けたになっても、<br>
+            かけ算の筆算のしかたは同じ。
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- 便利関数 ---
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).trim();
     }
-  }
-</script>
+    
+    function checkInput(inputId, expectedValue) {
+      const input = document.getElementById(inputId);
+      if(!input) return true;
+      // プレースホルダーとして用意したもので、空欄が正解(くり上がりなし)の場合は特殊処理
+      if(expectedValue === '') {
+        if(input.value === '') {
+          input.classList.remove('error'); input.classList.add('correct');
+          return true;
+        } else {
+          input.classList.remove('correct'); input.classList.add('error');
+          return false;
+        }
+      }
+      
+      const val = toHalfWidth(input.value);
+      if (val === expectedValue) {
+        input.classList.remove('error'); input.classList.add('correct');
+        return true;
+      } else {
+        input.classList.remove('correct'); input.classList.add('error');
+        return false;
+      }
+    }
 
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) sec.classList.add('active');
+        else sec.classList.remove('active');
+      });
+    }
+
+    function toggleHint(id) {
+      const hintEl = document.getElementById(id);
+      hintEl.style.display = hintEl.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function showResultMsg(elementId, isCorrect) {
+      const el = document.getElementById(elementId);
+      if (isCorrect) {
+        el.innerHTML = '<span style="color:#2b8a3e;">💮 大正解！ばっちりだね！</span>';
+      } else {
+        el.innerHTML = '<span style="color:var(--danger);">惜しい！赤くなっているところを直してみよう。</span>';
+      }
+    }
+
+    // --- 主体的な学習のための表示切替 ---
+    function showChigai() {
+      document.getElementById('box-chigai').style.display = 'block';
+      document.getElementById('btn-show-chigai').style.display = 'none';
+    }
+    function showWay1() {
+      document.getElementById('box-way1').style.display = 'block';
+      document.getElementById('btn-show-way1').style.display = 'none';
+    }
+    function showWay2() {
+      document.getElementById('box-way2').style.display = 'block';
+      document.getElementById('btn-show-way2').style.display = 'none';
+    }
+
+    // --- 判定ロジック ---
+    function checkTab1() {
+      // 考え方エリアが表示されていなければ、まずは話し合いを促す
+      const chigaiBox = document.getElementById('box-chigai');
+      if(chigaiBox.style.display === 'none' || chigaiBox.style.display === '') {
+        alert('まずは「ちがうところ」を話し合ってから、オレンジ色のボタンをおしてね！');
+        return;
+      }
+      
+      const ok1 = checkInput('t1-idea1', '40');
+      const ok2 = checkInput('t1-idea2', '24');
+      const okAns = checkInput('t1-ans', '64');
+      
+      const isAllOk = ok1 && ok2 && okAns;
+      showResultMsg('result1', isAllOk);
+      if(isAllOk) document.getElementById('hint1').style.display = 'none';
+      else document.getElementById('hint1').style.display = 'flex';
+    }
+
+    function checkTab2() {
+      // 42x3
+      const ok1_a1 = checkInput('t2-1-a1', '1');
+      const ok1_a2 = checkInput('t2-1-a2', '2');
+      const ok1_a3 = checkInput('t2-1-a3', '6');
+      
+      // 58x3
+      const ok2_c  = checkInput('t2-2-c', '2');
+      const ok2_a1 = checkInput('t2-2-a1', '1');
+      const ok2_a2 = checkInput('t2-2-a2', '7');
+      const ok2_a3 = checkInput('t2-2-a3', '4');
+      
+      const isAllOk = ok1_a1 && ok1_a2 && ok1_a3 && ok2_c && ok2_a1 && ok2_a2 && ok2_a3;
+      showResultMsg('result2', isAllOk);
+      if(isAllOk) document.getElementById('hint2').style.display = 'none';
+      else document.getElementById('hint2').style.display = 'flex';
+    }
+
+    function checkTab3() {
+      // 12問の答えデータ (c=くり上がり, a1=百, a2=十, a3=一)
+      const pAns = {
+        1: { c: '',  a1: '1', a2: '6', a3: '6' },
+        2: { c: '',  a1: '1', a2: '5', a3: '9' },
+        3: { c: '',  a1: '2', a2: '8', a3: '8' },
+        4: { c: '',  a1: '4', a2: '2', a3: '7' },
+        5: { c: '',  a1: '5', a2: '4', a3: '0' },
+        6: { c: '',  a1: '4', a2: '0', a3: '0' },
+        7: { c: '2', a1: '2', a2: '3', a3: '7' },
+        8: { c: '3', a1: '3', a2: '3', a3: '6' },
+        9: { c: '7', a1: '3', a2: '9', a3: '2' },
+        10:{ c: '3', a1: '7', a2: '5', a3: '6' },
+        11:{ c: '2', a1: '3', a2: '8', a3: '0' },
+        12:{ c: '1', a1: '3', a2: '1', a3: '0' }
+      };
+
+      let isAllOk = true;
+      for(let i=1; i<=12; i++) {
+        // くり上がりがない問題（1〜6）は判定から除外するか、空欄をOKとする
+        let okC = true;
+        if(i >= 7) {
+          okC = checkInput(`p${i}-c`, pAns[i].c);
+        } else {
+          // もし不要なマスに入力があればエラーにする
+          const carryInput = document.getElementById(`p${i}-c`);
+          if(carryInput && carryInput.value !== '') {
+             carryInput.classList.remove('correct'); carryInput.classList.add('error');
+             okC = false;
+          } else if(carryInput) {
+             carryInput.classList.remove('error'); carryInput.classList.add('correct');
+          }
+        }
+        
+        const okA1 = checkInput(`p${i}-a1`, pAns[i].a1);
+        const okA2 = checkInput(`p${i}-a2`, pAns[i].a2);
+        const okA3 = checkInput(`p${i}-a3`, pAns[i].a3);
+        
+        if(!(okC && okA1 && okA2 && okA3)) isAllOk = false;
+      }
+      
+      // 文章題
+      const eq1 = checkInput('t3-eq1', '34');
+      const eq2 = checkInput('t3-eq2', '4');
+      const eq3 = checkInput('t3-eq3', '136');
+      const ans = checkInput('t3-ans', '136');
+      if(!(eq1 && eq2 && eq3 && ans)) isAllOk = false;
+
+      showResultMsg('result3', isAllOk);
+      if(isAllOk) document.getElementById('hint3').style.display = 'none';
+      else document.getElementById('hint3').style.display = 'flex';
+    }
+
+  </script>
 </body>
 </html>
     

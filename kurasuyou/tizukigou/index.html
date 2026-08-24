@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>tizukigou</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>地図記号・方位マスター // CYBER QUIZ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Rajdhani:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #050810;
+      --bg-panel: #0a1128;
+      --cyan: #00f0ff;
+      --magenta: #ff003c;
+      --lime: #39ff14;
+      --orange: #ffaa00;
+      --text-main: #e0f2fe;
+      --text-dim: #475569;
+      --grid-color: rgba(0, 240, 255, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .glitch-title {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--cyan);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    /* --- カテゴリメニュー --- */
+    .category-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 15px;
+    }
+
+    .cat-card {
+      background: rgba(10, 17, 40, 0.7);
+      border: 1px solid var(--text-dim);
+      padding: 15px;
+      position: relative;
+      backdrop-filter: blur(5px);
+      display: flex;
+      flex-direction: column;
+      max-height: 250px;
+    }
+
+    .cat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .cat-card.hira::before { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .cat-card.eng::before { background: var(--magenta); box-shadow: 0 0 10px var(--magenta); }
+    .cat-card.kanji::before { background: var(--lime); box-shadow: 0 0 10px var(--lime); }
+
+    .cat-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1rem;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 2px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 5px;
+    }
+
+    .cat-card.hira h3 { color: var(--cyan); }
+    .cat-card.eng h3 { color: var(--magenta); }
+    .cat-card.kanji h3 { color: var(--lime); }
+
+    .cat-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 0.85rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .cat-list::-webkit-scrollbar { width: 6px; }
+    .cat-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+
+    .cat-list li {
+      margin-bottom: 5px;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+      color: #94a3b8;
+    }
+
+    .cat-list li:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      transform: translateX(5px);
+    }
+
+    .cat-list li.active {
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--cyan);
+      font-weight: bold;
+      border-left: 2px solid var(--cyan);
+      text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+    }
+
+    /* --- メインレイアウト --- */
+    .main-layout {
+      display: flex;
+      gap: 20px;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+
+    /* --- ゲームエリア --- */
+    .game-area {
+      flex: 1;
+      min-width: 600px;
+      background: rgba(5, 10, 20, 0.85);
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.1), inset 0 0 30px rgba(0, 240, 255, 0.05);
+      padding: 30px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 500px;
+      overflow: hidden;
+    }
+
+    .game-area::before,
+    .game-area::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--cyan);
+    }
+
+    .game-area::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+    .game-area::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+    #particle-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .game-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+    }
+
+    .time-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .time-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      transition: width 0.1s linear, background-color 0.3s;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: bold;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      border-bottom: 1px dashed var(--cyan);
+      background: rgba(0, 240, 255, 0.05);
+    }
+
+    .info-box { display: flex; flex-direction: column; align-items: center; }
+    .info-label { font-size: 0.7rem; color: #64748b; letter-spacing: 2px; }
+    .info-val { font-size: 2rem; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+    .val-cyan { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+    .val-magenta { color: var(--magenta); text-shadow: 0 0 10px var(--magenta); }
+    .val-orange { color: var(--orange); text-shadow: 0 0 10px var(--orange); }
+    .val-lime { color: var(--lime); text-shadow: 0 0 10px var(--lime); }
+
+    /* --- プログラム描画SVG表示エリア --- */
+    .target-svg-wrapper {
+      margin: 0 auto 30px;
+      background: rgba(57, 255, 20, 0.05);
+      border: 1px dashed rgba(57, 255, 20, 0.3);
+      border-radius: 8px;
+      padding: 30px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 250px;
+      min-height: 200px;
+    }
+
+    #target-svg {
+      width: 140px;
+      height: 140px;
+      stroke: var(--lime);
+      fill: none;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.8));
+    }
+
+    /* 4択ボタンコンテナ */
+    .choices-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .choice-btn {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid var(--cyan);
+      color: #fff;
+      padding: 15px 10px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.1s;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    
+    .choice-btn:hover {
+      background: rgba(0, 240, 255, 0.2);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+      transform: scale(1.02);
+    }
+    
+    .choice-btn:active {
+      transform: scale(0.98);
+    }
+
+    .choice-num {
+      color: var(--cyan);
+      font-family: 'Rajdhani', sans-serif;
+      margin-right: 15px;
+      font-size: 1.2rem;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* 正解・不正解のフラッシュ */
+    .choice-btn.correct {
+      background: var(--lime) !important;
+      color: #000 !important;
+      border-color: var(--lime);
+      box-shadow: 0 0 20px var(--lime);
+    }
+    .choice-btn.correct .choice-num { color: #000; background: transparent; }
+    
+    .choice-btn.wrong {
+      background: var(--magenta) !important;
+      color: #fff !important;
+      border-color: var(--magenta);
+      box-shadow: 0 0 20px var(--magenta);
+    }
+    .choice-btn.wrong .choice-num { color: #fff; background: transparent; }
+
+    @keyframes error-flash {
+      0% { background: rgba(255, 0, 60, 0.3); }
+      100% { background: rgba(5, 10, 20, 0.85); }
+    }
+    .flash-error { animation: error-flash 0.2s ease-out; }
+    
+    @keyframes success-flash {
+      0% { box-shadow: inset 0 0 50px rgba(57, 255, 20, 0.5); }
+      100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.1), inset 0 0 30px rgba(0, 240, 255, 0.05); }
+    }
+    .flash-success { animation: success-flash 0.3s ease-out; }
+
+    .start-btn {
+      background: transparent;
+      color: var(--cyan);
+      border: 2px solid var(--cyan);
+      padding: 15px 50px;
+      font-size: 1.5rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: bold;
+      letter-spacing: 3px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2), inset 0 0 15px rgba(0, 240, 255, 0.2);
+      margin-top: 30px;
+      transition: all 0.2s;
+      clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+    }
+    .start-btn:hover {
+      background: var(--cyan);
+      color: #000;
+      box-shadow: 0 0 30px var(--cyan);
+    }
+
+    /* --- ランキングエリア --- */
+    .ranking-wrapper {
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .ranking-panel {
+      background: rgba(10, 17, 40, 0.7);
+      border: 1px solid #1e293b;
+      padding: 20px;
+      flex: 1;
+      backdrop-filter: blur(5px);
+    }
+    .ranking-panel h3 {
+      margin: 0 0 15px 0;
+      color: var(--cyan);
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 2px;
+      font-size: 1.1rem;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+      padding-bottom: 10px;
+    }
+    .rank-list { list-style: none; padding: 0; margin: 0; }
+    .rank-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.02));
+      margin-bottom: 5px;
+    }
+    .rank-num {
+      font-weight: 900;
+      width: 35px;
+      text-align: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+    }
+    .rank-item:nth-child(1) .rank-num { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+    .rank-item:nth-child(2) .rank-num { color: #94a3b8; }
+    .rank-item:nth-child(3) .rank-num { color: #b45309; }
+    .rank-details {
+      flex: 1; display: flex; flex-direction: column; margin-left: 5px; overflow: hidden;
+    }
+    .rank-date { font-size: 0.65rem; color: #64748b; font-family: 'Rajdhani', sans-serif; }
+    .rank-mode { color: #e2e8f0; font-weight: bold; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rank-score {
+      font-weight: bold; color: var(--cyan); font-size: 1.1rem; font-family: 'Rajdhani', sans-serif; text-shadow: 0 0 5px var(--cyan);
+    }
+    .no-record { text-align: center; color: #475569; padding: 30px 0; font-size: 0.85rem; font-family: 'Rajdhani', sans-serif; }
+
+    .combo-alert {
+      position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0);
+      font-size: 4rem; font-family: 'Rajdhani', sans-serif; font-weight: 900;
+      color: var(--orange); text-shadow: 0 0 20px var(--orange); pointer-events: none; z-index: 10; opacity: 0;
+    }
+    @keyframes combo-pop {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+
+    /* リザルトモーダル */
+    #result-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px);
+    }
+    .result-box {
+      background: #0a1128; border: 2px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+      padding: 40px; text-align: center; max-width: 500px; width: 90%; border-radius: 10px;
+    }
+    .rank-mark { font-size: 6rem; font-weight: 900; font-family: 'Rajdhani', sans-serif; margin: 10px 0; line-height: 1; }
+    .rank-S { color: #fbbf24; text-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
+    .rank-A { color: var(--cyan); text-shadow: 0 0 30px rgba(0, 240, 255, 0.8); }
+    .rank-B { color: var(--lime); text-shadow: 0 0 30px rgba(57, 255, 20, 0.8); }
+    .rank-C { color: var(--orange); text-shadow: 0 0 30px rgba(255, 170, 0, 0.8); }
+    .rank-D { color: var(--magenta); text-shadow: 0 0 30px rgba(255, 0, 60, 0.8); }
+    .result-stats {
+      display: flex; justify-content: space-around; margin: 20px 0; background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 5px;
+    }
+    .result-btn {
+      background: var(--cyan); color: #000; border: none; padding: 15px 30px;
+      font-size: 1.2rem; font-weight: bold; font-family: 'Rajdhani', sans-serif; cursor: pointer; margin-top: 20px; transition: 0.2s;
+    }
+    .result-btn:hover { background: #fff; box-shadow: 0 0 20px #fff; }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1 class="glitch-title">MAP SYMBOL MASTER</h1>
+    <p style="color:var(--cyan); margin:0; font-family:'Rajdhani'; letter-spacing: 5px; font-size:0.9rem;">GEOGRAPHY // 4-CHOICE QUIZ // v3.0 (SVG BUILD)</p>
+  </header>
+
+  <div class="container">
+    <!-- カテゴリナビゲーション -->
+    <div class="category-nav">
+      <div class="cat-card hira">
+        <h3>SYS.DIR // 方位マスター</h3>
+        <ul class="cat-list">
+          <li onclick="setMode('dir', '8方位', this)" class="active">8方位 (東西南北など)</li>
+        </ul>
+      </div>
+      <div class="cat-card eng">
+        <h3>SYS.MAP1 // 官公署・施設</h3>
+        <ul class="cat-list">
+          <li onclick="setMode('fac', '官公署・施設', this)">市役所・警察署・病院など</li>
+        </ul>
+      </div>
+      <div class="cat-card kanji">
+        <h3>SYS.MAP2 // 植生・名所</h3>
+        <ul class="cat-list">
+          <li onclick="setMode('veg', '植生・名所など', this)">田・畑・果樹園・神社など</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <!-- ゲームエリア -->
+      <div class="game-area" id="game-area">
+        <canvas id="particle-canvas"></canvas>
+        <div id="combo-alert" class="combo-alert">COMBO UP!</div>
+
+        <div class="game-content">
+          <div id="start-screen">
+            <h2 style="font-size: 2.2rem; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); margin-top:0;" id="mode-title">8方位</h2>
+            <p style="color:#94a3b8; font-size:1rem; margin-bottom: 20px;">SYSTEM READY. PRESS SPACE TO INITIALIZE.</p>
+            <div class="info-box" style="margin-bottom: 30px;">
+              <span class="info-label">TIME LIMIT</span>
+              <span id="start-time-limit" class="info-val val-magenta">60.0s</span>
+            </div>
+            <button class="start-btn" onclick="startGame()">INITIALIZE</button>
+          </div>
+
+          <div id="play-screen" style="display: none;">
+            <div class="time-bar-container">
+              <div id="time-bar" class="time-bar-fill"></div>
+            </div>
+            <div class="game-info">
+              <div class="info-box"><span class="info-label">TIME LEFT</span><span id="time-left" class="info-val val-magenta">60.0</span></div>
+              <div class="info-box"><span class="info-label">ANSWERS</span><span id="ans-display" class="info-val">0</span></div>
+              <div class="info-box"><span class="info-label">ACCURACY</span><span id="acc-display" class="info-val val-lime">100%</span></div>
+              <div class="info-box"><span class="info-label">COMBO / MULTI</span><span class="info-val val-orange"><span id="combo-count">0</span>x / x<span id="multiplier">1.0</span></span></div>
+              <div class="info-box"><span class="info-label">TOTAL SCORE</span><span id="current-score" class="info-val val-cyan">0</span></div>
+            </div>
+
+            <!-- プログラム描画SVGアイコン -->
+            <div class="target-svg-wrapper">
+              <svg id="target-svg" viewBox="-50 -50 100 100"></svg>
+            </div>
+            
+            <!-- 4択ボタン -->
+            <div class="choices-container" id="choices-container">
+              <button class="choice-btn" onclick="checkAnswer(0)" id="btn-0"><span class="choice-num">1</span><span class="choice-text">選択肢1</span></button>
+              <button class="choice-btn" onclick="checkAnswer(1)" id="btn-1"><span class="choice-num">2</span><span class="choice-text">選択肢2</span></button>
+              <button class="choice-btn" onclick="checkAnswer(2)" id="btn-2"><span class="choice-num">3</span><span class="choice-text">選択肢3</span></button>
+              <button class="choice-btn" onclick="checkAnswer(3)" id="btn-3"><span class="choice-num">4</span><span class="choice-text">選択肢4</span></button>
+            </div>
+            
+            <p style="color:#64748b; font-size:0.8rem; margin-top:20px;">※マウス操作、またはキーボードの [1] [2] [3] [4] キーで解答できます。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ランキングエリア -->
+      <div class="ranking-wrapper">
+        <div class="ranking-panel">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 1px solid rgba(0,240,255,0.3); margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="border:none; margin:0; padding:0;">DATABASE // TOP RANK</h3>
+            <div style="text-align:right;">
+              <span class="info-label">MY BEST</span><br>
+              <span id="my-best" class="info-val val-cyan" style="font-size:1.5rem;">0</span>
+            </div>
+          </div>
+          <ul class="rank-list" id="my-record-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- リザルトモーダル -->
+  <div id="result-modal">
+    <div class="result-box">
+      <h2 style="color:#fff; font-family:'Rajdhani',sans-serif; letter-spacing:5px; margin:0;">MISSION COMPLETE</h2>
+      <div id="rank-mark" class="rank-mark rank-S">S</div>
+      <h3 id="rank-text" style="color:#94a3b8; margin:0 0 20px 0;">FLAWLESS EXECUTION</h3>
+
+      <div class="result-stats">
+        <div class="info-box"><span class="info-label">FINAL SCORE</span><span id="res-score" class="info-val val-cyan">0</span></div>
+        <div class="info-box"><span class="info-label">CORRECT ANS</span><span id="res-ans" class="info-val val-orange">0</span></div>
+        <div class="info-box"><span class="info-label">ACCURACY</span><span id="res-acc" class="info-val val-lime">0%</span></div>
+      </div>
+
+      <button class="result-btn" onclick="closeResult()">ACKNOWLEDGE</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 【SVG手書きによる本格 地図記号・方位 データセット】 ---
+    const mapData = {
+      dir: [
+        { k: "北", svg: '<path d="M0,30 L0,-30 M-15,-15 L0,-30 L15,-15"/>' },
+        { k: "南", svg: '<path d="M0,-30 L0,30 M-15,15 L0,30 L15,15"/>' },
+        { k: "東", svg: '<path d="M-30,0 L30,0 M15,-15 L30,0 L15,15"/>' },
+        { k: "西", svg: '<path d="M30,0 L-30,0 M-15,-15 L-30,0 L-15,15"/>' },
+        { k: "北東", svg: '<path d="M-20,20 L20,-20 M0,-20 L20,-20 L20,0"/>' },
+        { k: "北西", svg: '<path d="M20,20 L-20,-20 M0,-20 L-20,-20 L-20,0"/>' },
+        { k: "南東", svg: '<path d="M-20,-20 L20,20 M0,20 L20,20 L20,0"/>' },
+        { k: "南西", svg: '<path d="M20,-20 L-20,20 M0,20 L-20,20 L-20,0"/>' }
+      ],
+      fac: [
+        { k: "市役所", svg: '<circle cx="0" cy="0" r="30"/><circle cx="0" cy="0" r="8" fill="currentColor" stroke="none"/>' },
+        { k: "町村役場", svg: '<circle cx="0" cy="0" r="30"/>' },
+        { k: "警察署", svg: '<circle cx="0" cy="0" r="30"/><line x1="-21" y1="-21" x2="21" y2="21"/><line x1="-21" y1="21" x2="21" y2="-21"/>' },
+        { k: "交番", svg: '<line x1="-25" y1="-25" x2="25" y2="25"/><line x1="-25" y1="25" x2="25" y2="-25"/>' },
+        { k: "消防署", svg: '<path d="M-25,-35 L0,0 L25,-35 M0,0 L0,35"/>' },
+        { k: "保健所", svg: '<circle cx="0" cy="0" r="30"/><line x1="-30" y1="0" x2="30" y2="0"/><line x1="0" y1="-30" x2="0" y2="30"/>' },
+        { k: "病院", svg: '<path d="M-25,-25 L25,-25 L25,10 C25,35 0,45 0,45 C0,45 -25,35 -25,10 Z"/><line x1="-12" y1="0" x2="12" y2="0"/><line x1="0" y1="-12" x2="0" y2="12"/>' },
+        { k: "小中学校", svg: '<text x="0" y="18" font-size="55" text-anchor="middle" font-weight="bold" fill="currentColor" stroke="none">文</text>' },
+        { k: "高等学校", svg: '<circle cx="0" cy="0" r="35"/><text x="0" y="12" font-size="35" text-anchor="middle" font-weight="bold" fill="currentColor" stroke="none">文</text>' },
+        { k: "郵便局", svg: '<text x="0" y="18" font-size="55" text-anchor="middle" font-weight="bold" fill="currentColor" stroke="none">〒</text>' },
+        { k: "寺院", svg: '<path d="M-20,-20 L0,-20 L0,20 L20,20 M-20,20 L-20,0 L20,0 L20,-20"/>' },
+        { k: "神社", svg: '<line x1="-30" y1="-25" x2="30" y2="-25"/><line x1="-35" y1="-10" x2="35" y2="-10"/><line x1="-20" y1="-25" x2="-20" y2="35"/><line x1="20" y1="-25" x2="20" y2="35"/>' }
+      ],
+      veg: [
+        { k: "田", svg: '<line x1="-12" y1="-20" x2="-12" y2="20"/><line x1="12" y1="-20" x2="12" y2="20"/>' },
+        { k: "畑", svg: '<path d="M-25,-15 L0,25 L25,-15"/>' },
+        { k: "果樹園", svg: '<circle cx="0" cy="0" r="25"/><circle cx="0" cy="0" r="6" fill="currentColor" stroke="none"/>' },
+        { k: "桑畑", svg: '<path d="M-25,-25 L0,0 L25,-25 M0,0 L0,30 M-15,10 L15,10"/>' },
+        { k: "茶畑", svg: '<circle cx="0" cy="-20" r="6" fill="currentColor" stroke="none"/><circle cx="-18" cy="12" r="6" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="6" fill="currentColor" stroke="none"/>' },
+        { k: "広葉樹林", svg: '<path d="M-20,-5 C-20,-30 20,-30 20,-5 C40,-5 40,20 15,20 L-15,20 C-40,20 -40,-5 -20,-5 Z"/><line x1="0" y1="20" x2="0" y2="45"/>' },
+        { k: "針葉樹林", svg: '<path d="M0,-25 L30,20 L-30,20 Z"/><line x1="0" y1="20" x2="0" y2="45"/>' },
+        { k: "竹林", svg: '<line x1="0" y1="-30" x2="0" y2="30"/><line x1="-15" y1="-10" x2="0" y2="-10"/>' },
+        { k: "荒地", svg: '<path d="M-25,-15 L0,25 L25,-15 M0,25 L0,-25"/>' },
+        { k: "温泉", svg: '<path d="M-25,25 C-25,10 25,10 25,25 Z"/><path d="M-15,15 C-25,-10 -5,-20 -15,-35 M0,15 C-10,-10 10,-20 0,-35 M15,15 C5,-10 25,-20 15,-35"/>' },
+        { k: "史跡・名勝", svg: '<circle cx="0" cy="-18" r="5" fill="currentColor" stroke="none"/><circle cx="-15" cy="12" r="5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="5" fill="currentColor" stroke="none"/><circle cx="0" cy="0" r="38"/>' },
+        { k: "城跡", svg: '<polygon points="-25,25 25,25 25,5 15,5 15,-20 -15,-20 -15,5 -25,5"/>' },
+        { k: "記念碑", svg: '<rect x="-10" y="-30" width="20" height="50"/><line x1="-25" y1="20" x2="25" y2="20"/><line x1="-25" y1="28" x2="25" y2="28"/>' },
+        { k: "港湾", svg: '<path d="M-20,10 C-20,35 20,35 20,10"/><line x1="0" y1="-30" x2="0" y2="22"/><line x1="-15" y1="-15" x2="15" y2="-15"/><circle cx="0" cy="-30" r="5"/>' },
+        { k: "灯台", svg: '<polygon points="12,-24 24,-12 24,12 12,24 -12,24 -24,12 -24,-12 -12,-24"/><circle cx="0" cy="0" r="6" fill="currentColor" stroke="none"/>' },
+        { k: "風車", svg: '<path d="M0,0 L0,30 M0,0 L-25,-15 M0,0 L25,-15"/><circle cx="0" cy="0" r="6" fill="currentColor" stroke="none"/>' }
+      ]
+    };
+
+    // --- ゲームシステム変数 ---
+    let currentModeId = 'dir';
+    let currentModeName = '8方位';
+    let isPlaying = false;
+    let score = 0;
+    let combo = 0;
+    let multiplier = 1.0;
+    let totalQuestions = 0;
+    let correctAnswers = 0;
+    let wrongAnswers = 0;
+    let startTime = 0;
+    let timeLimit = 60.00;
+    let timeLeft = 60.00;
+    let timer;
+    let currentCorrectIndex = -1;
+    let isProcessingAnswer = false; // 連打防止用
+
+    // --- サイバーサウンドAPI ---
+    const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      if (type === 'hit') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      } else if (type === 'miss') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+      }
+    }
+
+    // --- パーティクル ---
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    window.addEventListener('resize', () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    });
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x; this.y = y;
+        this.vx = (Math.random() - 0.5) * 15;
+        this.vy = (Math.random() - 0.5) * 15;
+        this.size = Math.random() * 4 + 2;
+        this.color = color;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.02 + 0.02;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy; this.life -= this.decay;
+      }
+      draw() {
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function createExplosion() {
+      const x = canvas.width / 2;
+      const y = canvas.height / 2;
+      const colors = ['#00f0ff', '#ff003c', '#39ff14', '#ffffff'];
+      for (let i = 0; i < 30; i++) particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.life > 0);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animateParticles);
+    }
+    
+    window.onload = () => {
+      updateRankingUI();
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      animateParticles();
+    };
+
+    function setMode(modeId, modeName, element) {
+      if (isPlaying) return;
+      currentModeId = modeId;
+      currentModeName = modeName;
+      document.getElementById('mode-title').innerText = modeName;
+      document.querySelectorAll('.cat-list li').forEach(li => li.classList.remove('active'));
+      if (element) element.classList.add('active');
+      
+      timeLimit = 60.00;
+      document.getElementById('start-time-limit').innerText = timeLimit.toFixed(1) + "s";
+    }
+
+    function startGame() {
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'block';
+      score = 0; combo = 0; multiplier = 1.0;
+      totalQuestions = 0; correctAnswers = 0; wrongAnswers = 0;
+      timeLeft = timeLimit;
+      startTime = Date.now();
+      isPlaying = true;
+      isProcessingAnswer = false;
+      updateHUD();
+      nextQuestion();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      timer = setInterval(() => {
+        let elapsed = (Date.now() - startTime) / 1000;
+        timeLeft = Math.max(0, timeLimit - elapsed);
+        document.getElementById('time-left').innerText = timeLeft.toFixed(1);
+        document.getElementById('time-bar').style.width = `${(timeLeft / timeLimit) * 100}%`;
+        if (timeLeft <= 0) endGame();
+      }, 50);
+    }
+
+    function updateHUD() {
+      document.getElementById('current-score').innerText = Math.floor(score);
+      document.getElementById('combo-count').innerText = combo;
+      document.getElementById('multiplier').innerText = multiplier.toFixed(1);
+      document.getElementById('ans-display').innerText = correctAnswers;
+      
+      let acc = totalQuestions === 0 ? 100 : (correctAnswers / totalQuestions * 100);
+      document.getElementById('acc-display').innerText = acc.toFixed(1) + "%";
+    }
+
+    function showComboAlert() {
+      const alert = document.getElementById('combo-alert');
+      alert.style.animation = 'none';
+      alert.offsetHeight; // reflow
+      alert.style.animation = 'combo-pop 0.5s ease-out forwards';
+    }
+
+    function nextQuestion() {
+      isProcessingAnswer = false;
+      for (let i = 0; i < 4; i++) {
+        const btn = document.getElementById('btn-' + i);
+        btn.className = "choice-btn"; 
+      }
+
+      const list = mapData[currentModeId];
+      // 正解を取得
+      const correctItem = list[Math.floor(Math.random() * list.length)];
+      
+      // 不正解の選択肢を3つ取得
+      let wrongItems = [];
+      let sourceList = list;
+      
+      while (wrongItems.length < 3) {
+        let w = sourceList[Math.floor(Math.random() * sourceList.length)];
+        // 正解や既に選んだ不正解と被らないようにする
+        if (w.k !== correctItem.k && !wrongItems.find(x => x.k === w.k)) {
+          wrongItems.push(w);
+        }
+      }
+      
+      // 選択肢をマージしてシャッフル
+      let choices = [correctItem, ...wrongItems];
+      choices.sort(() => Math.random() - 0.5);
+      
+      // 正解のインデックスを保持
+      currentCorrectIndex = choices.findIndex(c => c.k === correctItem.k);
+      
+      // 【SVGコードを直接注入】
+      document.getElementById('target-svg').innerHTML = correctItem.svg;
+      
+      // ボタンテキストの反映
+      for (let i = 0; i < 4; i++) {
+        document.querySelector(`#btn-${i} .choice-text`).innerText = choices[i].k;
+      }
+    }
+
+    function checkAnswer(index) {
+      if (!isPlaying || isProcessingAnswer) return;
+      isProcessingAnswer = true;
+      totalQuestions++;
+
+      if (index === currentCorrectIndex) {
+        // HIT
+        playSound('hit');
+        correctAnswers++;
+        combo++;
+        multiplier = Math.min(5.0, 1.0 + Math.floor(combo / 5) * 0.5); // 5コンボごとに倍率UP
+        
+        score += (50 * multiplier);
+        if (combo > 0 && combo % 10 === 0) {
+          showComboAlert();
+          createExplosion();
+        }
+        
+        document.getElementById('btn-' + index).classList.add('correct');
+        const gameArea = document.getElementById('game-area');
+        gameArea.classList.remove('flash-success');
+        void gameArea.offsetWidth;
+        gameArea.classList.add('flash-success');
+        
+        updateHUD();
+        setTimeout(nextQuestion, 200); // 0.2秒後に次の問題へ
+
+      } else {
+        // MISS
+        playSound('miss');
+        wrongAnswers++;
+        combo = 0;
+        multiplier = 1.0;
+        
+        document.getElementById('btn-' + index).classList.add('wrong');
+        document.getElementById('btn-' + currentCorrectIndex).classList.add('correct'); // 正解も教える
+        
+        const gameArea = document.getElementById('game-area');
+        gameArea.classList.remove('flash-error');
+        void gameArea.offsetWidth;
+        gameArea.classList.add('flash-error');
+        
+        updateHUD();
+        setTimeout(nextQuestion, 600); // 間違えた場合は少し長めに見せる
+      }
+    }
+
+    function endGame() {
+      clearInterval(timer);
+      isPlaying = false;
+      setTimeout(() => {
+        let finalScore = Math.floor(score);
+        let finalAcc = totalQuestions === 0 ? 0 : (correctAnswers / totalQuestions * 100);
+        
+        let rank = "D"; let rankClass = "rank-D"; let rankText = "NEED MORE TRAINING";
+        if (correctAnswers >= 40 && finalAcc >= 90) {
+          rank = "S"; rankClass = "rank-S"; rankText = "FLAWLESS KNOWLEDGE";
+        } else if (correctAnswers >= 30) {
+          rank = "A"; rankClass = "rank-A"; rankText = "EXCELLENT OPERATION";
+        } else if (correctAnswers >= 15) {
+          rank = "B"; rankClass = "rank-B"; rankText = "GOOD PERFORMANCE";
+        } else if (correctAnswers >= 5) {
+          rank = "C"; rankClass = "rank-C"; rankText = "MISSION CLEARED";
+        }
+        
+        document.getElementById('res-score').innerText = finalScore;
+        document.getElementById('res-ans').innerText = correctAnswers;
+        document.getElementById('res-acc').innerText = finalAcc.toFixed(1) + "%";
+        
+        const rm = document.getElementById('rank-mark');
+        rm.innerText = rank; rm.className = `rank-mark ${rankClass}`;
+        document.getElementById('rank-text').innerText = rankText;
+        document.getElementById('result-modal').style.display = 'flex';
+        
+        saveMyRecord(finalScore, currentModeName);
+      }, 500);
+    }
+
+    function closeResult() {
+      document.getElementById('result-modal').style.display = 'none';
+      document.getElementById('start-screen').style.display = 'block';
+      document.getElementById('play-screen').style.display = 'none';
+    }
+
+    function saveMyRecord(newScore, mode) {
+      if (newScore === 0) return;
+      let records = JSON.parse(localStorage.getItem('map_quiz_records_v3')) || [];
+      const now = new Date();
+      const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+      records.push({ score: newScore, date: dateStr, mode: mode });
+      records.sort((a, b) => b.score - a.score);
+      records = records.slice(0, 10);
+      localStorage.setItem('map_quiz_records_v3', JSON.stringify(records));
+      updateRankingUI();
+    }
+
+    function updateRankingUI() {
+      let records = JSON.parse(localStorage.getItem('map_quiz_records_v3')) || [];
+      const listEl = document.getElementById('my-record-list');
+      const bestEl = document.getElementById('my-best');
+      listEl.innerHTML = '';
+      if (records.length === 0) {
+        bestEl.innerText = '0';
+        listEl.innerHTML = '<li class="no-record">NO DATA FOUND.<br>INITIALIZE TO START.</li>';
+        return;
+      }
+      bestEl.innerText = records[0].score;
+      records.forEach((rec, index) => {
+        let rankLabel = "0" + (index + 1);
+        if (index === 9) rankLabel = "10";
+        listEl.innerHTML += `
+          <li class="rank-item">
+            <span class="rank-num">${rankLabel}</span>
+            <div class="rank-details"><span class="rank-mode">${rec.mode}</span><span class="rank-date">${rec.date}</span></div>
+            <span class="rank-score">${rec.score} PTS</span>
+          </li>
+        `;
+      });
+    }
+
+    // キーボード操作対応
+    window.addEventListener('keydown', (e) => {
+      if (!isPlaying) {
+        if (e.code === 'Space' && document.getElementById('result-modal').style.display !== 'flex') {
+          e.preventDefault();
+          startGame();
+        }
+        return;
+      }
+      
+      switch (e.key) {
+        case '1':
+        case 'NumPad1':
+          checkAnswer(0);
+          break;
+        case '2':
+        case 'NumPad2':
+          checkAnswer(1);
+          break;
+        case '3':
+        case 'NumPad3':
+          checkAnswer(2);
+          break;
+        case '4':
+        case 'NumPad4':
+          checkAnswer(3);
+          break;
+      }
+    });
+  </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>

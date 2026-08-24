@@ -11,339 +11,815 @@
   <body>
   <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<title>大きい数のしくみ</title>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>大きい数の読み方や書き方 - 算数</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
     :root {
-        --main-color: #2e8b57;
-        --bg-color: #f4fff4;
-        --box-bg: #ffffff;
-        --btn-color: #ff8c00;
-        --btn-hover: #ff7300;
-        --hint-color: #4682b4;
+      --theme: #4caf50;
+      --theme-dark: #2e7d32;
+      --theme-light: #e8f5e9;
+      --theme-sub: #ff9800; /* オレンジ */
+      --theme-accent: #0288d1; /* 青 */
+      
+      --bg: #f0f4f8;
+      --border: #ced4da;
+      --text-main: #333333;
+      --danger: #e53935;
+      
+      /* 位取り表のカラーパレット */
+      --c-senman: #ffe0b2; /* 薄いオレンジ */
+      --c-hyakuman: #b3e5fc; /* 薄い水色 */
+      --c-juman: #fff9c4; /* 薄い黄色 */
+      --c-ichiman: #f8bbd0; /* 薄いピンク */
+      --c-sen: #f5f5f5; /* 白灰 */
+      --c-hyaku: #e1f5fe; /* 水色 */
+      --c-ju: #fffde7; /* 黄色 */
+      --c-ichi: #fce4ec; /* ピンク */
     }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'Meiryo', sans-serif;
+    }
+
     body {
-        font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
-        background-color: var(--bg-color);
-        color: #333;
-        line-height: 1.6;
-        padding: 20px;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
     }
-    .container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: var(--box-bg);
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+
+    .app-container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
     }
-    h1 {
-        text-align: center;
-        color: var(--main-color);
-        border-bottom: 3px dashed var(--main-color);
-        padding-bottom: 10px;
+
+    /* --- ヘッダー --- */
+    header {
+      background: var(--theme-light);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
+
+    .unit-num {
+      background: #fff;
+      border: 3px solid var(--theme);
+      border-radius: 8px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: var(--theme);
+      font-weight: bold;
+      line-height: 1;
+    }
+    .unit-num span { font-size: 0.7rem; }
+    .unit-num strong { font-size: 1.4rem; }
+
+    h1 { margin: 0; color: var(--theme-dark); font-size: 1.5rem; }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 15px 5px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #6c757d;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme-dark);
+      background: white;
+    }
+
     .section {
-        margin-bottom: 40px;
-        padding: 20px;
-        border: 2px solid #c8e6c9;
-        border-radius: 10px;
-        background-color: #fafafa;
+      display: none;
+      padding: 25px;
+      animation: fadeIn 0.3s ease-in-out;
     }
+
+    .section.active { display: block; }
+
+    /* --- 汎用クラス --- */
     .section-title {
-        background-color: #c8e6c9;
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-weight: bold;
-        margin-top: -35px;
-        margin-bottom: 15px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .block-area {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        min-height: 60px;
-        margin: 15px 0;
-        padding: 10px;
-        background: #e8f5e9;
-        border-radius: 8px;
+
+    .roman-num {
+      background: var(--theme-sub);
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 6px;
+      font-size: 1.1rem;
     }
-    .block {
-        width: 50px;
-        height: 50px;
-        background-color: #81c784;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: bold;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        animation: pop 0.3s ease-out;
+    
+    .green-text { color: var(--theme-dark); }
+    
+    .highlight-yellow {
+      background: linear-gradient(transparent 50%, #fff59d 50%);
+      font-weight: bold;
+      padding: 0 4px;
     }
-    .block-big {
-        width: 150px;
-        background-color: #ffb74d;
-        font-size: 18px;
+
+    /* --- 地図・人口カード --- */
+    .map-area {
+      background: #e0f2f1;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      border: 2px solid #b2dfdb;
+      position: relative;
     }
-    @keyframes pop {
-        0% { transform: scale(0.5); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+    .map-bg-icon {
+      position: absolute;
+      font-size: 8rem;
+      color: rgba(255, 255, 255, 0.4);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
     }
-    input[type="text"] {
-        padding: 10px;
-        font-size: 18px;
-        border: 2px solid #ccc;
-        border-radius: 5px;
-        width: 200px;
-        margin-right: 10px;
+    .pref-card {
+      background: white;
+      border: 2px solid #80cbc4;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      min-width: 180px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      position: relative;
+      z-index: 1;
     }
-    .table-container {
-        overflow-x: auto;
+    .pref-name { font-weight: bold; font-size: 1.1rem; color: #00695c; border-bottom: 1px dashed #b2dfdb; padding-bottom: 5px; margin-bottom: 10px; }
+    .pref-pop { font-size: 1.4rem; font-weight: bold; color: var(--text-main); letter-spacing: 1px; }
+
+    /* --- 学習ボックス --- */
+    .learn-box {
+      border: 2px solid var(--theme);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      background: white;
+      font-size: 1.1rem;
+      line-height: 1.8;
     }
-    table {
-        width: 100%;
-        min-width: 700px;
-        border-collapse: collapse;
-        margin-top: 15px;
-        background: white;
+    
+    .rule-box {
+      border-left: 6px solid var(--theme-sub);
+      background: #fff8e1;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 15px 0;
+      font-weight: bold;
     }
-    th, td {
-        border: 2px solid #81c784;
-        padding: 10px;
-        text-align: center;
-        font-size: 18px;
+
+    /* --- 10倍の図表 --- */
+    .ten-times-table {
+      border-collapse: collapse;
+      margin: 15px auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1.3rem;
+      font-weight: bold;
+      letter-spacing: 3px;
     }
-    th {
-        background-color: #e8f5e9;
+    .ten-times-table td {
+      border: 1px solid #ccc;
+      padding: 5px 15px;
+      text-align: right;
     }
-    .kurai-input {
-        width: 40px !important;
-        text-align: center;
-        margin: 0;
+    .arrow-text {
+      color: var(--danger);
+      font-size: 0.9rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      letter-spacing: 0;
     }
-    button {
-        background-color: var(--btn-color);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        font-size: 16px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.2s;
+
+    /* --- 入力欄とボタン --- */
+    .input-group {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      line-height: 2.2;
     }
-    button:hover {
-        background-color: var(--btn-hover);
+    
+    .num-input, .kanji-input {
+      font-size: 1.1rem;
+      padding: 8px;
+      text-align: center;
+      border: 2px solid #90caf9;
+      border-radius: 5px;
+      font-weight: bold;
+      color: #1565c0;
     }
-    .btn-hint {
-        background-color: var(--hint-color);
-        font-size: 14px;
-        padding: 8px 15px;
+    /* iOSでのズーム防止のため 16px 以上に */
+    @media screen and (max-width: 768px) {
+      .num-input, .kanji-input { font-size: 16px; }
     }
-    .btn-hint:hover { background-color: #315f86; }
-    .hint-box {
-        display: none;
-        background-color: #fffacd;
-        padding: 10px;
-        border-left: 5px solid #ffd700;
-        margin-top: 10px;
-        border-radius: 4px;
-        font-size: 14px;
+    .num-input { width: 130px; }
+    .kanji-input { width: 100%; max-width: 350px; text-align: left; padding-left: 10px; }
+    .small-input { width: 90px; }
+
+    .num-input.correct, .kanji-input.correct { background-color: #ebfbee; border-color: #40c057; color: #2b8a3e; }
+    .num-input.error, .kanji-input.error { background-color: #ffe3e3; border-color: var(--danger); color: var(--danger); animation: shake 0.4s; }
+
+    .action-row { display: flex; gap: 15px; margin-top: 15px; align-items: center; justify-content: center; }
+    button { font-family: inherit; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; }
+    button:active { transform: scale(0.95); }
+    .check-btn { background: var(--theme-accent); color: white; padding: 12px 30px; font-size: 1.1rem; box-shadow: 0 4px 0 #0277bd; }
+    .check-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
+    .hint-btn { background: var(--theme-sub); color: white; padding: 12px 20px; font-size: 1.1rem; box-shadow: 0 4px 0 #e65100; }
+    .hint-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
+
+    .char-talk {
+      display: none; align-items: flex-start; gap: 15px;
+      background: #e0f7fa; padding: 15px; border-radius: 8px;
+      margin-top: 15px; border: 2px dashed #00bcd4;
     }
-    .feedback {
-        font-weight: bold;
-        font-size: 18px;
-        margin-left: 10px;
+    .char-icon {
+      width: 55px; height: 55px; border-radius: 50%; color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 0.9rem; flex-shrink: 0; background: #00bcd4;
     }
-    .correct { color: #e53935; }
-    .incorrect { color: #1e88e5; }
-</style>
+    .char-text { font-size: 1.05rem; line-height: 1.6; font-weight: bold; }
+    .result-msg { font-size: 1.2rem; font-weight: bold; margin-top: 15px; min-height: 30px; text-align: center; }
+
+    /* --- 位取りシミュレーター --- */
+    .simulator {
+      border: 3px solid #b0bec5; border-radius: 12px; padding: 20px; background: #eceff1; margin-bottom: 20px;
+    }
+    .sim-desc { text-align: center; font-weight: bold; margin-bottom: 15px; color: #546e7a; }
+    .digit-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 2px;
+      background: #90a4ae;
+      border: 2px solid #90a4ae;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .digit-col { display: flex; flex-direction: column; background: white; }
+    
+    /* 位の背景色 */
+    .col-senman { background: var(--c-senman); }
+    .col-hyakuman { background: var(--c-hyakuman); }
+    .col-juman { background: var(--c-juman); }
+    .col-ichiman { background: var(--c-ichiman); }
+    .col-sen { background: var(--c-sen); }
+    .col-hyaku { background: var(--c-hyaku); }
+    .col-ju { background: var(--c-ju); }
+    .col-ichi { background: var(--c-ichi); }
+
+    .place-name {
+      text-align: center; padding: 10px 0; font-size: 0.9rem; font-weight: bold;
+      writing-mode: vertical-rl; text-orientation: upright; height: 80px;
+      display: flex; align-items: center; justify-content: center;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    .ctrl-btn {
+      background: rgba(255,255,255,0.7); border: none; padding: 10px 0;
+      font-size: 1.2rem; cursor: pointer; border-radius: 0; color: #546e7a;
+    }
+    .ctrl-btn:hover { background: rgba(0,0,0,0.05); }
+    .digit-val {
+      text-align: center; font-size: 2rem; font-weight: bold; padding: 10px 0;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    
+    .sim-result {
+      margin-top: 15px; padding: 15px; background: white; border: 2px dashed #b0bec5;
+      border-radius: 8px; text-align: center;
+    }
+    .sim-kanji { font-size: 1.5rem; font-weight: bold; color: var(--theme-dark); min-height: 2.2rem; }
+
+    /* --- 教科書の位取り表（表示用） --- */
+    .static-table {
+      width: 100%; max-width: 500px; margin: 15px auto; border-collapse: collapse; text-align: center;
+    }
+    .static-table th, .static-table td { border: 1px solid #999; padding: 8px; }
+    .static-table th { font-weight: normal; font-size: 0.9rem; }
+    .static-table td { font-size: 1.5rem; font-weight: bold; }
+    .static-table .man-group { border-bottom: 3px solid var(--theme-sub); }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2e7d32; border: 10px solid #795548; border-radius: 8px;
+      padding: 15px; color: white; display: flex; gap: 15px; flex-wrap: wrap;
+      font-size: 0.95rem; line-height: 1.6;
+    }
+    .bb-col {
+      flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 12px;
+      border-right: 1px dashed rgba(255, 255, 255, 0.3); padding-right: 15px;
+    }
+    .bb-col:last-child { border-right: none; padding-right: 0; }
+    .bb-badge {
+      background: var(--theme-sub); color: white; padding: 2px 8px; border-radius: 4px;
+      font-weight: bold; display: inline-block;
+    }
+    .bb-box { background: white; color: #333; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold;}
+    .bb-yellow-box { background: #fff9c4; color: #333; padding: 10px; border-radius: 6px; font-weight: bold;}
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%, 75% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>第2時：大きい数の読み方や書き方を調べよう</h1>
+  <div class="app-container">
+    <header>
+      <div class="unit-num"><span>第</span><strong>2</strong><span>時</span></div>
+      <h1>大きい数の読み方や書き方</h1>
+    </header>
 
-    <div class="section">
-        <div class="section-title">レベル1：10こ集めると？</div>
-        <p>一万を10こ集めた数は、何といえばよいでしょうか。<br>
-        下のボタンをおして、一万を10こ集めてみましょう！</p>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① 人口は何人？</button>
+      <button class="tab-btn" onclick="switchTab(2)">② もっと大きな数</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ 読んでみよう</button>
+      <button class="tab-btn" onclick="switchTab(4)">④ 黒板(まとめ)</button>
+    </div>
+
+    <!-- ================= タブ1: 導入・十万 ================= -->
+    <div id="section-1" class="section active">
+      <div class="section-title">
+        <span class="roman-num">I</span> 佐賀県、宮城県、東京都の人口は何人ですか。
+      </div>
+      
+      <!-- 日本地図風情報パネル -->
+      <div class="map-area">
+        <i class="fa-solid fa-map-location-dot map-bg-icon"></i>
+        <div class="pref-card">
+          <div class="pref-name">佐賀県</div>
+          <div class="pref-pop">812193<span style="font-size:1rem; font-weight:normal;"> 人</span></div>
+        </div>
+        <div class="pref-card">
+          <div class="pref-name">宮城県</div>
+          <div class="pref-pop">2268355<span style="font-size:1rem; font-weight:normal;"> 人</span></div>
+        </div>
+        <div class="pref-card">
+          <div class="pref-name">東京都</div>
+          <div class="pref-pop">13794933<span style="font-size:1rem; font-weight:normal;"> 人</span></div>
+          <div style="font-size:0.8rem; color:#666; margin-top:5px;">(2022年)</div>
+        </div>
+      </div>
+
+      <div class="learn-box">
+        <p>一万より大きい数だね。どう読めばいいのかな？</p>
+        <p style="font-weight:bold; color:var(--theme-dark);">
+          <span style="background:var(--theme-dark); color:white; border-radius:50%; width:24px; height:24px; display:inline-block; text-align:center; line-height:24px;">1</span> 
+          一万を 10こ 集めた数は、何といえばよいでしょうか。
+        </p>
         
-        <button onclick="addBlock()">「一万」を1つ追加する</button>
-        <span id="block-count" style="font-weight:bold; margin-left:10px;">0 こ</span>
+        <div class="input-group">
+          一万を 10こ 集めた数を <input type="text" id="q1-kanji" class="num-input small-input" placeholder="漢字"> といい、<br>
+          <input type="text" id="q1-num" class="num-input" placeholder="数字"> と書きます。
+        </div>
+
+        <div class="rule-box">
+          💡 佐賀県の人口は、<br>
+          「<span class="highlight-yellow">八十一万 二千百九十三</span>」人です。
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab1()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint1')">ヒント</button>
+      </div>
+      <div id="hint1" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">一、十、百、千、一万… その次は「〇万」になるよ。<br>数字は 10000 に 0 をもう1つ増やして書こう。</div>
+      </div>
+      <div id="result1" class="result-msg"></div>
+    </div>
+
+
+    <!-- ================= タブ2: 百万・千万・シミュレーター ================= -->
+    <div id="section-2" class="section">
+      <div class="section-title">
+        <span class="roman-num">II</span> <span class="green-text">大きい数の読み方や書き方を調べよう。</span>
+      </div>
+
+      <div class="learn-box">
+        <p style="font-weight:bold; color:var(--theme-dark);">
+          十万を 10こ 集めた数は、何といえばよいだろう。
+        </p>
         
-        <div class="block-area" id="block-area"></div>
+        <div class="input-group">
+          十万を 10こ 集めた数を <input type="text" id="q2-kanji1" class="num-input small-input" placeholder="漢字"> といい、<br>
+          <input type="text" id="q2-num1" class="num-input" placeholder="数字"> と書きます。<br>
+          <hr style="border-top:1px dashed #ccc; margin: 15px 0;">
+          百万を 10こ 集めた数を <input type="text" id="q2-kanji2" class="num-input small-input" placeholder="漢字"> といい、<br>
+          <input type="text" id="q2-num2" class="num-input" placeholder="数字"> と書きます。
+        </div>
+
+        <!-- 10倍の図表 -->
+        <table class="ten-times-table">
+          <tr><td style="background:var(--c-ichiman);">10000</td><td style="border:none;"></td></tr>
+          <tr><td style="background:var(--c-juman);">100000</td><td style="border:none;" class="arrow-text">⤴ 10こ</td></tr>
+          <tr><td style="background:var(--c-hyakuman);">1000000</td><td style="border:none;" class="arrow-text">⤴ 10こ</td></tr>
+          <tr><td style="background:var(--c-senman);">10000000</td><td style="border:none;" class="arrow-text">⤴ 10こ</td></tr>
+        </table>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab2()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint2')">ヒント</button>
+      </div>
+      <div id="hint2" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          位は「一、十、百、千」の順に大きくなるよ。<br>
+          万の位も同じで、「一万、十万、〇万、〇万」と大きくなるんだ。<br>
+          数字を書くときは、0を1つずつ増やしていこう。
+        </div>
+      </div>
+      <div id="result2" class="result-msg"></div>
+
+      <div style="border-top: 2px dashed #ccc; margin: 30px 0;"></div>
+
+      <!-- シミュレーター -->
+      <div class="simulator">
+        <div class="sim-desc">
+          👇 「▲」「▼」ボタンをおして、色々な大きな数を作ってみよう！<br>
+          <span style="font-size:0.9rem; color:#78909c;">(東京都の人口 13794933 も作れるよ)</span>
+        </div>
         
-        <div id="q1-area" style="display:none; margin-top:20px;">
-            <p><strong>一万を10こ集めた数は、数字でどう書きますか？</strong></p>
-            <input type="text" id="ans1" placeholder="数字を入力">
-            <button onclick="checkAnswer('ans1', '100000', 'fb1')">こたえる</button>
-            <button class="btn-hint" onclick="toggleHint('hint1')">ヒント</button>
-            <span id="fb1" class="feedback"></span>
-            <div id="hint1" class="hint-box">
-                「10000」に、もう1つ「0」がつくよ。10万、100万、1000万と表すことができます。
+        <div class="digit-grid">
+          <div class="digit-col col-senman"><div class="place-name">千万の位</div><button class="ctrl-btn up" data-pl="senman">▲</button><div class="digit-val" id="val-senman">0</div><button class="ctrl-btn down" data-pl="senman">▼</button></div>
+          <div class="digit-col col-hyakuman"><div class="place-name">百万の位</div><button class="ctrl-btn up" data-pl="hyakuman">▲</button><div class="digit-val" id="val-hyakuman">0</div><button class="ctrl-btn down" data-pl="hyakuman">▼</button></div>
+          <div class="digit-col col-juman"><div class="place-name">十万の位</div><button class="ctrl-btn up" data-pl="juman">▲</button><div class="digit-val" id="val-juman">0</div><button class="ctrl-btn down" data-pl="juman">▼</button></div>
+          <div class="digit-col col-ichiman"><div class="place-name">一万の位</div><button class="ctrl-btn up" data-pl="ichiman">▲</button><div class="digit-val" id="val-ichiman">0</div><button class="ctrl-btn down" data-pl="ichiman">▼</button></div>
+          
+          <div class="digit-col col-sen"><div class="place-name">千の位</div><button class="ctrl-btn up" data-pl="sen">▲</button><div class="digit-val" id="val-sen">0</div><button class="ctrl-btn down" data-pl="sen">▼</button></div>
+          <div class="digit-col col-hyaku"><div class="place-name">百の位</div><button class="ctrl-btn up" data-pl="hyaku">▲</button><div class="digit-val" id="val-hyaku">0</div><button class="ctrl-btn down" data-pl="hyaku">▼</button></div>
+          <div class="digit-col col-ju"><div class="place-name">十の位</div><button class="ctrl-btn up" data-pl="ju">▲</button><div class="digit-val" id="val-ju">0</div><button class="ctrl-btn down" data-pl="ju">▼</button></div>
+          <div class="digit-col col-ichi"><div class="place-name">一の位</div><button class="ctrl-btn up" data-pl="ichi">▲</button><div class="digit-val" id="val-ichi">0</div><button class="ctrl-btn down" data-pl="ichi">▼</button></div>
+        </div>
+        
+        <div class="sim-result">
+          <div style="font-size:1rem; color:#546e7a; margin-bottom:5px;">漢数字の読み方</div>
+          <div class="sim-kanji" id="sim-kanji-out">零</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================= タブ3: 練習問題・まとめ ================= -->
+    <div id="section-3" class="section">
+      <div class="section-title">
+        <span class="roman-num">III</span> 宮城県、東京都の人口を読もう
+      </div>
+
+      <div class="learn-box">
+        <p style="font-weight:bold; color:var(--theme-dark);">
+          <span style="background:var(--theme-dark); color:white; border-radius:50%; width:24px; height:24px; display:inline-block; text-align:center; line-height:24px;">2</span> 
+          宮城県、東京都の人口は、それぞれ何人ですか。<br>
+          <span style="font-size:0.9rem; color:#666;">（ぜんぶ漢字で書いてみよう！）</span>
+        </p>
+
+        <div class="input-group">
+          宮城県 <span style="font-family:Courier, monospace;">( 2268355 人)</span><br>
+          <input type="text" id="q3-miyagi" class="kanji-input" placeholder="例：二百二十六万八千三百五十五"> 人<br><br>
+          
+          東京都 <span style="font-family:Courier, monospace;">(13794933 人)</span><br>
+          <input type="text" id="q3-tokyo" class="kanji-input"> 人
+        </div>
+      </div>
+
+      <div class="learn-box">
+        <p style="font-weight:bold; color:var(--theme-dark);">
+          <span style="background:var(--theme-dark); color:white; border-radius:50%; width:24px; height:24px; display:inline-block; text-align:center; line-height:24px;">3</span> 
+          13794933 の、百万の位の数字は何ですか。
+        </p>
+
+        <!-- 解説用の位取り表 -->
+        <table class="static-table">
+          <tr class="man-group">
+            <th class="col-senman">千万<br>の位</th><th class="col-hyakuman">百万<br>の位</th><th class="col-juman">十万<br>の位</th><th class="col-ichiman">一万<br>の位</th>
+            <th class="col-sen">千<br>の位</th><th class="col-hyaku">百<br>の位</th><th class="col-ju">十<br>の位</th><th class="col-ichi">一<br>の位</th>
+          </tr>
+          <tr>
+            <td class="col-senman">1</td><td class="col-hyakuman">3</td><td class="col-juman">7</td><td class="col-ichiman">9</td>
+            <td class="col-sen">4</td><td class="col-hyaku">9</td><td class="col-ju">3</td><td class="col-ichi">3</td>
+          </tr>
+        </table>
+
+        <div class="input-group" style="text-align:center;">
+          答え： <input type="text" id="q3-digit" class="num-input small-input">
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab3()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint3')">ヒント</button>
+      </div>
+      <div id="hint3" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          読むときは、下から4けた目と5けた目の間に線を引いて、<br>
+          「〇〇〇〇万 / 〇〇〇〇」と分けると読みやすいよ！<br>
+          例： 226 / 8355 → 二百二十六万 八千三百五十五
+        </div>
+      </div>
+      <div id="result3" class="result-msg"></div>
+
+      <div style="border-top: 2px dashed #ccc; margin: 30px 0;"></div>
+      
+      <!-- まとめ枠 -->
+      <div style="border: 3px solid var(--theme-dark); border-radius: 12px; padding: 20px; background: white; text-align: center; position: relative;">
+        <div style="background:var(--theme-dark); color:white; padding:4px 15px; border-radius:20px; font-weight:bold; position:absolute; top:-15px; left:20px;">まとめ</div>
+        <div style="font-size:1.2rem; font-weight:bold; line-height:1.6; margin-top:10px;">
+          それぞれの位の数が<span style="border-bottom:3px solid var(--theme-sub);">何こあるかに注目すれば</span>、<br>
+          数を読んだり書いたりできるね。
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ================= タブ4: 黒板 ================= -->
+    <div id="section-4" class="section">
+      <div class="blackboard">
+        <!-- 左 -->
+        <div class="bb-col">
+          <div style="font-weight:bold; border-bottom:1px solid white; padding-bottom:5px;">
+            <span class="bb-badge">I</span> 9月24日
+          </div>
+          <div class="bb-box">佐賀県、宮城県、東京都の人口は何人ですか。</div>
+          <div style="text-align:center; margin:10px 0;">
+            <i class="fa-solid fa-map-location-dot" style="font-size:4rem; color:rgba(255,255,255,0.7);"></i>
+          </div>
+          <div style="font-size:0.9rem; line-height:1.4;">
+            佐賀県 812193人<br>
+            宮城県 2268355人<br>
+            東京都 13794933人
+          </div>
+          <ul style="padding-left:20px; margin:5px 0;">
+            <li>一万より大きい数だ。</li>
+            <li>どう読めばいいのかな。</li>
+          </ul>
+        </div>
+
+        <!-- 中 -->
+        <div class="bb-col" style="flex:1.5;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span class="bb-badge">II</span>
+            <div style="font-weight:bold;">
+              <span style="background:white; color:#2e7d32; border-radius:50%; width:20px; height:20px; display:inline-block; text-align:center;">?</span>
+              大きい数の読み方や書き方を調べよう。
             </div>
+          </div>
+          
+          <div class="bb-box">一万を10こ集めた数を十万といい、100000と書く。</div>
+          
+          <div>
+            ○佐賀県（812193人）<br>
+            「八十一万二千百九十三」人
+          </div>
+          
+          <div class="bb-yellow-box">十万を10こ集めた数は、何といえばよいだろう。</div>
+          
+          <div class="bb-box">
+            十万を10こ集めた数を百万といい、1000000と書く。<br>
+            百万を10こ集めた数を千万といい、10000000と書く。
+          </div>
+          
+          <div style="font-size:0.85rem; line-height:1.4;">
+            ○宮城県（2268355人）<br>
+            「二百二十六万八千三百五十五」人<br><br>
+            ○東京都（13794933人）<br>
+            「千三百七十九万四千九百三十三」人
+          </div>
         </div>
+
+        <!-- 右 -->
+        <div class="bb-col">
+          <div class="bb-badge" style="margin-bottom:5px;">III</div>
+          <div class="bb-box" style="border:2px solid #81c784;">
+            <i class="fa-solid fa-pen" style="color:#2e7d32;"></i><br>
+            それぞれの位の数が<span style="border-bottom:2px solid #ff9800;">何こあるかに注目すれば</span>、数を読んだり書いたりできる。
+          </div>
+          <div style="text-align:center; color:#ffb74d;"><i class="fa-solid fa-arrow-down"></i></div>
+          <div class="bb-box" style="border:2px solid #ffb74d;">
+            1つの位に10こ集まると、1つ上の位にうつることはこれまでと同じ。
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="section">
-        <div class="section-title">レベル2：都道府県の人口</div>
-        <p>佐賀県の人口は <strong>812193</strong> 人です。</p>
-        <p><strong>佐賀県の人口を、漢字で書いてみましょう。</strong></p>
-        <input type="text" id="ans2" placeholder="漢字で入力" style="width: 300px;">
-        <button onclick="checkAnswer('ans2', '八十一万二千百九十三', 'fb2')">こたえる</button>
-        <button class="btn-hint" onclick="toggleHint('hint2')">ヒント</button>
-        <span id="fb2" class="feedback"></span>
-        <div id="hint2" class="hint-box">
-            「八十一万」のあとに、残りの数を漢字で続けてみよう。
-        </div>
-    </div>
+  </div>
 
-    <div class="section">
-        <div class="section-title">レベル3：もっと大きい数</div>
-        <p>① 十万を10こ集めた数を <strong>百万（1000000）</strong> といいます。<br>
-        ② では、<strong>百万を10こ集めた数</strong>は数字でどう書きますか？</p>
-        <input type="text" id="ans3" placeholder="数字を入力">
-        <button onclick="checkAnswer('ans3', '10000000', 'fb3')">こたえる</button>
-        <button class="btn-hint" onclick="toggleHint('hint3')">ヒント</button>
-        <span id="fb3" class="feedback"></span>
-        <div id="hint3" class="hint-box">
-            百万は「1000000」。10こ集まると「千万」になり、0がもう1つ増えるよ。
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">レベル4：位取り表のマスター</div>
-        <p>東京都の人口は <strong>13794933</strong> 人です。<br>
-        それぞれの位の数字が何こあるか、下の表に入れてみよう！<br>
-        <small>※それぞれの位の数を1つずつ入力してね。</small></p>
-        
-        <div class="table-container">
-            <table>
-                <tr>
-                    <th>千万<br>の位</th>
-                    <th>百万<br>の位</th>
-                    <th>十万<br>の位</th>
-                    <th>一万<br>の位</th>
-                    <th>千<br>の位</th>
-                    <th>百<br>の位</th>
-                    <th>十<br>の位</th>
-                    <th>一<br>の位</th>
-                </tr>
-                <tr>
-                    <td><input type="text" id="k1" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k2" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k3" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k4" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k5" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k6" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k7" class="kurai-input" maxlength="1"></td>
-                    <td><input type="text" id="k8" class="kurai-input" maxlength="1"></td>
-                </tr>
-            </table>
-        </div>
-        <br>
-        <button onclick="checkTable()">表の答え合わせ</button>
-        <button class="btn-hint" onclick="toggleHint('hint4')">ヒント</button>
-        <span id="fb4" class="feedback"></span>
-        <div id="hint4" class="hint-box">
-            左から順番に、1、3、7... と数字を入れていこう。「1つの位に10こ集まると、1つ上の位にうつる」というこれまでのルールと同じだね。
-        </div>
-    </div>
-
-</div>
-
-<script>
-    // 全角を半角に変換し、空白を取り除く関数（子どもたちの入力揺れに対応）
-    function normalizeInput(str) {
-        return str.replace(/[！-～]/g, function(s) {
-            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-        }).replace(/\s+/g, '').replace(/,/g, '');
+  <script>
+    // --- 便利関数 ---
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                .replace(/,/g, '') // カンマ除去
+                .trim();
+    }
+    function normalizeKanji(str) {
+      // 全角半角スペース除去
+      return str.replace(/\s+| +/g, '').trim();
     }
 
-    // ブロック操作のロジック
-    let blocks = 0;
-    function addBlock() {
-        if (blocks < 10) {
-            blocks++;
-            document.getElementById('block-count').innerText = blocks + " こ";
-            const area = document.getElementById('block-area');
-            const block = document.createElement('div');
-            block.className = 'block';
-            block.innerText = '一万';
-            area.appendChild(block);
-
-            if (blocks === 10) {
-                setTimeout(() => {
-                    area.innerHTML = '<div class="block block-big">十万 (100000)</div>';
-                    document.getElementById('block-count').innerText = "10こ集まって「十万」になった！";
-                    document.getElementById('q1-area').style.display = 'block';
-                }, 800);
-            }
-        }
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) sec.classList.add('active');
+        else sec.classList.remove('active');
+      });
     }
 
-    // 答え合わせロジック
-    function checkAnswer(inputId, correctAnswer, feedbackId) {
-        let userInput = document.getElementById(inputId).value;
-        userInput = normalizeInput(userInput);
-        
-        const feedback = document.getElementById(feedbackId);
-        if (userInput === correctAnswer) {
-            feedback.innerText = "⭕ 大正解！";
-            feedback.className = "feedback correct";
-        } else if (userInput === "") {
-            feedback.innerText = "答えを入力してね。";
-            feedback.className = "feedback";
-        } else {
-            feedback.innerText = "❌ もういちど考えてみよう！";
-            feedback.className = "feedback incorrect";
-        }
+    function toggleHint(id) {
+      const hintEl = document.getElementById(id);
+      hintEl.style.display = hintEl.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    // 位取り表の答え合わせ
-    function checkTable() {
-        const answers = ['1', '3', '7', '9', '4', '9', '3', '3'];
-        let allCorrect = true;
-        
-        for (let i = 0; i < 8; i++) {
-            let inputId = 'k' + (i + 1);
-            let val = normalizeInput(document.getElementById(inputId).value);
-            if (val !== answers[i]) {
-                allCorrect = false;
-                document.getElementById(inputId).style.backgroundColor = "#ffebee"; // 間違いは赤背景
+    function showResultMsg(elementId, isCorrect) {
+      const el = document.getElementById(elementId);
+      if (isCorrect) {
+        el.innerHTML = '<span style="color:#2b8a3e;">💮 大正解！ばっちりだね！</span>';
+      } else {
+        el.innerHTML = '<span style="color:var(--danger);">惜しい！赤くなっているところを直してみよう。</span>';
+      }
+    }
+
+    function checkField(id, expectedArr, isKanji = false) {
+      const input = document.getElementById(id);
+      const val = isKanji ? normalizeKanji(input.value) : toHalfWidth(input.value);
+      
+      let isCorrect = false;
+      for (const exp of expectedArr) {
+        if (val === exp) { isCorrect = true; break; }
+      }
+      
+      if (isCorrect) {
+        input.classList.remove('error'); input.classList.add('correct');
+      } else {
+        input.classList.remove('correct'); input.classList.add('error');
+      }
+      return isCorrect;
+    }
+
+    // --- タブ1: 判定 ---
+    function checkTab1() {
+      const ok1 = checkField('q1-kanji', ['十万', 'じゅうまん', '10万'], true);
+      const ok2 = checkField('q1-num', ['100000']);
+      
+      const isAllOk = ok1 && ok2;
+      showResultMsg('result1', isAllOk);
+      if(isAllOk) document.getElementById('hint1').style.display = 'none';
+      else document.getElementById('hint1').style.display = 'flex';
+    }
+
+    // --- タブ2: 判定 ---
+    function checkTab2() {
+      const ok1 = checkField('q2-kanji1', ['百万', 'ひゃくまん', '100万'], true);
+      const ok2 = checkField('q2-num1', ['1000000']);
+      const ok3 = checkField('q2-kanji2', ['千万', 'せんまん', '1000万'], true);
+      const ok4 = checkField('q2-num2', ['10000000']);
+      
+      const isAllOk = ok1 && ok2 && ok3 && ok4;
+      showResultMsg('result2', isAllOk);
+      if(isAllOk) document.getElementById('hint2').style.display = 'none';
+      else document.getElementById('hint2').style.display = 'flex';
+    }
+
+    // --- タブ3: 判定 ---
+    function checkTab3() {
+      // 漢数字チェック
+      const okMiyagi = checkField('q3-miyagi', ['二百二十六万八千三百五十五'], true);
+      const okTokyo = checkField('q3-tokyo', ['千三百七十九万四千九百三十三', '一千三百七十九万四千九百三十三'], true);
+      // 数字チェック
+      const okDigit = checkField('q3-digit', ['3', '３']);
+      
+      const isAllOk = okMiyagi && okTokyo && okDigit;
+      showResultMsg('result3', isAllOk);
+      if(isAllOk) document.getElementById('hint3').style.display = 'none';
+      else document.getElementById('hint3').style.display = 'flex';
+    }
+
+
+    // --- シミュレーターロジック ---
+    const places = ['senman', 'hyakuman', 'juman', 'ichiman', 'sen', 'hyaku', 'ju', 'ichi'];
+    const simState = { senman:0, hyakuman:0, juman:0, ichiman:0, sen:0, hyaku:0, ju:0, ichi:0 };
+
+    // 漢数字変換用
+    const kanjiNums = ['','一','二','三','四','五','六','七','八','九'];
+    const kanjiPlaces = ['','十','百','千'];
+    
+    function toKanji(numStr) {
+      if(numStr === '0') return '零';
+      
+      // 4桁ごとのブロックに分ける
+      let manBlock = numStr.slice(0, 4);
+      let ichiBlock = numStr.slice(4, 8);
+      
+      function blockToKanji(block) {
+        let res = '';
+        for(let i=0; i<4; i++) {
+          let n = parseInt(block[i]);
+          if(n > 0) {
+            // 千、百、十の「一」は省略する（一千は許容される場合もあるが基本省略）
+            if(n === 1 && i < 3) {
+              res += kanjiPlaces[3-i];
             } else {
-                document.getElementById(inputId).style.backgroundColor = "#e8f5e9"; // 正解は緑背景
+              res += kanjiNums[n] + kanjiPlaces[3-i];
             }
+          }
         }
-        
-        const feedback = document.getElementById('fb4');
-        if (allCorrect) {
-            feedback.innerText = "⭕ 完璧！位取り表が完成しました！";
-            feedback.className = "feedback correct";
-        } else {
-            feedback.innerText = "❌ 色が変わったところを直してみよう。";
-            feedback.className = "feedback incorrect";
-        }
+        return res;
+      }
+      
+      let manK = blockToKanji(manBlock);
+      let ichiK = blockToKanji(ichiBlock);
+      
+      let finalKanji = '';
+      if(manK !== '') finalKanji += manK + '万';
+      if(ichiK !== '') finalKanji += ichiK;
+      
+      return finalKanji || '零';
     }
 
-    // ヒントの表示/非表示切替
-    function toggleHint(hintId) {
-        const hintBox = document.getElementById(hintId);
-        if (hintBox.style.display === "none" || hintBox.style.display === "") {
-            hintBox.style.display = "block";
-        } else {
-            hintBox.style.display = "none";
-        }
+    function updateSimDisplay() {
+      // 値の更新
+      let numStr = '';
+      places.forEach(p => {
+        document.getElementById(`val-${p}`).innerText = simState[p];
+        numStr += simState[p];
+      });
+      // 漢数字の更新
+      const kStr = toKanji(numStr);
+      document.getElementById('sim-kanji-out').innerText = kStr;
     }
-</script>
 
+    // ボタンイベント
+    document.querySelectorAll('.ctrl-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const p = e.target.getAttribute('data-pl');
+        if (e.target.classList.contains('up')) {
+          if (simState[p] < 9) simState[p]++;
+          else simState[p] = 0; // ループさせる
+        } else {
+          if (simState[p] > 0) simState[p]--;
+          else simState[p] = 9;
+        }
+        updateSimDisplay();
+      });
+    });
+
+  </script>
 </body>
 </html>
+```eof
     
   </body>
   

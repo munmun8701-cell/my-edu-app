@@ -11,581 +11,765 @@
   <body>
   <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>10000より大きい数のならび方</title>
-<style>
-    /* ベーススタイル */
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>10000より大きい数のならび方 - 算数</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
     :root {
-        --main-green: #27ae60;
-        --light-green: #eafaf1;
-        --text-color: #333;
-        --accent-orange: #f39c12;
-        --accent-red: #e74c3c;
-        --border-color: #bdc3c7;
-        --box-bg: #fffde7;
+      --theme: #4caf50;
+      --theme-dark: #2e7d32;
+      --theme-light: #e8f5e9;
+      --theme-sub: #ff9800;
+      --theme-accent: #0288d1;
+      
+      --bg: #f5f5f5;
+      --border: #ced4da;
+      --text-main: #333333;
+      --danger: #e64980; /* ピンク・赤系 */
+      --blue-talk: #4dabf7;
+      
+      /* 数直線のベース色 */
+      --nl-color: #495057;
+      --nl-bg: #ffffff; /* 白背景 */
     }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'Meiryo', sans-serif;
+    }
+
     body {
-        font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
-        background-color: #f4f6f7;
-        color: var(--text-color);
-        line-height: 1.6;
-        padding: 20px;
-        margin: 0;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
     }
+
     .app-container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: #fff;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
-    h1 {
-        text-align: center;
-        color: var(--main-green);
-        border-bottom: 3px dashed var(--main-green);
-        padding-bottom: 15px;
-        font-size: 26px;
+
+    /* --- ヘッダー --- */
+    header {
+      background: var(--theme-light);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
-    
-    /* セクションのデザイン */
+
+    .unit-num {
+      background: #fff;
+      border: 3px solid var(--theme);
+      border-radius: 8px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: var(--theme);
+      font-weight: bold;
+      line-height: 1;
+    }
+    .unit-num span { font-size: 0.7rem; }
+    .unit-num strong { font-size: 1.4rem; }
+
+    h1 { margin: 0; color: var(--theme-dark); font-size: 1.5rem; }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 5px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #6c757d;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme-dark);
+      background: white;
+    }
+
     .section {
-        margin-top: 40px;
-        padding: 30px 20px 20px;
-        border: 2px solid #a9dfbf;
-        border-radius: 10px;
-        position: relative;
-        background: #fff;
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
     }
-    .section.orange { border-color: var(--accent-orange); }
-    .section.red { border-color: var(--accent-red); }
-    .section-badge {
-        position: absolute;
-        top: -15px;
-        left: 20px;
-        background-color: var(--main-green);
-        color: white;
-        padding: 4px 16px;
-        border-radius: 20px;
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .section.orange .section-badge { background-color: var(--accent-orange); }
-    .section.red .section-badge { background-color: var(--accent-red); }
+    .section.active { display: block; }
 
-    /* 数直線の描画コンテナ */
-    .nl-wrapper {
-        padding: 60px 40px 40px 40px; /* 文字や入力欄がはみ出ないよう余白を確保 */
-        background-color: var(--box-bg);
-        border-radius: 8px;
-        margin: 20px 0;
+    /* --- 見出し・汎用 --- */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .nl-track {
-        position: relative;
-        width: 100%;
-        height: 3px;
-        background-color: var(--text-color);
-    }
-    .nl-tick {
-        position: absolute;
-        width: 2px;
-        background-color: var(--text-color);
-        bottom: 0; /* 軸に接する */
-        transform: translateX(-50%);
-    }
-    .nl-tick.major { height: 22px; }
-    .nl-tick.mid { height: 14px; }
-    .nl-tick.minor { height: 8px; }
+    .roman-num { background: var(--theme-sub); color: #fff; padding: 2px 10px; border-radius: 5px; }
+    .green-text { color: var(--theme-dark); }
     
+    .problem-box {
+      border: 2px solid var(--theme); padding: 15px 20px; border-radius: 8px;
+      margin-bottom: 20px; background: white; font-size: 1.1rem; line-height: 1.8; font-weight: bold;
+    }
+    .problem-num {
+      color: white; background: var(--theme); border-radius: 50%;
+      width: 24px; height: 24px; display: inline-block; text-align: center; line-height: 24px; margin-right: 5px;
+    }
+    .rule-box {
+      border-left: 6px solid var(--theme-sub); background: #fff8e1; padding: 15px;
+      border-radius: 4px; margin: 15px 0; font-weight: bold; font-size: 1.1rem;
+    }
+
+    /* --- 入力欄とボタン --- */
+    .input-group {
+      background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;
+      margin-bottom: 15px; font-size: 1.15rem; font-weight: bold; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+    .calc-input {
+      width: 100px; padding: 8px; font-size: 1.1rem; text-align: center;
+      border: 2px solid #90caf9; border-radius: 6px; font-weight: bold; color: #1565c0; transition: 0.2s;
+    }
+    .calc-input.small { width: 70px; }
+    .calc-input.large { width: 130px; }
+    .calc-input.correct { background-color: #ebfbee; border-color: #40c057; color: #2b8a3e; }
+    .calc-input.error { background-color: #ffe3e3; border-color: var(--danger); color: var(--danger); animation: shake 0.4s; }
+
+    /* 練習問題用 ピンク枠の入力欄 */
+    .practice-input {
+      border: 2px solid var(--danger); border-radius: 8px; padding: 4px;
+      font-size: 1rem; width: 85px; text-align: center; color: var(--danger); font-weight: bold;
+    }
+    .practice-input:focus { outline: none; background-color: #fce4ec; }
+    .practice-input.correct { background-color: #ebfbee; border-color: #40c057; color: #2b8a3e; }
+    .practice-input.error { background-color: #ffe3e3; border-color: var(--danger); color: var(--danger); animation: shake 0.4s; }
+
+    .action-row { display: flex; gap: 15px; margin-top: 15px; justify-content: center; }
+    button { font-family: inherit; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+    button:active { transform: scale(0.95); }
+    .check-btn { background: var(--theme-accent); color: white; padding: 10px 25px; font-size: 1.1rem; box-shadow: 0 4px 0 #0277bd; }
+    .check-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
+    .hint-btn { background: var(--theme-sub); color: white; padding: 10px 20px; font-size: 1.1rem; box-shadow: 0 4px 0 #e65100; }
+    .hint-btn:active { box-shadow: 0 0 0; transform: translateY(4px); }
+
+    /* --- キャラクター吹き出し --- */
+    .char-talk {
+      display: none; align-items: flex-start; gap: 15px;
+      background: #e0f7fa; padding: 15px; border-radius: 8px;
+      margin-top: 15px; border: 2px dashed #00bcd4;
+    }
+    .char-icon {
+      width: 50px; height: 50px; border-radius: 50%; color: white;
+      display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; background: #00bcd4;
+    }
+    .char-text { font-size: 1.05rem; line-height: 1.5; font-weight: bold; color: #006064; }
+    .result-msg { font-size: 1.2rem; font-weight: bold; margin-top: 15px; min-height: 30px; text-align: center; }
+
+    /* ================= 完璧な数直線 (Number Line) ================= */
+    .scroll-container {
+      overflow-x: auto; padding-bottom: 20px; margin-bottom: 20px;
+      background: var(--nl-bg); border-radius: 8px; border: 1px solid #ced4da;
+    }
+    .scroll-container::-webkit-scrollbar { height: 10px; }
+    .scroll-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 5px; }
+    .scroll-container::-webkit-scrollbar-thumb { background: #bbb; border-radius: 5px; }
+
+    .number-line-wrap {
+      position: relative; width: 100%; height: 130px;
+      padding: 0 50px; /* ★見切れ防止・ズレ防止の要！左右の余白 */
+      box-sizing: border-box; font-family: Arial, sans-serif;
+    }
+    
+    /* 余白を除いた純粋な描画エリア (ここが0%~100%の基準になる) */
+    .nl-inner {
+      position: relative; width: 100%; height: 100%;
+    }
+
+    /* メインの横線 */
+    .nl-base-line {
+      position: absolute; bottom: 30px; left: 0; width: 100%; height: 2px;
+      background-color: var(--nl-color);
+    }
+
+    /* 目盛りブロックのコンテナ */
+    .nl-blocks {
+      position: absolute; bottom: 30px; left: 0; width: 100%; height: 16px;
+      display: flex; border-right: 2px solid var(--nl-color); /* 一番右端の目盛り */
+    }
+
+    /* 1区画（10%分など） */
+    .nl-block {
+      flex: 1; border-left: 2px solid var(--nl-color); /* 各区画の左端の目盛り */
+      position: relative;
+    }
+
+    /* ★SVGを用いた完璧な小目盛り (ズレ一切なし) */
+    .nl-block.with-ticks {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 16' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,16 L10,8 M20,16 L20,8 M30,16 L30,8 M40,16 L40,8 M50,16 L50,2 M60,16 L60,8 M70,16 L70,8 M80,16 L80,8 M90,16 L90,8' stroke='%23495057' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+
+    /* ラベル（上部） */
+    .nl-labels { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
     .nl-label {
-        position: absolute;
-        top: 30px;
-        transform: translateX(-50%);
-        font-size: 14px;
-        font-weight: bold;
-        white-space: nowrap;
-    }
-    
-    /* インタラクティブ・練習問題用 */
-    .nl-hitbox {
-        position: absolute;
-        width: 16px;
-        height: 45px;
-        bottom: 0;
-        transform: translateX(-50%);
-        cursor: pointer;
-        z-index: 10;
-        border-radius: 4px;
-        transition: 0.2s;
-    }
-    .nl-hitbox:hover { background-color: rgba(243, 156, 18, 0.3); }
-    
-    .nl-arrow-label {
-        position: absolute;
-        top: -45px;
-        transform: translateX(-50%);
-        color: var(--accent-red);
-        font-weight: bold;
-        text-align: center;
-        line-height: 1.2;
-        font-size: 15px;
-    }
-    .nl-arrow { display: block; font-size: 18px; margin-bottom: 2px; }
-
-    .nl-input-wrap {
-        position: absolute;
-        top: -55px;
-        transform: translateX(-50%);
-        text-align: center;
-        z-index: 5;
-    }
-    .box-input {
-        width: 85px;
-        padding: 4px;
-        font-size: 14px;
-        border: 2px solid var(--border-color);
-        border-radius: 4px;
-        text-align: center;
-        transition: 0.2s;
-    }
-    .box-input:focus { border-color: var(--main-green); outline: none; }
-    .down-arrow { color: var(--accent-red); font-size: 18px; margin-top: 2px; }
-
-    /* UIパーツ（ボタン・ヒントなど） */
-    .q-row { margin-bottom: 25px; }
-    .q-text { font-weight: bold; margin-bottom: 10px; font-size: 17px; }
-    
-    input[type="text"].inline-input {
-        padding: 6px 10px;
-        font-size: 16px;
-        border: 2px solid var(--border-color);
-        border-radius: 6px;
-        width: 120px;
-        margin-right: 10px;
-    }
-    input.small-input { width: 70px; }
-
-    .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 15px;
-        font-weight: bold;
-        cursor: pointer;
-        color: white;
-        background-color: var(--main-green);
-        box-shadow: 0 4px 0 #1e8449;
-        transition: 0.1s;
-    }
-    .btn:active { transform: translateY(4px); box-shadow: none; }
-    .btn-hint { background-color: #3498db; box-shadow: 0 4px 0 #217dbb; margin-left: 5px; }
-    .btn-check { background-color: var(--accent-red); box-shadow: 0 4px 0 #c0392b; font-size: 18px; padding: 12px 30px; margin-top: 20px;}
-
-    .feedback { font-weight: bold; margin-left: 10px; font-size: 16px; }
-    .correct { color: var(--accent-red); } /* 丸付けの赤 */
-    .incorrect { color: #2980b9; }
-
-    .hint-box {
-        display: none;
-        background: #ebf5fb;
-        border-left: 4px solid #3498db;
-        padding: 12px;
-        margin-top: 10px;
-        border-radius: 4px;
-        font-size: 15px;
-        color: #2c3e50;
+      position: absolute; bottom: 55px; transform: translateX(-50%);
+      font-weight: bold; font-size: 0.95rem; color: #444; white-space: nowrap; text-align: center; line-height: 1.2;
     }
 
-    /* まとめの枠 */
-    .summary-box {
-        background: #e8f8f5;
-        border: 3px solid var(--main-green);
-        border-radius: 12px;
-        padding: 15px 25px;
-        margin: 30px 0;
-        font-weight: bold;
-        text-align: center;
-        font-size: 17px;
+    /* ポインター（入力欄や矢印） */
+    .nl-pointers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .nl-pointer {
+      position: absolute; bottom: 32px; /* 線のすぐ上 */
+      transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: auto;
     }
-</style>
+    .nl-pointer.from-bottom {
+      bottom: auto; top: calc(100% - 30px); /* 線のすぐ下 */
+    }
+
+    /* 矢印のデザイン */
+    .nl-arrow-down {
+      width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent;
+      border-top: 8px solid var(--danger); margin-top: 4px;
+    }
+    .nl-arrow-up {
+      width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent;
+      border-bottom: 8px solid var(--danger); margin-bottom: 4px;
+    }
+
+    /* --- 板書計画 --- */
+    .blackboard {
+      background: #2f9e44; border: 10px solid #8b4513; border-radius: 8px;
+      padding: 15px; color: white; display: flex; gap: 15px; flex-wrap: wrap;
+      font-size: 0.95rem; line-height: 1.5;
+    }
+    .bb-col {
+      flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 10px;
+      border-right: 1px dashed rgba(255, 255, 255, 0.4); padding-right: 15px;
+    }
+    .bb-col:last-child { border-right: none; padding-right: 0; }
+    .bb-badge { background: var(--theme-sub); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }
+    .bb-box { background: white; color: #333; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold;}
+    .bb-yellow-box { border: 2px solid #ffca28; padding: 10px; border-radius: 6px; font-weight: bold;}
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%, 75% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="app-container">
-    <h1>10000より大きい数のならび方を調べましょう</h1>
-    <p>下の数直線を使いながら、大きい数のヒミツをさぐっていこう！👩‍🏫</p>
+  <div class="app-container">
+    <header>
+      <div class="unit-num"><span>第</span><strong>5</strong><span>時</span></div>
+      <h1>10000より大きい数のならび方</h1>
+    </header>
 
-    <div class="section">
-        <div class="section-badge">ステップ 1</div>
-        <div class="q-text">㋐ の数直線の、いちばん小さい1めもりは、いくつを表していますか？</div>
-        
-        <div class="nl-wrapper">
-            <div id="track-a" class="nl-track"></div>
-        </div>
-
-        <div class="q-row">
-            <p>① いちばん小さい1めもりは、いくつですか。</p>
-            <input type="text" id="ans1" class="inline-input" placeholder="数字を入力">
-            <button class="btn" onclick="checkAnswer('ans1', ['1000', '千'], 'fb1')">こたえる</button>
-            <button class="btn btn-hint" onclick="toggleHint('hint1')">ヒントを見る</button>
-            <span id="fb1" class="feedback"></span>
-            <div id="hint1" class="hint-box">💡 0から10000の間が、何こに分けられているか数えてみよう。10こに分けられているから、10000を10でわると...？</div>
-        </div>
-
-        <div class="q-row">
-            <p>② イ、ウ、エ のめもりが表している数を書きましょう。</p>
-            イ：<input type="text" id="ans_i" class="inline-input small-input">
-            ウ：<input type="text" id="ans_u" class="inline-input small-input">
-            エ：<input type="text" id="ans_e" class="inline-input small-input">
-            <button class="btn" onclick="checkMulti(['ans_i', 'ans_u', 'ans_e'], ['5000', '21000', '69000'], 'fb2')">こたえる</button>
-            <span id="fb2" class="feedback"></span>
-        </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(1)">① 数直線を読もう</button>
+      <button class="tab-btn" onclick="switchTab(2)">② もっと大きい数</button>
+      <button class="tab-btn" onclick="switchTab(3)">③ 練習問題</button>
+      <button class="tab-btn" onclick="switchTab(4)">④ 黒板(まとめ)</button>
     </div>
 
-    <div class="section orange">
-        <div class="section-badge">ステップ 2 (さわってみよう！)</div>
-        <div class="q-row">
-            <p class="q-text">③ 29000、87000 を表すめもりを、下の数直線から探してタップ（クリック）しよう！</p>
-            <div class="nl-wrapper">
-                <div id="track-click" class="nl-track"></div>
+    <!-- ================= タブ1: 数直線を読もう ================= -->
+    <div id="section-1" class="section active">
+      <div class="section-title">
+        <span class="roman-num">I</span> 10000より大きい数のならび方を調べましょう。
+      </div>
+
+      <div class="rule-box" style="display:inline-block; margin-top:0;">
+        💡 下のような数の線を、<strong style="color:var(--danger); font-size:1.2rem;">数直線</strong> といいます。
+      </div>
+
+      <div class="section-title" style="margin-top:20px;">
+        <span class="roman-num">II</span> <span class="green-text">大きい数について、数直線を使って調べてみよう。</span>
+      </div>
+
+      <!-- 数直線 (あ) -->
+      <div class="scroll-container" style="background:#fffcf2;">
+        <div style="font-weight:bold; margin: 10px 0 0 10px; display:inline-block; border:1px solid #333; border-radius:50%; width:20px; height:20px; text-align:center; line-height:18px;">あ</div>
+        <div class="number-line-wrap" style="min-width: 900px; height:130px;">
+          <div class="nl-inner">
+            <div class="nl-base-line"></div>
+            <!-- 10個のブロック (0~100000) -->
+            <div class="nl-blocks">
+              <div class="nl-block with-ticks"></div><div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div><div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div><div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div><div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div><div class="nl-block with-ticks"></div>
             </div>
-            <div id="click-feedback" style="text-align:center; font-weight:bold; font-size:18px; color:var(--accent-orange); min-height: 25px;">
-                👆 2つの場所を見つけてね！
+            <!-- ラベル -->
+            <div class="nl-labels">
+              <div class="nl-label" style="left:0%;">0</div>
+              <div class="nl-label" style="left:10%;">10000</div>
+              <div class="nl-label" style="left:20%;">20000</div>
+              <div class="nl-label" style="left:30%;">30000</div>
+              <div class="nl-label" style="left:40%;">40000</div>
+              <div class="nl-label" style="left:50%;">50000</div>
+              <div class="nl-label" style="left:60%;">60000</div>
+              <div class="nl-label" style="left:70%;">70000</div>
+              <div class="nl-label" style="left:80%;">80000</div>
+              <div class="nl-label" style="left:90%;">90000</div>
+              <div class="nl-label" style="left:100%;">100000</div>
             </div>
+            <!-- ポインター (入力欄) -->
+            <div class="nl-pointers">
+              <div class="nl-pointer from-bottom" style="left:5%;">
+                <div class="nl-arrow-up"></div>
+                <div style="font-size:0.9rem; font-weight:bold; color:var(--danger); margin-bottom:2px;">イ</div>
+                <input type="text" id="t1-q2-i" class="practice-input">
+              </div>
+              <div class="nl-pointer from-bottom" style="left:21%;">
+                <div class="nl-arrow-up"></div>
+                <div style="font-size:0.9rem; font-weight:bold; color:var(--danger); margin-bottom:2px;">ウ</div>
+                <input type="text" id="t1-q2-u" class="practice-input">
+              </div>
+              <div class="nl-pointer from-bottom" style="left:29%;">
+                <div class="nl-arrow-up"></div>
+                <input type="text" id="t1-q3-1" class="practice-input" placeholder="数値">
+              </div>
+              <div class="nl-pointer from-bottom" style="left:69%;">
+                <div class="nl-arrow-up"></div>
+                <div style="font-size:0.9rem; font-weight:bold; color:var(--danger); margin-bottom:2px;">エ</div>
+                <input type="text" id="t1-q2-e" class="practice-input">
+              </div>
+              <div class="nl-pointer from-bottom" style="left:87%;">
+                <div class="nl-arrow-up"></div>
+                <input type="text" id="t1-q3-2" class="practice-input" placeholder="数値">
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div class="input-group" style="flex-direction:column; align-items:flex-start;">
+        <div><span class="problem-num">1</span> いちばん小さい 1めもりは、いくつを表していますか。 <input type="text" id="t1-q1" class="calc-input"></div>
+        <div style="color:#666; font-size:0.9rem; margin-top:-5px; margin-left:30px;">（0から10000までが10こに分かれているね）</div>
+        
+        <div style="margin-top:10px;"><span class="problem-num">2</span> イ、ウ、エ のめもりが表している数を、上の数直線に書きましょう。</div>
+        <div style="margin-top:10px;"><span class="problem-num">3</span> <strong style="color:var(--danger);">29000</strong>、<strong style="color:var(--danger);">87000</strong> を表すめもりの空欄[ ]に、数を書きましょう。</div>
+        <div style="margin-top:10px;"><span class="problem-num">4</span> 38000より 3000大きい数 はいくつですか。 <input type="text" id="t1-q4" class="calc-input large"></div>
+        <div style="margin-top:10px;"><span class="problem-num">5</span> 93000より 4000小さい数 はいくつですか。 <input type="text" id="t1-q5" class="calc-input large"></div>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab1()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint1')">ヒント</button>
+      </div>
+      <div id="hint1" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          ・10000が10個に分かれているから、1番小さいめもりは「1000」だよ。<br>
+          ・イ は0と10000のまんなかだね。<br>
+          ・38000より3000大きい数は、数直線で38000から右に3めもり進んだところだよ。
+        </div>
+      </div>
+      <div id="result1" class="result-msg"></div>
     </div>
 
-    <div class="section">
-        <div class="section-badge">ステップ 3</div>
-        <div class="q-row">
-            <p class="q-text">④ 38000より 3000大きい数 はいくつですか。</p>
-            <input type="text" id="ans4" class="inline-input">
-            <button class="btn" onclick="checkAnswer('ans4', ['41000'], 'fb4')">こたえる</button>
-            <button class="btn btn-hint" onclick="toggleHint('hint4')">ヒント</button>
-            <span id="fb4" class="feedback"></span>
-            <div id="hint4" class="hint-box">💡 38000から、右に3めもり進むよ。38の次は39、40...</div>
+
+    <!-- ================= タブ2: もっと大きい数 ================= -->
+    <div id="section-2" class="section">
+      <div class="section-title">
+        <span class="roman-num">II</span> <span class="green-text">大きい数について、数直線を使って調べてみよう。</span>
+      </div>
+
+      <!-- 数直線 (か) -->
+      <div class="scroll-container">
+        <div style="font-weight:bold; margin: 10px 0 0 10px; display:inline-block; border:1px solid #333; border-radius:50%; width:20px; height:20px; text-align:center; line-height:18px;">か</div>
+        <div class="number-line-wrap" style="min-width: 600px; height:120px;">
+          <div class="nl-inner">
+            <div class="nl-base-line"></div>
+            <!-- 10個のブロック (0~1億) 小目盛りなし -->
+            <div class="nl-blocks">
+              <div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div>
+              <div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div>
+            </div>
+            <!-- ラベル -->
+            <div class="nl-labels">
+              <div class="nl-label" style="left:0%;">0</div>
+              <div class="nl-label" style="left:50%;">5000 万</div>
+              <div class="nl-label" style="left:100%;">？</div> <!-- キの位置 -->
+            </div>
+            <!-- ポインター -->
+            <div class="nl-pointers">
+              <div class="nl-pointer from-bottom" style="left:100%;">
+                <div class="nl-arrow-up"></div>
+                <div style="font-size:1rem; font-weight:bold; color:var(--text-main);">キ</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="q-row">
-            <p class="q-text">⑤ 93000より 4000小さい数 はいくつですか。</p>
-            <input type="text" id="ans5" class="inline-input">
-            <button class="btn" onclick="checkAnswer('ans5', ['89000'], 'fb5')">こたえる</button>
-            <button class="btn btn-hint" onclick="toggleHint('hint5')">ヒント</button>
-            <span id="fb5" class="feedback"></span>
-            <div id="hint5" class="hint-box">💡 93000から、左に4めもりもどるよ。93の4つ前を計算してみよう！</div>
+      </div>
+
+      <div class="input-group" style="flex-direction:column; align-items:flex-start;">
+        <div><span class="problem-num">6</span> 上の数直線の、いちばん小さい 1めもりは、いくつを表していますか。<br>
+          答え： <input type="text" id="t2-q6" class="calc-input large"> （「1000万」のように単位も書こう）
         </div>
+        
+        <div style="margin-top:15px;"><span class="problem-num">7</span> キ のめもりは、1000万を何こ集めた数を表していますか。<br>
+          答え： <input type="text" id="t2-q7" class="calc-input small"> こ
+        </div>
+      </div>
+
+      <div class="rule-box" style="margin-top:25px;">
+        💡 千万を 10こ 集めた数を <strong style="color:var(--danger); font-size:1.2rem;">一億</strong> といい、<br>
+        <span class="highlight-yellow">100000000</span> と書きます。 （1億とも書くよ）
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab2()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint2')">ヒント</button>
+      </div>
+      <div id="hint2" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          ・0 から 5000万 までが 5つ に分かれているね。5000万を5でわると…？<br>
+          ・キ は右のはしにあるね。1めもりが10個分集まった数だよ。
+        </div>
+      </div>
+      <div id="result2" class="result-msg"></div>
     </div>
 
-    <div class="summary-box">
-        📝 まとめ<br>
-        数が大きくなっても、<strong>1めもりが表す大きさに注目</strong>して数直線を使うと、<br>数のならび方などがわかりやすくなるね！
+
+    <!-- ================= タブ3: 練習問題 ================= -->
+    <div id="section-3" class="section">
+      <div style="border: 3px solid var(--theme-dark); border-radius: 12px; padding: 20px; background: white; text-align: center; position: relative; margin-bottom: 30px;">
+        <div style="background: var(--theme-dark); color: white; padding: 4px 15px; border-radius: 20px; font-weight: bold; position: absolute; top: -15px; left: 20px;">まとめ</div>
+        <div style="font-size:1.15rem; font-weight:bold; line-height:1.5;">
+          数が大きくなっても、<span style="border-bottom:3px solid var(--theme-sub);">1めもりが表す大きさに注目して</span><br>
+          数直線を使うと、数のならび方などがわかりやすくなるね。
+        </div>
+      </div>
+
+      <div class="problem-box" style="border-color:#8d6e63; color:#5d4037;">
+        □ にあてはまる数を書きましょう。（「万」や「億」の単位もいれてね）
+      </div>
+
+      <!-- 練習① -->
+      <div class="scroll-container">
+        <div style="font-weight:bold; color:#666; margin: 10px 0 0 10px;">①</div>
+        <div class="number-line-wrap" style="min-width: 700px; height: 130px;">
+          <div class="nl-inner">
+            <div class="nl-base-line"></div>
+            <!-- 10個のブロック -->
+            <div class="nl-blocks">
+              <div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div>
+              <div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div>
+            </div>
+            <!-- ラベル -->
+            <div class="nl-labels">
+              <div class="nl-label" style="left:0%;">0</div>
+              <div class="nl-label" style="left:50%;">50<span style="font-size:0.8rem;">万</span></div>
+              <div class="nl-label" style="left:100%;">100<br><span style="font-size:0.8rem;">万</span></div>
+            </div>
+            <!-- ポインター (上から) -->
+            <div class="nl-pointers">
+              <div class="nl-pointer" style="left:10%;">
+                <input type="text" id="t3-q1" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+              <div class="nl-pointer" style="left:70%;">
+                <input type="text" id="t3-q2" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 練習② -->
+      <div class="scroll-container">
+        <div style="font-weight:bold; color:#666; margin: 10px 0 0 10px;">②</div>
+        <div class="number-line-wrap" style="min-width: 700px; height: 130px;">
+          <div class="nl-inner">
+            <div class="nl-base-line"></div>
+            <div class="nl-blocks">
+              <div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div>
+              <div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div><div class="nl-block"></div>
+            </div>
+            <div class="nl-labels">
+              <div class="nl-label" style="left:0%;">9000<span style="font-size:0.8rem;">万</span></div>
+              <div class="nl-label" style="left:100%;">1<br><span style="font-size:0.8rem;">億</span></div>
+            </div>
+            <div class="nl-pointers">
+              <div class="nl-pointer" style="left:20%;">
+                <input type="text" id="t3-q3" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+              <div class="nl-pointer" style="left:50%;">
+                <input type="text" id="t3-q4" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+              <div class="nl-pointer" style="left:90%;">
+                <input type="text" id="t3-q5" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 練習③ -->
+      <div class="scroll-container">
+        <div style="font-weight:bold; color:#666; margin: 10px 0 0 10px;">③</div>
+        <div class="number-line-wrap" style="min-width: 800px; height: 130px;">
+          <div class="nl-inner">
+            <div class="nl-base-line"></div>
+            <!-- 4ブロック (6000万~1億) 各ブロック10等分 -->
+            <div class="nl-blocks">
+              <div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div>
+              <div class="nl-block with-ticks"></div>
+            </div>
+            <div class="nl-labels">
+              <div class="nl-label" style="left:0%;">6000<span style="font-size:0.8rem;">万</span></div>
+              <div class="nl-label" style="left:25%;">7000<span style="font-size:0.8rem;">万</span></div>
+              <div class="nl-label" style="left:50%;">8000<span style="font-size:0.8rem;">万</span></div>
+              <div class="nl-label" style="left:75%;">9000<span style="font-size:0.8rem;">万</span></div>
+            </div>
+            <div class="nl-pointers">
+              <div class="nl-pointer" style="left:35%;"> <!-- 7400万 -->
+                <input type="text" id="t3-q6" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+              <div class="nl-pointer" style="left:100%;"> <!-- 1億 -->
+                <input type="text" id="t3-q7" class="practice-input">
+                <div class="nl-arrow-down"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="check-btn" onclick="checkTab3()">こたえあわせ</button>
+        <button class="hint-btn" onclick="toggleHint('hint3')">ヒント</button>
+      </div>
+      <div id="hint3" class="char-talk">
+        <div class="char-icon">ヒント</div>
+        <div class="char-text">
+          まずは0から次の大きい目盛りまでが「いくつ」に分かれているか数えて、<br>
+          「1めもりの大きさ」を見つけよう！<br>
+          ②は9000万と1億の間が10こに分かれているね。1めもりは100万だよ。
+        </div>
+      </div>
+      <div id="result3" class="result-msg"></div>
     </div>
 
-    <div class="section">
-        <div class="section-badge">ステップ 4 (さらに大きい数)</div>
-        <div class="nl-wrapper" style="background-color: #fdf2e9;">
-            <div id="track-i" class="nl-track"></div>
-        </div>
-        
-        <div class="q-row">
-            <p class="q-text">⑥ ㋑の数直線の、いちばん小さい1めもりはいくつですか。</p>
-            <input type="text" id="ans6" class="inline-input">
-            <button class="btn" onclick="checkAnswer('ans6', ['1000万', '10000000', '一千万'], 'fb6')">こたえる</button>
-            <span id="fb6" class="feedback"></span>
-        </div>
-        
-        <div class="q-row">
-            <p class="q-text">⑦ 「キ」のめもりは、1000万を何こ集めた数を表していますか。</p>
-            <input type="text" id="ans7" class="inline-input small-input"> こ
-            <button class="btn" onclick="checkAnswer('ans7', ['10', '十'], 'fb7')">こたえる</button>
-            <span id="fb7" class="feedback"></span>
+
+    <!-- ================= タブ4: 黒板(まとめ) ================= -->
+    <div id="section-4" class="section">
+      <div class="blackboard">
+        <!-- 左カラム -->
+        <div class="bb-col">
+          <div style="font-weight:bold; border-bottom:1px solid white; padding-bottom:5px;">
+            <span class="bb-badge">I</span> 9月27日
+          </div>
+          
+          <div class="bb-box" style="padding:10px;">
+            10000より大きい数のならび方を調べましょう。
+          </div>
+          
+          <div class="bb-box" style="margin-top:10px;">
+            上のような数の線を、<br>数直線という。
+          </div>
+          
+          <!-- 黒板内の数直線ミニチュア -->
+          <div style="background:#fffcf2; border:1px solid #ccc; padding:15px 5px 5px; margin-top:15px; position:relative;">
+            <div style="position:absolute; top:-10px; left:10px; background:#f8bbd0; color:#c2185b; padding:2px 10px; border:1px solid #c2185b; font-size:0.8rem; font-weight:bold;">
+              0 から 10000
+            </div>
+            <div style="border-bottom:2px solid #333; height:20px; width:90%; margin:0 auto; position:relative;">
+              <div style="position:absolute; left:0; bottom:0; height:10px; border-left:2px solid #333;"></div>
+              <div style="position:absolute; left:100%; bottom:0; height:10px; border-left:2px solid #333;"></div>
+              <div style="position:absolute; left:0; bottom:-15px; font-size:0.8rem; color:#333;">0</div>
+              <div style="position:absolute; left:100%; bottom:-15px; font-size:0.8rem; color:#333; transform:translateX(-50%);">10000</div>
+            </div>
+          </div>
         </div>
 
-        <div style="background:#fff; padding:15px; border:2px dashed #bdc3c7; border-radius:8px; text-align:center;">
-            千万を 10こ 集めた数を <strong>一億 (いちおく)</strong> といい、<br>
-            <strong style="color:var(--accent-red); font-size:20px;">100000000</strong> と書きます。（0が8こ！）
+        <!-- 中央カラム -->
+        <div class="bb-col" style="flex:1.5;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span class="bb-badge">II</span>
+            <div style="font-weight:bold;">
+              <span style="background:white; color:#2e7d32; border-radius:50%; width:20px; height:20px; display:inline-block; text-align:center;">?</span>
+              大きい数について、数直線を使って調べてみよう。
+            </div>
+          </div>
+          
+          <div class="bb-yellow-box" style="display:inline-block; margin-top:10px; border-radius:4px;">
+            1めもりはいくつ？
+          </div>
+          
+          <div class="bb-box" style="margin-top:10px; line-height:1.8;">
+            ・1めもりは、10こで10000になる数。<br>
+            ・0から10000までが10こに分かれている。
+          </div>
+          
+          <div class="bb-yellow-box" style="display:inline-block; margin-top:10px; border-radius:20px;">
+            1めもりの大きさは1000。
+          </div>
+          
+          <div style="margin-top:10px; font-weight:bold; font-size:0.95rem;">
+            ・右にいくと、数は大きくなる。
+          </div>
         </div>
+
+        <!-- 右カラム -->
+        <div class="bb-col">
+          <div class="bb-badge" style="margin-bottom:5px;">III</div>
+          <div class="bb-box" style="border:2px solid #81c784;">
+            <i class="fa-solid fa-pen" style="color:#2e7d32;"></i><br>
+            <span style="border-bottom:2px solid #ff9800;">1めもりが表す大きさに注目して数直線を</span><br>使うと数のならび方などがわかりやすくなる。
+          </div>
+          
+          <div class="bb-box" style="margin-top:15px; font-size:0.95rem; line-height:1.6;">
+            千万を10こ集めた数を一億といい、<br>
+            100000000と書く。<br>
+            1億とも書く。
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="section red">
-        <div class="section-badge">練習問題</div>
-        <p class="q-text">□にあてはまる数を書きましょう。</p>
-        
-        <p>①</p>
-        <div class="nl-wrapper"><div id="prac1" class="nl-track"></div></div>
-        
-        <p>②</p>
-        <div class="nl-wrapper"><div id="prac2" class="nl-track"></div></div>
-        
-        <p>③</p>
-        <div class="nl-wrapper"><div id="prac3" class="nl-track"></div></div>
+  </div>
 
-        <div style="text-align: center;">
-            <button class="btn btn-check" onclick="checkAllPractice()">練習問題の答え合わせをする！</button>
-            <div id="prac-fb" class="feedback" style="display:block; margin-top:15px; font-size:18px;"></div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // --- 汎用：文字列を正規化する関数（全角→半角、カンマ・空白削除） ---
-    function normalize(str) {
-        if (!str) return "";
-        let s = str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(c) {
-            return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
-        });
-        s = s.replace(/[\s,，、。]/g, '');
-        return s;
+  <script>
+    // --- 便利関数 ---
+    function toHalfWidth(str) {
+      return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                .replace(/,/g, '')
+                .trim();
+    }
+    
+    // 入力の揺れを吸収する判定関数（複数正解対応）
+    function checkInputVariants(inputId, expectedVariants) {
+      const input = document.getElementById(inputId);
+      if(!input) return true;
+      
+      let val = input.value.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                           .replace(/\s+| +/g, '')
+                           .replace(/,/g, '');
+      
+      const isCorrect = expectedVariants.includes(val);
+      
+      if (isCorrect) {
+        input.classList.remove('error'); input.classList.add('correct');
+      } else {
+        input.classList.remove('correct'); input.classList.add('error');
+      }
+      return isCorrect;
     }
 
-    // --- 数直線描画エンジン（絶対ズレないJS制御） ---
-    function drawLine(trackId, min, max, minorStep, midStep, majorStep, labels) {
-        const track = document.getElementById(trackId);
-        track.innerHTML = '';
-        const range = max - min;
-
-        for (let v = min; v <= max; v += minorStep) {
-            const pct = ((v - min) / range) * 100;
-            
-            // 目盛りの生成
-            const tick = document.createElement('div');
-            tick.className = 'nl-tick';
-            tick.style.left = `${pct}%`;
-            
-            if (v % majorStep === 0) {
-                tick.classList.add('major');
-                // ラベルの生成
-                if (labels[v] !== undefined) {
-                    const lbl = document.createElement('div');
-                    lbl.className = 'nl-label';
-                    lbl.style.left = `${pct}%`;
-                    lbl.innerHTML = labels[v];
-                    track.appendChild(lbl);
-                }
-            } else if (v % midStep === 0) {
-                tick.classList.add('mid');
-            } else {
-                tick.classList.add('minor');
-            }
-            track.appendChild(tick);
-        }
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+      document.querySelectorAll('.section').forEach((sec, idx) => {
+        if (idx + 1 === tabIndex) sec.classList.add('active');
+        else sec.classList.remove('active');
+      });
     }
 
-    // --- 数直線（クリックイベント付き） ---
-    let clickTargets = { 29000: false, 87000: false };
-    function drawClickableLine(trackId, min, max, minorStep, midStep, majorStep, labels) {
-        drawLine(trackId, min, max, minorStep, midStep, majorStep, labels);
-        const track = document.getElementById(trackId);
-        const range = max - min;
-
-        for (let v = min; v <= max; v += minorStep) {
-            const pct = ((v - min) / range) * 100;
-            const hit = document.createElement('div');
-            hit.className = 'nl-hitbox';
-            hit.style.left = `${pct}%`;
-            hit.onclick = () => {
-                const fb = document.getElementById('click-feedback');
-                if (v === 29000 || v === 87000) {
-                    if (!clickTargets[v]) {
-                        clickTargets[v] = true;
-                        // 矢印と文字の生成
-                        const arrow = document.createElement('div');
-                        arrow.className = 'nl-arrow-label';
-                        arrow.style.left = `${pct}%`;
-                        arrow.innerHTML = `<span class="nl-arrow">↓</span>${v}`;
-                        track.appendChild(arrow);
-                        
-                        if (clickTargets[29000] && clickTargets[87000]) {
-                            fb.innerHTML = "🎉 すごい！2つとも見つけられたね！";
-                            fb.style.color = "var(--main-green)";
-                        } else {
-                            fb.innerHTML = `⭕ 正解！ ${v} を見つけたよ。あと1つ！`;
-                            fb.style.color = "var(--main-green)";
-                        }
-                    }
-                } else {
-                    fb.innerHTML = `❌ そこは ${v} だよ。めもりをよく数えてみて！`;
-                    fb.style.color = "var(--accent-red)";
-                }
-            };
-            track.appendChild(hit);
-        }
+    function toggleHint(id) {
+      const hintEl = document.getElementById(id);
+      hintEl.style.display = hintEl.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    // --- 練習問題用の入力ボックス配置エンジン ---
-    function drawPracticeLine(trackId, min, max, minorStep, majorStep, labels, inputs) {
-        // midStepは使わないのでmajorStepと同じにしておく
-        drawLine(trackId, min, max, minorStep, majorStep, majorStep, labels);
-        const track = document.getElementById(trackId);
-        const range = max - min;
-
-        inputs.forEach(inp => {
-            const pct = ((inp.val - min) / range) * 100;
-            const wrap = document.createElement('div');
-            wrap.className = 'nl-input-wrap';
-            wrap.style.left = `${pct}%`;
-            wrap.innerHTML = `
-                <input type="text" id="${inp.id}" class="box-input" placeholder="入力">
-                <div class="down-arrow">↓</div>
-            `;
-            track.appendChild(wrap);
-        });
+    function showResultMsg(elementId, isCorrect) {
+      const el = document.getElementById(elementId);
+      if (isCorrect) {
+        el.innerHTML = '<span style="color:#2b8a3e;">💮 大正解！ばっちりだね！</span>';
+      } else {
+        el.innerHTML = '<span style="color:var(--danger);">惜しい！赤くなっているところを直してみよう。</span>';
+      }
     }
 
-    // --- 正誤判定システム ---
-    function checkAnswer(inputId, correctArr, fbId) {
-        const input = document.getElementById(inputId);
-        const fb = document.getElementById(fbId);
-        const val = normalize(input.value);
-        
-        if (val === "") {
-            fb.innerText = "答えを入力してね。";
-            fb.className = "feedback";
-            return;
-        }
-        if (correctArr.includes(val)) {
-            fb.innerText = "⭕ 正解！";
-            fb.className = "feedback correct";
-            input.style.borderColor = "var(--main-green)";
-            input.style.backgroundColor = "var(--light-green)";
-        } else {
-            fb.innerText = "❌ もういちど考えてみよう！";
-            fb.className = "feedback incorrect";
-            input.style.borderColor = "var(--accent-red)";
-            input.style.backgroundColor = "#fdedec";
-        }
+    // --- 判定ロジック ---
+    function checkTab1() {
+      const ok1 = checkInputVariants('t1-q1', ['1000', '１０００']);
+      const ok2_i = checkInputVariants('t1-q2-i', ['5000', '５０００']);
+      const ok2_u = checkInputVariants('t1-q2-u', ['21000', '２１０００']);
+      const ok2_e = checkInputVariants('t1-q2-e', ['69000', '６９０００']);
+      const ok3_1 = checkInputVariants('t1-q3-1', ['29000', '２９０００']);
+      const ok3_2 = checkInputVariants('t1-q3-2', ['87000', '８７０００']);
+      const ok4 = checkInputVariants('t1-q4', ['41000', '４１０００']);
+      const ok5 = checkInputVariants('t1-q5', ['89000', '８９０００']);
+      
+      const isAllOk = ok1 && ok2_i && ok2_u && ok2_e && ok3_1 && ok3_2 && ok4 && ok5;
+      showResultMsg('result1', isAllOk);
+      if(isAllOk) document.getElementById('hint1').style.display = 'none';
+      else document.getElementById('hint1').style.display = 'flex';
     }
 
-    function checkMulti(inputIds, correctArrs, fbId) {
-        let allCorrect = true;
-        let anyEmpty = false;
-
-        for (let i = 0; i < inputIds.length; i++) {
-            const input = document.getElementById(inputIds[i]);
-            const val = normalize(input.value);
-            if (val === "") anyEmpty = true;
-            
-            // correctArrs[i] can be array or single string. handle array logic:
-            const corrects = Array.isArray(correctArrs[i]) ? correctArrs[i] : [correctArrs[i]];
-
-            if (corrects.includes(val)) {
-                input.style.borderColor = "var(--main-green)";
-                input.style.backgroundColor = "var(--light-green)";
-            } else {
-                input.style.borderColor = "var(--accent-red)";
-                input.style.backgroundColor = "#fdedec";
-                allCorrect = false;
-            }
-        }
-        
-        const fb = document.getElementById(fbId);
-        if (anyEmpty) {
-            fb.innerText = "ぜんぶ入力してね。";
-            fb.className = "feedback";
-        } else if (allCorrect) {
-            fb.innerText = "⭕ ばっちり！すべて正解です。";
-            fb.className = "feedback correct";
-        } else {
-            fb.innerText = "❌ 色が変わったところを直してみよう。";
-            fb.className = "feedback incorrect";
-        }
+    function checkTab2() {
+      const ok6 = checkInputVariants('t2-q6', ['1000万', '1000', '１０００万', '一千万', '1000まん']);
+      const ok7 = checkInputVariants('t2-q7', ['10', '１０']);
+      
+      const isAllOk = ok6 && ok7;
+      showResultMsg('result2', isAllOk);
+      if(isAllOk) document.getElementById('hint2').style.display = 'none';
+      else document.getElementById('hint2').style.display = 'flex';
     }
 
-    function toggleHint(hintId) {
-        const el = document.getElementById(hintId);
-        el.style.display = (el.style.display === "block") ? "none" : "block";
+    function checkTab3() {
+      const ok1 = checkInputVariants('t3-q1', ['10万', '10', '１０万', '十万']);
+      const ok2 = checkInputVariants('t3-q2', ['70万', '70', '７０万', '七十万']);
+      const ok3 = checkInputVariants('t3-q3', ['9200万', '9200', '９２００万', '九千二百万']);
+      const ok4 = checkInputVariants('t3-q4', ['9500万', '9500', '９５００万', '九千五百万']);
+      const ok5 = checkInputVariants('t3-q5', ['9900万', '9900', '９９００万', '九千九百万']);
+      const ok6 = checkInputVariants('t3-q6', ['7400万', '7400', '７４００万', '七千四百万']);
+      const ok7 = checkInputVariants('t3-q7', ['1億', '一億', '１億', '100000000']);
+      
+      const isAllOk = ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7;
+      showResultMsg('result3', isAllOk);
+      if(isAllOk) document.getElementById('hint3').style.display = 'none';
+      else document.getElementById('hint3').style.display = 'flex';
     }
 
-    // --- 練習問題一括判定 ---
-    const pracData = [
-        { id: 'p1_1', ans: ['10万', '十万', '100000'] },
-        { id: 'p1_2', ans: ['70万', '七十万', '700000'] },
-        { id: 'p2_1', ans: ['9200万', '九千二百万', '92000000'] },
-        { id: 'p2_2', ans: ['9500万', '九千五百万', '95000000'] },
-        { id: 'p2_3', ans: ['9900万', '九千九百万', '99000000'] },
-        { id: 'p3_1', ans: ['7400万', '七千四百万', '74000000'] },
-        { id: 'p3_2', ans: ['1億', '一億', '100000000', '10000万', '一千万十こ'] } // 1億の様々な表記を許容
-    ];
-
-    function checkAllPractice() {
-        let allCorrect = true;
-        pracData.forEach(item => {
-            const input = document.getElementById(item.id);
-            const val = normalize(input.value);
-            if (item.ans.includes(val)) {
-                input.style.borderColor = "var(--main-green)";
-                input.style.backgroundColor = "var(--light-green)";
-            } else {
-                input.style.borderColor = "var(--accent-red)";
-                input.style.backgroundColor = "#fdedec";
-                allCorrect = false;
-            }
-        });
-
-        const fb = document.getElementById('prac-fb');
-        if (allCorrect) {
-            fb.innerText = "🎊 全問大正解！！数直線マスターだね！ 🎊";
-            fb.className = "feedback correct";
-        } else {
-            fb.innerText = "❌ 赤くなっているところがあるよ。もう一度見直してみよう！";
-            fb.className = "feedback incorrect";
-        }
-    }
-
-    // --- 初期化描画処理 ---
-    window.onload = () => {
-        // ① ㋐の数直線 (0〜100000)
-        drawLine('track-a', 0, 100000, 1000, 5000, 10000, {
-            0: '0', 10000: '10000', 20000: '20000', 30000: '30000', 
-            40000: '40000', 50000: '50000', 100000: '100000'
-        });
-        
-        // ラベルの追加（イ、ウ、エ）
-        const addSubLabel = (trackId, val, text) => {
-            const track = document.getElementById(trackId);
-            const lbl = document.createElement('div');
-            lbl.className = 'nl-arrow-label';
-            lbl.style.top = '55px'; // 下に配置
-            lbl.style.color = '#333';
-            lbl.style.left = `${(val / 100000) * 100}%`;
-            lbl.innerHTML = `↑<br>${text}`;
-            track.appendChild(lbl);
-        };
-        addSubLabel('track-a', 5000, 'イ');
-        addSubLabel('track-a', 21000, 'ウ');
-        addSubLabel('track-a', 69000, 'エ');
-
-        // ② クリック用数直線
-        drawClickableLine('track-click', 0, 100000, 1000, 5000, 10000, {
-            0: '0', 50000: '50000', 100000: '100000'
-        });
-
-        // ④ ㋑の数直線 (0〜10000万)
-        drawLine('track-i', 0, 10000, 1000, 5000, 10000, {
-            0: '0', 5000: '5000万', 10000: 'キ'
-        });
-
-        // ⑤ 練習問題 ① (0〜100万)
-        drawPracticeLine('prac1', 0, 100, 10, 50, { 0: '0', 50: '50万', 100: '100万' }, [
-            { id: 'p1_1', val: 10 }, { id: 'p1_2', val: 70 }
-        ]);
-
-        // ⑤ 練習問題 ② (9000万〜10000万/1億)
-        drawPracticeLine('prac2', 9000, 10000, 100, 1000, { 9000: '9000万', 10000: '1億' }, [
-            { id: 'p2_1', val: 9200 }, { id: 'p2_2', val: 9500 }, { id: 'p2_3', val: 9900 }
-        ]);
-
-        // ⑤ 練習問題 ③ (6000万〜10000万/1億)
-        drawPracticeLine('prac3', 6000, 10000, 100, 1000, 
-            { 6000: '6000万', 7000: '7000万', 8000: '8000万', 9000: '9000万' }, [
-            { id: 'p3_1', val: 7400 }, { id: 'p3_2', val: 10000 }
-        ]);
-    };
-</script>
-
+  </script>
 </body>
 </html>
+```eof
     
   </body>
   

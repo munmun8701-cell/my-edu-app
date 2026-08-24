@@ -3,83 +3,454 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>ビンゴゲーム</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>ビンゴ</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
 
   </head>
     
   <body>
-  <div class="app-container" id="appContainer">
-  <header>
-    <h1>🌟 わくわくクラスビンゴ 🌟</h1>
-    <div class="header-right">
-      <button id="fullscreenBtn" class="icon-btn" title="全画面切り替え">📺</button>
-      <div class="sound-control">
-        <span id="soundLabel">🔊 ON</span>
-        <label class="switch">
-          <input type="checkbox" id="soundToggle" checked>
-          <span class="slider"></span>
-        </label>
+  <!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBER CLASS BINGO</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #030712;
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.6);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.6);
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: #f8fafc;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-image:
+        linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    .font-cyber {
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* モニター風のスキャンライン */
+    .scanlines::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      z-index: 100;
+      background-size: 100% 4px, 3px 100%;
+      pointer-events: none;
+    }
+
+    .btn-neon {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .btn-neon::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: skewX(-20deg);
+      transition: 0.5s;
+    }
+
+    .btn-neon:hover::after {
+      left: 150%;
+    }
+
+    .particle {
+      position: fixed;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: bold;
+      pointer-events: none;
+      z-index: 9999;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<!-- 画面全体を固定しスクロールを禁止 (h-screen overflow-hidden) -->
+
+<body class="h-screen w-full overflow-hidden scanlines flex flex-col items-center">
+
+  <!-- ヘッダー (shrink-0で高さを固定) -->
+  <header class="w-full max-w-6xl p-4 md:p-6 flex justify-between items-center border-b border-cyan-900/50 bg-[#030712]/80 backdrop-blur-md shrink-0 z-50">
+    <div class="flex items-center gap-3">
+      <i data-lucide="cpu" class="w-6 h-6 md:w-8 md:h-8 text-cyan-400 drop-shadow-[0_0_8px_var(--cyan-glow)]"></i>
+      <div>
+        <h1 class="text-xl md:text-2xl font-black tracking-widest text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">CYBER CLASS BINGO</h1>
+        <p class="text-[10px] md:text-xs font-cyber text-cyan-500 tracking-[0.3em]">v2.0 // ADVANCED SYSTEM</p>
+      </div>
+    </div>
+    <div class="flex gap-4 items-center">
+      <button onclick="goHome()" class="text-sm font-bold text-slate-400 hover:text-cyan-400 transition-colors hidden" id="home-btn">
+        <i data-lucide="home" class="w-5 h-5 md:w-6 md:h-6"></i>
+      </button>
+      <div class="flex items-center gap-2 border border-slate-700 rounded-full px-2 py-1 md:px-3 bg-slate-900/50">
+        <i data-lucide="volume-2" class="w-3 h-3 md:w-4 md:h-4 text-slate-400"></i>
+        <div class="w-6 h-3 md:w-8 md:h-4 bg-cyan-900 rounded-full relative shadow-inner cursor-pointer">
+          <div class="absolute right-0.5 top-0.5 w-2 h-2 md:w-3 md:h-3 bg-cyan-400 rounded-full shadow-[0_0_5px_#22d3ee]"></div>
+        </div>
       </div>
     </div>
   </header>
 
-  <main>
-    <div id="modeSelection" class="view-section active">
-      <h2>どちらの画面をひらきますか？</h2>
-      <div class="mode-buttons">
-        <button id="btnTeacherMode" class="mode-btn teacher-btn">
-          👩‍🏫 先生モード<br><small>（数字を回す・テレビに映す用）</small>
+  <!-- メインエリア (flex-1 で残りの高さをすべて使い切る) -->
+  <main class="w-full max-w-6xl flex-1 flex flex-col min-h-0 relative px-4 pb-4 pt-2 md:pt-4">
+
+    <!-- ==================== 画面1：モード選択 ==================== -->
+    <div id="screen-home" class="w-full h-full flex flex-col items-center justify-center animate-[fadeIn_0.5s_ease-out]">
+      <h2 class="text-xl md:text-3xl font-bold mb-8 md:mb-12 text-slate-300">起動するターミナルを選択してください</h2>
+
+      <div class="grid md:grid-cols-2 gap-6 md:gap-8 w-full max-w-3xl">
+        <button onclick="showScreen('master')" class="btn-neon group relative bg-[#0a1128] border-2 border-cyan-500/50 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center gap-4 hover:border-cyan-400 hover:shadow-[0_0_30px_var(--cyan-glow)] hover:-translate-y-2 transition-all">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent"></div>
+          <i data-lucide="monitor-play" class="w-16 h-16 md:w-20 md:h-20 text-cyan-400 group-hover:drop-shadow-[0_0_15px_#22d3ee] transition-all"></i>
+          <div class="text-center relative z-10">
+            <h3 class="text-xl md:text-2xl font-black text-white tracking-widest mb-2">MASTER MODE</h3>
+            <p class="text-cyan-300 font-bold text-sm md:text-base">先生モード</p>
+            <p class="text-[10px] md:text-xs text-slate-400 mt-2">（数字を回す・メインスクリーン用）</p>
+          </div>
         </button>
-        <button id="btnStudentMode" class="mode-btn student-btn">
-          👦👧 子どもモード<br><small>（ビンゴカードであそぶ用）</small>
+
+        <button onclick="showScreen('player')" class="btn-neon group relative bg-[#1c0a14] border-2 border-rose-500/50 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center gap-4 hover:border-rose-400 hover:shadow-[0_0_30px_var(--rose-glow)] hover:-translate-y-2 transition-all">
+          <div class="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent"></div>
+          <i data-lucide="gamepad-2" class="w-16 h-16 md:w-20 md:h-20 text-rose-400 group-hover:drop-shadow-[0_0_15px_#fb7185] transition-all"></i>
+          <div class="text-center relative z-10">
+            <h3 class="text-xl md:text-2xl font-black text-white tracking-widest mb-2">PLAYER MODE</h3>
+            <p class="text-rose-300 font-bold text-sm md:text-base">子どもモード</p>
+            <p class="text-[10px] md:text-xs text-slate-400 mt-2">（ビンゴカードであそぶ用）</p>
+          </div>
         </button>
       </div>
     </div>
 
-    <div id="teacherView" class="view-section">
-      <div class="teacher-layout">
-        <div class="draw-area">
-          <div class="drawn-number-box">
-            <span class="sparkle">✨</span>
-            <div id="currentNumber" class="current-number">?</div>
-            <span class="sparkle">✨</span>
-          </div>
-          <button id="drawBtn" class="spin-btn">数字を引く！</button>
-          <div id="drawResultText" class="result">スタートを押してね！</div>
-          <button id="resetTeacherBtn" class="danger-btn" style="margin-top: 30px;">⚠️ 最初からやり直す（リセット）</button>
+    <!-- ==================== 画面2：先生モード ==================== -->
+    <div id="screen-master" class="hidden w-full h-full flex flex-col lg:flex-row gap-4 animate-[fadeIn_0.5s_ease-out]">
+      <!-- 左側：ルーレット -->
+      <div class="lg:w-80 flex flex-col items-center justify-center bg-[#0a1128] border border-cyan-800/60 rounded-3xl p-6 shadow-[0_0_20px_rgba(0,0,0,0.5)] shrink-0">
+        <div class="text-cyan-500 font-cyber tracking-widest text-sm mb-4">RANDOM NUMBER</div>
+        <div class="relative w-40 h-40 md:w-48 md:h-48 rounded-full border-4 border-cyan-900 flex items-center justify-center mb-6 bg-[#030712] shadow-[inset_0_0_20px_rgba(6,182,212,0.2)]">
+          <div id="roulette-ring" class="absolute inset-0 rounded-full border-4 border-cyan-400/0 transition-all duration-300"></div>
+          <span id="roulette-display" class="text-6xl md:text-7xl font-cyber font-bold text-cyan-400 drop-shadow-[0_0_15px_#22d3ee]">?</span>
         </div>
-        
-        <div class="board-area">
-          <h3>出た数字ボード（1〜99）</h3>
-          <div id="numberBoard" class="number-board"></div>
+        <button onclick="drawNumber()" id="draw-btn" class="btn-neon w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xl rounded-xl shadow-[0_0_15px_var(--cyan-glow)] tracking-wider">
+          数字を引く！
+        </button>
+        <button onclick="resetMaster()" class="mt-4 text-xs text-slate-500 hover:text-rose-400 font-bold flex items-center gap-2 transition-colors">
+          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> 最初からやり直す
+        </button>
+      </div>
+
+      <!-- 右側：出た数字ボード -->
+      <div class="flex-1 flex flex-col bg-[#080d1a] border border-slate-800 rounded-3xl p-4 md:p-6 min-h-0">
+        <h3 class="text-base md:text-lg font-bold text-cyan-100 mb-2 md:mb-4 shrink-0 flex items-center gap-2">
+          <i data-lucide="layout-grid" class="text-cyan-500 w-4 h-4 md:w-5 md:h-5"></i>
+          出た数字ボード <span class="font-cyber text-cyan-600 ml-2">( 1 - 99 )</span>
+        </h3>
+
+        <!-- flex-1 と min-h-0、そしてgrid-rows-10で1画面に高さを合わせる -->
+        <div id="master-board" class="grid grid-cols-10 grid-rows-10 gap-1 flex-1 min-h-0">
+          <!-- JSで生成 -->
         </div>
       </div>
-      <button class="back-btn" onclick="location.reload()">◀ 最初の画面にもどる</button>
     </div>
 
-    <div id="studentView" class="view-section">
-      <div class="student-controls">
-        <button id="generateCardBtn" class="update-btn">新しいカードを作る</button>
-        <button id="bingoBtn" class="bingo-btn" disabled>BINGO!! 🎉</button>
+    <!-- ==================== 画面3：子どもモード ==================== -->
+    <!-- h-full, flex-col で1画面に収める -->
+    <div id="screen-player" class="hidden w-full max-w-2xl mx-auto h-full flex flex-col animate-[fadeIn_0.5s_ease-out]">
+
+      <!-- ボタンエリア (高さを固定) -->
+      <div class="flex justify-between items-center mb-3 shrink-0">
+        <button onclick="initPlayerCard()" class="px-3 py-2 md:px-4 md:py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-600 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition-colors">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i> 新しいカード
+        </button>
+
+        <button id="bingo-btn" class="px-6 py-2 md:px-8 md:py-3 bg-slate-800 text-slate-500 border-2 border-slate-700 rounded-xl font-black text-xl md:text-2xl font-cyber tracking-widest opacity-50 cursor-not-allowed transition-all duration-300">
+          BINGO !!
+        </button>
       </div>
-      
-      <div class="bingo-card-wrapper">
-        <div class="bingo-card">
-          <div class="bingo-header">
-            <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-          </div>
-          <div id="bingoGrid" class="bingo-grid">
-            </div>
+
+      <!-- ビンゴカードコンテナ (残りの高さをすべて使う flex-1) -->
+      <div class="bg-[#0f0814] border border-rose-900/50 rounded-2xl p-3 md:p-6 shadow-[0_0_30px_rgba(244,63,94,0.1)] flex-1 flex flex-col min-h-0">
+
+        <!-- ヘッダー行 (B I N G O) -->
+        <div class="grid grid-cols-5 gap-2 mb-2 shrink-0">
+          <div class="text-center font-black text-rose-500 text-2xl md:text-3xl font-cyber drop-shadow-[0_0_8px_var(--rose-glow)]">B</div>
+          <div class="text-center font-black text-rose-500 text-2xl md:text-3xl font-cyber drop-shadow-[0_0_8px_var(--rose-glow)]">I</div>
+          <div class="text-center font-black text-rose-500 text-2xl md:text-3xl font-cyber drop-shadow-[0_0_8px_var(--rose-glow)]">N</div>
+          <div class="text-center font-black text-rose-500 text-2xl md:text-3xl font-cyber drop-shadow-[0_0_8px_var(--rose-glow)]">G</div>
+          <div class="text-center font-black text-rose-500 text-2xl md:text-3xl font-cyber drop-shadow-[0_0_8px_var(--rose-glow)]">O</div>
+        </div>
+
+        <!-- セルグリッド 5x5 (高さを均等に割る grid-rows-5) -->
+        <div id="player-grid" class="grid grid-cols-5 grid-rows-5 gap-2 flex-1 min-h-0">
+          <!-- JSで生成 (w-full h-full を適用) -->
         </div>
       </div>
-      
-      <button class="back-btn" onclick="location.reload()" style="margin-top:20px;">◀ 最初の画面にもどる</button>
+
+      <p class="text-center text-slate-500 text-[10px] md:text-xs mt-3 shrink-0">数字をタップするとマークできます</p>
     </div>
+
   </main>
-</div>
-    <script  src="./script.js"></script>
 
+  <script>
+    lucide.createIcons();
+    // 画面切り替え
+    function showScreen(screenId) {
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-master').classList.add('hidden');
+      document.getElementById('screen-player').classList.add('hidden');
+      document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+      document.getElementById(`screen-${screenId}`).classList.add('flex');
+      const homeBtn = document.getElementById('home-btn');
+      if (screenId === 'home') {
+        homeBtn.classList.add('hidden');
+      } else {
+        homeBtn.classList.remove('hidden');
+        if (screenId === 'master') initMaster();
+        if (screenId === 'player') initPlayerCard();
+      }
+    }
+
+    function goHome() {
+      if (confirm('トップ画面に戻りますか？')) {
+        showScreen('home');
+      }
+    }
+    // ==================== マスターモード（先生） ====================
+    let drawnNumbers = [];
+    let isSpinning = false;
+    const MAX_NUM = 99;
+
+    function initMaster() {
+      const board = document.getElementById('master-board');
+      board.innerHTML = '';
+      drawnNumbers = [];
+      document.getElementById('roulette-display').textContent = '?';
+      document.getElementById('roulette-ring').classList.remove('border-cyan-400', 'shadow-[0_0_20px_#22d3ee]');
+      for (let i = 1; i <= MAX_NUM; i++) {
+        const cell = document.createElement('div');
+        cell.id = `board-${i}`;
+        // セルの高さを親に合わせる (w-full h-full)
+        cell.className = 'w-full h-full flex items-center justify-center rounded border border-slate-800 bg-slate-900/30 text-slate-600 font-cyber text-xs md:text-base transition-all duration-500 select-none';
+        cell.textContent = i;
+        board.appendChild(cell);
+      }
+    }
+
+    function resetMaster() {
+      if (confirm('出た数字の記録をすべてリセットしますか？')) {
+        initMaster();
+      }
+    }
+
+    function drawNumber() {
+      if (isSpinning) return;
+      if (drawnNumbers.length >= MAX_NUM) {
+        alert('すべての数字が出ました！');
+        return;
+      }
+      isSpinning = true;
+      const display = document.getElementById('roulette-display');
+      const ring = document.getElementById('roulette-ring');
+      const drawBtn = document.getElementById('draw-btn');
+      drawBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      ring.classList.remove('border-cyan-400', 'shadow-[0_0_20px_#22d3ee]');
+      let counter = 0;
+      const spinInterval = setInterval(() => {
+        display.textContent = Math.floor(Math.random() * MAX_NUM) + 1;
+        counter++;
+        if (counter > 20) {
+          clearInterval(spinInterval);
+          finalizeDraw();
+        }
+      }, 50);
+
+      function finalizeDraw() {
+        let newNum;
+        do {
+          newNum = Math.floor(Math.random() * MAX_NUM) + 1;
+        } while (drawnNumbers.includes(newNum));
+        drawnNumbers.push(newNum);
+        display.textContent = newNum;
+        ring.classList.add('border-cyan-400', 'shadow-[0_0_20px_#22d3ee]');
+        const boardCell = document.getElementById(`board-${newNum}`);
+        boardCell.classList.remove('border-slate-800', 'bg-slate-900/30', 'text-slate-600');
+        boardCell.classList.add('border-cyan-400', 'bg-cyan-500/20', 'text-cyan-300', 'shadow-[0_0_10px_#22d3ee]', 'scale-110');
+        setTimeout(() => {
+          boardCell.classList.remove('scale-110');
+        }, 300);
+        isSpinning = false;
+        drawBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+    // ==================== プレイヤーモード（子ども） ====================
+    let cardStatus = [];
+    let hasBingo = false;
+
+    function initPlayerCard() {
+      hasBingo = false;
+      cardStatus = Array(5).fill().map(() => Array(5).fill(false));
+      cardStatus[2][2] = true;
+      const grid = document.getElementById('player-grid');
+      grid.innerHTML = '';
+      updateBingoButton();
+      const getColNumbers = (min, max, count) => {
+        let arr = [];
+        for (let i = min; i <= max; i++) arr.push(i);
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr.slice(0, count);
+      };
+      const nums = {
+        0: getColNumbers(1, 20, 5), // B
+        1: getColNumbers(21, 40, 5), // I
+        2: getColNumbers(41, 60, 5), // N
+        3: getColNumbers(61, 80, 5), // G
+        4: getColNumbers(81, 99, 5) // O
+      };
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const cell = document.createElement('div');
+          cell.id = `cell-${row}-${col}`;
+          let val = nums[col][row];
+          let isFree = (row === 2 && col === 2);
+          // aspect-squareをやめ、w-full h-full で親の高さに追従させる
+          cell.className = 'w-full h-full flex items-center justify-center rounded-xl border-2 cursor-pointer font-cyber text-xl md:text-4xl font-bold transition-all duration-300 select-none relative overflow-hidden';
+          if (isFree) {
+            cell.textContent = 'FREE';
+            cell.classList.add('text-base', 'md:text-xl', 'border-rose-400', 'bg-rose-500/20', 'text-rose-300', 'shadow-[0_0_15px_#fb7185]');
+          } else {
+            cell.textContent = val;
+            cell.classList.add('border-slate-800', 'bg-slate-900/60', 'text-slate-300', 'hover:border-slate-600');
+            cell.onclick = () => toggleCell(row, col);
+          }
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function toggleCell(row, col) {
+      if (hasBingo) return;
+      cardStatus[row][col] = !cardStatus[row][col];
+      const cell = document.getElementById(`cell-${row}-${col}`);
+      if (cardStatus[row][col]) {
+        cell.classList.remove('border-slate-800', 'bg-slate-900/60', 'text-slate-300');
+        cell.classList.add('border-rose-400', 'bg-rose-500/20', 'text-rose-300', 'shadow-[0_0_15px_#fb7185]', 'scale-95');
+        setTimeout(() => cell.classList.remove('scale-95'), 150);
+      } else {
+        cell.classList.add('border-slate-800', 'bg-slate-900/60', 'text-slate-300');
+        cell.classList.remove('border-rose-400', 'bg-rose-500/20', 'text-rose-300', 'shadow-[0_0_15px_#fb7185]');
+      }
+      checkBingo();
+    }
+
+    function checkBingo() {
+      let bingoFound = false;
+      for (let i = 0; i < 5; i++) {
+        if (cardStatus[i].every(val => val)) bingoFound = true;
+      }
+      for (let col = 0; col < 5; col++) {
+        let colBingo = true;
+        for (let row = 0; row < 5; row++) {
+          if (!cardStatus[row][col]) colBingo = false;
+        }
+        if (colBingo) bingoFound = true;
+      }
+      if (cardStatus[0][0] && cardStatus[1][1] && cardStatus[2][2] && cardStatus[3][3] && cardStatus[4][4]) bingoFound = true;
+      if (cardStatus[0][4] && cardStatus[1][3] && cardStatus[2][2] && cardStatus[3][1] && cardStatus[4][0]) bingoFound = true;
+      hasBingo = bingoFound;
+      updateBingoButton();
+    }
+
+    function updateBingoButton() {
+      const btn = document.getElementById('bingo-btn');
+      if (hasBingo) {
+        btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-800', 'text-slate-500', 'border-slate-700');
+        btn.classList.add('bg-rose-600', 'text-white', 'border-rose-400', 'shadow-[0_0_25px_var(--rose-glow)]', 'animate-pulse');
+        btn.onclick = fireBingoEffect;
+      } else {
+        btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-800', 'text-slate-500', 'border-slate-700');
+        btn.classList.remove('bg-rose-600', 'text-white', 'border-rose-400', 'shadow-[0_0_25px_var(--rose-glow)]', 'animate-pulse');
+        btn.onclick = null;
+      }
+    }
+
+    function fireBingoEffect() {
+      const chars = ['0', '1', 'B', 'I', 'N', 'G', 'O', '!', '★'];
+      const colors = ['#06b6d4', '#f43f5e', '#eab308', '#a855f7'];
+      for (let i = 0; i < 80; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.textContent = chars[Math.floor(Math.random() * chars.length)];
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+        p.style.textShadow = `0 0 10px ${p.style.color}`;
+        p.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 4000);
+      }
+      const btn = document.getElementById('bingo-btn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = 'HACKED!!';
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+      }, 2000);
+    }
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
   </body>
   
 </html>
