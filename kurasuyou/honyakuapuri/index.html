@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CYBER-TRANSLATOR (Universal Edition)</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-color: #050508;
+      --surface: #121218;
+      --surface-glass: rgba(18, 18, 24, 0.8);
+      --text-main: #e0e0ff;
+      --text-sub: #7a7a9e;
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff00ea;
+      --neon-green: #39ff14;
+      --neon-yellow: #fdf500;
+      
+      --font-ui: 'M PLUS Rounded 1c', sans-serif;
+      --font-cyber: 'Orbitron', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: var(--font-ui); 
+      background-color: var(--bg-color); 
+      color: var(--text-main);
+      height: 100vh; height: 100dvh; 
+      display: flex; flex-direction: column; overflow: hidden;
+      background-image: 
+        linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* ふりがな（ルビ）のスタイル調整 */
+    rt {
+      font-size: 0.6em;
+      color: inherit;
+      opacity: 0.85;
+      font-family: var(--font-ui);
+      letter-spacing: 0;
+    }
+
+    #cyberToast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.8); border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan); padding: 10px 20px; border-radius: 5px;
+      font-family: var(--font-ui); font-size: 0.95rem; font-weight: bold;
+      box-shadow: 0 0 10px var(--neon-cyan); z-index: 9999;
+      opacity: 0; pointer-events: none; transition: 0.3s;
+    }
+    #cyberToast.show { opacity: 1; top: 40px; }
+
+    .app-container {
+      width: 100%; max-width: 1000px; height: 100vh; margin: 0 auto;
+      display: flex; flex-direction: column; position: relative;
+    }
+    @media (min-width: 769px) { 
+      .app-container { 
+        height: 95vh; margin-top: 2.5vh; border-radius: 10px; 
+        border: 1px solid rgba(0, 243, 255, 0.3);
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+        background: rgba(10, 10, 15, 0.95);
+      } 
+    }
+
+    .cyber-header {
+      background: var(--surface-glass); backdrop-filter: blur(10px);
+      padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 2px solid var(--neon-cyan); z-index: 50;
+      box-shadow: 0 4px 15px rgba(0, 243, 255, 0.1);
+    }
+    
+    .lang-selector-group { display: flex; align-items: center; gap: 15px; flex: 1; justify-content: flex-start; }
+    
+    .lang-select {
+      background: #000; color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+      padding: 8px 15px; border-radius: 5px; font-family: var(--font-ui); font-weight: 900;
+      font-size: 1.05rem; cursor: pointer; outline: none; box-shadow: inset 0 0 5px var(--neon-cyan);
+      appearance: none; text-align: center; width: 150px;
+    }
+    .lang-select:focus { box-shadow: 0 0 10px var(--neon-cyan), inset 0 0 10px var(--neon-cyan); }
+    .lang-select.pink { color: var(--neon-pink); border-color: var(--neon-pink); box-shadow: inset 0 0 5px var(--neon-pink); }
+    .lang-select.pink:focus { box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px var(--neon-pink); }
+
+    .swap-btn {
+      background: transparent; border: none; color: var(--text-main); font-size: 1.5rem;
+      cursor: pointer; transition: 0.3s; text-shadow: 0 0 5px #fff;
+    }
+    .swap-btn:hover { transform: rotate(180deg); color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+
+    .header-tools { display: flex; align-items: center; gap: 15px; }
+    .header-tools button { background: none; border: none; font-size: 1.2rem; color: var(--text-sub); cursor: pointer; transition: 0.2s; }
+    .header-tools button:hover { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+    
+    .voice-toggle {
+      display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); font-size: 0.85rem; font-weight: bold;
+      color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 4px 10px; border-radius: 20px;
+      cursor: pointer; box-shadow: inset 0 0 5px rgba(0,243,255,0.3); transition: 0.3s;
+    }
+    .voice-toggle.off { color: var(--text-sub); border-color: var(--text-sub); box-shadow: none; }
+    .voice-toggle i { font-size: 1rem; }
+
+    .quick-phrases {
+      display: flex; gap: 10px; padding: 12px 15px; overflow-x: auto; background: var(--surface);
+      border-bottom: 1px solid #222; white-space: nowrap; flex-shrink: 0;
+    }
+    .quick-phrases::-webkit-scrollbar { height: 2px; }
+    .quick-phrases::-webkit-scrollbar-thumb { background: var(--neon-cyan); }
+    .phrase-btn {
+      background: transparent; border: 1px solid var(--text-sub); padding: 6px 15px; border-radius: 4px;
+      font-size: 0.9rem; font-weight: bold; color: var(--text-main); cursor: pointer; transition: 0.2s;
+    }
+    .phrase-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 8px rgba(0,243,255,0.3); }
+
+    .chat-area {
+      flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+      scroll-behavior: smooth; position: relative;
+    }
+    
+    .chat-bubble {
+      max-width: 85%; padding: 15px 20px; border-radius: 8px; position: relative;
+      animation: cyberSlideIn 0.3s ease-out forwards;
+      background: rgba(18, 18, 24, 0.9); border: 1px solid;
+    }
+    @keyframes cyberSlideIn { 0% { opacity: 0; transform: translateX(20px) skewX(-10deg); } 100% { opacity: 1; transform: translateX(0) skewX(0); } }
+
+    .bubble-langA { align-self: flex-start; border-color: var(--neon-cyan); border-left: 4px solid var(--neon-cyan); box-shadow: -5px 0 15px rgba(0,243,255,0.1); }
+    .bubble-langB { align-self: flex-end; border-color: var(--neon-pink); border-right: 4px solid var(--neon-pink); box-shadow: 5px 0 15px rgba(255,0,234,0.1); text-align: right; }
+
+    .original-text { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 5px; font-family: var(--font-cyber); letter-spacing: 1px;}
+    .translated-text { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #fff; min-height: 24px;}
+    
+    .timestamp { font-size: 0.65rem; color: #555; position: absolute; bottom: -18px; font-family: var(--font-cyber); }
+    .bubble-langA .timestamp { left: 0; }
+    .bubble-langB .timestamp { right: 0; }
+
+    .bubble-actions { 
+      position: absolute; top: -12px; display: flex; gap: 5px; background: #000; 
+      padding: 2px 8px; border-radius: 4px; border: 1px solid #333; opacity: 0; transition: 0.2s; 
+    }
+    .chat-bubble:hover .bubble-actions { opacity: 1; }
+    .bubble-langA .bubble-actions { right: 10px; border-color: var(--neon-cyan); }
+    .bubble-langB .bubble-actions { left: 10px; border-color: var(--neon-pink); }
+    
+    .bubble-actions button { background: none; border: none; font-size: 0.9rem; cursor: pointer; color: var(--text-main); padding: 4px; transition: 0.2s; }
+    .bubble-actions button:hover { color: var(--neon-yellow); text-shadow: 0 0 5px var(--neon-yellow); }
+
+    .input-area { padding: 10px 20px; background: var(--surface); border-top: 1px solid #333; display: flex; gap: 10px; align-items: center; }
+    .tools-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-sub); cursor: pointer; transition: 0.2s; }
+    .tools-btn:hover { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
+    .text-input-wrap { flex: 1; position: relative; }
+    .text-input {
+      width: 100%; padding: 12px 20px; border: 1px solid #444; border-radius: 4px;
+      font-size: 1rem; font-family: inherit; background: #000; color: var(--neon-cyan);
+    }
+    .text-input:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0,243,255,0.2); }
+    .send-btn {
+      background: transparent; color: var(--neon-cyan); border: 1px solid var(--neon-cyan); border-radius: 4px;
+      width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; transition: 0.2s;
+    }
+    .send-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px var(--neon-cyan); }
+
+    .controls { padding: 15px 20px 25px; background: var(--bg-color); display: flex; gap: 20px; border-top: 1px solid #222;}
+    .mic-btn {
+      flex: 1; height: 100px; border-radius: 8px; border: 2px solid transparent; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      transition: 0.2s; background: rgba(0,0,0,0.5); position: relative; overflow: hidden;
+    }
+    .mic-btn i { font-size: 2.2rem; margin-bottom: 8px; transition: 0.2s;}
+    .mic-btn span { font-size: 1.1rem; font-weight: 900; font-family: var(--font-ui); }
+    
+    .btn-langA { color: var(--neon-cyan); border-color: var(--neon-cyan); box-shadow: inset 0 0 15px rgba(0,243,255,0.1); }
+    .btn-langA:active { background: rgba(0,243,255,0.2); }
+    .btn-langB { color: var(--neon-pink); border-color: var(--neon-pink); box-shadow: inset 0 0 15px rgba(255,0,234,0.1); }
+    .btn-langB:active { background: rgba(255,0,234,0.2); }
+
+    .recording { color: #000 !important; }
+    .recording.btn-langA { background: var(--neon-cyan); box-shadow: 0 0 30px var(--neon-cyan); animation: cyberPulseA 1s infinite; }
+    .recording.btn-langB { background: var(--neon-pink); box-shadow: 0 0 30px var(--neon-pink); animation: cyberPulseB 1s infinite; }
+    @keyframes cyberPulseA { 0% { box-shadow: 0 0 10px var(--neon-cyan); } 50% { box-shadow: 0 0 40px var(--neon-cyan); } 100% { box-shadow: 0 0 10px var(--neon-cyan); } }
+    @keyframes cyberPulseB { 0% { box-shadow: 0 0 10px var(--neon-pink); } 50% { box-shadow: 0 0 40px var(--neon-pink); } 100% { box-shadow: 0 0 10px var(--neon-pink); } }
+
+    #memoryBank { display: none; position: absolute; top: 70px; right: 20px; width: 320px; background: rgba(0,0,0,0.95); border: 1px solid var(--neon-yellow); border-radius: 4px; padding: 15px; z-index: 100; box-shadow: 0 0 20px rgba(253,245,0,0.2); max-height: 400px; overflow-y: auto;}
+    .memory-item { border-bottom: 1px solid #333; padding: 10px 0; font-size: 0.95rem; font-weight: bold; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200; }
+    .modal-content { background: #111; border: 1px solid var(--neon-green); padding: 30px; text-align: center; border-radius: 8px; box-shadow: 0 0 30px rgba(57,255,20,0.2); }
+    #qrImage { margin: 20px auto; width: 200px; height: 200px; background: white; padding: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="cyberToast"><ruby>保存<rt>ほぞん</rt></ruby>しました</div>
+
+  <div class="app-container">
+    <div class="cyber-header">
+      <div class="lang-selector-group">
+        <!-- 日本の学校で割合の多い国の言語を網羅 -->
+        <select id="selectLangA" class="lang-select" onchange="updateUI()">
+          <option value="ja" data-short="にほんご" selected>にほんご (JP)</option>
+          <option value="en" data-short="English">English (US)</option>
+          <option value="zh-CN" data-short="中文">中文 (CN)</option>
+          <option value="ko" data-short="한국어">한국어 (KR)</option>
+          <option value="vi" data-short="Tiếng Việt">Tiếng Việt (VN)</option>
+          <option value="pt" data-short="Português">Português (BR)</option>
+          <option value="tl" data-short="Tagalog">Tagalog (PH)</option>
+          <option value="it" data-short="Italiano">Italiano (IT)</option>
+          <option value="mn" data-short="Монгол">Монгол (MN)</option>
+        </select>
+        
+        <button class="swap-btn" onclick="swapLanguages()"><i class="fas fa-exchange-alt"></i></button>
+        
+        <select id="selectLangB" class="lang-select pink" onchange="updateUI()">
+          <option value="ja" data-short="にほんご">にほんご (JP)</option>
+          <option value="en" data-short="English">English (US)</option>
+          <option value="zh-CN" data-short="中文">中文 (CN)</option>
+          <option value="ko" data-short="한국어">한국어 (KR)</option>
+          <option value="vi" data-short="Tiếng Việt">Tiếng Việt (VN)</option>
+          <option value="pt" data-short="Português">Português (BR)</option>
+          <option value="tl" data-short="Tagalog">Tagalog (PH)</option>
+          <option value="it" data-short="Italiano">Italiano (IT)</option>
+          <option value="mn" data-short="Монгол" selected>Монгол (MN)</option>
+        </select>
+      </div>
+      
+      <div class="header-tools">
+        <div id="voiceToggle" class="voice-toggle" onclick="toggleAutoVoice()">
+          <i class="fas fa-volume-up"></i> <ruby>自動音声<rt>じどうおんせい</rt></ruby>
+        </div>
+        <button onclick="toggleMemoryBank()" title="ほぞんしたことば"><i class="fas fa-database"></i></button>
+        <button onclick="copyAllChat()" title="ぜんぶコピー"><i class="fas fa-copy"></i></button>
+      </div>
+    </div>
+
+    <div id="memoryBank">
+      <h3 style="color:var(--neon-yellow); margin-bottom:10px; font-family:var(--font-ui);"><i class="fas fa-star"></i> <ruby>保存<rt>ほぞん</rt></ruby>したことば</h3>
+      <div id="memoryList"></div>
+    </div>
+
+    <div class="quick-phrases">
+      <button class="phrase-btn" onclick="sendQuick('こんにちは')">こんにちは</button>
+      <button class="phrase-btn" onclick="sendQuick('ありがとう')">ありがとう</button>
+      <button class="phrase-btn" onclick="sendQuick('いっしょに あそぼう')">あそぼう</button>
+      <button class="phrase-btn" onclick="sendQuick('流山の天気はどうですか？')"><ruby>流山<rt>ながれやま</rt></ruby>の<ruby>天気<rt>てんき</rt></ruby></button>
+      <button class="phrase-btn" onclick="sendQuick('Hello')">Hello</button>
+      <button class="phrase-btn" onclick="sendQuick('你好')">你好</button>
+      <button class="phrase-btn" onclick="sendQuick('Сайн байна уу')">Сайн байна уу</button>
+    </div>
+
+    <div class="chat-area" id="chatArea"></div>
+
+    <div class="input-area">
+      <button class="tools-btn" onclick="document.getElementById('imageInput').click()" title="がぞうをおくる"><i class="fas fa-crosshairs"></i></button>
+      <input type="file" id="imageInput" accept="image/*" style="display: none;">
+      <div class="text-input-wrap">
+        <input type="text" id="textInput" class="text-input" placeholder="もじをいれてね...">
+      </div>
+      <button class="send-btn" id="btnSendText"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <div class="controls">
+      <button class="mic-btn btn-langA" id="btnMicA">
+        <i class="fas fa-microphone"></i>
+        <span id="labelMicA">にほんご</span>
+      </button>
+      <button class="mic-btn btn-langB" id="btnMicB">
+        <i class="fas fa-microphone"></i>
+        <span id="labelMicB">Монгол</span>
+      </button>
+    </div>
+
+    <div class="modal-overlay" id="qrModal" onclick="this.style.display='none'">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="color:var(--neon-green); font-family:var(--font-ui);">QRコード</h2>
+        <img id="qrImage" src="" alt="QR">
+        <p style="margin-top:10px; font-size:1rem; font-weight:bold;">このQRコードをカメラで<ruby>読<rt>よ</rt></ruby>み<ruby>取<rt>と</rt></ruby>れます</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let currentMode = ''; 
+    let memories = [];
+    let autoVoiceEnabled = true; 
+    let ttsUnlocked = false; 
+    let currentUtterance = null; 
+
+    const selectA = document.getElementById('selectLangA');
+    const selectB = document.getElementById('selectLangB');
+    const labelMicA = document.getElementById('labelMicA');
+    const labelMicB = document.getElementById('labelMicB');
+    const chatArea = document.getElementById('chatArea');
+
+    const actx = new (window.AudioContext || window.webkitAudioContext)();
+    function playCyberSound(type) {
+      if(actx.state === 'suspended') actx.resume();
+      const osc = actx.createOscillator(); const gain = actx.createGain();
+      osc.connect(gain); gain.connect(actx.destination);
+      if(type === 'send') { osc.type = 'square'; osc.frequency.setValueAtTime(400, actx.currentTime); osc.frequency.exponentialRampToValueAtTime(800, actx.currentTime + 0.1); }
+      if(type === 'receive') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, actx.currentTime); osc.frequency.exponentialRampToValueAtTime(400, actx.currentTime + 0.1); }
+      if(type === 'copy') { osc.type = 'sine'; osc.frequency.setValueAtTime(1200, actx.currentTime); osc.frequency.setValueAtTime(1800, actx.currentTime + 0.05); }
+      gain.gain.setValueAtTime(0.05, actx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.1);
+      osc.start(); osc.stop(actx.currentTime + 0.1);
+    }
+
+    function unlockAudio() {
+      if(ttsUnlocked) return;
+      const silentUtterance = new SpeechSynthesisUtterance(' ');
+      window.speechSynthesis.speak(silentUtterance);
+      if(actx.state === 'suspended') actx.resume();
+      ttsUnlocked = true;
+    }
+    document.body.addEventListener('click', unlockAudio, { once: true });
+    document.body.addEventListener('touchstart', unlockAudio, { once: true });
+
+    function getBCP47(lang) {
+      const map = {
+        'ja': 'ja-JP', 'en': 'en-US', 'zh-CN': 'zh-CN', 'ko': 'ko-KR',
+        'vi': 'vi-VN', 'pt': 'pt-BR', 'tl': 'fil-PH', 'it': 'it-IT', 'mn': 'mn-MN'
+      };
+      return map[lang] || 'en-US';
+    }
+
+    function updateUI() {
+      labelMicA.innerHTML = selectA.options[selectA.selectedIndex].dataset.short;
+      labelMicB.innerHTML = selectB.options[selectB.selectedIndex].dataset.short;
+    }
+    
+    function swapLanguages() {
+      const temp = selectA.value; selectA.value = selectB.value; selectB.value = temp;
+      updateUI(); playCyberSound('copy');
+    }
+
+    function toggleAutoVoice() {
+      autoVoiceEnabled = !autoVoiceEnabled;
+      const btn = document.getElementById('voiceToggle');
+      if(autoVoiceEnabled) {
+        btn.classList.remove('off'); btn.innerHTML = '<i class="fas fa-volume-up"></i> <ruby>自動音声<rt>じどうおんせい</rt></ruby>';
+      } else {
+        btn.classList.add('off'); btn.innerHTML = '<i class="fas fa-volume-mute"></i> <ruby>消音<rt>しょうおん</rt></ruby>';
+      }
+      playCyberSound('copy');
+    }
+
+    function showToast(msg, color = 'var(--neon-cyan)') {
+      const toast = document.getElementById('cyberToast');
+      toast.innerHTML = msg; toast.style.color = color; toast.style.borderColor = color; toast.style.boxShadow = `0 0 10px ${color}`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); showToast('<ruby>文字<rt>もじ</rt></ruby>をコピーしました'); playCyberSound('copy'); } 
+      catch (err) { showToast('コピーしっぱい', 'var(--neon-pink)'); }
+    }
+
+    async function copyAllChat() {
+      const texts = Array.from(document.querySelectorAll('.translated-text')).map(el => el.innerText).join('\n');
+      if(!texts) return;
+      try { await navigator.clipboard.writeText(texts); showToast('<ruby>全部<rt>ぜんぶ</rt></ruby>コピーしました'); playCyberSound('copy'); } 
+      catch(err) {}
+    }
+
+    function starMessage(text) {
+      if(!memories.includes(text)) {
+        memories.push(text);
+        const list = document.getElementById('memoryList');
+        const div = document.createElement('div'); div.className = 'memory-item'; div.innerText = text;
+        list.appendChild(div);
+        showToast('ほぞんしました', 'var(--neon-yellow)'); playCyberSound('copy');
+      }
+    }
+    function toggleMemoryBank() {
+      const bank = document.getElementById('memoryBank');
+      bank.style.display = bank.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function generateQR(text) {
+      const img = document.getElementById('qrImage');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
+      document.getElementById('qrModal').style.display = 'flex';
+      playCyberSound('receive');
+    }
+
+    function handleTextSubmit() {
+      let text = document.getElementById('textInput').value.trim();
+      if(!text) return;
+      document.getElementById('textInput').value = '';
+      
+      const isJapanese = /[ぁ-んァ-ン一-龥]/.test(text);
+      let mode = 'langA';
+      if (isJapanese && selectB.value === 'ja') mode = 'langB';
+      else if (isJapanese && selectA.value === 'ja') mode = 'langA';
+      else if (!isJapanese && selectA.value !== 'ja') mode = 'langA';
+      else mode = 'langB';
+      
+      processTranslation(text, mode);
+    }
+    document.getElementById('btnSendText').onclick = handleTextSubmit;
+    document.getElementById('textInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleTextSubmit(); });
+    function sendQuick(text) { processTranslation(text, 'langA'); }
+
+    async function processTranslation(text, mode, isImage = false) {
+      playCyberSound('send');
+      const bubbleId = 'msg-' + Date.now();
+      
+      if(isImage) { appendBubbleHTML(bubbleId, text, '【<ruby>画像<rt>がぞう</rt></ruby>データ】', mode, true); return; }
+
+      const sl = mode === 'langA' ? selectA.value : selectB.value;
+      const tl = mode === 'langA' ? selectB.value : selectA.value;
+      
+      let safeText = text.trim();
+      if (!safeText.match(/[。.\!\?！？]$/)) safeText += (sl === 'ja') ? '。' : '.';
+
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(safeText)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let translated = ""; data[0].forEach(item => { translated += item[0]; });
+
+        appendBubbleHTML(bubbleId, safeText, translated, mode, false);
+        
+        if(autoVoiceEnabled) {
+          speakText(translated, tl);
+        }
+      } catch (e) {
+        showToast('<ruby>通信<rt>つうしん</rt></ruby>エラー', 'var(--neon-pink)');
+      }
+    }
+
+    function appendBubbleHTML(id, original, translated, mode, isImage) {
+      const div = document.createElement('div');
+      div.className = `chat-bubble ${mode === 'langA' ? 'bubble-langA' : 'bubble-langB'}`;
+      
+      const now = new Date(); const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      const ttsLang = mode === 'langA' ? selectB.value : selectA.value;
+      const content = isImage ? `<img src="${original}" style="max-width:100%; border-radius:4px;">` : `<div class="original-text">${original}</div>`;
+
+      const safeTranslated = translated.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+      div.innerHTML = `
+        ${content}
+        <div class="translated-text" id="trans-${id}"></div>
+        <div class="timestamp">${timeStr}</div>
+        <div class="bubble-actions">
+          <button class="btn-copy" title="コピー"><i class="fas fa-copy"></i></button>
+          <button class="btn-speak" title="よみあげ"><i class="fas fa-volume-up"></i></button>
+          <button class="btn-qr" title="QRへんかん"><i class="fas fa-qrcode"></i></button>
+          <button class="btn-star" title="ほぞん"><i class="fas fa-star"></i></button>
+        </div>
+      `;
+      chatArea.appendChild(div);
+
+      div.querySelector('.btn-copy').onclick = () => copyText(translated);
+      div.querySelector('.btn-speak').onclick = () => speakText(translated, ttsLang);
+      div.querySelector('.btn-qr').onclick = () => generateQR(translated);
+      div.querySelector('.btn-star').onclick = () => starMessage(translated);
+      
+      const transEl = div.querySelector(`#trans-${id}`);
+      let i = 0;
+      function typeWriter() {
+        if (i < translated.length) { transEl.innerHTML += translated.charAt(i); i++; setTimeout(typeWriter, 15); }
+        else { chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' }); playCyberSound('receive'); }
+      }
+      typeWriter();
+    }
+
+    function speakText(text, langCode) {
+      if(!text) return;
+      window.speechSynthesis.cancel(); 
+      
+      setTimeout(() => {
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = getBCP47(langCode);
+        currentUtterance.rate = 1.0; 
+        currentUtterance.pitch = 0.9;
+        window.speechSynthesis.speak(currentUtterance);
+      }, 50); 
+    }
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.interimResults = false; recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        const btn = currentMode === 'langA' ? document.getElementById('btnMicA') : document.getElementById('btnMicB');
+        btn.classList.add('recording');
+        btn.querySelector('i').className = 'fas fa-waveform';
+      };
+      recognition.onspeechend = () => resetMic();
+      recognition.onerror = () => resetMic();
+      recognition.onresult = (e) => {
+        resetMic();
+        processTranslation(e.results[0][0].transcript, currentMode);
+      };
+
+      document.getElementById('btnMicA').onclick = () => { 
+        if(document.getElementById('btnMicA').classList.contains('recording')) { recognition.stop(); return; }
+        currentMode = 'langA'; recognition.lang = getBCP47(selectA.value); recognition.start(); 
+      };
+      document.getElementById('btnMicB').onclick = () => { 
+        if(document.getElementById('btnMicB').classList.contains('recording')) { recognition.stop(); return; }
+        currentMode = 'langB'; recognition.lang = getBCP47(selectB.value); recognition.start(); 
+      };
+    } else { showToast('<ruby>音声入力<rt>おんせいにゅうりょく</rt></ruby>に<ruby>対応<rt>たいおう</rt></ruby>していません', 'var(--neon-pink)'); }
+
+    function resetMic() {
+      document.querySelectorAll('.mic-btn').forEach(b => {
+        b.classList.remove('recording');
+        b.querySelector('i').className = 'fas fa-microphone';
+      });
+    }
+
+    document.getElementById('imageInput').addEventListener('change', (e) => {
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => processTranslation(ev.target.result, 'langA', true);
+      reader.readAsDataURL(file);
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
