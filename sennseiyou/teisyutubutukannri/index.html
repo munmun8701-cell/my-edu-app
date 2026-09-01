@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>配布物確認</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情報・物資配給モジュール（配り係コンソール）</title>
+  <style>
+    :root {
+      --bg-dark: #050b14;
+      --card-bg: rgba(10, 20, 35, 0.75);
+      --card-border: rgba(0, 212, 255, 0.3);
+      --cyan: #00d4ff;
+      --cyan-glow: rgba(0, 212, 255, 0.5);
+      --magenta: #ff00ea;
+      --magenta-glow: rgba(255, 0, 234, 0.5);
+      --orange: #ff8800;
+      --orange-glow: rgba(255, 136, 0, 0.5);
+      --green: #00ff88;
+      --red: #ff0055;
+      --text-main: #e0f2fe;
+      --text-sub: #8ba4b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      overflow-x: hidden;
+    }
+
+    /* === フリガナ（ルビ）の制御 === */
+    rt {
+      opacity: 0;
+      font-size: 0;
+      transition: all 0.3s ease;
+      line-height: 0;
+      display: block;
+      text-align: center;
+    }
+
+    ruby {
+      ruby-align: center;
+    }
+
+    body.furigana-mode rt {
+      opacity: 1;
+      font-size: 0.65em;
+      line-height: 1;
+      color: var(--orange);
+      margin-bottom: 2px;
+    }
+
+    body.furigana-mode ruby {
+      margin: 0 2px;
+    }
+
+    /* 背景キャンバス */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at center, #0a1120 0%, #03060a 100%);
+    }
+
+    /* === トップバー === */
+    .top-bar {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(5, 10, 20, 0.8);
+      border: 1px solid var(--cyan);
+      border-radius: 12px;
+      padding: 15px 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px var(--cyan-glow);
+      backdrop-filter: blur(10px);
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .title-area h1 {
+      font-size: 1.8rem;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan-glow);
+      margin-bottom: 5px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: rgba(0, 212, 255, 0.3);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-orange {
+      background: rgba(255, 136, 0, 0.15);
+      color: var(--orange);
+      border-color: var(--orange);
+    }
+
+    .btn-orange:hover:not(:disabled) {
+      background: rgba(255, 136, 0, 0.3);
+      box-shadow: 0 0 10px var(--orange-glow);
+    }
+
+    .btn-red {
+      background: rgba(255, 0, 85, 0.15);
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .btn-red:hover:not(:disabled) {
+      background: rgba(255, 0, 85, 0.3);
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+    }
+
+    .btn-magenta {
+      background: rgba(255, 0, 234, 0.15);
+      color: var(--magenta);
+      border-color: var(--magenta);
+    }
+
+    .btn-magenta:hover:not(:disabled) {
+      background: rgba(255, 0, 234, 0.3);
+      box-shadow: 0 0 10px var(--magenta-glow);
+    }
+
+    /* === メイングリッド === */
+    .dashboard-grid {
+      width: 100%;
+      max-width: 1400px;
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1.5fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .panel-header {
+      font-size: 1.15rem;
+      color: var(--orange);
+      border-bottom: 1px solid rgba(255, 136, 0, 0.3);
+      padding-bottom: 10px;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--text-sub);
+      color: var(--text-main);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    /* === 左：ミッション＆名簿 === */
+    .mission-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mission-item {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--text-sub);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mission-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mission-item.active.type-dist {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .mission-item.active.type-collect {
+      border-color: var(--magenta);
+      box-shadow: 0 0 10px var(--magenta-glow);
+      background: rgba(255, 0, 234, 0.1);
+    }
+
+    .mission-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .mission-type-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      width: fit-content;
+      font-weight: bold;
+    }
+
+    .type-dist .mission-type-badge {
+      background: rgba(0, 212, 255, 0.2);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+
+    .type-collect .mission-type-badge {
+      background: rgba(255, 0, 234, 0.2);
+      color: var(--magenta);
+      border: 1px solid var(--magenta);
+    }
+
+    .meibo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 5px;
+      border-radius: 6px;
+      border-left: 3px solid var(--text-sub);
+      margin-bottom: 5px;
+    }
+
+    .meibo-item input.no-input {
+      width: 45px;
+      text-align: center;
+      padding: 4px;
+    }
+
+    .meibo-item input.name-input {
+      flex: 1;
+      padding: 4px;
+    }
+
+    /* === 中央：配給ターゲット === */
+    .dist-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px dashed var(--card-border);
+    }
+
+    .dist-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .target-btn {
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      border: 2px solid var(--text-sub);
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--text-sub);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .target-no {
+      font-size: 0.8rem;
+      font-weight: bold;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .target-name {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .target-btn:not(.disabled):hover {
+      border-color: var(--text-main);
+      color: var(--text-main);
+    }
+
+    /* 配るモードの色 (Cyan) */
+    .mode-dist .target-btn.status-done {
+      border-color: var(--cyan);
+      background: rgba(0, 212, 255, 0.2);
+      color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow), inset 0 0 10px var(--cyan-glow);
+    }
+
+    /* 集めるモードの色 (Magenta) */
+    .mode-collect .target-btn.status-done {
+      border-color: var(--magenta);
+      background: rgba(255, 0, 234, 0.2);
+      color: var(--magenta);
+      box-shadow: 0 0 10px var(--magenta-glow), inset 0 0 10px var(--magenta-glow);
+    }
+
+    .target-btn.status-absent {
+      border-color: var(--orange);
+      background: rgba(255, 136, 0, 0.2);
+      color: var(--orange);
+      box-shadow: 0 0 10px var(--orange-glow), inset 0 0 10px var(--orange-glow);
+    }
+
+    /* 対象外の児童 */
+    .target-btn.disabled {
+      opacity: 0.15;
+      cursor: not-allowed;
+      pointer-events: none;
+      border-color: transparent;
+    }
+
+    .legend {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 15px;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      border: 2px solid;
+    }
+
+    /* === 右：進捗＆履歴 === */
+    .progress-box {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .progress-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-family: monospace;
+    }
+
+    .mode-dist .progress-text {
+      color: var(--cyan);
+    }
+
+    .mode-collect .progress-text {
+      color: var(--magenta);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mode-dist .progress-bar-fill {
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .mode-collect .progress-bar-fill {
+      background: var(--magenta);
+      box-shadow: 0 0 10px var(--magenta-glow);
+    }
+
+    .progress-bar-fill.complete {
+      background: var(--green);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+    }
+
+    .absent-box {
+      background: rgba(255, 136, 0, 0.1);
+      border: 1px dashed var(--orange);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .absent-title {
+      color: var(--orange);
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .absent-list {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      min-height: 20px;
+    }
+
+    .remains-list {
+      color: #ff4444;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    .history-box {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px dashed var(--text-sub);
+    }
+
+    .history-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    /* === モーダル === */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--cyan);
+      border-radius: 12px;
+      padding: 25px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      color: var(--cyan);
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--cyan);
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 15px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px 15px;
+      border: 1px solid var(--text-sub);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .radio-label:has(input:checked) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--text-main);
+      color: #fff;
+    }
+
+    .radio-label input {
+      display: none;
+    }
+
+    .target-select-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 5px;
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .target-checkbox-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+      border: 1px solid var(--text-sub);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .target-checkbox-label:has(input:checked) {
+      background: var(--cyan);
+      color: #000;
+      border-color: var(--cyan);
+      font-weight: bold;
+    }
+
+    .target-checkbox-label input {
+      display: none;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--cyan);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- トップバー -->
+  <div class="top-bar">
+    <div class="title-area">
+      <h1 id="app-title"><ruby>情報<rt>じょうほう</rt></ruby>・<ruby>物資配給<rt>ぶっしはいきゅう</rt></ruby>モジュール</h1>
+      <div style="color:var(--text-sub); font-size: 0.9rem;">[ 配り係・集め係 専用コンソール ]</div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-orange" onclick="toggleFurigana()">🔤 <ruby>漢字<rt>かんじ</rt></ruby>/ルビ切替</button>
+      <button class="btn btn-red" onclick="resetAllData()">⚠️ 全データ初期化</button>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- 左：ミッション一覧 ＆ 名簿 -->
+    <div class="column">
+      <!-- ミッションパネル -->
+      <div class="panel" style="margin-bottom: 20px;">
+        <div class="panel-header" id="panel-mission-title">
+          🚀 ミッション一覧
+          <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="openMissionModal()">+ 新規作成</button>
+        </div>
+        <div class="mission-list" id="mission-list-container">
+          <!-- JSで生成 -->
+        </div>
+      </div>
+
+      <!-- 名簿パネル -->
+      <div class="panel">
+        <div class="panel-header" id="panel-meibo-title">
+          📋 <ruby>名簿<rt>めいぼ</rt></ruby>データベース
+          <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addMeiboItem()">+ 追加</button>
+        </div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2); display: flex; gap:5px;">
+          <input type="number" id="bulk-num" value="35" min="1" style="width: 60px; padding: 4px;">
+          <button class="btn" style="flex: 1; padding: 4px;" onclick="generateBulkMeibo()" id="btn-bulk">一括で番号を作る</button>
+        </div>
+        <div id="meibo-list-container" style="margin-top: 10px;">
+          <!-- JSで生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 中央：ターゲット一覧 -->
+    <div class="column">
+      <div class="panel" id="target-panel" style="border-color: var(--card-border);">
+        <div class="panel-header" id="panel-target-title">
+          🎯 ターゲット（対象者）
+          <button class="btn btn-orange" style="padding: 2px 8px; font-size: 0.75rem;" onclick="resetCurrentMission()" id="btn-reset-dist">🔄 やりなおす</button>
+        </div>
+
+        <div class="dist-header">
+          <div class="dist-header-top">
+            <span id="current-mission-type-badge" class="mission-type-badge" style="font-size: 0.9rem; padding: 4px 8px;">未選択</span>
+            <span style="font-size: 0.9rem; color: var(--text-sub);" id="current-mission-target-info">対象: - 名</span>
+          </div>
+          <div style="font-size: 1.4rem; font-weight: bold; color: #fff;" id="current-mission-title">
+            左からミッションを選んでください
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-box" style="border-color:var(--text-sub);"></div> <span id="leg-1">未（タップ）</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" id="leg-box-done" style="border-color:var(--cyan); background:rgba(0,212,255,0.2);"></div> <span id="leg-2">完了（もう一度）</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="border-color:var(--orange); background:rgba(255,136,0,0.2);"></div> <span id="leg-3">不在・保留</span>
+          </div>
+        </div>
+
+        <div class="target-grid" id="target-grid-container">
+          <!-- JSで生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：進捗＆履歴 -->
+    <div class="column">
+      <div class="panel">
+        <div class="panel-header" id="panel-prog-title">📊 進行状況</div>
+
+        <div class="progress-box" id="progress-box-wrapper">
+          <div class="progress-text" id="progress-text">0 / 0</div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="absent-box">
+          <div class="absent-title" id="absent-title">⚠️ おやすみ・よけておく人</div>
+          <div class="absent-list" id="absent-list">（なし）</div>
+          <div class="remains-list" id="remains-list"></div>
+        </div>
+
+        <button class="btn btn-cyan" style="width: 100%; padding: 12px; font-size: 1.1rem; display:none;" onclick="completeCurrentMission()" id="btn-complete-mission">
+          💾 記録してミッション完了
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header" id="panel-hist-title">📁 履歴（きろく）</div>
+        <div class="history-box" id="history-container">
+          <!-- JSで生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新規ミッション作成モーダル -->
+  <div class="modal-overlay" id="mission-modal">
+    <div class="modal-content">
+      <div class="modal-title" id="modal-title">✨ 新しいミッションを作る</div>
+
+      <div class="form-group">
+        <label id="lbl-modal-type">しゅるい（配る？集める？）</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="m_type" value="dist" checked> 📦 <ruby>配<rt>くば</rt></ruby>る
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="m_type" value="collect"> 📥 <ruby>集<rt>あつ</rt></ruby>める
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label id="lbl-modal-name">ミッションのなまえ（プリントのなまえ等）</label>
+        <input type="text" id="m_title" placeholder="例：国語のテスト、集金袋">
+      </div>
+
+      <div class="form-group">
+        <label id="lbl-modal-target">ターゲット（対象者）</label>
+        <div style="display:flex; gap:10px; margin-bottom:5px;">
+          <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="toggleAllTargets(true)" id="btn-sel-all">全員えらぶ</button>
+          <button class="btn btn-orange" style="padding:4px 8px; font-size:0.8rem;" onclick="toggleAllTargets(false)" id="btn-sel-none">全員はずす</button>
+        </div>
+        <div class="target-select-list" id="modal-target-list">
+          <!-- JSで生成 -->
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:20px; justify-content: flex-end;">
+        <button class="btn btn-red" onclick="closeMissionModal()" id="btn-modal-cancel">キャンセル</button>
+        <button class="btn btn-cyan" onclick="saveNewMission()" id="btn-modal-save">ミッション追加</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // データ構造
+    // ==========================================
+    let meibo = JSON.parse(localStorage.getItem('kubariMeibo')) || [];
+    let missions = JSON.parse(localStorage.getItem('kubariMissions')) || [];
+    let currentMissionId = localStorage.getItem('kubariCurrentMissionId') || null;
+    let historyData = JSON.parse(localStorage.getItem('kubariHistory')) || [];
+    let isFurigana = localStorage.getItem('kubariFurigana') === 'true';
+    // 初回起動時処理
+    if (meibo.length === 0) {
+      for (let i = 1; i <= 35; i++) {
+        meibo.push({
+          id: Date.now() + i,
+          no: i.toString(),
+          name: `${i}番`
+        });
+      }
+      localStorage.setItem('kubariMeibo', JSON.stringify(meibo));
+    }
+    if (isFurigana) document.body.classList.add('furigana-mode');
+    // ==========================================
+    // 多言語（フリガナ）テキスト管理
+    // ==========================================
+    const texts = {
+      kanji: {
+        appTitle: "<ruby>情報<rt>じょうほう</rt></ruby>・<ruby>物資配給<rt>ぶっしはいきゅう</rt></ruby>モジュール",
+        panelMission: "🚀 ミッション一覧",
+        btnNewMission: "+ 新規作成",
+        panelMeibo: "📋 <ruby>名簿<rt>めいぼ</rt></ruby>データベース",
+        btnBulk: "一括で番号を作る",
+        panelTarget: "🎯 ターゲット（対象者）",
+        btnReset: "🔄 やりなおす",
+        leg1: "未（タップ）",
+        leg2: "完了（もう一度）",
+        leg3: "不在・保留",
+        panelProg: "📊 進行状況",
+        absentTitle: "⚠️ おやすみ・よけておく人",
+        btnComplete: "💾 記録してミッション完了",
+        panelHist: "📁 履歴（きろく）",
+        modalTitle: "✨ 新しいミッションを作る",
+        lblType: "種類（配る？集める？）",
+        lblName: "ミッションの名前（プリント名など）",
+        lblTarget: "ターゲット（対象者）",
+        btnSelAll: "全員選ぶ",
+        btnSelNone: "全員外す",
+        btnCancel: "キャンセル",
+        btnSave: "ミッション追加"
+      },
+      hiragana: {
+        appTitle: "プリント・テスト <ruby>配<rt>くば</rt></ruby>りモジュール",
+        panelMission: "🚀 ミッション リスト",
+        btnNewMission: "+ あたらしく つくる",
+        panelMeibo: "📋 クラスの めいぼ",
+        btnBulk: "いっきに ばんごうを つくる",
+        panelTarget: "🎯 <ruby>配<rt>くば</rt></ruby>る・<ruby>集<rt>あつ</rt></ruby>める あいて",
+        btnReset: "🔄 やりなおす",
+        leg1: "まだ（タップ）",
+        leg2: "おわった（もう１かい）",
+        leg3: "おやすみ・よけておく",
+        panelProg: "📊 どれくらい おわったか",
+        absentTitle: "⚠️ おやすみ・よけておく 人",
+        btnComplete: "💾 きろくして おわる",
+        panelHist: "📁 くばった きろく",
+        modalTitle: "✨ あたらしい ミッションを つくる",
+        lblType: "しゅるい（くばる？あつめる？）",
+        lblName: "ミッションの なまえ",
+        lblTarget: "くばる・あつめる あいて",
+        btnSelAll: "ぜんいん えらぶ",
+        btnSelNone: "ぜんいん はずす",
+        btnCancel: "やめる",
+        btnSave: "ミッションを ついか"
+      }
+    };
+
+    function toggleFurigana() {
+      isFurigana = !isFurigana;
+      localStorage.setItem('kubariFurigana', isFurigana);
+      document.body.classList.toggle('furigana-mode', isFurigana);
+      applyLanguage();
+    }
+
+    function applyLanguage() {
+      const t = isFurigana ? texts.hiragana : texts.kanji;
+      document.getElementById('app-title').innerHTML = t.appTitle;
+      document.getElementById('panel-mission-title').innerHTML = `${t.panelMission} <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="openMissionModal()">${t.btnNewMission}</button>`;
+      document.getElementById('panel-meibo-title').innerHTML = `${t.panelMeibo} <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addMeiboItem()">+ 追加</button>`;
+      document.getElementById('btn-bulk').innerText = t.btnBulk;
+      document.getElementById('panel-target-title').innerHTML = `${t.panelTarget} <button class="btn btn-orange" style="padding: 2px 8px; font-size: 0.75rem;" onclick="resetCurrentMission()">${t.btnReset}</button>`;
+      document.getElementById('leg-1').innerText = t.leg1;
+      document.getElementById('leg-2').innerText = t.leg2;
+      document.getElementById('leg-3').innerText = t.leg3;
+      document.getElementById('panel-prog-title').innerText = t.panelProg;
+      document.getElementById('absent-title').innerText = t.absentTitle;
+      document.getElementById('btn-complete-mission').innerHTML = t.btnComplete;
+      document.getElementById('panel-hist-title').innerText = t.panelHist;
+      document.getElementById('modal-title').innerText = t.modalTitle;
+      document.getElementById('lbl-modal-type').innerText = t.lblType;
+      document.getElementById('lbl-modal-name').innerText = t.lblName;
+      document.getElementById('lbl-modal-target').innerText = t.lblTarget;
+      document.getElementById('btn-sel-all').innerText = t.btnSelAll;
+      document.getElementById('btn-sel-none').innerText = t.btnSelNone;
+      document.getElementById('btn-modal-cancel').innerText = t.btnCancel;
+      document.getElementById('btn-modal-save').innerText = t.btnSave;
+      renderMissions();
+      renderHistory();
+      updateUIForCurrentMission();
+    }
+    // ==========================================
+    // 名簿データベース管理
+    // ==========================================
+    function saveMeibo() {
+      localStorage.setItem('kubariMeibo', JSON.stringify(meibo));
+      renderMeibo();
+      updateUIForCurrentMission(); // 名簿変更をターゲットにも反映
+    }
+
+    function renderMeibo() {
+      const container = document.getElementById('meibo-list-container');
+      container.innerHTML = '';
+      meibo.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'meibo-item';
+        div.innerHTML = `
+          <input type="text" class="no-input" value="${m.no}" onchange="updateMeibo(${m.id}, 'no', this.value)">
+          <input type="text" class="name-input" value="${m.name}" onchange="updateMeibo(${m.id}, 'name', this.value)">
+          <button class="btn btn-red" style="padding: 2px 6px; font-size:0.75rem;" onclick="deleteMeibo(${m.id})">✖</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateMeibo(id, field, value) {
+      const item = meibo.find(m => m.id === id);
+      if (item) {
+        item[field] = value;
+        saveMeibo();
+      }
+    }
+
+    function addMeiboItem() {
+      const nextNo = meibo.length > 0 ? Math.max(...meibo.map(m => parseInt(m.no) || 0)) + 1 : 1;
+      meibo.push({
+        id: Date.now(),
+        no: nextNo.toString(),
+        name: `${nextNo}番`
+      });
+      saveMeibo();
+    }
+
+    function deleteMeibo(id) {
+      meibo = meibo.filter(m => m.id !== id);
+      // 各ミッションのtargetIdsとstatusからも削除
+      missions.forEach(mission => {
+        mission.targetIds = mission.targetIds.filter(tid => tid !== id);
+        delete mission.status[id];
+      });
+      saveMissions();
+      saveMeibo();
+    }
+
+    function generateBulkMeibo() {
+      const num = parseInt(document.getElementById('bulk-num').value);
+      if (!num || num < 1) return;
+      if (confirm(`1番から${num}番までの名簿を再作成しますか？（※現在の名簿と進行中のミッションはリセットされます）`)) {
+        meibo = [];
+        missions = [];
+        currentMissionId = null;
+        for (let i = 1; i <= num; i++) {
+          meibo.push({
+            id: Date.now() + i,
+            no: i.toString(),
+            name: `${i}番`
+          });
+        }
+        localStorage.setItem('kubariMeibo', JSON.stringify(meibo));
+        saveMissions();
+        renderMeibo();
+        renderMissions();
+        updateUIForCurrentMission();
+      }
+    }
+    // ==========================================
+    // ミッション管理
+    // ==========================================
+    function saveMissions() {
+      localStorage.setItem('kubariMissions', JSON.stringify(missions));
+      localStorage.setItem('kubariCurrentMissionId', currentMissionId);
+    }
+
+    function renderMissions() {
+      const container = document.getElementById('mission-list-container');
+      container.innerHTML = '';
+      if (missions.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-sub); font-size:0.85rem;">ミッションがありません。「新規作成」から追加してください。</div>';
+        return;
+      }
+      missions.forEach(m => {
+        const div = document.createElement('div');
+        const isActive = m.id.toString() === currentMissionId;
+        div.className = `mission-item ${isActive ? 'active' : ''} type-${m.type}`;
+        div.onclick = () => selectMission(m.id.toString());
+        let typeBadge = m.type === 'dist' ? '📦 配給' : '📥 回収';
+        let doneCount = Object.values(m.status).filter(v => v === 1).length;
+        div.innerHTML = `
+          <div class="mission-info">
+            <span class="mission-type-badge">${typeBadge}</span>
+            <strong style="font-size:1.05rem;">${m.title || '(無題)'}</strong>
+          </div>
+          <div style="font-family:monospace; font-size:1.1rem;">
+            ${doneCount}/${m.targetIds.length}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function selectMission(id) {
+      currentMissionId = id;
+      saveMissions();
+      renderMissions();
+      updateUIForCurrentMission();
+    }
+    // ==========================================
+    // モーダル (ミッション作成)
+    // ==========================================
+    function openMissionModal() {
+      if (meibo.length === 0) {
+        alert("先に名簿を作成してください。");
+        return;
+      }
+      document.getElementById('m_title').value = '';
+      const targetList = document.getElementById('modal-target-list');
+      targetList.innerHTML = '';
+      meibo.forEach(m => {
+        const label = document.createElement('label');
+        label.className = 'target-checkbox-label';
+        label.innerHTML = `
+          <input type="checkbox" value="${m.id}" checked>
+          ${m.no}
+        `;
+        targetList.appendChild(label);
+      });
+      document.getElementById('mission-modal').classList.add('active');
+    }
+
+    function closeMissionModal() {
+      document.getElementById('mission-modal').classList.remove('active');
+    }
+
+    function toggleAllTargets(check) {
+      const checkboxes = document.querySelectorAll('#modal-target-list input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = check);
+    }
+
+    function saveNewMission() {
+      const type = document.querySelector('input[name="m_type"]:checked').value;
+      const title = document.getElementById('m_title').value || (type === 'dist' ? '配給ミッション' : '回収ミッション');
+      const checkedBoxes = document.querySelectorAll('#modal-target-list input[type="checkbox"]:checked');
+      const targetIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+      if (targetIds.length === 0) {
+        alert("対象者を1人以上選んでください。");
+        return;
+      }
+      const initialStatus = {};
+      targetIds.forEach(id => initialStatus[id] = 0);
+      const newMission = {
+        id: Date.now(),
+        type: type,
+        title: title,
+        targetIds: targetIds,
+        status: initialStatus
+      };
+      missions.push(newMission);
+      currentMissionId = newMission.id.toString();
+      saveMissions();
+      closeMissionModal();
+      renderMissions();
+      updateUIForCurrentMission();
+    }
+    // ==========================================
+    // 中央・右カラム (対象者操作と進捗)
+    // ==========================================
+    function updateUIForCurrentMission() {
+      const targetPanel = document.getElementById('target-panel');
+      const grid = document.getElementById('target-grid-container');
+      const titleEl = document.getElementById('current-mission-title');
+      const typeBadge = document.getElementById('current-mission-type-badge');
+      const targetInfo = document.getElementById('current-mission-target-info');
+      const progressBox = document.getElementById('progress-box-wrapper');
+      const btnComplete = document.getElementById('btn-complete-mission');
+      const legDoneBox = document.getElementById('leg-box-done');
+      grid.innerHTML = '';
+      const mission = missions.find(m => m.id.toString() === currentMissionId);
+      if (!mission) {
+        // ミッション未選択状態
+        targetPanel.className = 'panel';
+        titleEl.innerText = isFurigana ? "ひだり から ミッションを えらんでね" : "左からミッションを選んでください";
+        typeBadge.innerText = "未選択";
+        typeBadge.style.display = 'none';
+        targetInfo.innerText = "";
+        progressBox.parentElement.classList.remove('mode-dist', 'mode-collect');
+        document.getElementById('progress-text').innerText = "0 / 0";
+        document.getElementById('progress-fill').style.width = "0%";
+        document.getElementById('absent-list').innerText = "（なし）";
+        document.getElementById('remains-list').innerText = "";
+        btnComplete.style.display = 'none';
+        return;
+      }
+      // テーマ色設定
+      targetPanel.className = `panel mode-${mission.type}`;
+      progressBox.parentElement.className = `panel mode-${mission.type}`;
+      btnComplete.style.display = 'block';
+      typeBadge.style.display = 'inline-block';
+      if (mission.type === 'dist') {
+        typeBadge.innerText = '📦 配る';
+        typeBadge.className = 'mission-type-badge';
+        targetPanel.style.borderColor = 'var(--cyan)';
+        btnComplete.className = 'btn btn-cyan';
+        legDoneBox.style.borderColor = 'var(--cyan)';
+        legDoneBox.style.background = 'rgba(0,212,255,0.2)';
+      } else {
+        typeBadge.innerText = '📥 集める';
+        typeBadge.className = 'mission-type-badge';
+        targetPanel.style.borderColor = 'var(--magenta)';
+        btnComplete.className = 'btn btn-magenta';
+        legDoneBox.style.borderColor = 'var(--magenta)';
+        legDoneBox.style.background = 'rgba(255,0,234,0.2)';
+      }
+      titleEl.innerText = mission.title;
+      targetInfo.innerText = `対象: ${mission.targetIds.length} 名`;
+      // ターゲットグリッド描画
+      meibo.forEach(m => {
+        const isTarget = mission.targetIds.includes(m.id);
+        const btn = document.createElement('div');
+        if (!isTarget) {
+          btn.className = 'target-btn disabled';
+          btn.innerHTML = `<div class="target-no">${m.no}</div><div class="target-name">${m.name}</div>`;
+        } else {
+          // ステータス補完（名簿追加時対策）
+          if (mission.status[m.id] === undefined) mission.status[m.id] = 0;
+          const st = mission.status[m.id];
+          let stClass = "";
+          if (st === 1) stClass = "status-done";
+          if (st === 2) stClass = "status-absent";
+          btn.className = `target-btn ${stClass}`;
+          btn.innerHTML = `<div class="target-no">${m.no}</div><div class="target-name">${m.name}</div>`;
+          btn.onclick = () => toggleTargetStatus(mission.id, m.id);
+        }
+        grid.appendChild(btn);
+      });
+      updateProgress(mission);
+    }
+
+    function toggleTargetStatus(missionId, targetId) {
+      const mission = missions.find(m => m.id === missionId);
+      if (!mission) return;
+      let current = mission.status[targetId];
+      mission.status[targetId] = (current + 1) % 3; // 0->1->2->0
+      saveMissions();
+      renderMissions(); // 左側の数字更新
+      updateUIForCurrentMission();
+    }
+
+    function resetCurrentMission() {
+      const mission = missions.find(m => m.id.toString() === currentMissionId);
+      if (!mission) return;
+      if (confirm(isFurigana ? "このミッションを さいしょから やりなおしますか？" : "このミッションの進行状況をリセットしますか？")) {
+        for (let id in mission.status) {
+          mission.status[id] = 0;
+        }
+        saveMissions();
+        renderMissions();
+        updateUIForCurrentMission();
+      }
+    }
+
+    function updateProgress(mission) {
+      let total = mission.targetIds.length;
+      let done = 0;
+      let absentList = [];
+      let remainsList = [];
+      mission.targetIds.forEach(tid => {
+        const m = meibo.find(x => x.id === tid);
+        if (!m) return;
+        const st = mission.status[tid];
+        if (st === 1) done++;
+        else if (st === 2) absentList.push(m);
+        else remainsList.push(m); // 0 (未了)
+      });
+      document.getElementById('progress-text').innerText = `${done} / ${total}`;
+      const fill = document.getElementById('progress-fill');
+      const percent = total > 0 ? (done / total) * 100 : 0;
+      fill.style.width = `${percent}%`;
+      if (done === total && total > 0) fill.classList.add('complete');
+      else fill.classList.remove('complete');
+      // 不在者テキスト
+      const absentEl = document.getElementById('absent-list');
+      if (absentList.length === 0) {
+        absentEl.innerText = isFurigana ? "（なし）" : "（現在不在なし）";
+      } else {
+        absentEl.innerText = absentList.map(m => m.no ? `${m.no}番` : m.name).join(', ');
+      }
+      // 未完了警告テキスト (全員終わっていない、かつ未完了がいる場合)
+      const remainsEl = document.getElementById('remains-list');
+      if (done + absentList.length < total) {
+        const action = mission.type === 'dist' ? (isFurigana ? 'くばってない' : '未配布') : (isFurigana ? 'あつめてない' : '未回収');
+        remainsEl.innerText = `🚨 ${action}: ` + remainsList.map(m => m.no ? `${m.no}番` : m.name).join(', ');
+      } else {
+        remainsEl.innerText = "";
+      }
+    }
+
+    function completeCurrentMission() {
+      const mission = missions.find(m => m.id.toString() === currentMissionId);
+      if (!mission) return;
+      let total = mission.targetIds.length;
+      let done = 0;
+      let unresolved = 0;
+      let absentIds = [];
+      mission.targetIds.forEach(tid => {
+        const m = meibo.find(x => x.id === tid);
+        if (!m) return;
+        if (mission.status[tid] === 1) done++;
+        else if (mission.status[tid] === 2) absentIds.push(m);
+        else unresolved++;
+      });
+      if (unresolved > 0) {
+        const action = mission.type === 'dist' ? '配っていない' : '集めていない';
+        if (!confirm(`まだ${action}人が ${unresolved} 人います！\n本当にこのまま記録して終了しますか？`)) {
+          return;
+        }
+      }
+      const absentStr = absentIds.map(m => m.no ? `${m.no}番` : m.name).join(', ');
+      const typeStr = mission.type === 'dist' ? '📦配給' : '📥回収';
+      const log = {
+        date: new Date().toLocaleDateString('ja-JP', {
+          month: 'numeric',
+          day: 'numeric'
+        }) + ' ' + new Date().toLocaleTimeString('ja-JP', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        title: mission.title,
+        type: typeStr,
+        total: total,
+        done: done,
+        absent: absentStr
+      };
+      historyData.push(log);
+      localStorage.setItem('kubariHistory', JSON.stringify(historyData));
+      // ミッション削除
+      missions = missions.filter(m => m.id !== mission.id);
+      currentMissionId = null;
+      saveMissions();
+      renderMissions();
+      updateUIForCurrentMission();
+      renderHistory();
+      alert("ミッション完了！記録を保存しました。");
+    }
+    // ==========================================
+    // 履歴
+    // ==========================================
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      container.innerHTML = '';
+      if (historyData.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-sub);">履歴はありません。</div>';
+        return;
+      }
+      [...historyData].reverse().forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        let statusStr = `<span style="color:${h.type.includes('配') ? 'var(--cyan)' : 'var(--magenta)'};">${h.done}/${h.total} 完了</span>`;
+        if (h.absent) statusStr += ` | <span style="color:var(--orange);">不在: ${h.absent}</span>`;
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <strong style="color:var(--orange);">${h.date}</strong>
+            <span style="font-size:0.75rem; border:1px solid; padding:1px 4px; border-radius:3px;">${h.type}</span>
+          </div>
+          <div>「${h.title}」</div>
+          <div style="margin-top:3px;">${statusStr}</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+    // ==========================================
+    // リセット
+    // ==========================================
+    function resetAllData() {
+      if (prompt("本当にすべてのデータ（名簿・ミッション・履歴）を削除しますか？\n削除する場合は「はい」と入力してください。") === "はい") {
+        localStorage.removeItem('kubariMeibo');
+        localStorage.removeItem('kubariMissions');
+        localStorage.removeItem('kubariCurrentMissionId');
+        localStorage.removeItem('kubariHistory');
+        location.reload();
+      }
+    }
+    // ==========================================
+    // 背景パーティクル (変更なし)
+    // ==========================================
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    const particles = [];
+    for (let i = 0; i < 50; i++) {
+      const isCyan = Math.random() > 0.5;
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 0.5,
+        speedX: Math.random() * 0.4 - 0.2,
+        speedY: Math.random() * 0.4 - 0.2,
+        opacity: Math.random(),
+        fade: Math.random() > 0.5 ? 0.005 : -0.005,
+        color: isCyan ? '0, 212, 255' : '255, 0, 234'
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.opacity += p.fade;
+        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.y > canvas.height) p.y = 0;
+        if (p.y < 0) p.y = canvas.height;
+        ctx.fillStyle = `rgba(${p.color}, ${p.opacity * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+    // 初期化実行
+    applyLanguage();
+    renderMeibo();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>

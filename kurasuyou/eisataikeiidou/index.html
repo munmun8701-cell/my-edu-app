@@ -1,389 +1,116 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>エイサー 隊形移動シミュレーター（前後分割・最短距離）</title>
-<style>
-  body {
-    font-family: sans-serif;
-    margin: 10px;
-    background-color: #f0f4f8;
-  }
-  .header-controls {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 10px;
-  }
-  .input-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 10px;
-    background: #f9f9f9;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    align-items: center;
-  }
-  .class-input {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 14px;
-  }
-  .class-input input {
-    width: 45px;
-    padding: 4px;
-    text-align: right;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-  }
-  
-  .btn {
-    padding: 10px 18px;
-    margin: 4px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: opacity 0.2s, transform 0.1s;
-  }
-  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
-  .btn:active { transform: translateY(1px); box-shadow: none; }
-  
-  .btn-step1 { background-color: #607d8b; }
-  .btn-step2 { background-color: #4CAF50; } /* 緑 */
-  .btn-step3 { background-color: #e53935; } /* 赤 */
-  .btn-reset { background-color: #333; padding: 6px 12px; font-size: 13px;}
-  .btn-tool  { background-color: #ff9800; padding: 6px 12px; font-size: 13px; color: #fff;}
+<html lang="en">
 
-  .tools-row {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    font-size: 14px;
-    font-weight: bold;
-  }
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+<link rel="stylesheet" href="./style.css">
 
-  /* 運動場 */
-  #field-wrapper {
-    width: 100%;
-    overflow-x: auto;
-  }
-  #field {
-    position: relative;
-    width: 1000px;  
-    height: 600px; 
-    background-color: #fffdf5;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    margin: 0 auto;
-    overflow: hidden;
-  }
+  </head>
+    
+  <body>
+  <form action="#">
 
-  /* 背景のライン（目安） */
-  #bg-layer {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-  }
-  /* 大円（緑の実線） */
-  .big-circle {
-    position: absolute;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    width: 920px;  
-    height: 540px; 
-    border: 4px solid #558b2f;
-    border-radius: 50%;
-  }
-  /* 横の分割線（目安） */
-  .split-line {
-    position: absolute;
-    top: 50%; left: 0;
-    width: 100%; height: 2px;
-    background-color: rgba(0,0,0,0.3);
-    border-top: 1px dashed #333;
-  }
+  <header>
+    <h2>Example Responsive Form</h2>
+    <div>This form breaks at 600px and goes from a left-label form to a top-label form. At above 1200px, the labels align right.</div>
+  </header>
 
-  /* 小円（点線） */
-  .small-circle {
-    position: absolute;
-    width: 140px; 
-    height: 140px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 60px;
-    font-weight: bold;
-    color: rgba(0,0,0,0.1);
-  }
-  .border-red { border: 4px dashed #e53935; }
-  .border-blue { border: 4px dashed #1e88e5; }
-  .border-yellow { border: 4px dashed #ffb300; }
-
-  /* 児童のドット */
-  .student {
-    position: absolute;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: bold;
-    color: #fff;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-  }
-
-  /* 学年・クラスごとの色設定 */
-  .g4-k1 { background-color: #c62828; } /* 4-1 濃赤 */
-  .g3-k1 { background-color: #ef9a9a; color: #000; } /* 3-1 薄赤 */
-  .g4-k2 { background-color: #1565c0; } /* 4-2 濃青 */
-  .g3-k2 { background-color: #90caf9; color: #000; } /* 3-2 薄青 */
-  .g4-k3 { background-color: #f57c00; } /* 4-3 濃オレンジ */
-  .g3-k3 { background-color: #ffe082; color: #000; } /* 3-3 薄黄 */
-</style>
-</head>
-<body>
-
-<div class="header-controls">
-  <div class="tools-row">
+  <div>
+    <label class="desc" id="title1" for="Field1">Full Name</label>
     <div>
-      移動スピード調整: 
-      <input type="range" id="animSpeed" min="1" max="6" step="0.5" value="2.5">
-      <span id="speedValue">2.5秒</span>
+      <input id="Field1" name="Field1" type="text" class="field text fn" value="" size="8" tabindex="1">
     </div>
-    <button class="btn btn-tool" onclick="toggleFullscreen()">📺 全画面表示切替</button>
-  </div>
-
-  <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">各クラスの人数設定（※横の線を基準に、半分が前、半分が後ろへ移動します）</div>
-  <div class="input-group">
-    <div class="class-input">
-      <strong>【3組(黄)】</strong> 
-      4年 <input type="number" id="c43" value="32" min="10" max="40"> / 
-      3年 <input type="number" id="c33" value="32" min="10" max="40">
-    </div>
-    <div class="class-input">
-      <strong>【2組(青)】</strong> 
-      4年 <input type="number" id="c42" value="32" min="10" max="40"> / 
-      3年 <input type="number" id="c32" value="32" min="10" max="40">
-    </div>
-    <div class="class-input">
-      <strong>【1組(赤)】</strong> 
-      4年 <input type="number" id="c41" value="32" min="10" max="40"> / 
-      3年 <input type="number" id="c31" value="32" min="10" max="40">
-    </div>
-    <button class="btn btn-reset" onclick="init()">この人数で再配置</button>
   </div>
 
   <div>
-    <strong>隊形アニメーション:</strong>
-    <button class="btn btn-step1" onclick="moveToLines()">① 入場（直線12列）</button>
-    <button class="btn btn-step2" onclick="moveToFormation(3, 4)">② 外側：3年 / 内側：4年</button>
-    <button class="btn btn-step3" onclick="moveToFormation(4, 3)">③ 外側：4年 / 内側：3年 (交差)</button>
-  </div>
-</div>
-
-<div id="field-wrapper">
-  <div id="field">
-    <div id="bg-layer">
-      <!-- 大円 -->
-      <div class="big-circle"></div>
-      <!-- 前後を分ける横線 -->
-      <div class="split-line"></div>
-      
-      <!-- 小円 -->
-      <!-- 後ろ側 (Top) -->
-      <div class="small-circle border-yellow" style="left: 200px; top: 180px;"><span>3</span></div>
-      <div class="small-circle border-blue" style="left: 500px; top: 180px;"><span>2</span></div>
-      <div class="small-circle border-red" style="left: 800px; top: 180px;"><span>1</span></div>
-      <!-- 前側 (Bottom) -->
-      <div class="small-circle border-yellow" style="left: 200px; top: 420px;"><span>3</span></div>
-      <div class="small-circle border-blue" style="left: 500px; top: 420px;"><span>2</span></div>
-      <div class="small-circle border-red" style="left: 800px; top: 420px;"><span>1</span></div>
+    <label class="desc" id="title3" for="Field3">
+      Email
+    </label>
+    <div>
+      <input id="Field3" name="Field3" type="email" spellcheck="false" value="" maxlength="255" tabindex="3">
     </div>
-    <div id="students-layer"></div>
   </div>
-</div>
 
-<script>
-  const studentsLayer = document.getElementById('students-layer');
-  const speedInput = document.getElementById('animSpeed');
-  const speedValue = document.getElementById('speedValue');
-  let students = [];
+  <div>
+    <label class="desc" id="title4" for="Field4">
+      Message
+    </label>
 
-  // スピード表示の連動
-  speedInput.addEventListener('input', function() {
-    speedValue.innerText = this.value + '秒';
-  });
+    <div>
+      <textarea id="Field4" name="Field4" spellcheck="true" rows="10" cols="50" tabindex="4"></textarea>
+    </div>
+  </div>
 
-  // 各グループの小円の中心座標
-  const centers = {
-    'k3_top': { x: 200, y: 180 }, 'k3_bottom': { x: 200, y: 420 },
-    'k2_top': { x: 500, y: 180 }, 'k2_bottom': { x: 500, y: 420 },
-    'k1_top': { x: 800, y: 180 }, 'k1_bottom': { x: 800, y: 420 } 
-  };
+  <div>
+    <fieldset>
 
-  const classConfigs = [
-    { id: 'c43', grade: 4, kumi: 3, posPrefix: 'k3', color: 'g4-k3' },
-    { id: 'c33', grade: 3, kumi: 3, posPrefix: 'k3', color: 'g3-k3' },
-    { id: 'c42', grade: 4, kumi: 2, posPrefix: 'k2', color: 'g4-k2' },
-    { id: 'c32', grade: 3, kumi: 2, posPrefix: 'k2', color: 'g3-k2' },
-    { id: 'c41', grade: 4, kumi: 1, posPrefix: 'k1', color: 'g4-k1' },
-    { id: 'c31', grade: 3, kumi: 1, posPrefix: 'k1', color: 'g3-k1' }
-  ];
+      <legend id="title5" class="desc">
+        Select a Choice
+      </legend>
 
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        alert("全画面表示が許可されていません。");
-      });
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-    }
-  }
+      <div>
+        <input id="radioDefault_5" name="Field5" type="hidden" value="">
+        <div>
+          <input id="Field5_0" name="Field5" type="radio" value="First Choice" tabindex="5" checked="checked">
+          <label class="choice" for="Field5_0">First Choice</label>
+        </div>
+        <div>
+          <input id="Field5_1" name="Field5" type="radio" value="Second Choice" tabindex="6">
+          <label class="choice" for="Field5_1">Second Choice</label>
+        </div>
+        <div>
+          <input id="Field5_2" name="Field5" type="radio" value="Third Choice" tabindex="7">
+          <label class="choice" for="Field5_2">Third Choice</label>
+        </div>
+      </div>
+    </fieldset>
+  </div>
 
-  function updateTransitions() {
-    const speed = speedInput.value;
-    students.forEach(st => {
-      st.element.style.transition = `left ${speed}s ease-in-out, top ${speed}s ease-in-out`;
-    });
-  }
+  <div>
+    <fieldset>
+      <legend id="title6" class="desc">
+        Check All That Apply
+      </legend>
+      <div>
+        <div>
+          <input id="Field6" name="Field6" type="checkbox" value="First Choice" tabindex="8">
+          <label class="choice" for="Field6">First Choice</label>
+        </div>
+        <div>
+          <input id="Field7" name="Field7" type="checkbox" value="Second Choice" tabindex="9">
+          <label class="choice" for="Field7">Second Choice</label>
+        </div>
+        <div>
+          <input id="Field8" name="Field8" type="checkbox" value="Third Choice" tabindex="10">
+          <label class="choice" for="Field8">Third Choice</label>
+          </span>
+        </div>
+    </fieldset>
+  </div>
 
-  // 初期化：横の線を基準に「前側」と「後ろ側」に振り分ける
-  function init() {
-    studentsLayer.innerHTML = '';
-    students = [];
+  <div>
+    <label class="desc" id="title106" for="Field106">
+      Select a Choice
+    </label>
+    <div>
+      <select id="Field106" name="Field106" class="field select medium" tabindex="11">
+        <option value="First Choice">First Choice</option>
+        <option value="Second Choice">Second Choice</option>
+        <option value="Third Choice">Third Choice</option>
+      </select>
+    </div>
+  </div>
 
-    classConfigs.forEach(cfg => {
-      const count = parseInt(document.getElementById(cfg.id).value, 10);
-      
-      // 1クラスあたりの列の長さ（例：32人なら16人ずつ2列）
-      const colSize = Math.ceil(count / 2); 
-      // 横線より前（下）に行く人数（例：16人なら8人）
-      const halfColSize = Math.ceil(colSize / 2); 
+  <div>
+    <div>
+      <input id="saveForm" name="saveForm" type="submit" value="Submit">
+    </div>
+  </div>
 
-      for (let i = 0; i < count; i++) {
-        const dot = document.createElement('div');
-        dot.className = `student ${cfg.color}`;
-        dot.innerText = i + 1;
-
-        // 自分が何列目か（0列目 or 1列目）
-        const colIndex = Math.floor(i / colSize); 
-        // 自分がその列の中で何番目か（例: 0〜15）
-        const posInCol = i % colSize; 
-
-        // ★ 横の黒い線による判定 ★
-        // その列の中で前半（1〜8番、17〜24番など）なら「前側(bottom)」、後半なら「後ろ側(top)」
-        const isFront = posInCol < halfColSize;
-        const groupPos = isFront ? `${cfg.posPrefix}_bottom` : `${cfg.posPrefix}_top`;
-
-        students.push({
-          element: dot, grade: cfg.grade, kumi: cfg.kumi, posPrefix: cfg.posPrefix,
-          groupPos: groupPos, colIndex: colIndex, posInCol: posInCol, isFront: isFront
-        });
-        studentsLayer.appendChild(dot);
-      }
-    });
-    
-    students.forEach(st => st.element.style.transition = 'none');
-    setTimeout(moveToLines, 50);
-  }
-
-  // ① 入場隊形
-  function moveToLines() {
-    updateTransitions();
-    const baseX = { 'k3': 200, 'k2': 500, 'k1': 800 };
-
-    students.forEach(st => {
-      let colOffset = 0;
-      // 4列の並び順 (4年1列目, 3年1列目, 4年2列目, 3年2列目)
-      if (st.grade === 4 && st.colIndex === 0) colOffset = -38;
-      if (st.grade === 3 && st.colIndex === 0) colOffset = -13;
-      if (st.grade === 4 && st.colIndex === 1) colOffset = 13;
-      if (st.grade === 3 && st.colIndex === 1) colOffset = 38;
-
-      const x = baseX[st.posPrefix] + colOffset;
-
-      // Y座標の計算（画面下部の前側から、画面上部の後ろ側へ並べる）
-      const count = parseInt(document.getElementById(`c${st.grade}${st.kumi}`).value, 10);
-      const colSize = Math.ceil(count / 2);
-      
-      let y;
-      if (colSize <= 1) {
-        y = 540;
-      } else {
-        const ySpacing = 440 / colSize; 
-        y = 540 - (st.posInCol * ySpacing); // 0番が一番下（前）、番号が増えると上（後ろ）へ
-      }
-
-      st.element.style.left = x + 'px';
-      st.element.style.top = y + 'px';
-    });
-  }
-
-  // ②・③ 隊形移動（最短距離での展開）
-  function moveToFormation(outerGrade, innerGrade) {
-    updateTransitions();
-    const cx = 500; 
-    const cy = 300; 
-    const bigRx = 460; 
-    const bigRy = 270; 
-    const smallR = 70; 
-
-    // ■ 外側のリング（大円）の配置 ■
-    // 前側(Bottom)の児童は下半分の弧へ、後ろ側(Top)の児童は上半分の弧へ配置することで、絶対に交差しない最短距離になります。
-    const outerStudents = [
-      // --- 下半分の弧（右から左へ配置） ---
-      ...students.filter(s => s.kumi === 1 && s.grade === outerGrade && s.isFront),
-      ...students.filter(s => s.kumi === 2 && s.grade === outerGrade && s.isFront),
-      ...students.filter(s => s.kumi === 3 && s.grade === outerGrade && s.isFront),
-      // --- 上半分の弧（左から右へ配置） ---
-      ...students.filter(s => s.kumi === 3 && s.grade === outerGrade && !s.isFront),
-      ...students.filter(s => s.kumi === 2 && s.grade === outerGrade && !s.isFront),
-      ...students.filter(s => s.kumi === 1 && s.grade === outerGrade && !s.isFront)
-    ];
-
-    const totalOuter = outerStudents.length;
-    outerStudents.forEach((st, i) => {
-      const angle = ((i + 0.5) / totalOuter) * 2 * Math.PI; 
-      const x = cx + bigRx * Math.cos(angle);
-      const y = cy + bigRy * Math.sin(angle);
-      st.element.style.left = x + 'px';
-      st.element.style.top = y + 'px';
-    });
-
-    // ■ 内側のリング（小円）の配置 ■
-    Object.keys(centers).forEach(groupKey => {
-      const inners = students.filter(s => s.groupPos === groupKey && s.grade === innerGrade);
-      const smallCenter = centers[groupKey];
-      
-      inners.forEach((st, i) => {
-        const angle = (i / inners.length) * Math.PI * 2 - (Math.PI / 2);
-        const x = smallCenter.x + smallR * Math.cos(angle);
-        const y = smallCenter.y + smallR * Math.sin(angle);
-        st.element.style.left = x + 'px';
-        st.element.style.top = y + 'px';
-      });
-    });
-  }
-
-  // 起動
-  window.onload = init;
-</script>
-
-</body>
+</form>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
 </html>
