@@ -2647,12 +2647,289 @@
     function delCh(id) { chData = chData.filter(i=>i.id!==id); renderCh(); }
     renderCh();
 
-    // 8. 自作クイズ
-    let qzData = loadData('mun_quiz', [{id:1, q:"日本の首都は？", a:"東京"}]);
+   // 8. 自作クイズ
+    let qzData = loadData('mun_quiz', [{id:1, q:"日本の首都はどこ？", a:"東京"}]);
     function renderQz() {
-      document.getElementById('qz-list').innerHTML = qzData.map(q => `<div class="list-item"><div style="flex:1;"><div class="item-title q">${q.q}</div><div class="ans">${q.a}</div></div><button class="del-btn sfx-click" onclick="event.stopPropagation(); delQz(${q.id})"><i class="fa-solid fa-trash-can"></i></button></div>`).join('');
+      document.getElementById('qz-list').innerHTML = qzData.map(q => `<div class="list-item flashcard sfx-click" onclick="this.classList.toggle('revealed')"><div style="flex:1; text-align:left;"><div class="item-title q">Q. ${q.q} <span style="font-size:0.7rem; color:#64748b;">(クリックで解答)</span></div><div class="ans">A. ${q.a}</div></div><button class="del-btn sfx-click" onclick="event.stopPropagation(); delQz(${q.id})"><i class="fa-solid fa-trash-can"></i></button></div>`).join('');
       saveData('mun_quiz', qzData);
     }
-    function addQuiz() { const q = document.getElementById('qz-q').value; const a = document.getElementById('qz-a').value; if(!q||!a) return; qzData.push({id:Date.now(), q, a}); document.getElementById('qz-q').value=''; document.getElementById('qz-a').value=''; renderQz(); showToast("クイズを追加しました", "fa-question-circle");}
+    function addQuiz() { const q = document.getElementById('qz-q').value; const a = document.getElementById('qz-a').value; if(!q||!a) return; qzData.push({id:Date.now(), q, a}); document.getElementById('qz-q').value=''; document.getElementById('qz-a').value=''; renderQz(); showToast("クイズを作成しました", "fa-question");}
     function delQz(id) { qzData = qzData.filter(i=>i.id!==id); renderQz(); }
     renderQz();
+
+    // サイコロ
+    const diceIcons = ['fa-dice-one', 'fa-dice-two', 'fa-dice-three', 'fa-dice-four', 'fa-dice-five', 'fa-dice-six'];
+    let diceRolling = false;
+    async function rollDice() {
+      if(diceRolling) return;
+      await initAudio(); diceRolling = true; playSFX('startup');
+      const el = document.getElementById('dice-icon');
+      el.className = `fa-solid ${diceIcons[0]} rolling-dice`;
+
+      let count = 0;
+      const iv = setInterval(() => {
+        el.className = `fa-solid ${diceIcons[Math.floor(Math.random()*6)]} rolling-dice`;
+        count++;
+        if(count > 15) {
+          clearInterval(iv);
+          const finalResult = Math.floor(Math.random()*6);
+          el.className = `fa-solid ${diceIcons[finalResult]}`;
+          document.getElementById('dice-text').innerText = `出た目: ${finalResult + 1}`;
+          diceRolling = false; playSFX('coin');
+        }
+      }, 50);
+    }
+
+    // 電卓
+    let calcCurrent = '0'; let calcPrev = ''; let calcOp = null; let calcResetNext = false;
+    async function calcPress(val) {
+      await initAudio(); playSFX('click');
+      const disp = document.getElementById('calc-disp-text');
+      if (val === 'C') { calcCurrent = '0'; calcPrev = ''; calcOp = null; calcResetNext = false; }
+      else if (['+','-','*','/'].includes(val)) {
+        if (calcOp && !calcResetNext) { try { calcCurrent = String(new Function('return ' + calcPrev + calcOp + calcCurrent)()); } catch(e){} }
+        calcPrev = calcCurrent; calcOp = val; calcResetNext = true;
+      } else if (val === '=') {
+        if (calcOp) { try { calcCurrent = String(new Function('return ' + calcPrev + calcOp + calcCurrent)()); playSFX('coin'); } catch(e) { calcCurrent = 'Error'; } calcOp = null; calcResetNext = true; }
+      } else if (val === '.') {
+        if (!calcCurrent.includes('.')) calcCurrent += '.';
+      } else {
+        if (calcCurrent === '0' || calcCurrent === 'Error' || calcResetNext) { calcCurrent = val; calcResetNext = false; } else { calcCurrent += val; }
+      }
+      disp.innerText = calcCurrent;
+    }
+
+    // おみくじ
+    const fortunes = ["大吉 🌟🌟", "中吉 ☀️", "小吉 ⛅", "吉 ☁️", "末吉 🌦️", "大凶 🌧️ (気をつけて！)"];
+    async function drawFortune() { await initAudio(); document.getElementById('fortune-res').innerText = fortunes[Math.floor(Math.random()*fortunes.length)]; playSFX('startup');}
+
+    // 単位変換
+    async function doConvert() {
+      await initAudio();
+      const val = parseFloat(document.getElementById('u-val').value)||0; const t = document.getElementById('u-type').value;
+      let res = "0";
+      switch(t) {
+        case 'cm_to_mm': res = (val * 10) + " mm"; break;
+        case 'mm_to_cm': res = (val / 10) + " cm"; break;
+        case 'm_to_km': res = (val / 1000) + " km"; break;
+        case 'km_to_m': res = (val * 1000) + " m"; break;
+        case 'g_to_kg': res = (val / 1000) + " kg"; break;
+        case 'kg_to_g': res = (val * 1000) + " g"; break;
+        case 'ml_to_l': res = (val / 1000) + " L"; break;
+        case 'l_to_ml': res = (val * 1000) + " mL"; break;
+      }
+      document.getElementById('u-res').innerText = res; playSFX('coin');
+    }
+
+    // お絵かきキャンバス 
+    const sCanvas = document.getElementById('sketch-canvas');
+    const sCtx = sCanvas.getContext('2d');
+    let isDrawing = false;
+
+    function getPointerPos(e) {
+       const rect = sCanvas.getBoundingClientRect();
+       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+       return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+    function startDraw(e) { isDrawing=true; sCtx.beginPath(); const p = getPointerPos(e); sCtx.moveTo(p.x, p.y); }
+    function moveDraw(e) { if(isDrawing){ e.preventDefault(); const p = getPointerPos(e); sCtx.lineTo(p.x, p.y); sCtx.stroke(); sCtx.strokeStyle="#000"; sCtx.lineWidth=2;} }
+    function endDraw() { isDrawing=false; }
+
+    sCanvas.addEventListener('mousedown', startDraw);
+    sCanvas.addEventListener('mousemove', moveDraw);
+    window.addEventListener('mouseup', endDraw);
+    sCanvas.addEventListener('touchstart', startDraw, {passive:false});
+    sCanvas.addEventListener('touchmove', moveDraw, {passive:false});
+    window.addEventListener('touchend', endDraw);
+
+    function clearCanvas() { sCtx.fillStyle="#fff"; sCtx.fillRect(0,0,sCanvas.width,sCanvas.height); showToast("キャンバスをクリアしました", "fa-eraser");}
+
+    // パスワードジェネレーター
+    async function generatePass() {
+      await initAudio();
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+      let len = parseInt(document.getElementById('pass-len').value) || 12;
+      len = Math.max(6, Math.min(32, len));
+      let pass = "";
+      for(let i=0; i<len; i++) pass += chars[Math.floor(Math.random()*chars.length)];
+      document.getElementById('pass-res').innerText = pass; playSFX('click');
+    }
+
+    // ==========================================
+    // 先生・システム関連 (F12 CSVエクスポート追加)
+    // ==========================================
+    function isCorrectPassword(input) {
+      if (!input) return false;
+      const normalized = input.replace(/[０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
+      return normalized === '0113';
+    }
+
+    async function openTeacherTool(type) {
+      await initAudio(); playSFX('click');
+      const modal = document.getElementById('teacher-tool-modal');
+      const title = document.getElementById('tm-title');
+      const content = document.getElementById('tm-content');
+      modal.classList.add('show');
+
+      if(type === 'board') {
+        title.innerHTML = `<i class="fa-solid fa-chalkboard-user"></i> クラスお知らせボード作成`;
+        const oldMsg = localStorage.getItem('mun_class_msg') || "";
+        content.innerHTML = `
+          <p style="margin-bottom:10px;">児童のダッシュボードに表示されるメッセージを入力してください。</p>
+          <textarea id="tm-board-text" style="width:100%; height:150px; background:rgba(0,0,0,0.5); color:var(--text-bright); border:1px solid var(--accent-pink); border-radius:12px; padding:10px; font-size:1rem; font-family:inherit; outline:none; transition:0.2s;" onfocus="this.style.boxShadow='inset 0 0 10px rgba(236,72,153,0.3)'" onblur="this.style.boxShadow='none'">${oldMsg}</textarea>
+          <button onclick="saveClassBoard()" class="cool-btn sfx-click" style="margin-top:15px; background:var(--accent-pink);">掲示板を更新する</button>
+        `;
+      } 
+      else if(type === 'seat') {
+        title.innerHTML = `<i class="fa-solid fa-chair"></i> 座席表メーカー`;
+        content.innerHTML = `
+          <p style="margin-bottom:10px;">1番〜35番の座席をランダムに生成します。</p>
+          <button onclick="generateSeats()" class="cool-btn sfx-click" style="margin-bottom:15px; background:var(--accent-pink);">ランダム配置実行</button>
+          <div id="seat-grid" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; background:rgba(128,128,128,0.1); padding:20px; border-radius:12px; color:var(--text-bright); font-weight:bold; text-align:center;">
+              <div style="grid-column:1/-1; background:rgba(236,72,153,0.2); padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--accent-pink);">教卓</div>
+          </div>
+        `;
+      }
+      else if(type === 'attendance') {
+        title.innerHTML = `<i class="fa-solid fa-user-check"></i> 簡易出欠シート`;
+        content.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:10px; max-height:400px; overflow-y:auto; padding-right:10px;" id="attendance-list-area">
+            ${[1,2,3,4,5].map(n => `
+              <div style="display:flex; justify-content:space-between; background:rgba(128,128,128,0.1); padding:10px 15px; border-radius:8px; align-items:center; border:1px solid rgba(128,128,128,0.2);">
+                <span style="font-weight:bold;">出席番号 ${n}番</span>
+                <select class="cool-input att-status-select" data-num="${n}" style="padding:5px 10px; min-width:auto; font-size:0.9rem;">
+                   <option value="出席">出席</option><option value="欠席">欠席</option><option value="遅刻">遅刻</option>
+                </select>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="showToast('出欠データを保存しました', 'fa-check'); closeTeacherTool();" class="cool-btn sfx-click" style="flex:1; background:var(--accent-pink);">サーバーに保存</button>
+            <button onclick="exportAttendanceCSV()" class="cool-btn sfx-click" style="flex:1; background:var(--accent-cyan); color:#000;"><i class="fa-solid fa-file-csv"></i> CSV出力</button>
+          </div>
+        `;
+      }
+      else if(type === 'point') {
+        title.innerHTML = `<i class="fa-solid fa-ranking-star"></i> クラスポイント帳`;
+        let curPt = parseInt(localStorage.getItem('mun_class_pt')) || 0;
+        content.innerHTML = `
+          <div style="text-align:center;">
+            <p>現在のクラス合計ポイント</p>
+            <div id="tm-pt-display" style="font-size:4rem; font-weight:bold; color:var(--accent-gold); margin:20px 0; text-shadow:0 0 15px rgba(251,191,36,0.3);">${curPt} P</div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+              <button onclick="updateClassPt(5)" class="cool-btn sfx-click" style="background:var(--accent-emerald);">+5 P</button>
+              <button onclick="updateClassPt(-5)" class="cool-btn sfx-click" style="background:#ef4444;">-5 P</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function closeTeacherTool() { document.getElementById('teacher-tool-modal').classList.remove('show'); }
+
+    // 先生用ツールの内部関数
+    async function saveClassBoard() {
+      await initAudio(); playSFX('startup');
+      const txt = document.getElementById('tm-board-text').value;
+      localStorage.setItem('mun_class_msg', txt);
+      document.getElementById('student-class-msg').innerText = txt;
+      document.getElementById('student-class-board').style.display = txt ? 'block' : 'none';
+      showToast("クラス掲示板を更新しました！", "fa-chalkboard-user");
+      closeTeacherTool();
+    }
+
+    async function generateSeats() {
+      await initAudio();
+      let seats = Array.from({length:35}, (_, i) => i + 1);
+      seats.sort(() => Math.random() - 0.5);
+      const grid = document.getElementById('seat-grid');
+
+      grid.innerHTML = `<div style="grid-column:1/-1; background:rgba(236,72,153,0.2); padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--accent-pink);">教卓</div>` + 
+                       seats.map(n => `<div style="border:1px solid rgba(128,128,128,0.3); padding:15px 5px; border-radius:8px; background:rgba(128,128,128,0.1);">${n}番</div>`).join('');
+
+      playSFX('startup');
+    }
+
+    async function updateClassPt(diff) {
+      await initAudio();
+      let curPt = parseInt(localStorage.getItem('mun_class_pt')) || 0;
+      curPt += diff;
+      localStorage.setItem('mun_class_pt', curPt);
+      document.getElementById('tm-pt-display').innerText = `${curPt} P`;
+      playSFX('coin');
+    }
+
+    // F12: CSVエクスポート
+    function exportAttendanceCSV() {
+      initAudio(); playSFX('click');
+      let csvContent = "data:text/csv;charset=utf-8,出席番号,状態\n";
+      document.querySelectorAll('.att-status-select').forEach(select => {
+         csvContent += `${select.getAttribute('data-num')},${select.value}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `attendance_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("出欠データをCSVで出力しました", "fa-file-csv");
+    }
+
+    document.getElementById('teacher-key-btn').addEventListener('click', async () => {
+      await initAudio(); playSFX('click');
+      const teacherSec = document.getElementById('section-teacher');
+      if (teacherSec.style.display === 'block') return;
+      const codeInput = prompt('管理者セキュリティパスワードを入力してください:');
+      if (codeInput === null) return;
+      if (isCorrectPassword(codeInput)) { 
+        teacherSec.style.display = 'block'; 
+        setTimeout(() => { teacherSec.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); 
+      } else { 
+        alert('アクセス拒否: パスワードが正しくありません。'); 
+      }
+    });
+
+    function exportData() {
+      initAudio(); playSFX('click');
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(localStorage));
+      const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "mun_quest_backup.json");
+      document.body.appendChild(a); a.click(); a.remove(); showToast("データをエクスポートしました", "fa-file-export");
+    }
+    function importData() {
+      initAudio(); playSFX('click');
+      const p = prompt("JSONデータを貼り付けてください");
+      if(p) { try { const d = JSON.parse(p); Object.keys(d).forEach(k => localStorage.setItem(k, d[k])); location.reload(); } catch(e) { alert("不正なデータです"); } }
+    }
+    function resetAllData() {
+      initAudio(); playSFX('click');
+      if(confirm("本当に全てのセーブデータを消去しますか？この操作は取り消せません。")) { localStorage.clear(); location.reload(); }
+    }
+    function lockSystem() { initAudio(); playSFX('click'); document.getElementById('lock-screen').style.display='flex'; }
+    function unlockSystem() {
+      initAudio(); playSFX('click');
+      const input = prompt("管理者パスワードを入力してください:");
+      if (input === null) return;
+      if(isCorrectPassword(input)) { 
+        document.getElementById('lock-screen').style.display='none'; 
+      } else {
+        alert('パスワードが違います');
+      }
+    }
+    function sharePortal() {
+      initAudio(); playSFX('click');
+      navigator.clipboard.writeText(window.location.href).then(()=>{showToast("ポータルのURLをコピーしました！", "fa-share-nodes");});
+    }
+
+    // F15: ショートカットキー
+    function closeShortcutModal() { document.getElementById('shortcut-modal').classList.remove('show'); }
+
+    document.addEventListener('keydown', e => {
+      if(e.altKey && e.key === 't') { e.preventDefault(); document.getElementById('pomo-start-btn').click(); }
+      if(e.altKey && e.key === 's') { e.preventDefault(); searchInput.focus(); }
+      if(e.shiftKey && e.key === '?') { e.preventDefault(); document.getElementById('shortcut-modal').classList.add('show'); }
+    });
+  </script>
+</body>
+</html>
