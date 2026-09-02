@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>電子黒板</title>
+    <title>Simple Responsive Form</title>
     <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
 
 
@@ -15,7 +15,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>ホワイトボードアプリ</title>
+  <title>ホワイトボードアプリ（算数・国語 究極支援版）</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
@@ -36,14 +36,20 @@
       cursor: pointer;
       color: white;
       margin: 2px;
+      box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-base:active {
+      transform: translateY(1px);
+      box-shadow: none;
     }
 
     .toolbar {
       display: flex;
       gap: 4px;
       justify-content: center;
-      margin-bottom: 10px;
-      padding: 10px;
+      margin-bottom: 8px;
+      padding: 8px;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -52,13 +58,17 @@
     }
 
     select,
-    input[type="number"] {
+    input[type="number"],
+    input[type="checkbox"],
+    input[type="text"],
+    textarea {
       padding: 4px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 13px;
       cursor: pointer;
       margin: 2px;
+      vertical-align: middle;
     }
 
     .color-btn {
@@ -110,9 +120,13 @@
       background-color: #343a40;
     }
 
+    .btn-teal {
+      background-color: #20c997;
+    }
+
     #page-list-container {
       display: inline-flex;
-      max-width: 250px;
+      max-width: 200px;
       overflow-x: auto;
       white-space: nowrap;
       padding-bottom: 4px;
@@ -147,7 +161,7 @@
 
     #canvas-wrapper {
       width: 100%;
-      height: 85vh;
+      height: 78vh;
       overflow: auto;
       border: 2px solid #ccc;
       background-color: white;
@@ -155,20 +169,84 @@
       position: relative;
     }
 
-    /* ギャラリーモーダル */
-    #gallery-modal {
+    #sos-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #28a745;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      border: 4px solid white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+    }
+
+    #sos-button.sos-thinking {
+      background-color: #ffca28;
+      color: #333;
+    }
+
+    #sos-button.sos-help {
+      background-color: #dc3545;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+      }
+
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
+      }
+
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+      }
+    }
+
+    /* モーダル共通 */
+    #gallery-modal,
+    #save-load-modal,
+    #graph-builder-modal,
+    #tape-builder-modal,
+    #ms-builder-modal {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
-      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
       overflow-y: auto;
       padding: 20px;
       box-sizing: border-box;
       text-align: left;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 650px;
+      margin: 4vh auto;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
     .gallery-item {
@@ -190,43 +268,11 @@
       transform: scale(1.05);
     }
 
-    .gallery-item h3 {
-      margin: 0 0 10px 0;
-      font-size: 18px;
-      color: #333;
-      text-align: center;
-    }
-
     .gallery-item img {
       width: 100%;
       border: 1px solid #ccc;
       border-radius: 4px;
       background-color: white;
-    }
-
-    /* セーブ・ロード管理モーダル */
-    #save-load-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 1000;
-      padding: 50px;
-      box-sizing: border-box;
-      text-align: left;
-    }
-
-    .save-modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 600px;
-      margin: 0 auto;
-      max-height: 80vh;
-      overflow-y: auto;
     }
 
     .save-item {
@@ -237,30 +283,30 @@
       border-bottom: 1px solid #eee;
     }
 
-    .save-item:hover {
-      background-color: #f8f9fa;
-    }
-
-    .save-item-info {
+    .graph-item-row {
       display: flex;
-      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 4px;
     }
 
-    .save-item-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
+    .graph-item-row input[type="text"] {
+      width: 130px;
     }
 
-    .save-item-date {
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
+    .graph-item-row input[type="number"] {
+      width: 75px;
+      text-align: right;
     }
 
-    .save-item-actions button {
-      margin-left: 8px;
-      padding: 8px 15px;
+    .graph-item-row input[type="color"] {
+      width: 35px;
+      height: 30px;
+      padding: 0;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -273,17 +319,17 @@
         <option value="white">⬜ 白紙</option>
         <option value="grid">▦ 方眼</option>
         <option value="ruled">⏸ 縦罫線</option>
+        <option value="blackboard">🟩 黒板</option>
       </select>
 
       <select id="textDirection">
         <option value="h">➡ 横書き</option>
         <option value="v">⬇ 縦書き</option>
       </select>
-
       <select id="fontSizeSelect" onchange="changeFontSize()">
-        <option value="16">小文字(16)</option>
-        <option value="24" selected>中文字(24)</option>
-        <option value="36">大文字(36)</option>
+        <option value="16">小(16)</option>
+        <option value="24" selected>中(24)</option>
+        <option value="36">大(36)</option>
       </select>
 
       <select id="tool" onchange="changeTool()">
@@ -291,7 +337,6 @@
         <option value="draw">✎ ペン</option>
         <option value="highlight">🖍 蛍光ペン</option>
         <option value="text">A もじ</option>
-        <option value="stamp">💮 スタンプ</option>
         <option value="line">📏 直線</option>
         <option value="rect">▭ 四角</option>
         <option value="circle">◯ 丸</option>
@@ -301,41 +346,31 @@
         <span class="color-btn active" style="background:#000000;" onclick="setColor('#000000', this)"></span>
         <span class="color-btn" style="background:#dc3545;" onclick="setColor('#dc3545', this)"></span>
         <span class="color-btn" style="background:#007bff;" onclick="setColor('#007bff', this)"></span>
+        <span class="color-btn" style="background:#ffffff;" onclick="setColor('#ffffff', this)" title="白（黒板用）"></span>
       </span>
 
       <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
 
-      <span style="font-weight: bold; font-size: 13px; color: #333;">ページ:</span>
+      <span style="font-weight: bold; font-size: 13px; color: #333;">P:</span>
       <div id="page-list-container"><span id="page-list"></span></div>
-      <button id="addPageBtn" class="btn-base btn-green" style="background-color: #20c997;">＋1枚</button>
+      <button id="addPageBtn" class="btn-base btn-teal">＋1枚</button>
 
       <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
 
       <span style="font-size: 13px; color: #333; display: flex; align-items: center; gap: 2px;">
-        ⏱ <input type="number" id="timerMin" value="3" style="width: 40px; text-align: right; border: 1px solid #ccc; border-radius: 4px;" min="1">分
-        <button id="startTimerBtn" class="btn-base btn-orange" onclick="startTimer()" style="padding: 2px 8px; margin-left: 4px;">▶</button>
+        ⏱ <input type="number" id="timerMin" value="3" style="width: 40px; text-align: right;" min="1">分
+        <button id="startTimerBtn" class="btn-base btn-orange" onclick="startTimer()" style="padding: 2px 8px;">▶</button>
         <span id="timerDisplay" style="font-weight: bold; width: 45px; text-align: center; font-family: monospace;">03:00</span>
       </span>
 
       <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
-
-      <input type="file" id="cameraInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
-      <button class="btn-base btn-yellow" onclick="document.getElementById('cameraInput').click()">📸 画像</button>
-      <button id="addStickyBtn" class="btn-base btn-yellow">📝 ふせん</button>
-      <button id="addBiLingualBtn" class="btn-base btn-blue">📝 多言語ふせん(日/モ)</button>
-
-      <!-- ★新機能：レイヤーとロック操作★ -->
-      <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
-      <button class="btn-base btn-gray" onclick="bringToFront()" title="一番手前に移動">⬆️ 前へ</button>
-      <button class="btn-base btn-gray" onclick="sendToBack()" title="一番奥に移動">⬇️ 後ろへ</button>
-      <button class="btn-base btn-gray" onclick="toggleLock()" title="選択したものを動かせなくする">🔒 固定</button>
-
-      <button id="deleteObjBtn" class="btn-base btn-red">けす</button>
-      <button class="btn-base btn-gray" onclick="restoreDeleted()">🗑️ 戻す</button>
+      <label style="font-size: 12px; cursor: pointer; font-weight:bold; background:#e0e0e0; padding:4px 8px; border-radius:4px;">
+        <input type="checkbox" id="snapGridToggle"> 🧲 ピタッと整列
+      </label>
     </div>
 
-    <!-- ★枠のメニュー（新機能追加）★ -->
-    <div class="toolbar" style="margin-bottom: 10px;">
+    <!-- 枠・ふせん・基本ツール -->
+    <div class="toolbar">
       <button class="btn-base btn-dark" onclick="createBoardFrame('問')">問 枠</button>
       <button class="btn-base btn-blue" onclick="createBoardFrame('学')">学 枠</button>
       <button class="btn-base btn-red" onclick="createBoardFrame('め')">め 枠</button>
@@ -346,13 +381,39 @@
       <button class="btn-base btn-orange" onclick="createBoardFrame('ふ')">ふ 枠</button>
 
       <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
-      <button id="viewGalleryBtn" class="btn-base btn-blue">👀 一覧</button>
-      <button id="saveDataBtn" class="btn-base btn-green">💾 名前をつけて保存</button>
-      <button id="loadDataBtn" class="btn-base btn-orange">📂 履歴を開く</button>
-      <button id="exportPdfBtn" class="btn-base btn-purple">PDF</button>
-      <!-- ★新機能：画像書き出し★ -->
-      <button class="btn-base btn-blue" onclick="exportPNG()">🖼️ PNG</button>
-      <button id="fullScreenBtn" class="btn-base btn-dark">全画面</button>
+      <input type="file" id="cameraInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+      <button class="btn-base btn-yellow" onclick="document.getElementById('cameraInput').click()">📸 画像</button>
+      <button class="btn-base btn-yellow" onclick="addSticky()">📝 ふせん</button>
+      <button class="btn-base btn-blue" onclick="addBiLingualSticky()">📝 日/モ</button>
+
+      <span style="border-left: 2px solid #ccc; margin: 0 5px; height: 30px;"></span>
+      <button class="btn-base btn-gray" onclick="bringToFront()" title="一番手前に移動">⬆️ 前</button>
+      <button class="btn-base btn-gray" onclick="sendToBack()" title="一番奥に移動">⬇️ 奥</button>
+      <button class="btn-base btn-gray" onclick="toggleLock()" title="動かせなくする">🔒 固定</button>
+      <button class="btn-base btn-red" onclick="deleteSelected()">けす</button>
+      <button class="btn-base btn-gray" onclick="restoreDeleted()">🗑️ 戻す</button>
+    </div>
+
+    <!-- 算数・国語 特化ツールバー -->
+    <div class="toolbar" style="background:#e3f2fd; border: 2px solid #90caf9;">
+      <span style="font-weight:bold; font-size:13px; color:#1e88e5;">算数・国語ツール：</span>
+      <button class="btn-base btn-blue" onclick="spawnMathTool('ruler')">📏 15cm定規</button>
+      <button class="btn-base btn-blue" onclick="spawnMathTool('protractor')">📐 分度器</button>
+      <button class="btn-base btn-blue" onclick="spawnMathTool('tri-iso')">🔺 二等辺</button>
+      <button class="btn-base btn-blue" onclick="spawnMathTool('tri-right')">📐 直角</button>
+
+      <span style="border-left: 2px solid #90caf9; margin: 0 5px; height: 20px;"></span>
+
+      <button class="btn-base btn-green" onclick="openTapeBuilder()">📼 テープ図作成</button>
+      <button class="btn-base btn-green" onclick="openGraphBuilder()">📊 グラフ作成</button>
+      <button class="btn-base btn-orange" onclick="spawnMathTool('array')">🍎 アレイ図</button>
+      <button class="btn-base btn-purple" onclick="openMSBuilder()">📝 原稿用紙作成</button>
+
+      <span style="border-left: 2px solid #90caf9; margin: 0 5px; height: 20px;"></span>
+      <button id="viewGalleryBtn" class="btn-base btn-dark">👀 一覧</button>
+      <button id="saveDataBtn" class="btn-base btn-dark">💾 保存</button>
+      <button id="loadDataBtn" class="btn-base btn-dark">📂 開く</button>
+      <button class="btn-base btn-dark" onclick="exportPNG()">🖼️ PNG</button>
       <button id="clearBtn" class="btn-base btn-gray">全消去</button>
     </div>
 
@@ -361,16 +422,127 @@
     </div>
   </div>
 
-  <div id="gallery-modal">
-    <div style="display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 20px;">
-      <h2>👀 全ページ一覧</h2>
-      <button id="closeGalleryBtn" class="btn-base btn-gray" style="font-size:20px; padding:10px 20px;">閉じる</button>
+  <button id="sos-button" onclick="toggleSOS()">
+    <span id="sos-icon" style="font-size:24px;">🟢</span>
+    <span id="sos-text">順調</span>
+  </button>
+
+  <!-- ================= グラフ作成モーダル ================= -->
+  <div id="graph-builder-modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="margin: 0; color: #007bff;">📊 グラフ設定・作成ツール</h2>
+        <button onclick="closeGraphBuilder()" class="btn-base btn-gray" style="font-size:16px;">閉じる</button>
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-bottom: 15px; background: #e9ecef; padding: 15px; border-radius: 8px;">
+        <div>
+          <label style="font-weight: bold; font-size: 13px;">縦軸の最大値:</label><br>
+          <input type="text" id="g-max" value="60" style="width: 70px; text-align: right;">
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 13px;">メモリ間隔:</label><br>
+          <input type="text" id="g-step" value="10" style="width: 70px; text-align: right;">
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 13px;">グラフ名:</label><br>
+          <input type="text" id="g-title" value="じゅもん・くだもの調べ" style="width: 150px;">
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">項目と数値データ</h3>
+      <div id="graph-items-container"></div>
+      <div style="margin-top: 10px;">
+        <button class="btn-base btn-green" onclick="addGraphItemRow()">＋ データを追加</button>
+      </div>
+
+      <div style="text-align: right; margin-top: 20px; border-top: 2px solid #ccc; padding-top: 15px;">
+        <button class="btn-base btn-blue" style="font-size: 15px; padding: 10px 20px;" onclick="generateAdvancedGraph()">✨ グラフを描画する</button>
+      </div>
     </div>
-    <div id="gallery-grid" style="text-align: center;"></div>
+  </div>
+
+  <!-- ================= テープ図作成モーダル ================= -->
+  <div id="tape-builder-modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #28a745; padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="margin: 0; color: #28a745;">📼 テープ図作成・設定ツール</h2>
+        <button onclick="closeTapeBuilder()" class="btn-base btn-gray" style="font-size:16px;">閉じる</button>
+      </div>
+
+      <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+        <div style="margin-bottom: 10px;">
+          <label style="font-weight:bold; font-size:13px;">上のテープ (名前):</label>
+          <input type="text" id="t-name1" value="ねこ" style="width: 100px;">
+          <label style="font-weight:bold; font-size:13px; margin-left:10px;">数値(長さ/数量):</label>
+          <input type="text" id="t-val1" value="15" style="width: 70px; text-align: right;">ひき
+        </div>
+        <div>
+          <label style="font-weight:bold; font-size:13px;">下のテープ (名前):</label>
+          <input type="text" id="t-name2" value="いぬ" style="width: 100px;">
+          <label style="font-weight:bold; font-size:13px; margin-left:10px;">数値(長さ/数量):</label>
+          <input type="text" id="t-val2" value="11" style="width: 70px; text-align: right;">ひき
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-bottom: 15px; background: #f1f8e9; padding: 12px; border-radius: 8px;">
+        <div>
+          <label style="font-weight:bold; font-size:13px;">全体・上アーク表示:</label>
+          <input type="text" id="t-top-label" value="15ひき" style="width: 120px;" placeholder="例: 15ひき (空欄可)">
+        </div>
+        <div>
+          <label style="font-weight:bold; font-size:13px;">差・右下アーク表示:</label>
+          <input type="text" id="t-right-label" value="4ひき" style="width: 120px;" placeholder="例: 4ひき (空欄可)">
+        </div>
+      </div>
+
+      <div style="text-align: right; border-top: 2px solid #ccc; padding-top: 15px;">
+        <button class="btn-base btn-green" style="font-size: 15px; padding: 10px 20px;" onclick="generateTapeDiagram()">✨ テープ図を描画する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 原稿用紙作成モーダル ================= -->
+  <div id="ms-builder-modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #9c27b0; padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="margin: 0; color: #9c27b0;">📝 原稿用紙・文字入力ツール</h2>
+        <button onclick="closeMSBuilder()" class="btn-base btn-gray" style="font-size:16px;">閉じる</button>
+      </div>
+
+      <div style="margin-bottom: 15px; background: #f3e5f5; padding: 15px; border-radius: 8px;">
+        <label style="font-weight: bold; font-size: 14px;">原稿用紙の種類を選んでください：</label><br>
+        <select id="ms-type" style="padding: 6px; font-size: 14px; margin-top: 5px;">
+          <option value="100">100文字原稿用紙 (10×10)</option>
+          <option value="200">200文字原稿用紙 (10×20)</option>
+          <option value="300">300文字原稿用紙 (15×20)</option>
+          <option value="400" selected>400文字原稿用紙 (20×20)</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="font-weight: bold; font-size: 14px;">文章を入力してください（Wordのように自動でマスに入ります）：</label><br>
+        <textarea id="ms-text" rows="5" style="width: 100%; box-sizing: border-box; padding: 8px; font-size: 16px;" placeholder="ここに作文や感想などを入力してください。改行もそのままマスに反映されます。"></textarea>
+      </div>
+
+      <div style="text-align: right; border-top: 2px solid #ccc; padding-top: 15px;">
+        <button class="btn-base btn-purple" style="font-size: 15px; padding: 10px 20px;" onclick="generateGenkoYoshi()">✨ 原稿用紙を配置する</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gallery-modal">
+    <div class="modal-content" style="max-width: 90%; text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;">👀 全ページ一覧</h2>
+        <button id="closeGalleryBtn" class="btn-base btn-gray" style="font-size:20px; padding:10px 20px;">閉じる</button>
+      </div>
+      <div id="gallery-grid"></div>
+    </div>
   </div>
 
   <div id="save-load-modal">
-    <div class="save-modal-content">
+    <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 10px;">
         <h2 style="margin: 0; color: #333;">📂 保存された履歴一覧</h2>
         <button onclick="document.getElementById('save-load-modal').style.display = 'none'" class="btn-base btn-gray" style="font-size:16px;">閉じる</button>
@@ -389,6 +561,7 @@
     let origX, origY, currentShape;
     let timerInterval;
     let localPagesData = {};
+    let sosState = 0;
     const SAVES_KEY = 'edu_whiteboard_saves_list';
 
     function getEl(id) {
@@ -398,737 +571,25 @@
     function generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     }
-    // ★ isLocked プロパティを追加保存対象に含める
-    const customProps = ['linkedId', 'linkRole', 'relX', 'relY', 'isVerticalText', 'minW', 'minH', 'objectId', 'lockMovementX', 'lockMovementY', 'lockRotation', 'lockScalingX', 'lockScalingY', 'hasControls'];
+    // 全角数字を半角数字に安全に変換するヘルパー関数
+    function toHalfWidth(str) {
+      if (!str) return '';
+      return str.replace(/[０-９]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+      });
+    }
+    const customProps = ['linkedId', 'linkRole', 'relX', 'relY', 'isVerticalText', 'minW', 'minH', 'objectId', 'lockMovementX', 'lockMovementY', 'lockRotation', 'lockScalingX', 'lockScalingY', 'hasControls', 'strokeUniform'];
     const bgGrid = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23ffffff"/><path d="M 40 0 L 0 0 0 40" fill="none" stroke="%23e0e0e0" stroke-width="1"/></svg>';
     const bgRuled = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23ffffff"/><path d="M 39 0 L 39 40" fill="none" stroke="%23cccccc" stroke-width="1"/></svg>';
-
-    function saveAsDataLocally() {
-      const title = prompt("保存する題名を入力してください\n（例：3年算数 角の大きさ 1時目）");
-      if (!title) return;
-      saveCurrentPageLocally();
-      const dataToSave = {
-        title: title,
-        date: new Date().toLocaleString(),
-        maxPage: maxPage,
-        currentPage: currentPage,
-        pages: localPagesData
-      };
-      try {
-        let saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}');
-        const id = 'save_' + Date.now();
-        saves[id] = dataToSave;
-        localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
-        alert(`「${title}」として保存しました！`);
-      } catch (e) {
-        alert('保存に失敗しました。画像の貼りすぎ等で容量がオーバーしている可能性があります。不要な履歴を削除してください。');
-        console.error(e);
-      }
-    }
-
-    function openLoadModal() {
-      const saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}');
-      const list = getEl('save-list');
-      list.innerHTML = '';
-      if (Object.keys(saves).length === 0) {
-        list.innerHTML = '<p style="text-align:center; color:#666; padding: 20px;">保存された履歴はありません。</p>';
-      } else {
-        const sortedIds = Object.keys(saves).sort((a, b) => b.localeCompare(a));
-        sortedIds.forEach(id => {
-          const s = saves[id];
-          list.innerHTML += `
-            <div class="save-item">
-                <div class="save-item-info">
-                    <span class="save-item-title">${s.title}</span>
-                    <span class="save-item-date">保存日時: ${s.date} / 全${s.maxPage}ページ</span>
-                </div>
-                <div class="save-item-actions">
-                    <button onclick="loadSaveData('${id}')" class="btn-base btn-blue">開く</button>
-                    <button onclick="deleteSaveData('${id}')" class="btn-base btn-red">削除</button>
-                </div>
-            </div>`;
-        });
-      }
-      getEl('save-load-modal').style.display = 'block';
-    }
-
-    function loadSaveData(id) {
-      if (!confirm("現在編集中の内容は失われます。よろしいですか？")) return;
-      const saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}');
-      const savedData = saves[id];
-      if (savedData) {
-        maxPage = savedData.maxPage || 1;
-        currentPage = savedData.currentPage || 1;
-        localPagesData = savedData.pages || {};
-        renderPageButtons();
-        loadPageLocally(currentPage);
-        if (localPagesData[currentPage] && localPagesData[currentPage].bg) {
-          getEl('bgSelect').value = localPagesData[currentPage].bg;
-        }
-        getEl('save-load-modal').style.display = 'none';
-      }
-    }
-
-    function deleteSaveData(id) {
-      if (!confirm("本当にこの履歴を削除しますか？\n（この操作は取り消せません）")) return;
-      let saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}');
-      delete saves[id];
-      localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
-      openLoadModal();
-    }
-
-    function saveCurrentPageLocally() {
-      if (canvas) {
-        localPagesData[currentPage] = {
-          bg: getEl('bgSelect').value,
-          objects: canvas.getObjects().map(o => o.toObject(customProps))
-        };
-      }
-    }
-
-    function loadPageLocally(pageNumber) {
-      canvas.clear();
-      const data = localPagesData[pageNumber];
-      if (!data || !data.objects || data.objects.length === 0) {
-        getEl('bgSelect').value = 'white';
-        changeBackground(true);
-        return;
-      }
-      getEl('bgSelect').value = data.bg || 'white';
-      changeBackground(true);
-      canvas.loadFromJSON({
-        objects: data.objects
-      }, () => {
-        const linkedMap = {};
-        canvas.getObjects().forEach(obj => {
-          if (obj.isVerticalText) obj.on('changed', () => fixVerticalText(obj));
-          if (obj.linkedId) {
-            if (!linkedMap[obj.linkedId]) linkedMap[obj.linkedId] = {};
-            linkedMap[obj.linkedId][obj.linkRole] = obj;
-          }
-        });
-        Object.values(linkedMap).forEach(pair => {
-          if (pair.frame && pair.text) setupLink(pair.frame, pair.text);
-        });
-        canvas.renderAll();
-      });
-    }
-
-    function changeFontSize() {
-      if (!canvas) return;
-      const size = parseInt(getEl('fontSizeSelect').value, 10);
-      const activeObjects = canvas.getActiveObjects();
-      if (activeObjects.length > 0) {
-        activeObjects.forEach(obj => {
-          if (obj.type === 'i-text' || obj.type === 'textbox') {
-            obj.set('fontSize', size);
-            if (obj.isVerticalText) obj.set('width', size + 10);
-          }
-        });
-        canvas.renderAll();
-      }
-    }
-
-    function fixVerticalText(obj) {
-      if (!obj || !obj.text || !obj.isVerticalText) return;
-      if (obj.text.includes('\n')) {
-        const parts = obj.text.split('\n');
-        obj.set('text', parts[0]);
-        let currentObj = obj;
-        for (let i = 1; i < parts.length; i++) {
-          const offsetLeft = currentObj.fontSize + 16;
-          const newObj = new fabric.Textbox(parts[i] || '', {
-            left: currentObj.left - offsetLeft,
-            top: currentObj.top,
-            width: currentObj.fontSize + 10,
-            fontSize: currentObj.fontSize,
-            fill: currentObj.fill,
-            splitByGrapheme: true,
-            isVerticalText: true,
-            objectId: generateId()
-          });
-          canvas.add(newObj);
-          newObj.on('changed', () => fixVerticalText(newObj));
-          currentObj = newObj;
-        }
-        canvas.setActiveObject(currentObj);
-        currentObj.enterEditing();
-        let fixed = obj.text.replace(/、/g, '︑').replace(/。/g, '︒').replace(/「/g, '﹃').replace(/」/g, '﹄').replace(/ー/g, '丨');
-        if (obj.text !== fixed) obj.set('text', fixed);
-        canvas.renderAll();
-        return;
-      }
-      const MAX_HEIGHT = 400;
-      if (obj.height > MAX_HEIGHT && obj.text.length > 1) {
-        const lastChar = obj.text.slice(-1);
-        obj.set('text', obj.text.slice(0, -1));
-        const offsetLeft = obj.fontSize + 16;
-        const newObj = new fabric.Textbox(lastChar, {
-          left: obj.left - offsetLeft,
-          top: obj.top,
-          width: obj.fontSize + 10,
-          fontSize: obj.fontSize,
-          fill: obj.fill,
-          splitByGrapheme: true,
-          isVerticalText: true,
-          objectId: generateId()
-        });
-        canvas.add(newObj);
-        newObj.on('changed', () => fixVerticalText(newObj));
-        canvas.setActiveObject(newObj);
-        newObj.enterEditing();
-        newObj.selectionStart = 1;
-        newObj.selectionEnd = 1;
-        canvas.renderAll();
-        return;
-      }
-      let fixed = obj.text.replace(/、/g, '︑').replace(/。/g, '︒').replace(/「/g, '﹃').replace(/」/g, '﹄').replace(/ー/g, '丨');
-      if (obj.text !== fixed) {
-        obj.set('text', fixed);
-        canvas.renderAll();
-      }
-    }
-
-    function setColor(color, btnElement) {
-      currentColor = color;
-      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
-      if (btnElement) btnElement.classList.add('active');
-      if (canvas) {
-        const activeObj = canvas.getActiveObject();
-        if (activeObj && (activeObj.type === 'i-text' || activeObj.type === 'textbox')) {
-          activeObj.set('fill', color);
-          canvas.renderAll();
-        } else if (activeObj && ['line', 'rect', 'circle'].includes(activeObj.type)) {
-          activeObj.set('stroke', color);
-          canvas.renderAll();
-        }
-        changeTool();
-      }
-    }
-
-    function renderPageButtons() {
-      const container = getEl('page-list');
-      container.innerHTML = '';
-      for (let i = 1; i <= maxPage; i++) {
-        const btn = document.createElement('button');
-        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-        btn.textContent = i;
-        btn.onclick = () => switchPage(i);
-        container.appendChild(btn);
-      }
-    }
-
-    function switchPage(pageNumber) {
-      if (currentPage === pageNumber) return;
-      saveCurrentPageLocally();
-      currentPage = pageNumber;
-      renderPageButtons();
-      trashBin = [];
-      loadPageLocally(pageNumber);
-    }
-
-    function addPage() {
-      saveCurrentPageLocally();
-      maxPage++;
-      currentPage = maxPage;
-      renderPageButtons();
-      canvas.clear();
-      getEl('bgSelect').value = 'white';
-      changeBackground(true);
-    }
-
-    function changeTool() {
-      if (!canvas) return;
-      const tool = getEl('tool').value;
-      canvas.isDrawingMode = (tool === 'draw' || tool === 'highlight');
-      if (tool === 'highlight') {
-        canvas.freeDrawingBrush.width = parseInt(getEl('fontSizeSelect').value, 10) * 1.2 || 20;
-        let hex = currentColor.replace('#', '');
-        let r = parseInt(hex.substring(0, 2), 16);
-        let g = parseInt(hex.substring(2, 4), 16);
-        let b = parseInt(hex.substring(4, 6), 16);
-        canvas.freeDrawingBrush.color = `rgba(${r}, ${g}, ${b}, 0.3)`;
-      } else if (tool === 'draw') {
-        canvas.freeDrawingBrush.width = 4;
-        canvas.freeDrawingBrush.color = currentColor;
-      }
-    }
-
-    function changeBackground(skipSave = false) {
-      if (!canvas) return;
-      const bgType = getEl('bgSelect').value;
-      const cb = () => canvas.renderAll();
-      if (bgType === 'white') canvas.setBackgroundColor('#ffffff', cb);
-      else if (bgType === 'grid') canvas.setBackgroundColor({
-        source: bgGrid,
-        repeat: 'repeat'
-      }, cb);
-      else if (bgType === 'ruled') canvas.setBackgroundColor({
-        source: bgRuled,
-        repeat: 'repeat'
-      }, cb);
-    }
-
-    function startTimer() {
-      clearInterval(timerInterval);
-      let btn = getEl('startTimerBtn');
-      if (btn.textContent === '■') {
-        btn.textContent = '▶';
-        return;
-      }
-      let min = parseInt(getEl('timerMin').value) || 3;
-      let time = min * 60;
-      btn.textContent = '■';
-      const display = getEl('timerDisplay');
-      display.textContent = `${min.toString().padStart(2, '0')}:00`;
-      timerInterval = setInterval(() => {
-        time--;
-        let m = Math.floor(time / 60).toString().padStart(2, '0');
-        let s = (time % 60).toString().padStart(2, '0');
-        display.textContent = `${m}:${s}`;
-        if (time <= 0) {
-          clearInterval(timerInterval);
-          btn.textContent = '▶';
-          alert('時間になりました！');
-        }
-      }, 1000);
-    }
-
-    function setupLink(frame, text) {
-      frame.off('moving');
-      text.off('moving');
-      text.off('changed');
-      frame.on('moving', () => {
-        text.set({
-          left: frame.left + frame.relX,
-          top: frame.top + frame.relY
-        });
-        text.setCoords();
-      });
-      text.on('moving', () => {
-        frame.set({
-          left: text.left - frame.relX,
-          top: text.top - frame.relY
-        });
-        frame.setCoords();
-      });
-      text.on('changed', () => {
-        fixVerticalText(text);
-        const rect = frame.getObjects()[0];
-        const minW = frame.minW || 0;
-        const minH = frame.minH || 0;
-        const newW = Math.max(minW, text.width + 60);
-        const newH = Math.max(minH, text.height + 60);
-        if (rect.width !== newW || rect.height !== newH) {
-          rect.set({
-            width: newW,
-            height: newH
-          });
-          const oldLeft = frame.left;
-          const oldTop = frame.top;
-          frame.addWithUpdate();
-          frame.set({
-            left: oldLeft,
-            top: oldTop
-          });
-          frame.setCoords();
-          canvas.renderAll();
-        }
-      });
-    }
-
-    function getScrollOffset() {
-      const wrapper = getEl('canvas-wrapper');
-      if (!wrapper) return {
-        x: 100,
-        y: 100
-      };
-      return {
-        x: wrapper.scrollLeft + 100,
-        y: wrapper.scrollTop + 100
-      };
-    }
-    // ★ 枠の種類を拡張（適・考・ふ）
-    function createBoardFrame(type) {
-      if (!canvas) return;
-      const isVertical = (getEl('textDirection').value === 'v');
-      let color = '#dc3545'; // デフォルト赤系
-      if (type === '学') color = '#1e88e5'; // 青
-      else if (type === '問') color = '#333333'; // 黒
-      else if (type === '適') color = '#28a745'; // 緑
-      else if (type === '考') color = '#9c27b0'; // 紫
-      else if (type === 'ふ') color = '#fd7e14'; // オレンジ
-      const offset = getScrollOffset();
-      const rw = isVertical ? 120 : 450;
-      const rh = isVertical ? 450 : 120;
-      const bx = isVertical ? rw - 20 : -20;
-      const by = -20;
-      const circle = new fabric.Circle({
-        radius: 20,
-        fill: 'white',
-        stroke: color,
-        strokeWidth: 4,
-        originX: 'center',
-        originY: 'center'
-      });
-      const textBadge = new fabric.Text(type, {
-        fontSize: 24,
-        fill: color,
-        fontWeight: 'bold',
-        originX: 'center',
-        originY: 'center'
-      });
-      const badge = new fabric.Group([circle, textBadge], {
-        left: bx,
-        top: by
-      });
-      const rect = new fabric.Rect({
-        left: 0,
-        top: 0,
-        width: rw,
-        height: rh,
-        fill: 'transparent',
-        stroke: color,
-        strokeWidth: 4,
-        rx: 8,
-        ry: 8
-      });
-      const frameGroup = new fabric.Group([rect, badge], {
-        left: offset.x,
-        top: offset.y,
-        objectId: generateId()
-      });
-      const tx = offset.x + (isVertical ? 45 : 40);
-      const ty = offset.y + (isVertical ? 40 : 30);
-      let placeholder = 'テキストを入力...';
-      if (type === '問') placeholder = '問題を入力...';
-      else if (type === '学') placeholder = '学習課題を入力...';
-      else if (type === 'ま') placeholder = 'まとめを入力...';
-      else if (type === 'め') placeholder = 'めあてを入力...';
-      else if (type === 'ポ') placeholder = 'ポイントを入力...';
-      else if (type === '適') placeholder = '適用問題を入力...';
-      else if (type === '考') placeholder = '自分の考えを入力...';
-      else if (type === 'ふ') placeholder = 'ふりかえりを入力...';
-      if (isVertical) placeholder = placeholder.replace('を', 'を\n');
-      const fontSize = parseInt(getEl('fontSizeSelect').value, 10);
-      let innerText;
-      if (isVertical) {
-        innerText = new fabric.Textbox(placeholder, {
-          left: tx,
-          top: ty,
-          fontSize: fontSize,
-          fill: '#333',
-          width: fontSize + 10,
-          splitByGrapheme: true,
-          isVerticalText: true,
-          objectId: generateId()
-        });
-        innerText.on('changed', () => fixVerticalText(innerText));
-        fixVerticalText(innerText);
-      } else {
-        innerText = new fabric.IText(placeholder.replace('\n', ''), {
-          left: tx,
-          top: ty,
-          fontSize: fontSize,
-          fill: '#333',
-          objectId: generateId()
-        });
-      }
-      const linkedId = Date.now().toString();
-      const relX = tx - offset.x;
-      const relY = ty - offset.y;
-      frameGroup.set({
-        linkedId: linkedId,
-        linkRole: 'frame',
-        relX: relX,
-        relY: relY,
-        minW: rw,
-        minH: rh
-      });
-      innerText.set({
-        linkedId: linkedId,
-        linkRole: 'text',
-        relX: relX,
-        relY: relY
-      });
-      setupLink(frameGroup, innerText);
-      canvas.add(frameGroup, innerText);
-      getEl('tool').value = 'select';
-      canvas.isDrawingMode = false;
-    }
-    // ★ 新機能：重なり順とロック・画像保存
-    function bringToFront() {
-      if (!canvas) return;
-      const activeObjects = canvas.getActiveObjects();
-      if (activeObjects.length > 0) {
-        activeObjects.forEach(obj => canvas.bringToFront(obj));
-        canvas.discardActiveObject();
-        canvas.renderAll();
-      }
-    }
-
-    function sendToBack() {
-      if (!canvas) return;
-      const activeObjects = canvas.getActiveObjects();
-      if (activeObjects.length > 0) {
-        activeObjects.forEach(obj => canvas.sendToBack(obj));
-        canvas.discardActiveObject();
-        canvas.renderAll();
-      }
-    }
-
-    function toggleLock() {
-      if (!canvas) return;
-      const activeObjects = canvas.getActiveObjects();
-      if (activeObjects.length > 0) {
-        activeObjects.forEach(obj => {
-          const isLocked = obj.lockMovementX; // 既にロックされているか判定
-          obj.set({
-            lockMovementX: !isLocked,
-            lockMovementY: !isLocked,
-            lockRotation: !isLocked,
-            lockScalingX: !isLocked,
-            lockScalingY: !isLocked,
-            hasControls: isLocked, // ロック中は枠線やリサイズを消す
-            hoverCursor: !isLocked ? 'default' : 'move'
-          });
-        });
-        canvas.discardActiveObject();
-        canvas.renderAll();
-      }
-    }
-
-    function exportPNG() {
-      if (!canvas) return;
-      // 背景が透明にならないように確実に白で塗る
-      if (!canvas.backgroundColor) {
-        canvas.backgroundColor = '#ffffff';
-        canvas.renderAll();
-      }
-      const dataURL = canvas.toDataURL({
-        format: 'png',
-        quality: 1
-      });
-      const link = document.createElement('a');
-      link.download = `ボード記録_P${currentPage}.png`;
-      link.href = dataURL;
-      link.click();
-    }
-
-    function addSticky() {
-      if (!canvas) return;
-      const isVertical = (getEl('textDirection').value === 'v');
-      const fontSize = parseInt(getEl('fontSizeSelect').value, 10);
-      const offset = getScrollOffset();
-      const commonOpts = {
-        left: offset.x + 50,
-        top: offset.y + 50,
-        fontSize: fontSize,
-        padding: 15,
-        backgroundColor: '#fff9c4',
-        fill: currentColor,
-        shadow: new fabric.Shadow({
-          color: 'rgba(0,0,0,0.3)',
-          blur: 5,
-          offsetX: 3,
-          offsetY: 3
-        }),
-        objectId: generateId()
-      };
-      let stickyText;
-      if (isVertical) {
-        commonOpts.width = fontSize + 10;
-        commonOpts.splitByGrapheme = true;
-        commonOpts.isVerticalText = true;
-        stickyText = new fabric.Textbox('ここに入力', commonOpts);
-        stickyText.on('changed', () => fixVerticalText(stickyText));
-        fixVerticalText(stickyText);
-      } else {
-        stickyText = new fabric.IText('ここに入力', commonOpts);
-      }
-      canvas.add(stickyText);
-      canvas.setActiveObject(stickyText);
-      stickyText.enterEditing();
-      stickyText.selectAll();
-      getEl('tool').value = 'select';
-      canvas.isDrawingMode = false;
-    }
-
-    function addBiLingualSticky() {
-      if (!canvas) return;
-      const fontSize = parseInt(getEl('fontSizeSelect').value, 10);
-      const offset = getScrollOffset();
-      const textTemplate = "🇯🇵 日本語：\nここに入力\n\n🇲🇳 モンゴル語：\nここに入力";
-      const stickyText = new fabric.Textbox(textTemplate, {
-        left: offset.x + 50,
-        top: offset.y + 50,
-        fontSize: fontSize,
-        padding: 15,
-        backgroundColor: '#e3f2fd',
-        fill: currentColor,
-        width: 350,
-        shadow: new fabric.Shadow({
-          color: 'rgba(0,0,0,0.3)',
-          blur: 5,
-          offsetX: 3,
-          offsetY: 3
-        }),
-        objectId: generateId()
-      });
-      canvas.add(stickyText);
-      canvas.setActiveObject(stickyText);
-      getEl('tool').value = 'select';
-      canvas.isDrawingMode = false;
-    }
-
-    function deleteSelected() {
-      if (!canvas) return;
-      const activeObjects = canvas.getActiveObjects();
-      if (activeObjects.length === 0) return;
-      let removedItems = [];
-      const idsToDelete = activeObjects.map(o => o.linkedId).filter(id => id);
-      canvas.getObjects().forEach(obj => {
-        if (activeObjects.includes(obj) || idsToDelete.includes(obj.linkedId)) {
-          removedItems.push(obj);
-          canvas.remove(obj);
-        }
-      });
-      if (removedItems.length > 0) {
-        trashBin.push(removedItems);
-        if (trashBin.length > 10) trashBin.shift();
-        canvas.discardActiveObject();
-      }
-    }
-
-    function restoreDeleted() {
-      if (!canvas || trashBin.length === 0) return;
-      trashBin.pop().forEach(obj => canvas.add(obj));
-    }
-
-    function clearAll() {
-      if (!canvas) return;
-      if (confirm(`ほんとうに ページ ${currentPage} を ぜんぶ けしますか？`)) {
-        canvas.clear();
-        changeBackground(true);
-        trashBin = [];
-      }
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          alert(`全画面表示をオンにできませんでした: ${err.message}`);
-        });
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-
-    function exportPDF() {
-      if (!canvas) return;
-      if (!canvas.backgroundColor) {
-        canvas.backgroundColor = '#ffffff';
-        canvas.renderAll();
-      }
-      const {
-        jsPDF
-      } = window.jspdf;
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        format: 'a3'
-      });
-      canvas.renderAll();
-      const imgData = canvas.toDataURL({
-        format: 'jpeg',
-        quality: 0.9
-      });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`ボード記録_P${currentPage}.pdf`);
-    }
-
-    function handleImageUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        fabric.Image.fromURL(event.target.result, (image) => {
-          const offset = getScrollOffset();
-          image.set({
-            left: offset.x,
-            top: offset.y,
-            objectId: generateId()
-          });
-          if (image.width > 600) image.scaleToWidth(600);
-          canvas.add(image);
-          canvas.setActiveObject(image);
-          getEl('tool').value = 'select';
-          canvas.isDrawingMode = false;
-        });
-      };
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
     window.addEventListener('DOMContentLoaded', () => {
-      getEl('addPageBtn').addEventListener('click', addPage);
-      getEl('deleteObjBtn').addEventListener('click', deleteSelected);
-      getEl('addStickyBtn').addEventListener('click', addSticky);
-      getEl('addBiLingualBtn').addEventListener('click', addBiLingualSticky);
-      getEl('exportPdfBtn').addEventListener('click', exportPDF);
-      getEl('clearBtn').addEventListener('click', clearAll);
-      getEl('fullScreenBtn').addEventListener('click', toggleFullScreen);
-      getEl('saveDataBtn').addEventListener('click', saveAsDataLocally);
-      getEl('loadDataBtn').addEventListener('click', openLoadModal);
-      getEl('viewGalleryBtn').addEventListener('click', () => {
-        saveCurrentPageLocally();
-        const grid = getEl('gallery-grid');
-        grid.innerHTML = '';
-        const offscreenCanvas = document.createElement('canvas');
-        const offscreen = new fabric.StaticCanvas(offscreenCanvas, {
-          width: 2000,
-          height: 1500,
-          backgroundColor: '#ffffff'
-        });
-        const renderGallery = async () => {
-          for (let pNum = 1; pNum <= maxPage; pNum++) {
-            const data = localPagesData[pNum];
-            if (!data || !data.objects || data.objects.length === 0) {
-              grid.innerHTML += `<div class="gallery-item" onclick="switchPage(${pNum}); getEl('gallery-modal').style.display='none'"><h3>📄 ページ ${pNum}</h3><p style="padding:50px 0;">(白紙です)</p></div>`;
-              continue;
-            }
-            await new Promise(resolve => {
-              offscreen.clear();
-              let bgConfig = '#ffffff';
-              if (data.bg === 'grid') bgConfig = {
-                source: bgGrid,
-                repeat: 'repeat'
-              };
-              else if (data.bg === 'ruled') bgConfig = {
-                source: bgRuled,
-                repeat: 'repeat'
-              };
-              offscreen.setBackgroundColor(bgConfig, () => {
-                offscreen.loadFromJSON({
-                  objects: data.objects
-                }, () => {
-                  offscreen.renderAll();
-                  grid.innerHTML += `<div class="gallery-item" onclick="switchPage(${pNum}); getEl('gallery-modal').style.display='none'"><h3>📄 ページ ${pNum}</h3><img src="${offscreen.toDataURL({ format: 'png' })}"></div>`;
-                  resolve();
-                });
-              });
-            });
-          }
-        };
-        renderGallery().then(() => {
-          getEl('gallery-modal').style.display = 'block';
-        });
-      });
-      getEl('closeGalleryBtn').addEventListener('click', () => getEl('gallery-modal').style.display = 'none');
       initCanvas();
       renderPageButtons();
+      getEl('addPageBtn').addEventListener('click', addPage);
+      getEl('clearBtn').addEventListener('click', clearAll);
+      getEl('saveDataBtn').addEventListener('click', saveAsDataLocally);
+      getEl('loadDataBtn').addEventListener('click', openLoadModal);
+      getEl('viewGalleryBtn').addEventListener('click', openGallery);
+      getEl('closeGalleryBtn').addEventListener('click', () => getEl('gallery-modal').style.display = 'none');
     });
 
     function initCanvas() {
@@ -1138,15 +599,25 @@
         backgroundColor: '#ffffff'
       });
       getEl('tool').value = 'select';
+      canvas.on('object:moving', function(options) {
+        if (getEl('snapGridToggle').checked) {
+          const gridSize = 40;
+          options.target.set({
+            left: Math.round(options.target.left / gridSize) * gridSize,
+            top: Math.round(options.target.top / gridSize) * gridSize
+          });
+        }
+      });
       canvas.on('mouse:move', (options) => {
         const tool = getEl('tool').value;
         if (isDrawingShape && currentShape) {
           let pointer = canvas.getPointer(options.e);
-          if (tool === 'line') currentShape.set({
-            x2: pointer.x,
-            y2: pointer.y
-          });
-          else if (tool === 'rect') {
+          if (tool === 'line') {
+            currentShape.set({
+              x2: pointer.x,
+              y2: pointer.y
+            });
+          } else if (tool === 'rect') {
             currentShape.set({
               width: Math.abs(origX - pointer.x),
               height: Math.abs(origY - pointer.y)
@@ -1204,16 +675,6 @@
             objectId: generateId()
           });
           canvas.add(currentShape);
-        } else if (tool === 'stamp') {
-          const stamp = new fabric.Text('💮', {
-            left: pointer.x - 25,
-            top: pointer.y - 25,
-            fontSize: 50,
-            objectId: generateId()
-          });
-          canvas.add(stamp);
-          getEl('tool').value = 'select';
-          canvas.isDrawingMode = false;
         } else if (tool === 'text' && !canvas.isDrawingMode) {
           const isVertical = (getEl('textDirection').value === 'v');
           const fontSize = parseInt(getEl('fontSizeSelect').value, 10);
@@ -1224,17 +685,12 @@
             fontSize: fontSize,
             objectId: generateId()
           };
-          let textObj;
-          if (isVertical) {
-            opts.splitByGrapheme = true;
-            opts.width = fontSize + 10;
-            opts.isVerticalText = true;
-            textObj = new fabric.Textbox('ここに入力', opts);
-            textObj.on('changed', () => fixVerticalText(textObj));
-            fixVerticalText(textObj);
-          } else {
-            textObj = new fabric.IText('ここに入力', opts);
-          }
+          let textObj = isVertical ? new fabric.Textbox('ここに入力', {
+            ...opts,
+            splitByGrapheme: true,
+            width: fontSize + 10,
+            isVerticalText: true
+          }) : new fabric.IText('ここに入力', opts);
           canvas.add(textObj);
           canvas.setActiveObject(textObj);
           textObj.enterEditing();
@@ -1252,13 +708,1159 @@
         }
       });
       window.addEventListener('keydown', (e) => {
-        if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT' && !canvas.getActiveObject()?.isEditing) {
+        if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !canvas.getActiveObject()?.isEditing) {
           deleteSelected();
         }
       });
     }
-  </script>
+    /* =========================================================================
+       📏 定規・分度器・図形ツール生成
+    ========================================================================= */
+    function spawnMathTool(type) {
+      if (!canvas) return;
+      const offset = getScrollOffset();
+      let cx = offset.x + 100;
+      let cy = offset.y + 100;
+      let toolFill = 'rgba(173, 216, 230, 0.3)';
+      let toolStroke = 'rgba(0, 100, 200, 0.8)';
+      if (type === 'ruler') {
+        // 正確な15cm定規 (1cm = 40px, 全長640px)
+        let groupItems = [];
+        let cmWidth = 40;
+        let totalWidth = 15 * cmWidth + 40;
+        let base = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: totalWidth,
+          height: 60,
+          fill: toolFill,
+          stroke: toolStroke,
+          strokeWidth: 1,
+          rx: 4,
+          ry: 4
+        });
+        groupItems.push(base);
+        for (let i = 0; i <= 150; i++) {
+          let x = 20 + i * (cmWidth / 10);
+          let isMajor = i % 10 === 0;
+          let isMid = i % 5 === 0;
+          let h = isMajor ? 25 : (isMid ? 15 : 8);
+          groupItems.push(new fabric.Line([x, 0, x, h], {
+            stroke: toolStroke,
+            strokeWidth: 1
+          }));
+          if (isMajor) {
+            let num = i / 10;
+            let txt = new fabric.Text(num.toString(), {
+              left: x,
+              top: 35,
+              fontSize: 16,
+              fill: toolStroke,
+              originX: 'center',
+              originY: 'center',
+              fontFamily: 'sans-serif'
+            });
+            groupItems.push(txt);
+          }
+        }
+        let group = new fabric.Group(groupItems, {
+          left: cx,
+          top: cy,
+          objectId: generateId()
+        });
+        canvas.add(group);
+        canvas.setActiveObject(group);
+      } else if (type === 'protractor') {
+        // 分度器（透ける半円）
+        let groupItems = [];
+        let r = 180;
+        let basePath = new fabric.Path(`M 0 ${r} A ${r} ${r} 0 0 1 ${r*2} ${r} Z`, {
+          fill: toolFill,
+          stroke: toolStroke,
+          strokeWidth: 1
+        });
+        let centerDot = new fabric.Circle({
+          left: r - 3,
+          top: r - 3,
+          radius: 3,
+          fill: 'red'
+        });
+        let baseline = new fabric.Line([10, r, r * 2 - 10, r], {
+          stroke: toolStroke,
+          strokeWidth: 1
+        });
+        let vertline = new fabric.Line([r, r, r, 20], {
+          stroke: toolStroke,
+          strokeWidth: 1
+        });
+        groupItems.push(basePath, centerDot, baseline, vertline);
+        for (let i = 0; i <= 180; i += 5) {
+          let angle = i * (Math.PI / 180);
+          let isMajor = (i % 10 === 0);
+          let tickLen = isMajor ? 20 : 10;
+          let x1 = r - r * Math.cos(angle);
+          let y1 = r - r * Math.sin(angle);
+          let x2 = r - (r - tickLen) * Math.cos(angle);
+          let y2 = r - (r - tickLen) * Math.sin(angle);
+          groupItems.push(new fabric.Line([x1, y1, x2, y2], {
+            stroke: toolStroke,
+            strokeWidth: 1
+          }));
+          if (isMajor) {
+            let tx = r - (r - 38) * Math.cos(angle);
+            let ty = r - (r - 38) * Math.sin(angle);
+            let txt = new fabric.Text(i.toString(), {
+              left: tx,
+              top: ty,
+              fontSize: 11,
+              fill: toolStroke,
+              originX: 'center',
+              originY: 'center',
+              angle: 90 - i,
+              fontFamily: 'sans-serif'
+            });
+            groupItems.push(txt);
+          }
+        }
+        let group = new fabric.Group(groupItems, {
+          left: cx,
+          top: cy,
+          objectId: generateId()
+        });
+        canvas.add(group);
+        canvas.setActiveObject(group);
+      } else if (type === 'tri-iso') {
+        let poly = new fabric.Polygon([{
+          x: 0,
+          y: 0
+        }, {
+          x: 200,
+          y: 0
+        }, {
+          x: 0,
+          y: 200
+        }], {
+          fill: toolFill,
+          stroke: toolStroke,
+          strokeWidth: 1
+        });
+        let group = new fabric.Group([poly], {
+          left: cx,
+          top: cy,
+          objectId: generateId()
+        });
+        canvas.add(group);
+        canvas.setActiveObject(group);
+      } else if (type === 'tri-right') {
+        let poly = new fabric.Polygon([{
+          x: 0,
+          y: 0
+        }, {
+          x: 173,
+          y: 0
+        }, {
+          x: 0,
+          y: 100
+        }], {
+          fill: toolFill,
+          stroke: toolStroke,
+          strokeWidth: 1
+        });
+        let group = new fabric.Group([poly], {
+          left: cx,
+          top: cy,
+          objectId: generateId()
+        });
+        canvas.add(group);
+        canvas.setActiveObject(group);
+      } else if (type === 'array') {
+        let rowInput = prompt("たてに いくつ ならべますか？（すうじ 例: 4）", "4");
+        if (rowInput === null) return;
+        let rows = parseInt(toHalfWidth(rowInput), 10);
+        let colInput = prompt("よこに いくつ ならべますか？（すうじ 例: 5）", "5");
+        if (colInput === null) return;
+        let cols = parseInt(toHalfWidth(colInput), 10);
+        if (isNaN(rows) || isNaN(cols) || rows <= 0 || cols <= 0) {
+          alert("ただしい すうじを いれてください。");
+          return;
+        }
+        let arrayItems = [];
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            arrayItems.push(new fabric.Circle({
+              left: c * 35,
+              top: r * 35,
+              radius: 12,
+              fill: '#dc3545',
+              stroke: '#fff',
+              strokeWidth: 2
+            }));
+          }
+        }
+        let arrayGroup = new fabric.Group(arrayItems, {
+          left: cx,
+          top: cy,
+          objectId: generateId()
+        });
+        canvas.add(arrayGroup);
+        canvas.setActiveObject(arrayGroup);
+      }
+      getEl('tool').value = 'select';
+      canvas.isDrawingMode = false;
+    }
+    /* =========================================================================
+       📼 テープ図ビルダー (画像のように上下のテープと数値を自由に設定可能)
+    ========================================================================= */
+    function openTapeBuilder() {
+      getEl('tape-builder-modal').style.display = 'block';
+    }
 
+    function closeTapeBuilder() {
+      getEl('tape-builder-modal').style.display = 'none';
+    }
+
+    function generateTapeDiagram() {
+      if (!canvas) return;
+      let name1 = getEl('t-name1').value || 'ねこ';
+      let val1 = parseFloat(toHalfWidth(getEl('t-val1').value)) || 15;
+      let name2 = getEl('t-name2').value || 'いぬ';
+      let val2 = parseFloat(toHalfWidth(getEl('t-val2').value)) || 11;
+      let topLabel = getEl('t-top-label').value;
+      let rightLabel = getEl('t-right-label').value;
+      let offset = getScrollOffset();
+      let startX = offset.x + 50;
+      let startY = offset.y + 80;
+      let groupItems = [];
+      // 長さの割合を計算（大きい方を基準に最大300pxとする）
+      let maxV = Math.max(val1, val2, 1);
+      let len1 = (val1 / maxV) * 280;
+      let len2 = (val2 / maxV) * 280;
+      if (len1 < 80) len1 = 80;
+      if (len2 < 80) len2 = 80;
+      // 1段目ラベルとテープ
+      groupItems.push(new fabric.Text(name1, {
+        left: startX - 50,
+        top: startY + 10,
+        fontSize: 18,
+        fill: '#333'
+      }));
+      groupItems.push(new fabric.Rect({
+        left: startX,
+        top: startY,
+        width: len1,
+        height: 36,
+        fill: '#b3e5fc',
+        stroke: '#333',
+        strokeWidth: 2
+      }));
+      // 2段目ラベルとテープ
+      let y2 = startY + 70;
+      groupItems.push(new fabric.Text(name2, {
+        left: startX - 50,
+        top: y2 + 10,
+        fontSize: 18,
+        fill: '#333'
+      }));
+      groupItems.push(new fabric.Rect({
+        left: startX,
+        top: y2,
+        width: len2,
+        height: 36,
+        fill: '#fff9c4',
+        stroke: '#333',
+        strokeWidth: 2
+      }));
+      // 上のアーク・ラベル (例: 15ひき)
+      if (topLabel) {
+        let topArcW = Math.max(len1, len2);
+        groupItems.push(new fabric.Path(`M ${startX} ${startY} Q ${startX + topArcW/2} ${startY - 35} ${startX + topArcW} ${startY}`, {
+          fill: 'transparent',
+          stroke: '#555',
+          strokeWidth: 1.5,
+          strokeDashArray: [4, 3]
+        }));
+        groupItems.push(new fabric.Text(topLabel, {
+          left: startX + topArcW / 2,
+          top: startY - 35,
+          fontSize: 18,
+          fill: '#333',
+          originX: 'center',
+          originY: 'bottom'
+        }));
+      }
+      // 右下の差分アーク・ラベル (例: 4ひき)
+      if (rightLabel && len1 !== len2) {
+        let minX = Math.min(startX + len1, startX + len2);
+        let maxX = Math.max(startX + len1, startX + len2);
+        // 点線境界
+        groupItems.push(new fabric.Line([minX, startY + 36, minX, y2], {
+          stroke: '#777',
+          strokeWidth: 1.5,
+          strokeDashArray: [3, 3]
+        }));
+        groupItems.push(new fabric.Path(`M ${minX} ${y2 + 36} Q ${minX + (maxX-minX)/2} ${y2 + 70} ${maxX} ${y2 + 36}`, {
+          fill: 'transparent',
+          stroke: '#555',
+          strokeWidth: 1.5,
+          strokeDashArray: [4, 3]
+        }));
+        groupItems.push(new fabric.Text(rightLabel, {
+          left: minX + (maxX - minX) / 2,
+          top: y2 + 50,
+          fontSize: 18,
+          fill: '#333',
+          originX: 'center'
+        }));
+      }
+      let tapeGroup = new fabric.Group(groupItems, {
+        left: offset.x,
+        top: offset.y,
+        objectId: generateId()
+      });
+      canvas.add(tapeGroup);
+      canvas.setActiveObject(tapeGroup);
+      canvas.renderAll();
+      closeTapeBuilder();
+    }
+    /* =========================================================================
+       📊 グラフ作成ビルダー (全角数字対応＆最大値・メモリ自由設定)
+    ========================================================================= */
+    function openGraphBuilder() {
+      getEl('graph-builder-modal').style.display = 'block';
+      const container = getEl('graph-items-container');
+      if (container.children.length === 0) {
+        addGraphItemRow('りんご', 50, '#5b9bd5');
+        addGraphItemRow('みかん', 20, '#ed7d31');
+        addGraphItemRow('バナナ', 15, '#a5a5a5');
+        addGraphItemRow('トマト', 30, '#ffc000');
+        addGraphItemRow('きゅうり', 10, '#4472c4');
+        addGraphItemRow('レタス', 10, '#70ad47');
+      }
+    }
+
+    function closeGraphBuilder() {
+      getEl('graph-builder-modal').style.display = 'none';
+    }
+
+    function addGraphItemRow(name = '項目', val = 10, col = '#5b9bd5') {
+      const div = document.createElement('div');
+      div.className = 'graph-item-row';
+      div.innerHTML = `
+        <span style="font-size:13px; color:#555;">名前:</span>
+        <input type="text" value="${name}">
+        <span style="font-size:13px; color:#555; margin-left:5px;">数値:</span>
+        <input type="text" value="${val}" style="width:65px; text-align:right;">
+        <span style="font-size:13px; color:#555; margin-left:5px;">色:</span>
+        <input type="color" value="${col}">
+        <button class="btn-base btn-red" style="margin-left:auto; padding:4px 8px;" onclick="this.parentElement.remove()">削除</button>
+      `;
+      getEl('graph-items-container').appendChild(div);
+    }
+
+    function generateAdvancedGraph() {
+      if (!canvas) return;
+      // 全角数字を半角に変換して安全に数値化
+      const maxVal = parseFloat(toHalfWidth(getEl('g-max').value)) || 60;
+      const stepVal = parseFloat(toHalfWidth(getEl('g-step').value)) || 10;
+      const rows = document.querySelectorAll('.graph-item-row');
+      let data = [];
+      rows.forEach(r => {
+        data.push({
+          name: r.children[1].value,
+          val: parseFloat(toHalfWidth(r.children[3].value)) || 0,
+          col: r.children[5].value
+        });
+      });
+      if (data.length === 0) {
+        alert('データがありません');
+        return;
+      }
+      let groupItems = [];
+      let barWidth = 55;
+      let barSpacing = 35;
+      let chartHeight = 320;
+      let chartWidth = (data.length * (barWidth + barSpacing)) + 30;
+      let scaleY = chartHeight / maxVal;
+      // 背景フレーム
+      groupItems.push(new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: chartWidth + 80,
+        height: chartHeight + 120,
+        fill: '#ffffff',
+        stroke: 'transparent'
+      }));
+      // Y軸のメモリ・補助線 (0から最大値までstepVal刻みで正確に描画)
+      for (let v = 0; v <= maxVal; v += stepVal) {
+        let y = chartHeight - (v * scaleY) + 20;
+        groupItems.push(new fabric.Line([60, y, 60 + chartWidth, y], {
+          stroke: '#d9d9d9',
+          strokeWidth: 1
+        }));
+        groupItems.push(new fabric.Text(v.toString(), {
+          left: 50,
+          top: y,
+          fontSize: 16,
+          fill: '#555',
+          originX: 'right',
+          originY: 'center',
+          fontFamily: 'sans-serif'
+        }));
+      }
+      // 軸線
+      groupItems.push(new fabric.Line([60, 20, 60, chartHeight + 20], {
+        stroke: '#7f7f7f',
+        strokeWidth: 2
+      }));
+      groupItems.push(new fabric.Line([60, chartHeight + 20, 60 + chartWidth, chartHeight + 20], {
+        stroke: '#7f7f7f',
+        strokeWidth: 2
+      }));
+      // 棒と凡例の配置
+      let legendY = chartHeight + 60;
+      let legendStartX = 60 + ((chartWidth - (data.length * 85)) / 2);
+      if (legendStartX < 60) legendStartX = 60;
+      let currentLegendX = legendStartX;
+      data.forEach((d, i) => {
+        let x = 60 + barSpacing + (i * (barWidth + barSpacing));
+        let h = d.val * scaleY;
+        let y = chartHeight - h + 20;
+        // 棒
+        groupItems.push(new fabric.Rect({
+          left: x - (barWidth / 2),
+          top: y,
+          width: barWidth,
+          height: h,
+          fill: d.col,
+          stroke: '#333',
+          strokeWidth: 1
+        }));
+        // 数値ラベル
+        groupItems.push(new fabric.Text(d.val.toString(), {
+          left: x,
+          top: y - 10,
+          fontSize: 16,
+          fill: '#333',
+          originX: 'center',
+          originY: 'bottom',
+          fontFamily: 'sans-serif'
+        }));
+        // 凡例
+        groupItems.push(new fabric.Rect({
+          left: currentLegendX,
+          top: legendY,
+          width: 14,
+          height: 14,
+          fill: d.col,
+          stroke: '#333',
+          strokeWidth: 1
+        }));
+        let lText = new fabric.Text(d.name, {
+          left: currentLegendX + 20,
+          top: legendY - 1,
+          fontSize: 15,
+          fill: '#333',
+          fontFamily: 'sans-serif'
+        });
+        groupItems.push(lText);
+        currentLegendX += 20 + lText.width + 15;
+      });
+      let offset = getScrollOffset();
+      let graphGroup = new fabric.Group(groupItems, {
+        left: offset.x,
+        top: offset.y,
+        objectId: generateId()
+      });
+      canvas.add(graphGroup);
+      canvas.setActiveObject(graphGroup);
+      canvas.renderAll();
+      closeGraphBuilder();
+    }
+    /* =========================================================================
+       📝 Word風 原稿用紙・文字自動配置ビルダー
+    ========================================================================= */
+    function openMSBuilder() {
+      getEl('ms-builder-modal').style.display = 'block';
+    }
+
+    function closeMSBuilder() {
+      getEl('ms-builder-modal').style.display = 'none';
+    }
+
+    function generateGenkoYoshi() {
+      if (!canvas) return;
+      let type = parseInt(getEl('ms-type').value, 10); // 100, 200, 300, 400
+      let text = getEl('ms-text').value || '';
+      let cols = 20;
+      let rows = 20; // 400文字 (20x20)
+      if (type === 100) {
+        cols = 10;
+        rows = 10;
+      } else if (type === 200) {
+        cols = 10;
+        rows = 20;
+      } else if (type === 300) {
+        cols = 15;
+        rows = 20;
+      }
+      let cellSize = 30; // 1マスのサイズ(px)
+      let width = cols * cellSize;
+      let height = rows * cellSize;
+      let groupItems = [];
+      // 外枠と背景
+      groupItems.push(new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: width,
+        height: height,
+        fill: '#ffffff',
+        stroke: '#dc3545',
+        strokeWidth: 3
+      }));
+      // マスの線を描画 (1文字ずつ独立した薄いグレーの四角形枠)
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          groupItems.push(new fabric.Rect({
+            left: c * cellSize,
+            top: r * cellSize,
+            width: cellSize,
+            height: cellSize,
+            fill: 'transparent',
+            stroke: '#ffcccc',
+            strokeWidth: 1
+          }));
+        }
+      }
+      // 10行/10列ごとの太いセンター十字線（十字リーダー）
+      let midC = cols / 2;
+      let midR = rows / 2;
+      groupItems.push(new fabric.Line([midC * cellSize, 0, midC * cellSize, height], {
+        stroke: '#ff9999',
+        strokeWidth: 1.5,
+        strokeDashArray: [4, 4]
+      }));
+      groupItems.push(new fabric.Line([0, midR * cellSize, width, midR * cellSize], {
+        stroke: '#ff9999',
+        strokeWidth: 1.5,
+        strokeDashArray: [4, 4]
+      }));
+      // Word風の自動文字流し込み処理
+      let charArray = text.split('');
+      let curCol = 0;
+      let curRow = 0;
+      charArray.forEach(ch => {
+        if (ch === '\n') {
+          curRow++;
+          curCol = 0;
+          return;
+        }
+        if (curCol >= cols) {
+          curCol = 0;
+          curRow++;
+        }
+        if (curRow >= rows) return; // 容量オーバー時は切り捨て
+        // 句読点や開きカッコなどの原稿用紙ルール簡易補正（右上に寄せるなど）
+        let tx = (curCol * cellSize) + (cellSize / 2);
+        let ty = (curRow * cellSize) + (cellSize / 2);
+        let tOpts = {
+          fontSize: 20,
+          fill: '#000000',
+          originX: 'center',
+          originY: 'center',
+          fontFamily: 'sans-serif'
+        };
+        // 句読点「、」「。」や促音「っ」などはマス目の右上寄りに配置する配慮
+        if (['、', '。', '・', 'ー', '「', '」', '（', '）'].includes(ch)) {
+          if (['、', '。'].includes(ch)) {
+            tx -= 5;
+            ty -= 5;
+          }
+        }
+        groupItems.push(new fabric.Text(ch, {
+          left: tx,
+          top: ty,
+          ...tOpts
+        }));
+        curCol++;
+      });
+      let offset = getScrollOffset();
+      let msGroup = new fabric.Group(groupItems, {
+        left: offset.x,
+        top: offset.y,
+        objectId: generateId()
+      });
+      canvas.add(msGroup);
+      canvas.setActiveObject(msGroup);
+      canvas.renderAll();
+      closeMSBuilder();
+    }
+    // --- 補助関数・システム共通 ---
+    function toggleSOS() {
+      sosState = (sosState + 1) % 3;
+      const btn = getEl('sos-button'),
+        icon = getEl('sos-icon'),
+        txt = getEl('sos-text'),
+        wrapper = getEl('canvas-wrapper');
+      if (sosState === 0) {
+        btn.className = '';
+        icon.textContent = '🟢';
+        txt.textContent = '順調';
+        wrapper.style.borderColor = '#ccc';
+      } else if (sosState === 1) {
+        btn.className = 'sos-thinking';
+        icon.textContent = '🟡';
+        txt.textContent = '考え中';
+        wrapper.style.borderColor = '#ffca28';
+      } else {
+        btn.className = 'sos-help';
+        icon.textContent = '🔴';
+        txt.textContent = '助けて';
+        wrapper.style.borderColor = '#dc3545';
+      }
+    }
+
+    function changeBackground() {
+      if (!canvas) return;
+      const bgType = getEl('bgSelect').value;
+      const cb = () => canvas.renderAll();
+      if (bgType === 'white') {
+        canvas.setBackgroundColor('#ffffff', cb);
+      } else if (bgType === 'grid') {
+        canvas.setBackgroundColor({
+          source: bgGrid,
+          repeat: 'repeat'
+        }, cb);
+      } else if (bgType === 'ruled') {
+        canvas.setBackgroundColor({
+          source: bgRuled,
+          repeat: 'repeat'
+        }, cb);
+      } else if (bgType === 'blackboard') {
+        canvas.setBackgroundColor('#2c5e3b', cb);
+        if (currentColor === '#000000') setColor('#ffffff', document.querySelector('.color-btn[title="白（黒板用）"]'));
+      }
+    }
+
+    function getScrollOffset() {
+      const wrapper = getEl('canvas-wrapper');
+      if (!wrapper) return {
+        x: 100,
+        y: 100
+      };
+      return {
+        x: wrapper.scrollLeft + 100,
+        y: wrapper.scrollTop + 100
+      };
+    }
+
+    function createBoardFrame(type) {
+      if (!canvas) return;
+      const isVertical = (getEl('textDirection').value === 'v');
+      let color = '#dc3545';
+      if (type === '学') color = '#1e88e5';
+      else if (type === '問') color = '#333333';
+      else if (type === '適') color = '#28a745';
+      else if (type === '考') color = '#9c27b0';
+      else if (type === 'ふ') color = '#fd7e14';
+      const offset = getScrollOffset(),
+        rw = isVertical ? 120 : 450,
+        rh = isVertical ? 450 : 120,
+        bx = isVertical ? rw - 20 : -20,
+        by = -20;
+      const badge = new fabric.Group([new fabric.Circle({
+        radius: 20,
+        fill: 'white',
+        stroke: color,
+        strokeWidth: 4,
+        originX: 'center',
+        originY: 'center'
+      }), new fabric.Text(type, {
+        fontSize: 24,
+        fill: color,
+        fontWeight: 'bold',
+        originX: 'center',
+        originY: 'center'
+      })], {
+        left: bx,
+        top: by
+      });
+      const frameGroup = new fabric.Group([new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: rw,
+        height: rh,
+        fill: 'transparent',
+        stroke: color,
+        strokeWidth: 4,
+        rx: 8,
+        ry: 8
+      }), badge], {
+        left: offset.x,
+        top: offset.y,
+        objectId: generateId()
+      });
+      const tx = offset.x + (isVertical ? 45 : 40),
+        ty = offset.y + (isVertical ? 40 : 30);
+      let ph = type === '問' ? '問題を入力...' : type === '学' ? '学習課題を入力...' : type === 'ま' ? 'まとめを入力...' : type === 'め' ? 'めあてを入力...' : type === 'ポ' ? 'ポイントを入力...' : type === '適' ? '適用問題を入力...' : type === '考' ? '自分の考えを入力...' : type === 'ふ' ? 'ふりかえりを入力...' : 'テキストを入力...';
+      if (isVertical) ph = ph.replace('を', 'を\n');
+      const fontSize = parseInt(getEl('fontSizeSelect').value, 10);
+      let innerText = isVertical ? new fabric.Textbox(ph, {
+        left: tx,
+        top: ty,
+        fontSize: fontSize,
+        fill: '#333',
+        width: fontSize + 10,
+        splitByGrapheme: true,
+        isVerticalText: true,
+        objectId: generateId()
+      }) : new fabric.IText(ph.replace('\n', ''), {
+        left: tx,
+        top: ty,
+        fontSize: fontSize,
+        fill: '#333',
+        objectId: generateId()
+      });
+      const linkedId = Date.now().toString(),
+        relX = tx - offset.x,
+        relY = ty - offset.y;
+      frameGroup.set({
+        linkedId: linkedId,
+        linkRole: 'frame',
+        relX: relX,
+        relY: relY,
+        minW: rw,
+        minH: rh
+      });
+      innerText.set({
+        linkedId: linkedId,
+        linkRole: 'text',
+        relX: relX,
+        relY: relY
+      });
+      setupLink(frameGroup, innerText);
+      canvas.add(frameGroup, innerText);
+      getEl('tool').value = 'select';
+      canvas.isDrawingMode = false;
+    }
+
+    function setupLink(frame, text) {
+      frame.off('moving');
+      text.off('moving');
+      frame.on('moving', () => {
+        text.set({
+          left: frame.left + frame.relX,
+          top: frame.top + frame.relY
+        });
+        text.setCoords();
+      });
+      text.on('moving', () => {
+        frame.set({
+          left: text.left - frame.relX,
+          top: text.top - frame.relY
+        });
+        frame.setCoords();
+      });
+      text.on('changed', () => {
+        const rect = frame.getObjects()[0],
+          minW = frame.minW || 0,
+          minH = frame.minH || 0;
+        const newW = Math.max(minW, text.width + 60),
+          newH = Math.max(minH, text.height + 60);
+        if (rect.width !== newW || rect.height !== newH) {
+          rect.set({
+            width: newW,
+            height: newH
+          });
+          const oldLeft = frame.left,
+            oldTop = frame.top;
+          frame.addWithUpdate();
+          frame.set({
+            left: oldLeft,
+            top: oldTop
+          });
+          frame.setCoords();
+          canvas.renderAll();
+        }
+      });
+    }
+
+    function addSticky() {
+      const offset = getScrollOffset(),
+        isVertical = (getEl('textDirection').value === 'v'),
+        fontSize = parseInt(getEl('fontSizeSelect').value, 10);
+      const opts = {
+        left: offset.x + 50,
+        top: offset.y + 50,
+        fontSize: fontSize,
+        padding: 15,
+        backgroundColor: '#fff9c4',
+        fill: currentColor,
+        shadow: new fabric.Shadow({
+          color: 'rgba(0,0,0,0.3)',
+          blur: 5,
+          offsetX: 3,
+          offsetY: 3
+        }),
+        objectId: generateId()
+      };
+      let stickyText = isVertical ? new fabric.Textbox('ここに入力', {
+        ...opts,
+        width: fontSize + 10,
+        splitByGrapheme: true,
+        isVerticalText: true
+      }) : new fabric.IText('ここに入力', opts);
+      canvas.add(stickyText);
+      canvas.setActiveObject(stickyText);
+      stickyText.enterEditing();
+      stickyText.selectAll();
+    }
+
+    function addBiLingualSticky() {
+      const offset = getScrollOffset(),
+        fontSize = parseInt(getEl('fontSizeSelect').value, 10);
+      canvas.add(new fabric.Textbox("🇯🇵 日本語：\nここに入力\n\n🇲🇳 モンゴル語：\nここに入力", {
+        left: offset.x + 50,
+        top: offset.y + 50,
+        fontSize: fontSize,
+        padding: 15,
+        backgroundColor: '#e3f2fd',
+        fill: currentColor,
+        width: 350,
+        shadow: new fabric.Shadow({
+          color: 'rgba(0,0,0,0.3)',
+          blur: 5,
+          offsetX: 3,
+          offsetY: 3
+        }),
+        objectId: generateId()
+      }));
+    }
+
+    function changeTool() {
+      if (!canvas) return;
+      const tool = getEl('tool').value;
+      canvas.isDrawingMode = (tool === 'draw' || tool === 'highlight');
+      if (tool === 'highlight') {
+        canvas.freeDrawingBrush.width = parseInt(getEl('fontSizeSelect').value, 10) * 1.2 || 20;
+        let hex = currentColor.replace('#', ''),
+          r = parseInt(hex.substring(0, 2), 16),
+          g = parseInt(hex.substring(2, 4), 16),
+          b = parseInt(hex.substring(4, 6), 16);
+        canvas.freeDrawingBrush.color = `rgba(${r}, ${g}, ${b}, 0.3)`;
+      } else if (tool === 'draw') {
+        canvas.freeDrawingBrush.width = 4;
+        canvas.freeDrawingBrush.color = currentColor;
+      }
+    }
+
+    function setColor(color, btnElement) {
+      currentColor = color;
+      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
+      if (canvas) {
+        const activeObj = canvas.getActiveObject();
+        if (activeObj && (activeObj.type === 'i-text' || activeObj.type === 'textbox')) {
+          activeObj.set('fill', color);
+          canvas.renderAll();
+        } else if (activeObj && ['line', 'rect', 'circle', 'polygon'].includes(activeObj.type)) {
+          activeObj.set('stroke', color);
+          canvas.renderAll();
+        }
+        changeTool();
+      }
+    }
+
+    function changeFontSize() {
+      if (!canvas) return;
+      const size = parseInt(getEl('fontSizeSelect').value, 10);
+      canvas.getActiveObjects().forEach(obj => {
+        if (obj.type === 'i-text' || obj.type === 'textbox') {
+          obj.set('fontSize', size);
+          if (obj.isVerticalText) obj.set('width', size + 10);
+        }
+      });
+      canvas.renderAll();
+    }
+
+    function deleteSelected() {
+      const activeObjects = canvas.getActiveObjects();
+      if (activeObjects.length === 0) return;
+      let removedItems = [];
+      const idsToDelete = activeObjects.map(o => o.linkedId).filter(id => id);
+      canvas.getObjects().forEach(obj => {
+        if (activeObjects.includes(obj) || idsToDelete.includes(obj.linkedId)) {
+          removedItems.push(obj);
+          canvas.remove(obj);
+        }
+      });
+      if (removedItems.length > 0) {
+        trashBin.push(removedItems);
+        if (trashBin.length > 10) trashBin.shift();
+        canvas.discardActiveObject();
+      }
+    }
+
+    function restoreDeleted() {
+      if (trashBin.length > 0) trashBin.pop().forEach(obj => canvas.add(obj));
+    }
+
+    function clearAll() {
+      if (confirm(`ほんとうに ページ ${currentPage} を ぜんぶ けしますか？`)) {
+        canvas.clear();
+        changeBackground(true);
+        trashBin = [];
+      }
+    }
+
+    function bringToFront() {
+      canvas.getActiveObjects().forEach(obj => canvas.bringToFront(obj));
+      canvas.discardActiveObject();
+      canvas.renderAll();
+    }
+
+    function sendToBack() {
+      canvas.getActiveObjects().forEach(obj => canvas.sendToBack(obj));
+      canvas.discardActiveObject();
+      canvas.renderAll();
+    }
+
+    function toggleLock() {
+      canvas.getActiveObjects().forEach(obj => {
+        const isLocked = obj.lockMovementX;
+        obj.set({
+          lockMovementX: !isLocked,
+          lockMovementY: !isLocked,
+          lockRotation: !isLocked,
+          lockScalingX: !isLocked,
+          lockScalingY: !isLocked,
+          hasControls: isLocked,
+          hoverCursor: !isLocked ? 'default' : 'move'
+        });
+      });
+      canvas.discardActiveObject();
+      canvas.renderAll();
+    }
+
+    function renderPageButtons() {
+      const container = getEl('page-list');
+      container.innerHTML = '';
+      for (let i = 1; i <= maxPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => switchPage(i);
+        container.appendChild(btn);
+      }
+    }
+
+    function switchPage(pageNumber) {
+      if (currentPage === pageNumber) return;
+      saveCurrentPageLocally();
+      currentPage = pageNumber;
+      renderPageButtons();
+      trashBin = [];
+      loadPageLocally(pageNumber);
+    }
+
+    function addPage() {
+      saveCurrentPageLocally();
+      maxPage++;
+      currentPage = maxPage;
+      renderPageButtons();
+      canvas.clear();
+      getEl('bgSelect').value = 'white';
+      changeBackground(true);
+    }
+
+    function saveCurrentPageLocally() {
+      if (canvas) localPagesData[currentPage] = {
+        bg: getEl('bgSelect').value,
+        objects: canvas.getObjects().map(o => o.toObject(customProps))
+      };
+    }
+
+    function loadPageLocally(pageNumber) {
+      canvas.clear();
+      const data = localPagesData[pageNumber];
+      if (!data || !data.objects || data.objects.length === 0) {
+        getEl('bgSelect').value = 'white';
+        changeBackground(true);
+        return;
+      }
+      getEl('bgSelect').value = data.bg || 'white';
+      changeBackground(true);
+      canvas.loadFromJSON({
+        objects: data.objects
+      }, () => {
+        const linkedMap = {};
+        canvas.getObjects().forEach(obj => {
+          if (obj.linkedId) {
+            if (!linkedMap[obj.linkedId]) linkedMap[obj.linkedId] = {};
+            linkedMap[obj.linkedId][obj.linkRole] = obj;
+          }
+        });
+        Object.values(linkedMap).forEach(pair => {
+          if (pair.frame && pair.text) setupLink(pair.frame, pair.text);
+        });
+        canvas.renderAll();
+      });
+    }
+
+    function saveAsDataLocally() {
+      const title = prompt("保存する題名を入力してください\n（例：3年算数 角の大きさ 1時目）");
+      if (!title) return;
+      saveCurrentPageLocally();
+      const dataToSave = {
+        title: title,
+        date: new Date().toLocaleString(),
+        maxPage: maxPage,
+        currentPage: currentPage,
+        pages: localPagesData
+      };
+      try {
+        let saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}');
+        saves['save_' + Date.now()] = dataToSave;
+        localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
+        alert(`「${title}」として保存しました！`);
+      } catch (e) {
+        alert('保存に失敗しました。');
+      }
+    }
+
+    function openLoadModal() {
+      const saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}'),
+        list = getEl('save-list');
+      list.innerHTML = '';
+      if (Object.keys(saves).length === 0) list.innerHTML = '<p style="text-align:center;">履歴はありません。</p>';
+      else {
+        Object.keys(saves).sort((a, b) => b.localeCompare(a)).forEach(id => {
+          list.innerHTML += `<div class="save-item"><div class="save-item-info"><span class="save-item-title">${saves[id].title}</span><span class="save-item-date">${saves[id].date}</span></div><div class="save-item-actions"><button onclick="loadSaveData('${id}')" class="btn-base btn-blue">開く</button><button onclick="deleteSaveData('${id}')" class="btn-base btn-red">削除</button></div></div>`;
+        });
+      }
+      getEl('save-load-modal').style.display = 'block';
+    }
+
+    function loadSaveData(id) {
+      if (!confirm("現在編集中の内容は失われます。よろしいですか？")) return;
+      const savedData = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}')[id];
+      if (savedData) {
+        maxPage = savedData.maxPage || 1;
+        currentPage = savedData.currentPage || 1;
+        localPagesData = savedData.pages || {};
+        renderPageButtons();
+        loadPageLocally(currentPage);
+        getEl('save-load-modal').style.display = 'none';
+      }
+    }
+
+    function deleteSaveData(id) {
+      if (!confirm("本当にこの履歴を削除しますか？")) return;
+      let saves = JSON.parse(localStorage.getItem(SAVES_KEY) || '{}');
+      delete saves[id];
+      localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
+      openLoadModal();
+    }
+
+    function exportPNG() {
+      if (!canvas.backgroundColor) {
+        canvas.backgroundColor = '#ffffff';
+        canvas.renderAll();
+      }
+      const link = document.createElement('a');
+      link.download = `ボード記録_P${currentPage}.png`;
+      link.href = canvas.toDataURL({
+        format: 'png',
+        quality: 1
+      });
+      link.click();
+    }
+
+    function openGallery() {
+      saveCurrentPageLocally();
+      const grid = getEl('gallery-grid');
+      grid.innerHTML = '';
+      const offscreen = new fabric.StaticCanvas(document.createElement('canvas'), {
+        width: 2000,
+        height: 1500,
+        backgroundColor: '#ffffff'
+      });
+      const renderGallery = async () => {
+        for (let pNum = 1; pNum <= maxPage; pNum++) {
+          const data = localPagesData[pNum];
+          if (!data || !data.objects || data.objects.length === 0) {
+            grid.innerHTML += `<div class="gallery-item" onclick="switchPage(${pNum}); getEl('gallery-modal').style.display='none'"><h3>📄 ページ ${pNum}</h3><p>(白紙です)</p></div>`;
+            continue;
+          }
+          await new Promise(resolve => {
+            offscreen.clear();
+            let bgConfig = data.bg === 'grid' ? {
+              source: bgGrid,
+              repeat: 'repeat'
+            } : data.bg === 'ruled' ? {
+              source: bgRuled,
+              repeat: 'repeat'
+            } : data.bg === 'blackboard' ? '#2c5e3b' : '#ffffff';
+            offscreen.setBackgroundColor(bgConfig, () => {
+              offscreen.loadFromJSON({
+                objects: data.objects
+              }, () => {
+                offscreen.renderAll();
+                grid.innerHTML += `<div class="gallery-item" onclick="switchPage(${pNum}); getEl('gallery-modal').style.display='none'"><h3>📄 ページ ${pNum}</h3><img src="${offscreen.toDataURL({ format: 'png' })}"></div>`;
+                resolve();
+              });
+            });
+          });
+        }
+      };
+      renderGallery().then(() => {
+        getEl('gallery-modal').style.display = 'block';
+      });
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      let btn = getEl('startTimerBtn');
+      if (btn.textContent === '■') {
+        btn.textContent = '▶';
+        return;
+      }
+      let time = (parseInt(getEl('timerMin').value) || 3) * 60;
+      btn.textContent = '■';
+      getEl('timerDisplay').textContent = `${(time/60).toString().padStart(2, '0')}:00`;
+      timerInterval = setInterval(() => {
+        time--;
+        getEl('timerDisplay').textContent = `${Math.floor(time / 60).toString().padStart(2, '0')}:${(time % 60).toString().padStart(2, '0')}`;
+        if (time <= 0) {
+          clearInterval(timerInterval);
+          btn.textContent = '▶';
+          alert('時間になりました！');
+        }
+      }, 1000);
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        fabric.Image.fromURL(event.target.result, (image) => {
+          const offset = getScrollOffset();
+          image.set({
+            left: offset.x,
+            top: offset.y,
+            objectId: generateId()
+          });
+          if (image.width > 600) image.scaleToWidth(600);
+          canvas.add(image);
+          canvas.setActiveObject(image);
+          getEl('tool').value = 'select';
+          canvas.isDrawingMode = false;
+        });
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+  </script>
 </body>
 
 </html>
