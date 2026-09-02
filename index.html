@@ -80,6 +80,21 @@
       display: none !important;
     }
 
+    /* 新規: スクロールプログレスバー */
+    #scroll-progress {
+      position: fixed; top: 0; left: 0; height: 4px; background: var(--accent-cyan);
+      z-index: 10000; transition: width 0.1s ease-out; box-shadow: var(--glow-cyan); pointer-events: none; width: 0%;
+    }
+
+    /* 新規: タイマー連動背景アニメーション */
+    body.timer-active .glow-orb {
+      animation: timerPulse 2s infinite alternate ease-in-out;
+    }
+    @keyframes timerPulse {
+      0% { opacity: 0.12; transform: scale(1); filter: blur(150px); }
+      100% { opacity: 0.3; transform: scale(1.15); filter: blur(120px) brightness(1.5); }
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -128,11 +143,11 @@
     }
     @keyframes gridMove { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(60px); } }
 
-    .glow-orb { position: fixed; border-radius: 50%; filter: blur(150px); pointer-events: none; z-index: -1; opacity: 0.12; animation: floatPulse 20s ease-in-out infinite alternate; transition: background 1s; }
+    .glow-orb { position: fixed; border-radius: 50%; filter: blur(150px); pointer-events: none; z-index: -1; opacity: 0.12; transition: background 1s; }
+    /* timerPulse アニメーションと競合しないよう、個別の動きは少し調整 */
     .orb-1 { top: -10%; left: -10%; width: 600px; height: 600px; background: var(--accent-cyan); }
-    .orb-2 { top: 40%; right: -10%; width: 700px; height: 700px; background: var(--accent-purple); animation-delay: -5s; }
-    .orb-3 { bottom: -10%; left: 20%; width: 550px; height: 550px; background: var(--accent-pink); animation-delay: -10s; }
-    @keyframes floatPulse { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(30px, -30px) scale(1.1); } }
+    .orb-2 { top: 40%; right: -10%; width: 700px; height: 700px; background: var(--accent-purple); }
+    .orb-3 { bottom: -10%; left: 20%; width: 550px; height: 550px; background: var(--accent-pink); }
 
     .particles-container { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
     .container { max-width: 1300px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
@@ -208,8 +223,7 @@
     .daily-play-btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 0 20px rgba(0,229,255,0.6); }
 
     .timer-dash { text-align: center; transition: box-shadow 0.3s; }
-    .timer-dash.running { box-shadow: 0 0 30px rgba(168,85,247,0.2); border-color: var(--accent-purple); animation: pulseTimer 2.5s infinite; }
-    @keyframes pulseTimer { 0% { box-shadow: 0 0 15px rgba(168,85,247,0.1); } 50% { box-shadow: 0 0 30px rgba(168,85,247,0.3); } 100% { box-shadow: 0 0 15px rgba(168,85,247,0.1); } }
+    .timer-dash.running { box-shadow: 0 0 30px rgba(168,85,247,0.2); border-color: var(--accent-purple); }
 
     .timer-top-tag { display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text-bright); font-weight: 800; font-size: 0.9rem; }
     .timer-pomodoro-tag { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); color: var(--accent-purple); padding: 4px 12px; border-radius: 12px; font-size: 0.7rem; }
@@ -442,6 +456,9 @@
   </style>
 </head>
 <body>
+
+  <!-- 新規: スクロールプログレスバー -->
+  <div id="scroll-progress"></div>
 
   <!-- F18: 紙吹雪キャンバス -->
   <canvas id="confetti-overlay"></canvas>
@@ -1557,14 +1574,21 @@
             <p class="card-desc">クラス全体の目標達成ポイントを管理。</p>
             <button onclick="openTeacherTool('point')" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">管理する <i class="fa-solid fa-plus-minus"></i></button>
           </article>
-
-          <!-- 提出物管理アプリ -->
           <article class="app-card" data-id="app-teacher-12" style="border-color: rgba(236,72,153,0.3);">
             <button class="fav-btn sfx-click" onclick="toggleFav('app-teacher-12', event)"><i class="fa-solid fa-star"></i></button>
             <div class="card-icon" style="color: var(--accent-pink);"><i class="fa-solid fa-file-signature"></i></div>
             <h3 class="card-title">提出物管理</h3>
             <p class="card-desc">プリントやアンケートなどの提出状況をチェック・記録します。</p>
             <button onclick="location.href='./sennseiyou/teisyutubutukannri/index.html'" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">管理する <i class="fa-solid fa-circle-play"></i></button>
+          </article>
+          
+          <!-- 新規追加: 授業プリント作成 -->
+          <article class="app-card" data-id="app-teacher-13" style="border-color: rgba(236,72,153,0.3);">
+            <button class="fav-btn sfx-click" onclick="toggleFav('app-teacher-13', event)"><i class="fa-solid fa-star"></i></button>
+            <div class="card-icon" style="color: var(--accent-pink);"><i class="fa-solid fa-file-pdf"></i></div>
+            <h3 class="card-title">授業プリント作成</h3>
+            <p class="card-desc">単元に合わせた独自の学習プリントや小テストを作成・出力します。</p>
+            <button onclick="location.href='./sennseiyou/zyugyoupurinntosakusei/index.html'" class="play-btn sfx-click" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.3);">作成する <i class="fa-solid fa-pen-to-square"></i></button>
           </article>
         </div>
       </section>
@@ -1643,7 +1667,15 @@
         <div style="margin-top:10px;">
           <h4 style="color:var(--text-bright); font-size:0.85rem; margin-bottom:5px;"><i class="fa-solid fa-chart-simple" style="color:var(--accent-cyan);"></i> 過去7日間の獲得EXP</h4>
           <div class="activity-graph-container" id="activity-graph-ui">
-             <!-- JSで動的にバーを生成 -->
+              <!-- JSで動的にバーを生成 -->
+          </div>
+        </div>
+        
+        <!-- 新規追加: 最近遊んだクエスト履歴 -->
+        <div style="margin-top:10px;">
+          <h4 style="color:var(--text-bright); font-size:0.85rem; margin-bottom:5px;"><i class="fa-solid fa-clock-rotate-left" style="color:var(--accent-cyan);"></i> 最近遊んだクエスト</h4>
+          <div id="history-list" style="background:rgba(128,128,128,0.1); border-radius:12px; padding:10px; font-size:0.8rem; color:var(--text-main);">
+             <!-- JSで挿入 -->
           </div>
         </div>
 
@@ -1651,7 +1683,7 @@
         <div style="margin-top:10px;">
           <h4 style="color:var(--text-bright); font-size:0.85rem; margin-bottom:5px;"><i class="fa-solid fa-award" style="color:var(--accent-gold);"></i> 獲得したバッジ</h4>
           <div class="badge-grid" id="achievement-grid">
-             <!-- JSで動的にバッジ生成 -->
+              <!-- JSで動的にバッジ生成 -->
           </div>
         </div>
       </div>
@@ -1683,6 +1715,16 @@
     let fontSizeScale = parseFloat(localStorage.getItem('mun_font_scale')) || 1.0;
     let activeTheme = localStorage.getItem('mun_theme') || 'default';
     let wakeLock = null; // F13用
+
+    // ==========================================
+    // 新規: スクロールプログレスバー
+    // ==========================================
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('scroll-progress').style.width = scrolled + "%";
+    });
 
     // ==========================================
     // F20: 環境設定パネル関連
@@ -1740,6 +1782,21 @@
     }
 
     // ==========================================
+    // 新規: 最近遊んだクエスト履歴機能UI更新
+    // ==========================================
+    function updateHistoryUI() {
+      const history = loadData('mun_quest_history', []);
+      const list = document.getElementById('history-list');
+      if (list) {
+        if(history.length === 0) {
+          list.innerHTML = 'まだ履歴がありません';
+        } else {
+          list.innerHTML = history.map(h => `<div>・${h}</div>`).join('');
+        }
+      }
+    }
+
+    // ==========================================
     // 起動アニメーション & 初期設定 (F11ディープリンク含む)
     // ==========================================
     window.addEventListener('load', () => {
@@ -1787,6 +1844,24 @@
       if (lastLoginDate !== todayStr) {
         document.querySelectorAll('.dq-item').forEach(el => el.classList.remove('done'));
       }
+
+      updateHistoryUI(); // 履歴UI初期化
+
+      // 履歴記録イベントのバインド
+      document.querySelectorAll('.app-card .play-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const card = e.target.closest('.app-card');
+          if(card) {
+            const title = card.querySelector('.card-title').innerText;
+            let history = loadData('mun_quest_history', []);
+            history = history.filter(h => h !== title);
+            history.unshift(title);
+            if(history.length > 5) history.pop();
+            saveData('mun_quest_history', history);
+            updateHistoryUI();
+          }
+        });
+      });
     });
 
     // ==========================================
@@ -2404,6 +2479,9 @@
     }
     searchInput.addEventListener('input', applyFilters);
 
+    // ==========================================
+    // 新規: 空のセクションを詰める処理を含むフィルター関数
+    // ==========================================
     function applyFilters() {
       const query = searchInput.value.toLowerCase();
       document.querySelectorAll('.app-card').forEach(card => {
@@ -2413,8 +2491,35 @@
         const isFav = favorites.includes(id);
         const matchSearch = title.includes(query) || desc.includes(query);
         const matchFav = !isFavFilterOn || isFav;
-        if (matchSearch && matchFav) { card.style.display = 'flex'; setTimeout(() => card.style.opacity = '1', 10); } 
-        else { card.style.opacity = '0'; setTimeout(() => card.style.display = 'none', 300); }
+
+        if (matchSearch && matchFav) { 
+          card.style.display = 'flex'; 
+          card.style.opacity = '1'; 
+          card.classList.add('is-visible');
+        } 
+        else { 
+          card.style.display = 'none'; 
+          card.style.opacity = '0'; 
+          card.classList.remove('is-visible');
+        }
+      });
+
+      // セクション自体の表示・非表示を切り替え（空のセクションを詰める）
+      document.querySelectorAll('.card-grid').forEach(grid => {
+        const visibleCards = grid.querySelectorAll('.app-card.is-visible').length;
+        const sectionHead = grid.previousElementSibling;
+        
+        if (visibleCards === 0) {
+          grid.style.display = 'none';
+          if (sectionHead && sectionHead.classList.contains('section-head')) {
+            sectionHead.style.display = 'none';
+          }
+        } else {
+          grid.style.display = 'grid';
+          if (sectionHead && sectionHead.classList.contains('section-head')) {
+            sectionHead.style.display = 'flex';
+          }
+        }
       });
     }
 
@@ -2462,6 +2567,7 @@
       pomoEditArea.style.display = 'none'; pomoDispArea.style.display = 'block';
       updatePomoUI();
     }
+
     async function togglePomoTimer() {
       await initAudio();
       const btn = document.getElementById('pomo-start-btn');
@@ -2470,11 +2576,13 @@
         clearInterval(pomoInterval); pomoRunning = false;
         btn.innerHTML = `<i class="fa-solid fa-play"></i> 再開`; btn.style.background = "var(--accent-purple)";
         dash.classList.remove('running');
+        document.body.classList.remove('timer-active'); // タイマー連動背景エフェクトOFF
         // F13: スリープロック解除
         if(wakeLock !== null) { wakeLock.release().then(() => wakeLock = null); }
       } else {
         if(pomoRemain <= 0) return;
         pomoRunning = true; dash.classList.add('running');
+        document.body.classList.add('timer-active'); // タイマー連動背景エフェクトON
         btn.innerHTML = `<i class="fa-solid fa-pause"></i> 一時停止`; btn.style.background = "rgba(128,128,128,0.2)";
         
         // F13: スリープ防止 (Wake Lock API)
@@ -2497,12 +2605,14 @@
         }, 1000);
       }
     }
+
     async function resetPomoTimer() {
       await initAudio(); playSFX('click');
       clearInterval(pomoInterval); pomoRunning = false; pomoRemain = pomoSetTime;
       document.getElementById('pomo-start-btn').innerHTML = `<i class="fa-solid fa-play"></i> スタート`;
       document.getElementById('pomo-start-btn').style.background = "var(--accent-purple)";
       document.getElementById('timer-dash-box').classList.remove('running');
+      document.body.classList.remove('timer-active'); // タイマー連動背景エフェクトOFF
       document.getElementById('pomo-sub').innerHTML = "設定した時間、集中してクエストをクリアしよう！<br><span style='font-size:0.75rem; color:var(--text-main);'>(※時間をタップで変更可能)</span>";
       updatePomoUI();
       if(wakeLock !== null) { wakeLock.release().then(() => wakeLock = null); }

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>プリント作成アプリ</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プリントメーカー Pro Max</title>
+  <!-- 必須ライブラリ群 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --panel-bg: #ffffff;
+      --border-color: #cbd5e1;
+      --text-main: #0f172a;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    .app-header {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      z-index: 20;
+    }
+
+    .app-header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .app-header h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: var(--primary);
+    }
+
+    /* メインレイアウト */
+    .app-body {
+      display: grid;
+      grid-template-columns: 350px 1fr 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    @media (max-width: 1200px) {
+      .app-body {
+        grid-template-columns: 320px 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app-body {
+        grid-template-columns: 280px 1fr;
+      }
+
+      #preview-section {
+        display: none;
+      }
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 15px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    /* ツールバー (左) */
+    #tools-section {
+      background: var(--panel-bg);
+    }
+
+    .tool-group {
+      margin-bottom: 15px;
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+
+    .tool-group-title {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #475569;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 4px;
+    }
+
+    button {
+      padding: 6px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: 0.2s;
+      margin-bottom: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button:hover {
+      background: #f1f5f9;
+    }
+
+    button.active {
+      background: #e0e7ff;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    button.primary:hover {
+      background: var(--primary-hover);
+    }
+
+    button.danger {
+      background: #ef4444;
+      color: white;
+      border: none;
+    }
+
+    button.danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .btn-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 5px;
+    }
+
+    select,
+    input[type="text"] {
+      width: 100%;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 5px;
+      box-sizing: border-box;
+      font-size: 0.85rem;
+    }
+
+    /* エディタ領域 (中央) */
+    #editor-section {
+      background: #e2e8f0;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 30px;
+      position: relative;
+    }
+
+    .canvas-wrapper {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      background: white;
+      position: relative;
+    }
+
+    /* プレビュー領域 (右) */
+    #preview-section {
+      background: #cbd5e1;
+      padding-top: 30px;
+      overflow: auto;
+      /* Flexboxの中央揃えを廃止し、スクロールを許可 */
+      text-align: center;
+      /* 内部要素を中央揃えにするための代替策 */
+    }
+
+    /* A4シートのレイアウト指定（印刷・画面共通） */
+    .a4-sheet {
+      display: inline-grid;
+      /* text-align: center を効かせるために inline-grid に変更 */
+      text-align: left;
+      /* 内部のテキストは左揃えに戻す */
+      background: white;
+      width: 210mm;
+      height: 297mm;
+      box-sizing: border-box;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      gap: 0;
+      margin-bottom: 30px;
+      padding: 0;
+    }
+
+    .print-item {
+      border: 1px dashed #a0a0a0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .name-header {
+      display: none;
+      width: 100%;
+      text-align: right;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-bottom: 1px dotted #ccc;
+      box-sizing: border-box;
+      color: #333;
+      flex: 0 0 auto;
+    }
+
+    .print-item img {
+      max-width: 100%;
+      object-fit: contain;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .cut-icon {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      font-size: 10px;
+      background: white;
+      padding: 2px 4px;
+      color: #64748b;
+      border-radius: 3px;
+      border: 1px solid #cbd5e1;
+      z-index: 5;
+    }
+
+    /* モーダル (履歴一覧用) */
+    #history-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 650px;
+      max-height: 85vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 階層型アコーディオン（詳細）のスタイル */
+    details {
+      margin-bottom: 5px;
+    }
+
+    details summary {
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+      background-color: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      outline: none;
+      transition: background-color 0.2s;
+    }
+
+    details summary:hover {
+      background-color: #e2e8f0;
+    }
+
+    details[open]>summary {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom: 1px solid #cbd5e1;
+      background-color: #e2e8f0;
+    }
+
+    .details-content {
+      border: 1px solid #e2e8f0;
+      border-top: none;
+      padding: 10px;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+      background-color: #ffffff;
+    }
+
+    .history-item {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+    }
+
+    .history-item:hover {
+      background: #f8fafc;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 印刷用CSS */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      html,
+      body {
+        background: none;
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+        overflow: hidden !important;
+      }
+
+      .app-header,
+      #tools-section,
+      #editor-section,
+      .no-print {
+        display: none !important;
+      }
+
+      .app-body {
+        display: block;
+      }
+
+      #preview-section {
+        padding: 0;
+        background: none;
+        border: none;
+        width: 100%;
+        display: block;
+      }
+
+      .a4-sheet {
+        box-shadow: none;
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-header no-print">
+    <div class="app-header-left">
+      <h1>🖨️ プリントメーカー Pro Max</h1>
+      <button onclick="openHistory()" style="width:auto; margin:0; margin-left: 10px;">📂 保存データ一覧を開く</button>
+    </div>
+
+    <div style="display:flex; gap: 5px;">
+      <button onclick="window.print()" style="width:auto; margin:0;">🖨️ そのまま印刷</button>
+      <button onclick="downloadPDF()" style="width:auto; margin:0; background:#059669; color:white;">📄 PDF出力</button>
+      <button onclick="downloadImage()" style="width:auto; margin:0; background:#0284c7; color:white;">🖼️ 画像出力</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+
+    <!-- 左側：ツール＆設定パネル -->
+    <div class="panel" id="tools-section">
+
+      <!-- 5. データの保存 (目立つように上部に配置) -->
+      <div class="tool-group" style="background: #e0f2fe; border-color: #bae6fd;">
+        <div class="tool-group-title" style="color: #0369a1; border-color: #7dd3fc;">💾 データの保存設定</div>
+        <div class="btn-row">
+          <select id="save-subject">
+            <option value="国語">国語</option>
+            <option value="算数" selected>算数</option>
+            <option value="理科">理科</option>
+            <option value="社会">社会</option>
+            <option value="その他">その他</option>
+          </select>
+          <input type="text" id="save-unit" placeholder="単元名 (例: 10000より大きい数)">
+        </div>
+        <div class="btn-row">
+          <input type="text" id="save-lesson" placeholder="何時間目 (例: 1)">
+          <input type="text" id="save-print" placeholder="プリント番号 (例: ①)">
+        </div>
+        <button onclick="saveToDB()" class="primary" style="margin-bottom: 0; background: #0284c7;">現在の状態を保存する</button>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-group-title">1. レイアウト＆用紙設定</div>
+        <select id="layoutSelect" onchange="updateLayout()">
+          <option value="1">1枚 (A4全面)</option>
+          <option value="2-row">2枚 (横長 / 上下2段)</option>
+          <option value="2-col">2枚 (縦長 / 左右2列)</option>
+          <option value="4" selected>4枚 (縦長 / 十字4分割)</option>
+          <option value="8">8枚 (横長 / 4段2列)</option>
+          <option value="10">10枚 (横長 / 5段2列)</option>
+        </select>
+        <label style="font-size:12px;"><input type="checkbox" id="checkName" onchange="updatePreview()"> 記名欄を自動追加</label>
+        <div style="margin-top: 5px; font-size:12px;">余白調整: <input type="range" id="marginSlider" min="0" max="20" value="5" onchange="updatePreview()" style="width:100px;"></div>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-group-title">2. 追加＆描画ツール (Ctrl+Vで画像貼付)</div>
+        <div class="btn-row">
+          <button id="tool-select" class="active" onclick="setMode('select')">👆 選択・移動</button>
+          <button id="tool-draw" onclick="setMode('draw')">🖍️ 手書きペン</button>
+        </div>
+        <button onclick="addText()">🅰️ テキスト追加</button>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-group-title">3. 編集・操作 (選択中オブジェクト)</div>
+        <div class="btn-row-3">
+          <button onclick="execCmd('bringFront')">🔼 前面へ</button>
+          <button onclick="execCmd('sendBack')">🔽 背面へ</button>
+          <button onclick="execCmd('lock')">🔒 固定/解除</button>
+        </div>
+        <div class="btn-row-3" style="margin-top:5px;">
+          <button onclick="execCmd('clone')">👯 複製</button>
+          <button onclick="execCmd('bw')">⬛ 白黒化</button>
+          <button onclick="deleteSelected()" class="danger">🗑️ 削除</button>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-group-title">4. キャンバス全体操作</div>
+        <div class="btn-row">
+          <button onclick="undo()">↩️ 元に戻す</button>
+          <button onclick="redo()">↪️ やり直し</button>
+        </div>
+        <div class="btn-row" style="margin-top:5px;">
+          <button onclick="zoom(1.1)">🔍 拡大</button>
+          <button onclick="zoom(0.9)">🔎 縮小</button>
+        </div>
+        <button onclick="clearCanvas()" style="margin-top:10px;">📄 全消去 (リセット)</button>
+      </div>
+
+    </div>
+
+    <!-- 中央：エディタ領域 -->
+    <div class="panel" id="editor-section">
+      <div style="margin-bottom:10px; font-weight:bold;">マスター画像編集エリア</div>
+      <div class="canvas-wrapper">
+        <canvas id="masterCanvas"></canvas>
+      </div>
+    </div>
+
+    <!-- 右側：プレビュー領域 -->
+    <div class="panel" id="preview-section">
+      <div style="margin-bottom:10px; font-weight:bold; text-align:left;">印刷プレビュー (A4)</div>
+      <div class="a4-sheet" id="printArea">
+        <!-- プレビュー生成先 -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 履歴・データ管理モーダル -->
+  <div id="history-modal">
+    <div class="modal-content">
+      <div style="display:flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="margin: 0; color: #0f172a;">📂 フォルダ・データ管理</h2>
+        <div>
+          <button onclick="exportData()" style="width:auto; margin:0; background:#f59e0b; color:white;">⬇️ エクスポート(出力)</button>
+          <button onclick="document.getElementById('importFile').click()" style="width:auto; margin:0; background:#8b5cf6; color:white;">⬆️ インポート(読込)</button>
+          <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+        </div>
+      </div>
+
+      <!-- フォルダ階層の生成先 -->
+      <div id="history-list" style="flex:1; overflow-y: auto;"></div>
+
+      <div style="text-align:right; margin-top:15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+        <button onclick="document.getElementById('history-modal').style.display='none'" style="width:100px;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // データベース初期化
+    localforage.config({
+      name: 'PrintMakerProMax'
+    });
+    const canvas = new fabric.Canvas('masterCanvas', {
+      preserveObjectStacking: true
+    });
+    let historyStack = [];
+    let historyIndex = -1;
+    let isHistoryTracking = false;
+    let currentZoom = 1;
+    // Undo用の操作履歴保存
+    function saveHistory() {
+      if (isHistoryTracking) return;
+      const json = JSON.stringify(canvas.toJSON(['lockMovementX', 'lockMovementY', 'lockRotation', 'lockScalingX', 'lockScalingY', 'selectable']));
+      historyStack = historyStack.slice(0, historyIndex + 1);
+      historyStack.push(json);
+      historyIndex++;
+      updatePreview();
+    }
+    canvas.on('object:modified', saveHistory);
+    canvas.on('object:added', (e) => {
+      if (e.target && e.target.type !== 'i-text') saveHistory();
+    });
+    canvas.on('object:removed', saveHistory);
+    canvas.on('path:created', saveHistory);
+    // レイアウト設定 (1片の比率)
+    function updateLayout() {
+      const layout = document.getElementById('layoutSelect').value;
+      const baseWidth = 450;
+      let ratio = 1;
+      switch (layout) {
+        case '1':
+          ratio = 297 / 210;
+          break;
+        case '2-row':
+          ratio = (297 / 2) / 210;
+          break;
+        case '2-col':
+          ratio = 297 / (210 / 2);
+          break;
+        case '4':
+          ratio = (297 / 2) / (210 / 2);
+          break;
+        case '8':
+          ratio = (297 / 4) / (210 / 2);
+          break;
+        case '10':
+          ratio = (297 / 5) / (210 / 2);
+          break;
+      }
+      canvas.setWidth(baseWidth);
+      canvas.setHeight(baseWidth * ratio);
+      currentZoom = 1;
+      canvas.setZoom(1);
+      saveHistory();
+    }
+    updateLayout();
+
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        loadHistoryJson(historyStack[historyIndex]);
+      }
+    }
+
+    function redo() {
+      if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        loadHistoryJson(historyStack[historyIndex]);
+      }
+    }
+
+    function loadHistoryJson(json) {
+      isHistoryTracking = true;
+      canvas.loadFromJSON(json, () => {
+        canvas.renderAll();
+        updatePreview();
+        isHistoryTracking = false;
+      });
+    }
+    // Ctrl+V対応
+    window.addEventListener('paste', function(e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') === 0) {
+          const file = items[i].getAsFile();
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            fabric.Image.fromURL(event.target.result, function(img) {
+              if (img.width > canvas.width) img.scaleToWidth(canvas.width * 0.9);
+              canvas.add(img);
+              canvas.centerObject(img);
+              canvas.setActiveObject(img);
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    function setMode(mode) {
+      document.getElementById('tool-select').classList.remove('active');
+      document.getElementById('tool-draw').classList.remove('active');
+      if (mode === 'select') {
+        document.getElementById('tool-select').classList.add('active');
+        canvas.isDrawingMode = false;
+        canvas.forEachObject(obj => {
+          if (!obj.lockedCustom) obj.selectable = true;
+        });
+      } else if (mode === 'draw') {
+        document.getElementById('tool-draw').classList.add('active');
+        canvas.isDrawingMode = true;
+        canvas.freeDrawingBrush.color = '#ef4444';
+        canvas.freeDrawingBrush.width = 3;
+      }
+    }
+
+    function addText() {
+      const text = new fabric.IText('ダブルクリックで編集', {
+        left: 20,
+        top: 20,
+        fontFamily: '"Hiragino Kaku Gothic ProN", "Meiryo", sans-serif',
+        fontSize: 24,
+        fill: '#000000',
+        editable: true,
+        selectable: true
+      });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+      setMode('select');
+      saveHistory();
+    }
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const activeObj = canvas.getActiveObject();
+        if (activeObj && !activeObj.isEditing) {
+          deleteSelected();
+        }
+      }
+    });
+
+    function execCmd(cmd) {
+      const obj = canvas.getActiveObject();
+      if (!obj) return;
+      if (cmd === 'bringFront') canvas.bringToFront(obj);
+      if (cmd === 'sendBack') canvas.sendToBack(obj);
+      if (cmd === 'lock') {
+        const isLocked = obj.lockMovementX;
+        obj.set({
+          lockMovementX: !isLocked,
+          lockMovementY: !isLocked,
+          lockRotation: !isLocked,
+          lockScalingX: !isLocked,
+          lockScalingY: !isLocked,
+          selectable: isLocked
+        });
+        obj.lockedCustom = !isLocked;
+        canvas.discardActiveObject();
+      }
+      if (cmd === 'clone') {
+        obj.clone(function(cloned) {
+          cloned.set({
+            left: obj.left + 20,
+            top: obj.top + 20
+          });
+          canvas.add(cloned);
+          canvas.setActiveObject(cloned);
+        });
+      }
+      if (cmd === 'bw' && obj.type === 'image') {
+        obj.filters.push(new fabric.Image.filters.Grayscale());
+        obj.applyFilters();
+      }
+      canvas.renderAll();
+      saveHistory();
+    }
+
+    function deleteSelected() {
+      const activeObjects = canvas.getActiveObjects();
+      if (activeObjects.length) {
+        activeObjects.forEach(obj => canvas.remove(obj));
+        canvas.discardActiveObject();
+        saveHistory();
+      }
+    }
+
+    function clearCanvas() {
+      if (confirm("キャンバスをすべて消去しますか？")) {
+        canvas.clear();
+        canvas.backgroundColor = '#ffffff';
+        saveHistory();
+      }
+    }
+
+    function zoom(factor) {
+      currentZoom *= factor;
+      canvas.setZoom(currentZoom);
+      canvas.setWidth(canvas.getWidth() * factor);
+      canvas.setHeight(canvas.getHeight() * factor);
+    }
+    // プレビュー生成
+    function updatePreview() {
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = '';
+      const layout = document.getElementById('layoutSelect').value;
+      const margin = document.getElementById('marginSlider').value + 'mm';
+      const showName = document.getElementById('checkName').checked;
+      const tempZoom = canvas.getZoom();
+      const tempW = canvas.getWidth();
+      const tempH = canvas.getHeight();
+      canvas.setZoom(1);
+      canvas.setWidth(tempW / tempZoom);
+      canvas.setHeight(tempH / tempZoom);
+      const highResDataUrl = canvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 3
+      });
+      canvas.setZoom(tempZoom);
+      canvas.setWidth(tempW);
+      canvas.setHeight(tempH);
+      let count = 1;
+      if (layout === '1') {
+        count = 1;
+        printArea.style.gridTemplateColumns = '1fr';
+        printArea.style.gridTemplateRows = '1fr';
+      } else if (layout === '2-row') {
+        count = 2;
+        printArea.style.gridTemplateColumns = '1fr';
+        printArea.style.gridTemplateRows = 'repeat(2, 1fr)';
+      } else if (layout === '2-col') {
+        count = 2;
+        printArea.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        printArea.style.gridTemplateRows = '1fr';
+      } else if (layout === '4') {
+        count = 4;
+        printArea.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        printArea.style.gridTemplateRows = 'repeat(2, 1fr)';
+      } else if (layout === '8') {
+        count = 8;
+        printArea.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        printArea.style.gridTemplateRows = 'repeat(4, 1fr)';
+      } else if (layout === '10') {
+        count = 10;
+        printArea.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        printArea.style.gridTemplateRows = 'repeat(5, 1fr)';
+      }
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'print-item';
+        div.style.padding = margin;
+        let nameHtml = showName ? `<div class="name-header" style="display:block;">____年____組____番 名前:___________________</div>` : '';
+        div.innerHTML = `
+        <div class="cut-icon no-print">✂️ キリトリ</div>
+        ${nameHtml}
+        <img src="${highResDataUrl}">
+      `;
+        printArea.appendChild(div);
+      }
+    }
+    // --- DB保存・呼び出し・エクスポート/インポート機能 ---
+    async function saveToDB() {
+      const subject = document.getElementById('save-subject').value;
+      const unit = document.getElementById('save-unit').value || '未分類';
+      const lesson = document.getElementById('save-lesson').value || '';
+      const printNum = document.getElementById('save-print').value || '';
+      const data = {
+        id: Date.now().toString(),
+        subject: subject,
+        unit: unit,
+        lesson: lesson,
+        printNum: printNum,
+        layout: document.getElementById('layoutSelect').value,
+        canvasData: JSON.stringify(canvas.toJSON(['lockMovementX', 'lockMovementY', 'lockRotation', 'lockScalingX', 'lockScalingY', 'selectable'])),
+        date: new Date().toLocaleString()
+      };
+      let history = await localforage.getItem('printDB') || [];
+      history.unshift(data);
+      await localforage.setItem('printDB', history);
+      alert(`[${subject}] ${unit} のデータを保存しました！`);
+    }
+    // 教科・単元ごとの階層型フォルダリストを生成
+    async function openHistory() {
+      const history = await localforage.getItem('printDB') || [];
+      const list = document.getElementById('history-list');
+      list.innerHTML = '';
+      if (history.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:#64748b; margin-top:20px;">保存されたデータはありません。<br>「現在の状態を保存する」ボタンから保存してください。</p>';
+      } else {
+        // データを 教科 > 単元 にグループ化
+        const grouped = {};
+        history.forEach(item => {
+          const sub = item.subject || 'その他';
+          const uni = item.unit || '未分類';
+          if (!grouped[sub]) grouped[sub] = {};
+          if (!grouped[sub][uni]) grouped[sub][uni] = [];
+          grouped[sub][uni].push(item);
+        });
+        // HTML生成
+        for (const subject in grouped) {
+          const subDetails = document.createElement('details');
+          // 国語・算数・理科・社会でアイコンを変えるなどの工夫
+          let icon = "📘";
+          if (subject === "算数") icon = "📐";
+          if (subject === "理科") icon = "🔬";
+          if (subject === "社会") icon = "🌍";
+          subDetails.innerHTML = `<summary style="font-size:1.1rem;">${icon} ${subject}</summary>`;
+          const subContent = document.createElement('div');
+          subContent.className = 'details-content';
+          for (const unit in grouped[subject]) {
+            const unitDetails = document.createElement('details');
+            unitDetails.innerHTML = `<summary>📁 ${unit}</summary>`;
+            const unitContent = document.createElement('div');
+            unitContent.className = 'details-content';
+            unitContent.style.padding = '0';
+            grouped[subject][unit].forEach(item => {
+              const div = document.createElement('div');
+              div.className = 'history-item';
+              // 旧バージョンのデータ（lessonがないもの）への互換性対応
+              let displayTitle = "";
+              if (item.lesson || item.printNum) {
+                displayTitle = `${item.lesson ? item.lesson + '時間目' : ''} ${item.printNum ? item.printNum : ''}`.trim();
+              } else {
+                displayTitle = item.title || "無題のプリント";
+              }
+              div.innerHTML = `
+                <div>
+                  <strong>${displayTitle}</strong>
+                  <span style="font-size:11px; color:#64748b; margin-left:10px;">(${item.date})</span>
+                </div>
+                <button onclick="loadFromDB('${item.id}')" style="width:auto; margin:0; padding: 4px 12px; background:#e2e8f0; border:none; border-radius:4px;">復元する</button>
+              `;
+              unitContent.appendChild(div);
+            });
+            unitDetails.appendChild(unitContent);
+            subContent.appendChild(unitDetails);
+          }
+          subDetails.appendChild(subContent);
+          list.appendChild(subDetails);
+        }
+      }
+      document.getElementById('history-modal').style.display = 'flex';
+    }
+    async function loadFromDB(id) {
+      if (!confirm('現在の編集内容は上書きされます。よろしいですか？')) return;
+      const history = await localforage.getItem('printDB') || [];
+      const target = history.find(h => h.id === id);
+      if (target) {
+        document.getElementById('save-subject').value = target.subject || 'その他';
+        document.getElementById('save-unit').value = target.unit || '';
+        document.getElementById('save-lesson').value = target.lesson || '';
+        document.getElementById('save-print').value = target.printNum || '';
+        document.getElementById('layoutSelect').value = target.layout || '4';
+        isHistoryTracking = true;
+        updateLayout();
+        canvas.loadFromJSON(target.canvasData, () => {
+          canvas.renderAll();
+          updatePreview();
+          isHistoryTracking = false;
+          saveHistory();
+        });
+        document.getElementById('history-modal').style.display = 'none';
+      }
+    }
+    // --- エクスポート（出力） ---
+    async function exportData() {
+      const history = await localforage.getItem('printDB') || [];
+      if (history.length === 0) {
+        alert("出力するデータがありません。");
+        return;
+      }
+      // JSON形式に変換
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history));
+      const dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", `プリントメーカー_バックアップ_${new Date().getTime()}.json`);
+      document.body.appendChild(dlAnchorElem); // Firefox対応
+      dlAnchorElem.click();
+      dlAnchorElem.remove();
+    }
+    // --- インポート（読込） ---
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData)) {
+            if (confirm(`読み込んだデータを現在の保存データに結合（追加）しますか？\n※データが重複する場合は上書きされず、追加されます。`)) {
+              const currentData = await localforage.getItem('printDB') || [];
+              const merged = [...importedData, ...currentData];
+              // IDの重複を排除（万が一同じファイルを2回インポートした場合の防止）
+              const uniqueData = Array.from(new Map(merged.map(item => [item.id, item])).values());
+              await localforage.setItem('printDB', uniqueData);
+              alert("データのインポートが完了しました！");
+              openHistory(); // フォルダリストを更新
+            }
+          } else {
+            alert("読み込んだファイルのデータ形式が正しくありません。");
+          }
+        } catch (err) {
+          alert("ファイルの読み込みに失敗しました。対応していないファイルです。");
+        }
+        event.target.value = ''; // ファイル入力をリセット
+      };
+      reader.readAsText(file);
+    }
+    // --- PDF・画像 出力機能 ---
+    function downloadPDF() {
+      const element = document.getElementById('printArea');
+      const opt = {
+        margin: 0,
+        filename: `プリント_${new Date().getTime()}.pdf`,
+        image: {
+          type: 'jpeg',
+          quality: 0.98
+        },
+        html2canvas: {
+          scale: 2,
+          useCORS: true
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
+    function downloadImage() {
+      const element = document.getElementById('printArea');
+      html2pdf().set({
+        html2canvas: {
+          scale: 2
+        }
+      }).from(element).outputImg('datauristring').then(function(imgData) {
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `プレビュー画像_${new Date().getTime()}.png`;
+        link.click();
+      });
+    }
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
