@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>業務カレンダー　</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher's Monthly Planner Pro</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-color: #f1f5f9;
+      --surface: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --weekend-sat: #eff6ff;
+      --weekend-sun: #fef2f2;
+      --today-bg: #fffbeb;
+      --today-border: #fbbf24;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Header UI */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--surface);
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .month-nav button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--primary);
+      padding: 5px 15px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      font-weight: bold;
+    }
+
+    .month-nav button:hover {
+      background: #e0e7ff;
+    }
+
+    .btn-today {
+      font-size: 14px !important;
+      border: 1px solid var(--primary) !important;
+    }
+
+    .month-title {
+      font-size: 26px;
+      font-weight: 800;
+      min-width: 160px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-color);
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    .btn-danger:hover {
+      background: #fecaca;
+    }
+
+    /* Main Layout */
+    .main-layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    /* Calendar Area */
+    .calendar-wrapper {
+      flex: 1;
+      background: var(--surface);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--bg-color);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .weekday {
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-left: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+      grid-auto-rows: minmax(130px, auto);
+    }
+
+    .day-cell {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      height: 100%;
+      position: relative;
+    }
+
+    .day-cell:hover {
+      background: #f1f5f9;
+    }
+
+    .day-cell.empty {
+      background: var(--bg-color);
+      cursor: default;
+    }
+
+    .day-cell:nth-child(7n+1) {
+      background: var(--weekend-sun);
+    }
+
+    .day-cell:nth-child(7n) {
+      background: var(--weekend-sat);
+    }
+
+    .day-cell.today {
+      background-color: var(--today-bg);
+      box-shadow: inset 0 0 0 2px var(--today-border);
+    }
+
+    .day-number {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 2px;
+      color: var(--text-main);
+    }
+
+    .preview-event {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-classes {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.3;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .preview-memo {
+      font-size: 10px;
+      color: #475569;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-left: 2px solid #94a3b8;
+      padding: 4px 6px;
+      border-radius: 2px;
+      margin-top: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.3;
+    }
+
+    /* Sidebar Area */
+    .sidebar {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      transition: border 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Sidebar: Progress */
+    .progress-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Sidebar: ToDo */
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .todo-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .todo-item input[type="text"] {
+      flex: 1;
+      border: none;
+      border-bottom: 1px dashed var(--border);
+      padding: 4px;
+      font-size: 13px;
+    }
+
+    .todo-item input[type="text"]:focus {
+      outline: none;
+      border-bottom-color: var(--primary);
+    }
+
+    .todo-add {
+      font-size: 12px;
+      color: var(--primary);
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 5px;
+    }
+
+    .progress-bar-container {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #10b981;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: var(--surface);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Stamps */
+    .stamp-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stamp-btn {
+      background: var(--bg-color);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .stamp-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .template-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: -5px;
+      margin-bottom: 15px;
+    }
+
+    .template-btn {
+      font-size: 11px;
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      z-index: 2000;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Print Styles - 画面の見た目をそのままA4横に印刷するための完全再現モード */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      @page {
+        size: A4 landscape;
+        /* A4横向き指定 */
+        margin: 10mm;
+      }
+
+      body {
+        background-color: var(--bg-color) !important;
+        padding: 0 !important;
+        zoom: 0.82;
+        /* 画面全体の要素をA4横にスッキリ収めるための縮小率 */
+      }
+
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      /* ヘッダー部分はタイトルのみ残して背景・枠を透明に */
+      .header {
+        padding: 0 0 10px 0 !important;
+        margin-bottom: 10px !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+
+      #printTitle {
+        display: block !important;
+        text-align: left !important;
+        font-size: 28px !important;
+        font-weight: bold !important;
+        margin-bottom: 5px !important;
+        color: var(--text-main) !important;
+      }
+
+      /* 横並び（カレンダーとサイドバー）を強制維持 */
+      .main-layout {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 20px !important;
+        align-items: flex-start !important;
+      }
+
+      /* カレンダーのスタイル維持（黒枠にしない） */
+      .calendar-wrapper {
+        flex: 1 !important;
+        background: var(--surface) !important;
+        border-radius: 12px !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: none !important;
+      }
+
+      .calendar-grid {
+        border-left: 1px solid var(--border) !important;
+        border-top: 1px solid var(--border) !important;
+        grid-auto-rows: minmax(110px, auto) !important;
+      }
+
+      .day-cell {
+        border-right: 1px solid var(--border) !important;
+        border-bottom: 1px solid var(--border) !important;
+        break-inside: avoid;
+        /* セルがページ跨ぎで途切れるのを防ぐ */
+      }
+
+      /* サイドバーのスタイル維持 */
+      .sidebar {
+        width: 320px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+      }
+
+      .sidebar-card {
+        background: var(--surface) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+
+      /* 入力欄の見た目維持 */
+      .form-control,
+      .todo-item input[type="text"] {
+        border: 1px solid var(--border) !important;
+        background: transparent !important;
+      }
+
+      .todo-item input[type="text"] {
+        border: none !important;
+        border-bottom: 1px dashed var(--border) !important;
+      }
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 1100px) {
+      .main-layout {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="month-nav no-print">
+        <button onclick="changeMonth(-1)">&#8592;</button>
+        <div class="month-title" id="monthTitle">2026年 9月</div>
+        <button onclick="changeMonth(1)">&#8594;</button>
+        <button class="btn btn-outline btn-today" onclick="goToToday()">今日</button>
+      </div>
+      <!-- 印刷時に左上に表示されるタイトル -->
+      <div class="month-title" style="display:none;" id="printTitle"></div>
+
+      <div class="actions no-print">
+        <button class="btn btn-danger" onclick="clearMonthData()" title="この月のデータを全て消去">リセット</button>
+        <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+        <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">
+          📂 復元 (読込)
+        </button>
+        <button class="btn btn-outline" onclick="exportData()">
+          💾 保存 (出力)
+        </button>
+        <button class="btn btn-primary" onclick="window.print()">
+          🖨️ 印刷
+        </button>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <div class="calendar-wrapper">
+        <div class="weekdays">
+          <div class="weekday" style="color:#ef4444;">日</div>
+          <div class="weekday">月</div>
+          <div class="weekday">火</div>
+          <div class="weekday">水</div>
+          <div class="weekday">木</div>
+          <div class="weekday">金</div>
+          <div class="weekday" style="color:#3b82f6;">土</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+
+      <!-- Sidebar / Monthly Dashboard -->
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-title">🎯 今月の目標・テーマ</div>
+          <input type="text" class="form-control" id="monthGoal" placeholder="例：運動会に向けて団結しよう" onblur="saveSidebarData()">
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">⚠️ 重要事項・引継ぎメモ</div>
+          <textarea class="form-control" id="monthImportant" rows="4" placeholder="例：15日(火) 集金日&#10;〇〇先生 休職のためカバー" onblur="saveSidebarData()"></textarea>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">
+            <span>☑️ 月間タスク</span>
+            <span id="todoPercentage" style="font-size:12px; font-weight:normal; color:var(--primary);">0%</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="todoProgressBar"></div>
+          </div>
+          <div id="todoContainer">
+            <!-- Todos injected here -->
+          </div>
+          <div class="todo-add no-print" onclick="addTodo()">+ タスクを追加</div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">📖 授業進度メモ</div>
+          <div class="progress-grid">
+            <div class="progress-label">国語</div><input type="text" id="prog-kokugo" class="form-control" onblur="saveSidebarData()">
+            <div class="progress-label">社会</div><input type="text" id="prog-shakai" class="form-control" onblur="saveSidebarData()">
+            <div class="progress-label">算数</div><input type="text" id="prog-sansu" class="form-control" onblur="saveSidebarData()">
+            <div class="progress-label">理科</div><input type="text" id="prog-rika" class="form-control" onblur="saveSidebarData()">
+            <div class="progress-label">体育</div><input type="text" id="prog-taiiku" class="form-control" onblur="saveSidebarData()">
+            <div class="progress-label">道徳</div><input type="text" id="prog-doutoku" class="form-control" onblur="saveSidebarData()">
+            <div class="progress-label">総合</div><input type="text" id="prog-sougou" class="form-control" onblur="saveSidebarData()">
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalDateTitle"></div>
+        <button class="btn btn-outline" style="padding: 5px 10px;" onclick="closeModal()">✕</button>
+      </div>
+
+      <input type="hidden" id="currentEditDate">
+
+      <div style="margin-bottom: 15px;">
+        <label style="font-size: 13px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 5px;">行事・祝日・出張など</label>
+        <input type="text" id="inputEvent" class="form-control" placeholder="例：全校朝会">
+        <div class="stamp-container">
+          <button class="stamp-btn" onclick="addStamp('🏫')">🏫 学校行事</button>
+          <button class="stamp-btn" onclick="addStamp('🏃')">🏃 体育/大会</button>
+          <button class="stamp-btn" onclick="addStamp('職員会議')">👥 職員会議</button>
+          <button class="stamp-btn" onclick="addStamp('🍱')">🍱 弁当の日</button>
+          <button class="stamp-btn" onclick="addStamp('🚗 出張')">🚗 出張</button>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:10px;">
+          <label style="cursor:pointer;"><input type="radio" name="eventColor" value="default" checked> 🩷通常</label>
+          <label style="cursor:pointer;"><input type="radio" name="eventColor" value="holiday"> 🔴祝休</label>
+          <label style="cursor:pointer;"><input type="radio" name="eventColor" value="business"> 🔵出張</label>
+          <label style="cursor:pointer;"><input type="radio" name="eventColor" value="school"> 🟢行事</label>
+          <label style="cursor:pointer;"><input type="radio" name="eventColor" value="meeting"> 🟡会議</label>
+        </div>
+      </div>
+
+      <div class="template-actions">
+        <span style="font-size: 13px; font-weight: bold; color: var(--text-muted);">授業計画</span>
+        <div>
+          <button class="template-btn" onclick="loadTemplate()">テンプレート読込</button> |
+          <button class="template-btn" onclick="saveTemplate()">テンプレとして記憶</button>
+        </div>
+      </div>
+
+      <div class="classes-grid" style="margin-top:0;">
+        <div style="margin:0;"><label style="font-size:12px;">1時間目</label><input type="text" id="class1" class="form-control"></div>
+        <div style="margin:0;"><label style="font-size:12px;">2時間目</label><input type="text" id="class2" class="form-control"></div>
+        <div style="margin:0;"><label style="font-size:12px;">3時間目</label><input type="text" id="class3" class="form-control"></div>
+        <div style="margin:0;"><label style="font-size:12px;">4時間目</label><input type="text" id="class4" class="form-control"></div>
+        <div style="margin:0;"><label style="font-size:12px;">5時間目</label><input type="text" id="class5" class="form-control"></div>
+        <div style="margin:0;"><label style="font-size:12px;">6時間目</label><input type="text" id="class6" class="form-control"></div>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="font-size: 13px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 5px;">放課後の業務・メモ</label>
+        <textarea id="inputMemo" class="form-control" rows="3" placeholder="例：１５：５０～向井 打合せ"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveData()">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">✅ 保存しました</div>
+
+  <script>
+    let currentDate = new Date();
+    let scheduleData = JSON.parse(localStorage.getItem('teacherSchedulePlanner')) || {};
+    const EVENT_COLORS = {
+      default: {
+        bg: '#ffe4e6',
+        text: '#e11d48'
+      },
+      holiday: {
+        bg: '#fee2e2',
+        text: '#b91c1c'
+      },
+      business: {
+        bg: '#dbeafe',
+        text: '#1d4ed8'
+      },
+      school: {
+        bg: '#dcfce7',
+        text: '#15803d'
+      },
+      meeting: {
+        bg: '#fef3c7',
+        text: '#b45309'
+      },
+      custom: {
+        bg: '#f3e8ff',
+        text: '#7e22ce'
+      }
+    };
+
+    function getMonthKey() {
+      return `monthly_${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function init() {
+      renderCalendar();
+    }
+
+    function showToast(msg = "✅ 保存しました") {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      document.getElementById('monthTitle').innerText = `${year}年 ${month + 1}月`;
+      document.getElementById('printTitle').innerText = `${year}年 ${month + 1}月`;
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      const todayObj = new Date();
+      const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+      for (let i = 0; i < firstDay; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell empty';
+        grid.appendChild(cell);
+      }
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        if (dateStr === todayStr) cell.classList.add('today');
+        cell.onclick = () => openModal(dateStr, i);
+        const dayNum = document.createElement('div');
+        dayNum.className = 'day-number';
+        dayNum.innerText = i;
+        cell.appendChild(dayNum);
+        if (scheduleData[dateStr]) {
+          const data = scheduleData[dateStr];
+          if (data.event) {
+            const evt = document.createElement('div');
+            evt.className = 'preview-event';
+            const colorKey = data.eventColor || 'default';
+            const colorData = EVENT_COLORS[colorKey] || EVENT_COLORS.default;
+            evt.style.backgroundColor = colorData.bg;
+            evt.style.color = colorData.text;
+            evt.innerText = data.event;
+            cell.appendChild(evt);
+          }
+          const classesText = [];
+          for (let c = 1; c <= 6; c++) {
+            if (data[`class${c}`]) classesText.push(`${c}: ${data[`class${c}`]}`);
+          }
+          if (classesText.length > 0) {
+            const cls = document.createElement('div');
+            cls.className = 'preview-classes';
+            cls.innerText = classesText.join('\n');
+            cell.appendChild(cls);
+          }
+          if (data.memo) {
+            const memo = document.createElement('div');
+            memo.className = 'preview-memo';
+            memo.innerText = '📝 ' + data.memo;
+            cell.appendChild(memo);
+          }
+        }
+        grid.appendChild(cell);
+      }
+      loadSidebarData();
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function goToToday() {
+      currentDate = new Date();
+      renderCalendar();
+    }
+
+    function loadSidebarData() {
+      const key = getMonthKey();
+      const mData = scheduleData[key] || {
+        todos: [{
+          text: "",
+          done: false
+        }, {
+          text: "",
+          done: false
+        }]
+      };
+      document.getElementById('monthGoal').value = mData.goal || '';
+      document.getElementById('monthImportant').value = mData.important || '';
+      const progs = ['kokugo', 'shakai', 'sansu', 'rika', 'taiiku', 'doutoku', 'sougou'];
+      progs.forEach(p => {
+        document.getElementById(`prog-${p}`).value = mData.progress ? (mData.progress[p] || '') : '';
+      });
+      renderTodos(mData.todos || []);
+    }
+
+    function saveSidebarData() {
+      const key = getMonthKey();
+      if (!scheduleData[key]) scheduleData[key] = {};
+      scheduleData[key].goal = document.getElementById('monthGoal').value;
+      scheduleData[key].important = document.getElementById('monthImportant').value;
+      scheduleData[key].progress = {};
+      const progs = ['kokugo', 'shakai', 'sansu', 'rika', 'taiiku', 'doutoku', 'sougou'];
+      progs.forEach(p => {
+        scheduleData[key].progress[p] = document.getElementById(`prog-${p}`).value;
+      });
+      const todoItems = document.querySelectorAll('.todo-item');
+      const todos = [];
+      todoItems.forEach(item => {
+        const text = item.querySelector('input[type="text"]').value;
+        const done = item.querySelector('input[type="checkbox"]').checked;
+        if (text.trim() !== "" || done) {
+          todos.push({
+            text,
+            done
+          });
+        }
+      });
+      scheduleData[key].todos = todos;
+      localStorage.setItem('teacherSchedulePlanner', JSON.stringify(scheduleData));
+      updateTodoProgress(todos);
+    }
+
+    function renderTodos(todos) {
+      const container = document.getElementById('todoContainer');
+      container.innerHTML = '';
+      if (todos.length === 0) todos = [{
+        text: "",
+        done: false
+      }];
+      todos.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'todo-item';
+        div.innerHTML = `
+                <input type="checkbox" ${t.done ? 'checked' : ''} onchange="saveSidebarData()">
+                <input type="text" value="${t.text}" placeholder="タスク入力..." onblur="saveSidebarData()">
+            `;
+        container.appendChild(div);
+      });
+      updateTodoProgress(todos);
+    }
+
+    function addTodo() {
+      const container = document.getElementById('todoContainer');
+      const div = document.createElement('div');
+      div.className = 'todo-item';
+      div.innerHTML = `
+            <input type="checkbox" onchange="saveSidebarData()">
+            <input type="text" placeholder="タスク入力..." onblur="saveSidebarData()">
+        `;
+      container.appendChild(div);
+    }
+
+    function updateTodoProgress(todos) {
+      const validTodos = todos.filter(t => t.text.trim() !== "");
+      let percent = 0;
+      if (validTodos.length > 0) {
+        const doneCount = validTodos.filter(t => t.done).length;
+        percent = Math.round((doneCount / validTodos.length) * 100);
+      }
+      document.getElementById('todoPercentage').innerText = `${percent}%`;
+      document.getElementById('todoProgressBar').style.width = `${percent}%`;
+    }
+
+    function openModal(dateStr, dayNum) {
+      document.getElementById('currentEditDate').value = dateStr;
+      const d = new Date(dateStr);
+      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+      document.getElementById('modalDateTitle').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${dayNum}日 (${dayOfWeek})`;
+      const data = scheduleData[dateStr] || {};
+      document.getElementById('inputEvent').value = data.event || '';
+      document.getElementById('inputMemo').value = data.memo || '';
+      for (let i = 1; i <= 6; i++) {
+        document.getElementById(`class${i}`).value = data[`class${i}`] || '';
+      }
+      const savedColor = data.eventColor || 'default';
+      const colorRadio = document.querySelector(`input[name="eventColor"][value="${savedColor}"]`);
+      if (colorRadio) colorRadio.checked = true;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function addStamp(stamp) {
+      const input = document.getElementById('inputEvent');
+      input.value = input.value ? input.value + ' ' + stamp : stamp;
+    }
+
+    function saveTemplate() {
+      const template = {};
+      for (let i = 1; i <= 6; i++) {
+        template[`class${i}`] = document.getElementById(`class${i}`).value;
+      }
+      localStorage.setItem('teacherScheduleTemplate', JSON.stringify(template));
+      showToast("💡 テンプレートを記憶しました");
+    }
+
+    function loadTemplate() {
+      const template = JSON.parse(localStorage.getItem('teacherScheduleTemplate'));
+      if (template) {
+        for (let i = 1; i <= 6; i++) {
+          if (template[`class${i}`]) document.getElementById(`class${i}`).value = template[`class${i}`];
+        }
+        showToast("💡 テンプレートを読み込みました");
+      } else {
+        alert("記憶されたテンプレートがありません。「テンプレとして記憶」を先に押してください。");
+      }
+    }
+
+    function saveData() {
+      const dateStr = document.getElementById('currentEditDate').value;
+      const data = {
+        event: document.getElementById('inputEvent').value,
+        eventColor: document.querySelector('input[name="eventColor"]:checked').value,
+        memo: document.getElementById('inputMemo').value
+      };
+      let hasData = data.event || data.memo;
+      for (let i = 1; i <= 6; i++) {
+        data[`class${i}`] = document.getElementById(`class${i}`).value;
+        if (data[`class${i}`]) hasData = true;
+      }
+      if (hasData) {
+        scheduleData[dateStr] = data;
+      } else {
+        delete scheduleData[dateStr];
+      }
+      localStorage.setItem('teacherSchedulePlanner', JSON.stringify(scheduleData));
+      closeModal();
+      renderCalendar();
+      showToast();
+    }
+
+    function clearMonthData() {
+      const monthPrefix = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      if (confirm(`${currentDate.getMonth() + 1}月の予定とサイドバーのデータをすべて消去しますか？\n（他の月のデータは残ります）`)) {
+        Object.keys(scheduleData).forEach(key => {
+          if (key.startsWith(monthPrefix)) delete scheduleData[key];
+        });
+        delete scheduleData[getMonthKey()];
+        localStorage.setItem('teacherSchedulePlanner', JSON.stringify(scheduleData));
+        renderCalendar();
+        showToast("🗑️ データをリセットしました");
+      }
+    }
+
+    function exportData() {
+      const dataStr = JSON.stringify(scheduleData, null, 2);
+      const blob = new Blob([dataStr], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `teacher_schedule_${new Date().getTime()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          scheduleData = importedData;
+          localStorage.setItem('teacherSchedulePlanner', JSON.stringify(scheduleData));
+          renderCalendar();
+          showToast("📥 データを復元しました");
+        } catch (err) {
+          alert("ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+    init();
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
