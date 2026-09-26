@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>MATH８１</title>
+    <title>かけ算ダンジョン</title>
     
 
   </head>
@@ -23,6 +23,8 @@
             --cyan: #0ff;
             --magenta: #f0f;
             --yellow: #ff0;
+            --magic: #9400d3; /* 新属性 */
+            --dark: #440044;  /* 新属性 */
             --bg-color: #050510;
             --grid-color: rgba(0, 255, 255, 0.1);
         }
@@ -88,6 +90,10 @@
         .yellow-btn:hover, .yellow-btn:active { background: var(--yellow); color: #000; box-shadow: 0 0 20px var(--yellow); }
         .red-btn { color: #f00; border-color: #f00; box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
         .red-btn:hover, .red-btn:active { background: #f00; color: #fff; box-shadow: 0 0 20px #f00; }
+        .green-btn { color: #0f0; border-color: #0f0; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); }
+        .green-btn:hover, .green-btn:active { background: #0f0; color: #000; box-shadow: 0 0 20px #0f0; }
+        .dark-btn { color: #aaa; border-color: #555; background: rgba(255,255,255,0.05); }
+        .dark-btn:hover, .dark-btn:active { background: #555; color: #fff; }
 
         /* Global HUD */
         .hud-global {
@@ -136,18 +142,28 @@
         
         .pet-svg-container { position: relative; width: 220px; height: 220px; animation: float 3s ease-in-out infinite; z-index: 5; transition: filter 0.5s; display: flex; justify-content: center; align-items: center;}
         
-        .pet-stats { display: flex; justify-content: center; gap: 15px; padding: 10px; margin: 0 20px 10px 20px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0,255,255,0.2); border-radius: 8px; text-align: center; }
-        .pet-stats > div { display: flex; flex-direction: column; align-items: center; width: 80px; }
-        .stat-bar-container { width: 100%; background: #222; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; border: 1px solid #444; }
-        
+        /* Stats Panel */
+        .pet-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 10px; margin: 0 20px 10px 20px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0,255,255,0.2); border-radius: 8px; text-align: center; }
+        .pet-stats > div { display: flex; flex-direction: column; align-items: center; width: 70px; }
+        .stat-bar-container { width: 100%; background: #222; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px; border: 1px solid #444; }
         .stat-bar { height: 100%; background: var(--cyan); transition: width 0.3s; }
         .stat-bar.exp { background: var(--yellow); }
-        .mini-pet { position: absolute; bottom: 10px; right: 10px; width: 80px; height: 80px; filter: drop-shadow(0 0 5px var(--cyan)); opacity: 0.9; }
+        .stat-bar.happy { background: #ff69b4; } /* ピンク色 */
         
+        .mini-pet { position: absolute; bottom: 10px; right: 10px; width: 80px; height: 80px; filter: drop-shadow(0 0 5px var(--cyan)); opacity: 0.9; }
         .pet-jump { animation: jump 0.5s ease; }
+        .pet-happy { animation: shake 0.4s ease; }
+
+        /* Care Buttons Grid */
+        .care-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px; }
+        .care-btn { padding: 12px; margin: 0; font-size: 1rem; border-radius: 8px; }
+
+        /* System Message */
+        #sys-msg { height: 20px; font-size: 0.9rem; color: var(--yellow); text-align: center; margin-bottom: 5px; opacity: 0; transition: opacity 0.3s; }
 
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes jump { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-5deg); } 75% { transform: translateX(5px) rotate(5deg); } }
         
         /* Flash Effects */
         #flash-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity 0.1s; z-index:100; }
@@ -162,7 +178,9 @@
         .type-speed { color: var(--cyan); border-color: var(--cyan); background: rgba(0,255,255,0.1); }
         .type-logic { color: var(--magenta); border-color: var(--magenta); background: rgba(255,0,255,0.1); }
         .type-power { color: #f55; border-color: #f55; background: rgba(255,85,85,0.1); }
-        .type-neutral { color: #aaa; border-color: #aaa; }
+        .type-neutral { color: #aaa; border-color: #aaa; background: rgba(255,255,255,0.1);}
+        .type-magic { color: #e0b0ff; border-color: #e0b0ff; background: rgba(148,0,211,0.2); box-shadow: 0 0 10px rgba(148,0,211,0.5); }
+        .type-dark { color: #ff0055; border-color: #ff0055; background: rgba(68,0,68,0.4); text-shadow: 0 0 5px #ff0000; }
 
     </style>
 </head>
@@ -188,6 +206,14 @@
                 <stop offset="0%" stop-color="#fff" stop-opacity="0.6" />
                 <stop offset="100%" stop-color="#fff" stop-opacity="0" />
             </radialGradient>
+            <radialGradient id="grad-magic" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#9400d3" stop-opacity="0.8" />
+                <stop offset="100%" stop-color="#ffd700" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="grad-dark" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#440044" stop-opacity="0.9" />
+                <stop offset="100%" stop-color="#ff0000" stop-opacity="0" />
+            </radialGradient>
         </defs>
     </svg>
 
@@ -205,8 +231,7 @@
     <!-- SCREEN: LOADING -->
     <div id="screen-loading" class="screen active" style="justify-content:center; align-items:center;">
         <div class="loading-spinner"></div>
-        <div class="glitch" style="font-size: 1.5rem;">CONNECTING TO SERVER...</div>
-        <div style="color:#aaa;">Loading Player Data</div>
+        <div class="glitch" style="font-size: 1.5rem;">CONNECTING TO LOCAL...</div>
     </div>
 
     <!-- SCREEN: MAIN MENU -->
@@ -248,28 +273,37 @@
             <div style="font-size:1.5rem; font-weight:bold; margin-bottom:5px;" id="pet-name">Egg</div>
         </div>
         
+        <div id="sys-msg">システムメッセージ</div>
+
         <div class="pet-stats">
             <div>
-                <div style="font-size:0.7rem; color:#aaa;">STAGE (MAX 100)</div>
-                <div id="pet-stage-txt" style="font-weight:bold; color:var(--cyan); font-size: 1.2rem;">1</div>
+                <div style="font-size:0.6rem; color:#aaa;">STAGE (MAX 100)</div>
+                <div id="pet-stage-txt" style="font-weight:bold; color:var(--cyan); font-size: 1.1rem;">1</div>
             </div>
             <div>
-                <div style="font-size:0.7rem; color:#aaa;">EXP TO EVOLVE</div>
+                <div style="font-size:0.6rem; color:#aaa;">EXP TO EVOLVE</div>
                 <div class="stat-bar-container"><div class="stat-bar exp" id="pet-exp-bar" style="width:0%"></div></div>
-                <div id="pet-exp-txt" style="font-size:0.7rem; color:#ccc; margin-top:2px;">0/200</div>
             </div>
             <div>
-                <div style="font-size:0.7rem; color:#aaa;">ENERGY</div>
+                <div style="font-size:0.6rem; color:#aaa;">ENERGY</div>
                 <div class="stat-bar-container"><div class="stat-bar" id="pet-energy-bar" style="width:100%"></div></div>
-                <div id="pet-energy-txt" style="font-size:0.7rem; color:#ccc; margin-top:2px;">100/100</div>
+            </div>
+            <div>
+                <div style="font-size:0.6rem; color:#aaa;">HAPPINESS</div>
+                <div class="stat-bar-container"><div class="stat-bar happy" id="pet-happy-bar" style="width:100%"></div></div>
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px; padding: 0 20px;">
-            <button class="cyber-btn yellow-btn" style="flex:1; padding:10px; margin:0; font-size:1rem;" onclick="feedPet()"><i class="fas fa-utensils"></i> ごはん (-10)</button>
-            <button class="cyber-btn magenta-btn" style="flex:1; padding:10px; margin:0; font-size:1rem;" onclick="cleanPoop()"><i class="fas fa-broom"></i> そうじ</button>
+        <div class="care-grid">
+            <button class="cyber-btn yellow-btn care-btn" onclick="careAction('feed')"><i class="fas fa-utensils"></i> ごはん (🪙-10)</button>
+            <button class="cyber-btn magenta-btn care-btn" onclick="careAction('clean')"><i class="fas fa-broom"></i> そうじ</button>
+            <button class="cyber-btn green-btn care-btn" onclick="careAction('pet')"><i class="fas fa-hand-sparkles"></i> なでる</button>
+            <button class="cyber-btn red-btn care-btn" onclick="careAction('train')"><i class="fas fa-dumbbell"></i> 特訓 (⚡-30)</button>
         </div>
-        <p style="text-align:center; color:#888; font-size:0.8rem; padding:10px;">プレイスタイル（速さ・正確さ・努力）で見た目が分岐！ 目指せSTAGE 100！</p>
+        <p style="text-align:center; color:#888; font-size:0.75rem; padding:10px;">
+            プレイスタイルとお世話で見た目が分岐！<br>
+            HAPPINESS(ご機嫌)が高いとゲームの獲得EXPにボーナス！
+        </p>
     </div>
 
     <!-- SCREEN: GAME -->
@@ -304,8 +338,12 @@
     <!-- SCREEN: RESULT -->
     <div id="screen-result" class="screen" style="justify-content:center; align-items:center;">
         <div class="glitch" style="color:var(--yellow)">MISSION CLEAR</div>
-        <div style="font-size:4rem; font-weight:bold; margin:20px 0; text-shadow:0 0 20px var(--cyan);" id="res-score">0</div>
+        <div style="font-size:4rem; font-weight:bold; margin:10px 0; text-shadow:0 0 20px var(--cyan);" id="res-score">0</div>
         
+        <div id="res-bonus-msg" style="color:#ff69b4; font-size:0.9rem; margin-bottom:10px; font-weight:bold;">
+            ご機嫌ボーナス発生！
+        </div>
+
         <div style="font-size:1.2rem; display:flex; gap:20px; margin-bottom:10px;">
             <div style="color:var(--magenta)">+<span id="res-exp">0</span> EXP</div>
             <div style="color:gold">+<span id="res-coin">0</span> COIN</div>
@@ -319,21 +357,17 @@
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'neon-math-81';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    let db, auth, userDocRef, userId;
+<script>
+    // ブラウザ保存用キー
+    const SAVE_KEY = 'neon_math_81_save';
 
     // --- Player Data Structure ---
     let player = {
         level: 1, exp: 0, coins: 500, progress: {},
         pet: { 
             stage: 1, exp: 0, energy: 100, poops: 0, lastUpdate: Date.now(), 
-            stats: { speed: 0, logic: 0, power: 0 } // 進化分岐用スタッツ
+            happiness: 100, // 追加パラメータ
+            stats: { speed: 0, logic: 0, power: 0, neglect: 0 } // neglect(放置度)追加
         }
     };
 
@@ -362,28 +396,20 @@
         el('global-hud').style.display = (id === 'menu' || id === 'loading' || id === 'result') ? 'none' : 'flex';
     };
 
+    // ====== LocalStorageを使ったデータの読み込み ======
     async function initSystem() {
-        if (Object.keys(firebaseConfig).length === 0) {
-            showScreen('menu'); updateGlobalHUD(); return;
-        }
         try {
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app); db = getFirestore(app);
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else { await signInAnonymously(auth); }
-            
-            userId = auth.currentUser.uid;
-            userDocRef = doc(db, 'artifacts', appId, 'users', userId, 'playerData');
-            
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
+            const savedData = localStorage.getItem(SAVE_KEY);
+            if (savedData) {
+                const data = JSON.parse(savedData);
                 player = { ...player, ...data };
                 if(data.pet) {
                     player.pet = { ...player.pet, ...data.pet };
-                    if(!player.pet.stats) player.pet.stats = { speed: 0, logic: 0, power: 0 };
-                    if(player.pet.stage === 0) player.pet.stage = 1; // 修正
+                    // 互換性担保
+                    if(!player.pet.stats) player.pet.stats = { speed: 0, logic: 0, power: 0, neglect: 0 };
+                    if(player.pet.stats.neglect === undefined) player.pet.stats.neglect = 0;
+                    if(player.pet.happiness === undefined) player.pet.happiness = 100;
+                    if(player.pet.stage === 0) player.pet.stage = 1; 
                     updatePetOfflineStatus();
                 }
                 if(data.progress) {
@@ -391,22 +417,28 @@
                          if(data.progress[k]) player.progress[k] = { ...player.progress[k], ...data.progress[k] };
                     });
                 }
-            } else { await savePlayerData(); }
-            
-            showScreen('menu'); updateGlobalHUD();
-        } catch (error) { console.error("System Init Error:", error); showScreen('menu'); }
+            } else {
+                await savePlayerData();
+            }
+        } catch (error) { console.error("データ読み込みエラー:", error); }
+        
+        setTimeout(() => { // ローディング演出
+            showScreen('menu'); 
+            updateGlobalHUD();
+        }, 500);
     }
 
+    // ====== LocalStorageを使ったデータの保存 ======
     async function savePlayerData() {
-        if (!userDocRef) return;
-        try { await setDoc(userDocRef, player); } catch (e) {}
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(player)); } 
+        catch (e) { console.error("データ保存エラー:", e); }
     }
 
     window.resetData = async function() {
         if(confirm("🚨警告🚨\n本当にセーブデータを初期化しますか？\nレベルもペットも最初からになります。")) {
             player = {
                 level: 1, exp: 0, coins: 500, progress: {},
-                pet: { stage: 1, exp: 0, energy: 100, poops: 0, lastUpdate: Date.now(), stats: { speed:0, logic:0, power:0 } }
+                pet: { stage: 1, exp: 0, energy: 100, poops: 0, lastUpdate: Date.now(), happiness: 100, stats: { speed:0, logic:0, power:0, neglect:0 } }
             };
             initProgress();
             await savePlayerData();
@@ -418,6 +450,198 @@
     function updateGlobalHUD() {
         el('ui-lv').innerText = player.level;
         el('ui-coin').innerText = player.coins;
+    }
+
+    // ==========================================
+    // 🐾 PROCEDURAL PET EVOLUTION SYSTEM
+    // ==========================================
+    
+    // 進化ルート判定ロジックを強化
+    function getPetBranch(p) {
+        if (p.stage === 1) return 'neutral';
+        let stats = p.stats;
+        
+        // Darkルート判定 (放置度が高い)
+        if (stats.neglect > (stats.speed + stats.logic + stats.power) * 0.4 && p.stage >= 5) {
+            return 'dark';
+        }
+        
+        // Magicルート判定 (バランス良く育ち、ご機嫌MAX)
+        let max = Math.max(stats.speed, stats.logic, stats.power);
+        let min = Math.min(stats.speed, stats.logic, stats.power);
+        if (max > 10 && (max - min) <= max * 0.3 && p.happiness > 80 && p.stage >= 10) {
+            return 'magic';
+        }
+        
+        // 通常3ルート判定
+        if (max === 0) return 'neutral';
+        if (max === stats.speed && stats.speed > stats.logic * 1.1) return 'speed';
+        if (max === stats.logic && stats.logic > Math.max(stats.speed, stats.power) * 1.1) return 'logic';
+        if (max === stats.power && stats.power > Math.max(stats.speed, stats.logic) * 1.1) return 'power';
+        
+        return 'neutral'; // 僅差の場合はNeutralのまま
+    }
+
+    function getPetName(stage, branch) {
+        let tier = Math.min(4, Math.floor((stage - 1) / 20));
+        const prefixes = {
+            speed: ["Bit", "Aero", "Sonic", "Volt", "Light"],
+            logic: ["Dot", "Nova", "Aura", "Quantum", "Omni"],
+            power: ["Spark", "Iron", "Magma", "Titan", "Ragnarok"],
+            neutral: ["Egg", "Proto", "Core", "Sys", "Alpha"],
+            magic: ["Rune", "Fairy", "Mystic", "Astral", "Cosmos"],
+            dark: ["Sludge", "Glitch", "Chaos", "Abyss", "Void"]
+        };
+        const suffixes = ["", "-Drone", "-Beast", "-Dragon", "-God"];
+        
+        let p = prefixes[branch][tier] || prefixes['neutral'][tier];
+        let s = suffixes[tier];
+        return p + s + (stage > 1 ? ` v${stage}` : '');
+    }
+
+    // 100段階のビジュアルを動的生成するコア関数 (MagicとDarkを追加)
+    function generatePetSVG(stage, branch) {
+        let colors = {
+            speed: { main: '#0ff', sub: '#ff0', core: '#fff' },
+            logic: { main: '#f0f', sub: '#0ff', core: '#fff' },
+            power: { main: '#f33', sub: '#ff9900', core: '#ff0' },
+            neutral: { main: '#aaa', sub: '#fff', core: '#888' },
+            magic: { main: '#9400d3', sub: '#ffd700', core: '#fff' },
+            dark: { main: '#440044', sub: '#ff0055', core: '#000' }
+        };
+        let c = colors[branch] || colors.neutral;
+        let tier = Math.min(4, Math.floor((stage - 1) / 20)); // 0 to 4
+        let levelInTier = (stage - 1) % 20; // 0 to 19
+
+        let svg = `<svg viewBox="0 0 100 100" width="100%" height="100%">`;
+        
+        // 1. Aura
+        let auraSize = 25 + (tier * 8) + (levelInTier * 0.5);
+        if(branch === 'dark') {
+            svg += `<circle cx="50" cy="50" r="${auraSize}" fill="url(#grad-${branch})" opacity="0.8">
+                       <animate attributeName="r" values="${auraSize};${auraSize+5};${auraSize-2};${auraSize}" dur="0.5s" repeatCount="indefinite"/>
+                    </circle>`;
+        } else {
+            svg += `<circle cx="50" cy="50" r="${auraSize}" fill="url(#grad-${branch})" opacity="0.5">
+                       <animate attributeName="r" values="${auraSize};${auraSize+3};${auraSize}" dur="${2 - tier*0.2}s" repeatCount="indefinite"/>
+                    </circle>`;
+        }
+
+        // 2. Orbiting Rings / Particles
+        let ringCount = Math.floor(stage / 15);
+        for(let i=0; i<=ringCount; i++) {
+            let r = 20 + i * 8;
+            if(branch === 'magic') {
+                // 星が回る
+                svg += `<g transform="rotate(${i*60} 50 50)"><polygon points="50,${50-r} 53,${50-r+5} 58,${50-r+5} 54,${50-r+9} 56,${50-r+14} 50,${50-r+11} 44,${50-r+14} 46,${50-r+9} 42,${50-r+5} 47,${50-r+5}" fill="${c.sub}">
+                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="${8 - i}s" repeatCount="indefinite"/>
+                        </polygon></g>`;
+            } else if (branch === 'dark') {
+                // 不規則な破片
+                let dash = (5 + i*3) + "," + (10 + i*5);
+                svg += `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${c.sub}" stroke-width="2" stroke-dasharray="${dash}" transform="rotate(${i*45} 50 50)">
+                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="${i%2==0?-360:360} 50 50" dur="${3 - i*0.2}s" repeatCount="indefinite"/>
+                        </circle>`;
+            } else {
+                let dash = (4 + i*2) + "," + (2 + i);
+                svg += `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${c.sub}" stroke-width="${1 + tier*0.2}" stroke-dasharray="${dash}" transform="rotate(${i*45} 50 50)" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="${i%2==0?360:-360} 50 50" dur="${10 - i}s" repeatCount="indefinite"/>
+                        </circle>`;
+            }
+        }
+
+        // 3. Base Body Shape
+        let coreScale = 1 + (levelInTier * 0.02);
+        svg += `<g transform="translate(50, 50) scale(${coreScale}) translate(-50, -50)">`;
+
+        if (branch === 'logic' || branch === 'neutral') {
+            if (tier === 0) svg += `<circle cx="50" cy="55" r="15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 1) svg += `<rect x="30" y="40" width="40" height="30" rx="15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 2) {
+                svg += `<path d="M 35 30 Q 50 15 65 30 L 70 60 Q 50 75 30 60 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+                svg += `<path d="M 35 30 L 30 15 M 65 30 L 70 15" stroke="${c.sub}" stroke-width="3"/>`;
+            } else if (tier >= 3) {
+                svg += `<path d="M 30 40 Q 50 10 70 40 Q 90 60 70 80 Q 50 100 30 80 Q 10 60 30 40 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+                svg += `<circle cx="50" cy="20" r="8" fill="none" stroke="${c.sub}" stroke-width="2"/>`;
+            }
+            svg += `<circle cx="42" cy="50" r="4" fill="${c.core}"/><circle cx="58" cy="50" r="4" fill="${c.core}"/>`;
+            if(stage > 5) svg += `<path d="M 47 58 Q 50 62 53 58" fill="none" stroke="${c.core}" stroke-width="2"/>`;
+
+        } else if (branch === 'speed') {
+            if (tier === 0) svg += `<polygon points="50,30 65,55 50,70 35,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 1) svg += `<polygon points="50,20 75,60 50,75 25,60" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 2) svg += `<polygon points="50,15 80,55 60,60 50,85 40,60 20,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier >= 3) svg += `<path d="M 50 10 L 90 50 L 65 55 L 75 80 L 50 95 L 25 80 L 35 55 L 10 50 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            svg += `<polygon points="40,50 60,50 55,58 45,58" fill="${c.core}"/>`;
+
+        } else if (branch === 'power') {
+            if (tier === 0) svg += `<polygon points="40,35 60,35 65,55 50,70 35,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 1) svg += `<polygon points="35,25 65,25 75,50 65,75 35,75 25,50" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 2) {
+                svg += `<path d="M 30 30 L 70 30 L 85 60 L 60 85 L 40 85 L 15 60 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3"/>`;
+                svg += `<path d="M 30 30 L 20 10 M 70 30 L 80 10" stroke="${c.sub}" stroke-width="4"/>`;
+            } else if (tier >= 3) {
+                svg += `<path d="M 40 15 L 60 15 L 85 40 L 85 65 L 60 90 L 40 90 L 15 65 L 15 40 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3"/>`;
+                svg += `<polygon points="40,15 30,5 50,15 60,15 70,5" stroke="${c.sub}" stroke-width="3" fill="none"/>`;
+            }
+            svg += `<polygon points="45,45 55,45 60,60 50,65 40,60" fill="${c.core}"/>`;
+            
+        } else if (branch === 'magic') {
+            if (tier === 0) svg += `<polygon points="50,30 65,40 65,60 50,70 35,60 35,40" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier === 1) svg += `<polygon points="50,20 60,40 80,45 65,60 70,80 50,70 30,80 35,60 20,45 40,40" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+            else if (tier >= 2) {
+                svg += `<path d="M 50 15 A 35 35 0 1 1 15 50 A 25 25 0 0 0 50 15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
+                svg += `<circle cx="60" cy="40" r="10" fill="${c.core}"/>`; // 目
+            }
+            if (tier < 2) {
+                svg += `<circle cx="43" cy="50" r="3" fill="${c.core}"/><circle cx="57" cy="50" r="3" fill="${c.core}"/>`;
+                svg += `<polygon points="50,55 53,60 47,60" fill="${c.sub}"/>`; // 星型の口
+            }
+            
+        } else if (branch === 'dark') {
+            // スライム・グリッチ状
+            if (tier === 0) {
+                svg += `<path d="M 35 45 Q 50 30 65 45 Q 80 60 65 70 Q 50 80 35 70 Q 20 60 35 45" fill="${c.main}" stroke="${c.sub}" stroke-width="2">
+                           <animate attributeName="d" values="M 35 45 Q 50 30 65 45 Q 80 60 65 70 Q 50 80 35 70 Q 20 60 35 45; M 30 50 Q 50 20 70 50 Q 85 70 60 75 Q 50 90 40 75 Q 15 70 30 50; M 35 45 Q 50 30 65 45 Q 80 60 65 70 Q 50 80 35 70 Q 20 60 35 45" dur="1s" repeatCount="indefinite"/>
+                        </path>`;
+            } else if (tier >= 1) {
+                svg += `<path d="M 40 20 L 70 30 L 80 60 L 60 85 L 30 75 L 15 50 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3">
+                           <animate attributeName="d" values="M 40 20 L 70 30 L 80 60 L 60 85 L 30 75 L 15 50 Z; M 30 10 L 80 20 L 90 70 L 50 90 L 20 80 L 10 40 Z; M 40 20 L 70 30 L 80 60 L 60 85 L 30 75 L 15 50 Z" dur="0.2s" repeatCount="indefinite"/>
+                        </path>`;
+            }
+            svg += `<circle cx="45" cy="45" r="5" fill="${c.sub}"/><circle cx="55" cy="55" r="4" fill="${c.sub}"/>`;
+            if (tier >= 2) svg += `<circle cx="65" cy="35" r="3" fill="${c.sub}"/>`; // 多眼
+        }
+
+        if (tier === 4) {
+             svg += `<circle cx="50" cy="50" r="45" fill="none" stroke="${c.main}" stroke-width="2" stroke-dasharray="2,10" opacity="0.8">
+                        <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="4s" repeatCount="indefinite"/>
+                     </circle>`;
+        }
+        svg += `</g></svg>`;
+        return svg;
+    }
+
+    function updatePetOfflineStatus() {
+        if(!player.pet.lastUpdate) player.pet.lastUpdate = Date.now();
+        const now = Date.now();
+        const elapsedHours = (now - player.pet.lastUpdate) / (1000 * 60 * 60);
+        
+        if (elapsedHours > 0.1) {
+            const energyDecrease = Math.floor(elapsedHours * 10);
+            const poopsIncrease = Math.floor(elapsedHours / 2);
+            
+            player.pet.energy = Math.max(0, player.pet.energy - energyDecrease);
+            player.pet.poops = Math.min(5, (player.pet.poops || 0) + poopsIncrease);
+            
+            // 放置でご機嫌ダウン、うんちがあるとさらにダウン
+            let happyDecrease = Math.floor(elapsedHours * 5);
+            if (player.pet.poops > 0) happyDecrease += player.pet.poops * 10;
+            player.pet.happiness = Math.max(0, player.pet.happiness - happyDecrease);
+
+            player.pet.lastUpdate = now;
+            savePlayerData();
+        }
     }
 
     window.openStageSelect = function(course) {
@@ -476,142 +700,6 @@
         if(el('screen-stage').classList.contains('active') || el('screen-pet').classList.contains('active')) showScreen('menu');
     };
 
-    // ==========================================
-    // 🐾 PROCEDURAL PET EVOLUTION SYSTEM (100 STAGES)
-    // ==========================================
-    
-    function getPetBranch(stats) {
-        if (stats.speed === 0 && stats.logic === 0 && stats.power === 0) return 'neutral';
-        let max = Math.max(stats.speed, Math.max(stats.logic, stats.power));
-        if (max === stats.speed && stats.speed > stats.logic * 1.2) return 'speed';
-        if (max === stats.logic && stats.logic > stats.speed * 1.2) return 'logic';
-        return 'power';
-    }
-
-    function getPetName(stage, branch) {
-        let tier = Math.min(4, Math.floor((stage - 1) / 20));
-        const prefixes = {
-            speed: ["Bit", "Aero", "Sonic", "Volt", "Light"],
-            logic: ["Dot", "Nova", "Aura", "Quantum", "Omni"],
-            power: ["Spark", "Iron", "Magma", "Titan", "Ragnarok"],
-            neutral: ["Egg", "Proto", "Core", "Sys", "Alpha"]
-        };
-        const suffixes = ["-Egg", "-Drone", "-Beast", "-Dragon", "-God"];
-        
-        let p = prefixes[branch][tier] || prefixes['neutral'][tier];
-        let s = suffixes[tier];
-        return p + s + (stage > 1 ? ` v${stage}` : '');
-    }
-
-    // 100段階のビジュアルを動的生成するコア関数
-    function generatePetSVG(stage, branch) {
-        let colors = {
-            speed: { main: '#0ff', sub: '#ff0', core: '#fff' },
-            logic: { main: '#f0f', sub: '#0ff', core: '#fff' },
-            power: { main: '#f33', sub: '#ff9900', core: '#ff0' },
-            neutral: { main: '#aaa', sub: '#fff', core: '#888' }
-        };
-        let c = colors[branch] || colors.neutral;
-        let tier = Math.min(4, Math.floor((stage - 1) / 20)); // 0 to 4
-        let levelInTier = (stage - 1) % 20; // 0 to 19
-
-        let svg = `<svg viewBox="0 0 100 100" width="100%" height="100%">`;
-        
-        // 1. Aura (レベルが上がるごとに大きく、濃くなる)
-        let auraSize = 25 + (tier * 8) + (levelInTier * 0.5);
-        svg += `<circle cx="50" cy="50" r="${auraSize}" fill="url(#grad-${branch})" opacity="0.5">
-                   <animate attributeName="r" values="${auraSize};${auraSize+3};${auraSize}" dur="${2 - tier*0.2}s" repeatCount="indefinite"/>
-                </circle>`;
-
-        // 2. Orbiting Rings (段階的に増える)
-        let ringCount = Math.floor(stage / 15);
-        for(let i=0; i<=ringCount; i++) {
-             let r = 20 + i * 8;
-             let dash = (4 + i*2) + "," + (2 + i);
-             svg += `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${c.sub}" stroke-width="${1 + tier*0.2}" stroke-dasharray="${dash}" transform="rotate(${i*45} 50 50)" opacity="0.7">
-                        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="${i%2==0?360:-360} 50 50" dur="${10 - i}s" repeatCount="indefinite"/>
-                     </circle>`;
-        }
-
-        // 3. Base Body Shape (Tier & Branch に依存)
-        let coreScale = 1 + (levelInTier * 0.02); // 微妙に成長
-        svg += `<g transform="translate(50, 50) scale(${coreScale}) translate(-50, -50)">`;
-
-        if (branch === 'logic' || branch === 'neutral') {
-            // カワイイ・丸っこい系
-            if (tier === 0) {
-                svg += `<circle cx="50" cy="55" r="15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier === 1) {
-                svg += `<rect x="30" y="40" width="40" height="30" rx="15" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier === 2) {
-                svg += `<path d="M 35 30 Q 50 15 65 30 L 70 60 Q 50 75 30 60 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-                svg += `<path d="M 35 30 L 30 15 M 65 30 L 70 15" stroke="${c.sub}" stroke-width="3"/>`; // Ears
-            } else if (tier >= 3) {
-                svg += `<path d="M 30 40 Q 50 10 70 40 Q 90 60 70 80 Q 50 100 30 80 Q 10 60 30 40 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-                svg += `<circle cx="50" cy="20" r="8" fill="none" stroke="${c.sub}" stroke-width="2"/>`; // Halo
-            }
-            // Cute Eyes
-            svg += `<circle cx="42" cy="50" r="4" fill="${c.core}"/>`;
-            svg += `<circle cx="58" cy="50" r="4" fill="${c.core}"/>`;
-            if(stage > 5) svg += `<path d="M 47 58 Q 50 62 53 58" fill="none" stroke="${c.core}" stroke-width="2"/>`;
-
-        } else if (branch === 'speed') {
-            // カッコいい・シャープ系
-            if (tier === 0) {
-                svg += `<polygon points="50,30 65,55 50,70 35,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier === 1) {
-                svg += `<polygon points="50,20 75,60 50,75 25,60" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier === 2) {
-                svg += `<polygon points="50,15 80,55 60,60 50,85 40,60 20,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier >= 3) {
-                svg += `<path d="M 50 10 L 90 50 L 65 55 L 75 80 L 50 95 L 25 80 L 35 55 L 10 50 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            }
-            // Cool Visor
-            svg += `<polygon points="40,50 60,50 55,58 45,58" fill="${c.core}"/>`;
-
-        } else if (branch === 'power') {
-            // いかつい・ブロック系
-            if (tier === 0) {
-                svg += `<polygon points="40,35 60,35 65,55 50,70 35,55" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier === 1) {
-                svg += `<polygon points="35,25 65,25 75,50 65,75 35,75 25,50" fill="${c.main}" stroke="${c.sub}" stroke-width="2"/>`;
-            } else if (tier === 2) {
-                svg += `<path d="M 30 30 L 70 30 L 85 60 L 60 85 L 40 85 L 15 60 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3"/>`;
-                svg += `<path d="M 30 30 L 20 10 M 70 30 L 80 10" stroke="${c.sub}" stroke-width="4"/>`; // Horns
-            } else if (tier >= 3) {
-                svg += `<path d="M 40 15 L 60 15 L 85 40 L 85 65 L 60 90 L 40 90 L 15 65 L 15 40 Z" fill="${c.main}" stroke="${c.sub}" stroke-width="3"/>`;
-                svg += `<polygon points="40,15 30,5 50,15 60,15 70,5" stroke="${c.sub}" stroke-width="3" fill="none"/>`;
-            }
-            // Fierce Core
-            svg += `<polygon points="45,45 55,45 60,60 50,65 40,60" fill="${c.core}"/>`;
-        }
-
-        // T4 (God Tier) Extra Particles
-        if (tier === 4) {
-             svg += `<circle cx="50" cy="50" r="45" fill="none" stroke="${c.main}" stroke-width="2" stroke-dasharray="2,10" opacity="0.8">
-                        <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="4s" repeatCount="indefinite"/>
-                     </circle>`;
-        }
-        
-        svg += `</g></svg>`;
-        return svg;
-    }
-
-    function updatePetOfflineStatus() {
-        if(!player.pet.lastUpdate) player.pet.lastUpdate = Date.now();
-        const now = Date.now();
-        const elapsedHours = (now - player.pet.lastUpdate) / (1000 * 60 * 60);
-        
-        if (elapsedHours > 0.1) {
-            const energyDecrease = Math.floor(elapsedHours * 10);
-            const poopsIncrease = Math.floor(elapsedHours / 2);
-            player.pet.energy = Math.max(0, player.pet.energy - energyDecrease);
-            player.pet.poops = Math.min(5, (player.pet.poops || 0) + poopsIncrease);
-            player.pet.lastUpdate = now;
-            savePlayerData();
-        }
-    }
-
     window.openPetRoom = function() {
         updatePetOfflineStatus();
         updatePetUI();
@@ -620,21 +708,18 @@
 
     function updatePetUI() {
         const p = player.pet;
-        const branch = getPetBranch(p.stats);
+        const branch = getPetBranch(p);
         
         el('pet-svg-large').innerHTML = generatePetSVG(p.stage, branch);
         el('pet-name').innerText = getPetName(p.stage, branch);
         el('pet-stage-txt').innerText = p.stage;
         
-        let reqExp = p.stage * 100 + 100; // EXP scale
+        let reqExp = p.stage * 100 + 100;
         let expPercent = p.stage >= 100 ? 100 : (p.exp / reqExp) * 100;
         el('pet-exp-bar').style.width = `${Math.min(100, expPercent)}%`;
         el('pet-energy-bar').style.width = `${p.energy}%`;
+        el('pet-happy-bar').style.width = `${p.happiness}%`;
         
-        if (p.stage >= 100) el('pet-exp-txt').innerText = "MAX";
-        else el('pet-exp-txt').innerText = `${Math.floor(p.exp)} / ${reqExp}`;
-        el('pet-energy-txt').innerText = `${Math.floor(p.energy)} / 100`;
-
         const badge = el('pet-type-badge');
         badge.className = `type-badge type-${branch}`;
         badge.innerText = `TYPE: ${branch.toUpperCase()}`;
@@ -648,31 +733,67 @@
         }
     }
 
-    window.feedPet = function() {
-        if (player.pet.energy >= 100) { alert("お腹いっぱいです！"); return; }
-        if (player.coins >= 10) {
-            player.coins -= 10;
-            player.pet.energy = Math.min(100, player.pet.energy + 30);
-            if(Math.random() < 0.3) player.pet.poops = Math.min(5, (player.pet.poops || 0) + 1);
-            
-            addPetExp(30); // 育成効果
-            player.pet.lastUpdate = Date.now();
-            updateGlobalHUD(); updatePetUI(); savePlayerData();
-            
-            const svgCont = el('pet-svg-large');
-            svgCont.classList.remove('pet-jump');
-            void svgCont.offsetWidth; 
-            svgCont.classList.add('pet-jump');
-        } else { alert("コインが足りません！"); }
+    function showSysMsg(msg, color) {
+        const sm = el('sys-msg');
+        sm.innerText = msg;
+        sm.style.color = color || 'var(--yellow)';
+        sm.style.opacity = 1;
+        setTimeout(() => { sm.style.opacity = 0; }, 2000);
+    }
+
+    // ====== お世話アクション ======
+    window.careAction = function(action) {
+        const p = player.pet;
+        if (action === 'feed') {
+            if (p.energy >= 100) { showSysMsg("お腹いっぱいで食べられない！", "#888"); return; }
+            if (player.coins >= 10) {
+                player.coins -= 10;
+                p.energy = Math.min(100, p.energy + 30);
+                if(Math.random() < 0.3) p.poops = Math.min(5, (p.poops || 0) + 1);
+                addPetExp(20);
+                showSysMsg("モグモグ… エナジー回復！", "var(--yellow)");
+                animatePet('jump');
+            } else { showSysMsg("コインが足りない！", "#f00"); return; }
+        } 
+        else if (action === 'clean') {
+            if ((p.poops || 0) > 0) {
+                p.poops = 0; 
+                p.happiness = Math.min(100, p.happiness + 20); // スッキリしてご機嫌UP
+                addPetExp(30);
+                showSysMsg("トイレがピカピカになった！", "var(--cyan)");
+                animatePet('jump');
+            } else { showSysMsg("トイレはすでに綺麗だ！", "#888"); return; }
+        }
+        else if (action === 'pet') {
+            if (p.energy < 5) { showSysMsg("疲れていて反応がない…", "#f00"); return; }
+            if (p.happiness >= 100) { showSysMsg("とても満足そうだ！", "#888"); return; }
+            p.energy -= 5;
+            p.happiness = Math.min(100, p.happiness + 15);
+            showSysMsg("喜んでいる！ ご機嫌アップ！", "#ff69b4");
+            animatePet('happy');
+        }
+        else if (action === 'train') {
+            if (p.energy < 30) { showSysMsg("エナジーが足りなくて特訓できない！", "#f00"); return; }
+            p.energy -= 30;
+            p.happiness = Math.max(0, p.happiness - 20); // 厳しくてご機嫌DOWN
+            p.stats.power += 1; // パワーが上がりやすい
+            addPetExp(150);
+            showSysMsg("猛特訓完了！EXP大量獲得！", "#f33");
+            animatePet('jump');
+        }
+
+        p.lastUpdate = Date.now();
+        updateGlobalHUD(); 
+        updatePetUI(); 
+        savePlayerData();
     };
 
-    window.cleanPoop = function() {
-        if ((player.pet.poops || 0) > 0) {
-            player.pet.poops = 0; addPetExp(20); 
-            player.pet.lastUpdate = Date.now();
-            updatePetUI(); savePlayerData();
-        } else { alert("トイレはピカピカです！"); }
-    };
+    function animatePet(type) {
+        const svgCont = el('pet-svg-large');
+        svgCont.classList.remove('pet-jump', 'pet-happy');
+        void svgCont.offsetWidth; 
+        svgCont.classList.add(`pet-${type}`);
+    }
 
     function addPetExp(amt) {
         if(player.pet.stage >= 100) return;
@@ -708,7 +829,7 @@
             activeInput = 'ans';
         }
 
-        let branch = getPetBranch(player.pet.stats);
+        let branch = getPetBranch(player.pet);
         el('pet-svg-mini').innerHTML = generatePetSVG(player.pet.stage, branch);
 
         showScreen('game'); genNextQ();
@@ -781,7 +902,8 @@
         if(el('box-ans')) el('box-ans').innerText = '';
         if(el('box-rem')) el('box-rem').innerText = '';
         if(currentCourse === 'div_rem') setActiveBox('ans');
-        currentQ.mistakes++; // ミスとしてカウント
+        currentQ.mistakes++;
+        player.pet.happiness = Math.max(0, player.pet.happiness - 1); // ミスするとイライラする
     };
 
     function checkAutoSubmit() {
@@ -794,6 +916,7 @@
                     else window.submitAns();
                 } else {
                     flash('wrong'); currentQ.mistakes++;
+                    player.pet.happiness = Math.max(0, player.pet.happiness - 1);
                     inputVals.ans = ''; el('box-ans').innerText = ''; 
                 }
             }
@@ -802,6 +925,7 @@
                 if (parseInt(inputVals.rem) === currentQ.rem) window.submitAns();
                 else {
                     flash('wrong'); currentQ.mistakes++;
+                    player.pet.happiness = Math.max(0, player.pet.happiness - 1);
                     inputVals.rem = ''; el('box-rem').innerText = '';
                 }
             }
@@ -817,13 +941,15 @@
             score += 100;
             el('game-score').innerText = score.toString().padStart(4, '0');
             flash('correct');
-            petJump();
+            
+            const p = el('pet-svg-mini');
+            p.classList.remove('pet-jump'); void p.offsetWidth; p.classList.add('pet-jump');
             
             // プレイログから分岐ポイントを計算
             let timeTaken = Date.now() - currentQ.startTime;
             if (timeTaken < 3000 && currentQ.mistakes === 0) player.pet.stats.speed += 2;
             else if (currentQ.mistakes === 0) player.pet.stats.logic += 2;
-            else player.pet.stats.power += 2; // 間違えても解ききった
+            else player.pet.stats.power += 2;
 
             if (currentCourse === 'endless') {
                 timeLeft += 2; el('game-time').innerText = timeLeft;
@@ -831,6 +957,7 @@
             genNextQ();
         } else {
             flash('wrong'); currentQ.mistakes++;
+            player.pet.happiness = Math.max(0, player.pet.happiness - 1);
             window.clearInput();
         }
     };
@@ -840,16 +967,23 @@
         f.className = type === 'correct' ? 'flash-correct' : 'flash-wrong';
         f.style.opacity = '1'; setTimeout(() => f.style.opacity = '0', 100);
     }
-    
-    function petJump() {
-        const p = el('pet-svg-mini');
-        p.classList.remove('pet-jump'); void p.offsetWidth; p.classList.add('pet-jump');
-    }
 
     function endGame() {
         clearInterval(timerId);
-        let expGained = Math.floor(score * 0.5);
+        
+        // ご機嫌ボーナス計算
+        let happyBonus = 1.0;
+        let bonusMsg = "";
+        if (player.pet.happiness >= 80) { happyBonus = 1.3; bonusMsg = "ご機嫌MAXボーナス！EXP x1.3"; }
+        else if (player.pet.happiness <= 20) { happyBonus = 0.8; bonusMsg = "不機嫌ペナルティ… EXP x0.8"; }
+        
+        let expGained = Math.floor((score * 0.5) * happyBonus);
         let coinGained = Math.floor(score * 0.2);
+        
+        // うんち放置ペナルティ(Darkルートフラグ)
+        if (player.pet.poops > 0) {
+            player.pet.stats.neglect += player.pet.poops * 5;
+        }
         
         player.exp += expGained;
         let req = Math.floor(100 * Math.pow(1.1, player.level - 1));
@@ -861,7 +995,7 @@
         
         addPetExp(expGained);
         player.pet.energy = Math.max(0, player.pet.energy - 10);
-        if(Math.random() < 0.2) player.pet.poops = Math.min(5, (player.pet.poops || 0) + 1);
+        if(Math.random() < 0.3) player.pet.poops = Math.min(5, (player.pet.poops || 0) + 1);
         player.pet.lastUpdate = Date.now();
         
         if (currentCourse !== 'endless') {
@@ -876,7 +1010,11 @@
         el('res-exp').innerText = expGained;
         el('res-coin').innerText = coinGained;
         
-        const branch = getPetBranch(player.pet.stats);
+        const bMsgEl = el('res-bonus-msg');
+        if(bonusMsg) { bMsgEl.innerText = bonusMsg; bMsgEl.style.display = 'block'; }
+        else { bMsgEl.style.display = 'none'; }
+        
+        const branch = getPetBranch(player.pet);
         el('res-pet-msg').innerHTML = `あなたのプレイ傾向: <span style="font-weight:bold" class="type-${branch}">${branch.toUpperCase()}</span>`;
         
         showScreen('result');
