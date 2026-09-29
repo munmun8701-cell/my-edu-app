@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>Simple Responsive Form</title>
+    <title>予定</title>
     <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
 
 
@@ -176,7 +176,6 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      /* 通常画面表示時は高さを自動調整 */
       grid-auto-rows: minmax(150px, auto);
     }
 
@@ -553,7 +552,7 @@
     }
 
     /* =========================================
-       絶対に1ページに強制フィットさせる印刷用CSS
+       完全印刷用CSS（A4一枚に収める＆すべて表示）
        ========================================= */
     @media print {
       * {
@@ -564,26 +563,26 @@
       @page {
         size: A4 landscape;
         margin: 5mm;
-        /* 余白を極限まで削る */
+        /* 余白を最小化してスペースを確保 */
       }
 
       html,
       body {
-        width: 287mm !important;
-        height: 200mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-        /* 文字が多くても2ページ目を作らない絶対条件 */
         background: white !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
       }
 
       .container {
         width: 100% !important;
-        height: 100% !important;
         max-width: none !important;
-        display: flex !important;
-        flex-direction: column !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
       }
 
       .no-print {
@@ -592,107 +591,110 @@
 
       #printTitle {
         display: block !important;
-        font-size: 18px !important;
+        font-size: 16px !important;
         margin: 0 0 5px 0 !important;
         text-align: center;
       }
 
+      /* カレンダー（左）とサイドバー（右）の横並びレイアウトに変更して、1枚に押し込む */
       .main-layout {
         display: flex !important;
         flex-direction: row !important;
         align-items: stretch !important;
-        gap: 8px !important;
-        flex: 1 !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
+        gap: 10px !important;
+        width: 100% !important;
       }
 
-      /* カレンダー領域の強制1ページ化 */
+      /* カレンダーエリア：可能な限り横幅を広く取る */
       .calendar-wrapper {
+        flex: 1 !important;
         border: 2px solid #000;
         box-shadow: none !important;
-        flex: 1 !important;
-        height: 100% !important;
+        margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        min-height: 0 !important;
+        border-radius: 0 !important;
       }
 
       .weekdays {
-        flex-shrink: 0;
+        border-bottom: 2px solid #000 !important;
+        background: #f1f5f9 !important;
       }
 
       .weekday {
-        padding: 2px !important;
+        padding: 4px !important;
         font-size: 10px !important;
+        border-right: 1px solid #000 !important;
+      }
+
+      .weekday:last-child {
+        border-right: none !important;
       }
 
       .calendar-grid {
-        flex: 1 !important;
-        height: 100% !important;
         display: grid !important;
-        min-height: 0 !important;
-        /* JS側で grid-template-rows を動的に計算して完全均等割り付けします */
+        flex: 1 !important;
+        /* セルが内容に合わせて均等かつ自然に伸びるようにする */
+        grid-auto-rows: minmax(60px, auto) !important;
       }
 
       .day-cell {
-        border-color: #cbd5e1;
-        padding: 2px !important;
-        gap: 1px !important;
+        border-right: 1px solid #000 !important;
+        border-bottom: 1px solid #000 !important;
+        padding: 2px 4px !important;
+        min-height: 0 !important;
         height: auto !important;
-        overflow: hidden !important;
-        /* 溢れた文字はカット（絶対にレイアウトを壊さない） */
+        page-break-inside: avoid !important;
       }
 
-      /* テキストの極小化とパディング削減 */
+      .day-cell:nth-child(7n) {
+        border-right: none !important;
+      }
+
+      .calendar-grid .day-cell:nth-last-child(-n+7) {
+        border-bottom: none !important;
+      }
+
+      /* 印刷時の文字サイズを限界まで小さくし、切れないようにする */
       .day-number {
-        font-size: 11px !important;
-        margin-bottom: 1px !important;
-        padding-bottom: 1px !important;
+        font-size: 10px !important;
+        margin-bottom: 2px !important;
       }
 
       .preview-event {
-        font-size: 8px !important;
-        padding: 1px 3px !important;
-        line-height: 1.1 !important;
+        font-size: 9px !important;
+        padding: 2px !important;
+        margin-bottom: 2px !important;
+        line-height: 1.2 !important;
       }
 
       .preview-data {
-        font-size: 8px !important;
-        line-height: 1.1 !important;
+        font-size: 9px !important;
+        line-height: 1.2 !important;
       }
 
       .memo-block {
         padding: 2px !important;
-        margin-top: 1px !important;
-        border-left: 2px solid var(--primary) !important;
+        margin-top: 2px !important;
+        border-left-width: 2px !important;
       }
 
       .memo-label {
-        font-size: 7px !important;
-        margin-bottom: 0 !important;
-      }
-
-      .todo-list-preview {
-        margin-top: 2px !important;
-        padding-top: 2px !important;
+        font-size: 8px !important;
       }
 
       .todo-preview-item {
-        font-size: 8px !important;
-        line-height: 1.1 !important;
+        font-size: 9px !important;
+        line-height: 1.2 !important;
       }
 
-      /* サイドバー領域の強制1ページ化 */
+      /* サイドバーエリア：右側にコンパクトに配置 */
       .sidebar {
         width: 240px !important;
-        flex-shrink: 0 !important;
-        height: 100% !important;
+        /* 横幅を細めに固定 */
         display: flex !important;
         flex-direction: column !important;
-        gap: 5px !important;
-        overflow: hidden !important;
+        gap: 6px !important;
       }
 
       .sidebar-card {
@@ -700,57 +702,53 @@
         box-shadow: none !important;
         padding: 6px !important;
         margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        overflow: hidden !important;
+        page-break-inside: avoid !important;
+        border-radius: 0 !important;
       }
 
       .sidebar-title {
         font-size: 11px !important;
         margin-bottom: 4px !important;
         padding-bottom: 2px !important;
-        flex-shrink: 0;
+        border-bottom: 1px solid #000 !important;
       }
 
-      .form-control,
-      textarea {
+      /* textareaの文字が絶対に切れないよう高さを自動拡張させる */
+      textarea.form-control {
+        height: auto !important;
+        min-height: 40px !important;
+        overflow: visible !important;
         font-size: 9px !important;
-        padding: 2px !important;
-        margin: 0 !important;
-        border: none !important;
+        padding: 4px !important;
         background: transparent !important;
-        resize: none !important;
-        overflow: hidden !important;
-        line-height: 1.2 !important;
+        border: 1px dotted #ccc !important;
+      }
+
+      .form-control {
+        font-size: 9px !important;
+        padding: 4px !important;
       }
 
       .subject-tracker-grid {
-        gap: 2px !important;
+        gap: 4px !important;
       }
 
       .subject-row label {
-        font-size: 8px !important;
+        font-size: 9px !important;
       }
 
       .subject-row input {
-        font-size: 8px !important;
-        padding: 1px !important;
-        border-bottom: 1px dashed #ccc !important;
+        padding: 2px !important;
       }
 
       .todo-list-global .todo-item {
-        margin-bottom: 1px !important;
-        padding: 1px !important;
-        border: none !important;
+        padding: 2px !important;
+        margin-bottom: 2px !important;
+        border: 1px solid #ccc !important;
       }
 
       .todo-item input[type="text"] {
         font-size: 9px !important;
-      }
-
-      .todo-item input[type="checkbox"] {
-        width: 10px !important;
-        height: 10px !important;
       }
     }
   </style>
@@ -775,8 +773,7 @@
       </div>
     </div>
 
-    <!-- 印刷時に表示されるタイトル -->
-    <h1 id="printTitle" style="display:none; text-align:center; margin-bottom: 5px; font-weight: 900;" class="print-only"></h1>
+    <h1 id="printTitle" style="display:none; font-weight: 900;" class="print-only"></h1>
 
     <div class="main-layout">
       <!-- カレンダーエリア -->
@@ -946,6 +943,15 @@
   <div id="toast">✅ 保存しました</div>
 
   <script>
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
     const SUBJECTS = ['kokugo', 'sansu', 'rika', 'shakai', 'gakkatsu', 'ongaku', 'eigo'];
     const defaultState = {
       settings: {
@@ -960,13 +966,41 @@
       sidebar: {}
     };
     let appState;
+
+    function mergeState(importedData) {
+      const state = JSON.parse(JSON.stringify(defaultState));
+      if (!importedData || typeof importedData !== 'object') return state;
+      if (importedData.settings && typeof importedData.settings === 'object') {
+        state.settings.theme = importedData.settings.theme || state.settings.theme;
+        state.settings.useTimetable = !!importedData.settings.useTimetable;
+        state.settings.timetableCount = parseInt(importedData.settings.timetableCount) || 6;
+        state.settings.useSubjectTracker = !!importedData.settings.useSubjectTracker;
+        if (Array.isArray(importedData.settings.customFields)) {
+          state.settings.customFields = importedData.settings.customFields;
+        }
+        if (Array.isArray(importedData.settings.customMemos)) {
+          state.settings.customMemos = importedData.settings.customMemos;
+        }
+      }
+      if (importedData.schedule && typeof importedData.schedule === 'object' && !Array.isArray(importedData.schedule)) {
+        Object.keys(importedData.schedule).forEach(key => {
+          if (importedData.schedule[key] && typeof importedData.schedule[key] === 'object') {
+            state.schedule[key] = importedData.schedule[key];
+          }
+        });
+      }
+      if (importedData.sidebar && typeof importedData.sidebar === 'object' && !Array.isArray(importedData.sidebar)) {
+        Object.keys(importedData.sidebar).forEach(key => {
+          if (importedData.sidebar[key] && typeof importedData.sidebar[key] === 'object') {
+            state.sidebar[key] = importedData.sidebar[key];
+          }
+        });
+      }
+      return state;
+    }
     try {
       const savedData = JSON.parse(localStorage.getItem('universalPlannerUltimateAllInOne'));
-      if (savedData && savedData.settings && savedData.schedule && savedData.sidebar) {
-        appState = savedData;
-      } else {
-        appState = JSON.parse(JSON.stringify(defaultState));
-      }
+      appState = mergeState(savedData);
     } catch (e) {
       appState = JSON.parse(JSON.stringify(defaultState));
     }
@@ -975,9 +1009,6 @@
     function init() {
       applyTheme(appState.settings.theme);
       renderCalendar();
-      const style = document.createElement('style');
-      style.innerHTML = `@media print { .print-only { display: block !important; } }`;
-      document.head.appendChild(style);
     }
 
     function applyTheme(color) {
@@ -1026,12 +1057,10 @@
       reader.onload = function(e) {
         try {
           const imported = JSON.parse(e.target.result);
-          if (imported && typeof imported === 'object') {
-            appState = imported;
-            saveState();
-            init();
-            showToast("📥 データを復元しました");
-          }
+          appState = mergeState(imported);
+          saveState();
+          init();
+          showToast("📥 データを復元しました");
         } catch (err) {
           alert("ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。");
         }
@@ -1065,264 +1094,329 @@
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
       const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-      // ▼ A4印刷時に1ページに絶対収めるための「行数」の自動計算と設定
-      const totalCells = firstDay + daysInMonth;
-      const rows = Math.ceil(totalCells / 7);
-      grid.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+      // 【バグ修正】innerHTML += によるイベントリセットを防ぐため、全てDOMの直接追加に変更
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="day-cell empty"></div>`;
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'day-cell empty';
+        grid.appendChild(emptyCell);
       }
       for (let i = 1; i <= daysInMonth; i++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-        const isToday = dateStr === todayStr ? 'today' : '';
-        const data = appState.schedule[dateStr] || {};
-        let cellHTML = `<div class="day-number">${i}</div>`;
-        if (data.event) {
-          cellHTML += `<div class="preview-event">${data.event}</div>`;
-        }
-        const previewLines = [];
-        if (appState.settings.useTimetable && data.timetable) {
-          data.timetable.forEach((subject, idx) => {
-            if (subject) previewLines.push(`${idx + 1}限: ${subject}`);
+        try {
+          const isToday = dateStr === todayStr ? 'today' : '';
+          const data = appState.schedule[dateStr] || {};
+          let cellHTML = `<div class="day-number">${i}</div>`;
+          if (data.event) {
+            cellHTML += `<div class="preview-event">${escapeHTML(data.event)}</div>`;
+          }
+          const previewLines = [];
+          const timetableData = Array.isArray(data.timetable) ? data.timetable : [];
+          if (appState.settings.useTimetable && timetableData.length > 0) {
+            timetableData.forEach((subject, idx) => {
+              if (subject) previewLines.push(`${idx + 1}限: ${escapeHTML(subject)}`);
+            });
+          }
+          const customFieldsData = Array.isArray(data.customFields) ? data.customFields : [];
+          if (appState.settings.customFields) {
+            appState.settings.customFields.forEach((label, idx) => {
+              if (customFieldsData[idx]) previewLines.push(`[${escapeHTML(label)}] ${escapeHTML(customFieldsData[idx])}`);
+            });
+          }
+          if (previewLines.length > 0) {
+            cellHTML += `<div class="preview-data">${previewLines.join('\n')}</div>`;
+          }
+          const customMemosData = Array.isArray(data.customMemos) ? data.customMemos : [];
+          if (appState.settings.customMemos) {
+            appState.settings.customMemos.forEach((label, idx) => {
+              if (customMemosData[idx]) {
+                cellHTML += `
+                  <div class="memo-block">
+                    <div class="memo-label">${escapeHTML(label)}</div>
+                    <div class="preview-data">${escapeHTML(customMemosData[idx])}</div>
+                  </div>`;
+              }
+            });
+          }
+          let dailyTodos = Array.isArray(data.todos) ? data.todos : [];
+          if (dailyTodos.length > 0) {
+            let todoHtml = '<div class="todo-list-preview">';
+            dailyTodos.forEach(t => {
+              if (!t || typeof t !== 'object') return;
+              const checkIcon = t.done ? '☑' : '☐';
+              const doneClass = t.done ? 'done' : '';
+              todoHtml += `<div class="todo-preview-item ${doneClass}"><span>${checkIcon}</span> <span>${escapeHTML(t.text || '')}</span></div>`;
+            });
+            todoHtml += '</div>';
+            cellHTML += todoHtml;
+          }
+          const cell = document.createElement('div');
+          cell.className = `day-cell ${isToday}`;
+          // 確実にクリックイベントが付与される
+          cell.addEventListener('click', () => {
+            openDailyModal(dateStr, i);
           });
-        }
-        if (data.customFields && appState.settings.customFields) {
-          appState.settings.customFields.forEach((label, idx) => {
-            if (data.customFields[idx]) previewLines.push(`[${label}] ${data.customFields[idx]}`);
+          cell.innerHTML = cellHTML;
+          grid.appendChild(cell);
+        } catch (e) {
+          console.error("カレンダーセルの描画中にエラー:", e);
+          const cell = document.createElement('div');
+          cell.className = `day-cell`;
+          cell.addEventListener('click', () => {
+            openDailyModal(dateStr, i);
           });
+          cell.innerHTML = `<div class="day-number">${i}</div><div class="preview-data" style="color:red; font-weight:bold;">データを修復しました</div>`;
+          grid.appendChild(cell);
         }
-        if (previewLines.length > 0) {
-          cellHTML += `<div class="preview-data">${previewLines.join('\n')}</div>`;
-        }
-        if (data.customMemos && appState.settings.customMemos) {
-          appState.settings.customMemos.forEach((label, idx) => {
-            if (data.customMemos[idx]) {
-              cellHTML += `
-                <div class="memo-block">
-                  <div class="memo-label">${label}</div>
-                  <div class="preview-data">${data.customMemos[idx]}</div>
-                </div>`;
-            }
-          });
-        }
-        if (data.todos && data.todos.length > 0) {
-          let todoHtml = '<div class="todo-list-preview">';
-          data.todos.forEach(t => {
-            const checkIcon = t.done ? '☑' : '☐';
-            const doneClass = t.done ? 'done' : '';
-            todoHtml += `<div class="todo-preview-item ${doneClass}"><span>${checkIcon}</span> <span>${t.text}</span></div>`;
-          });
-          todoHtml += '</div>';
-          cellHTML += todoHtml;
-        }
-        const cell = document.createElement('div');
-        cell.className = `day-cell ${isToday}`;
-        cell.onclick = () => openDailyModal(dateStr, i);
-        cell.innerHTML = cellHTML;
-        grid.appendChild(cell);
       }
-      // ▼ A4印刷時に1ページに絶対収めるための「空白の穴埋め」処理
+      const totalCells = firstDay + daysInMonth;
       const remainder = totalCells % 7;
       if (remainder > 0) {
         for (let i = 0; i < 7 - remainder; i++) {
-          grid.innerHTML += `<div class="day-cell empty"></div>`;
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'day-cell empty';
+          grid.appendChild(emptyCell);
         }
       }
-      document.getElementById('subjectTrackerCard').style.display = appState.settings.useSubjectTracker ? 'block' : 'none';
+      const stCard = document.getElementById('subjectTrackerCard');
+      if (stCard) {
+        stCard.style.display = appState.settings.useSubjectTracker ? 'block' : 'none';
+      }
       loadSidebarData();
     }
 
     function loadSidebarData() {
-      const mData = appState.sidebar[getMonthKey()] || {
-        goal: "",
-        important: "",
-        todos: [{
+      try {
+        const mData = appState.sidebar[getMonthKey()] || {
+          goal: "",
+          important: "",
+          todos: [{
+            text: "",
+            done: false
+          }],
+          subjects: {}
+        };
+        const elGoal = document.getElementById('monthGoal');
+        if (elGoal) elGoal.value = mData.goal || '';
+        const elImp = document.getElementById('monthImportant');
+        if (elImp) elImp.value = mData.important || '';
+        SUBJECTS.forEach(sub => {
+          const el = document.getElementById(`prog_${sub}`);
+          if (el) el.value = (mData.subjects && mData.subjects[sub]) || '';
+        });
+        renderSidebarTodos(mData.todos && mData.todos.length ? mData.todos : [{
           text: "",
           done: false
-        }],
-        subjects: {}
-      };
-      document.getElementById('monthGoal').value = mData.goal || '';
-      document.getElementById('monthImportant').value = mData.important || '';
-      SUBJECTS.forEach(sub => {
-        const el = document.getElementById(`prog_${sub}`);
-        if (el) el.value = (mData.subjects && mData.subjects[sub]) || '';
-      });
-      renderSidebarTodos(mData.todos && mData.todos.length ? mData.todos : [{
-        text: "",
-        done: false
-      }]);
+        }]);
+      } catch (e) {
+        console.error("サイドバーデータ読み込みエラー:", e);
+      }
     }
 
     function renderSidebarTodos(todos) {
       const container = document.getElementById('sidebarTodoContainer');
+      if (!container) return;
       container.innerHTML = '';
       todos.forEach(t => {
+        if (!t || typeof t !== 'object') return;
         container.insertAdjacentHTML('beforeend', `
           <div class="todo-item">
             <input type="checkbox" ${t.done ? 'checked' : ''} onchange="saveSidebarData()">
-            <input type="text" value="${t.text}" placeholder="タスク..." onblur="saveSidebarData()">
+            <input type="text" value="${escapeHTML(t.text || '')}" placeholder="タスク..." onblur="saveSidebarData()">
           </div>
         `);
       });
     }
 
     function addSidebarTodo() {
-      document.getElementById('sidebarTodoContainer').insertAdjacentHTML('beforeend', `
-        <div class="todo-item"><input type="checkbox" onchange="saveSidebarData()"><input type="text" placeholder="タスク..." onblur="saveSidebarData()"></div>
-      `);
+      const container = document.getElementById('sidebarTodoContainer');
+      if (container) {
+        container.insertAdjacentHTML('beforeend', `
+          <div class="todo-item"><input type="checkbox" onchange="saveSidebarData()"><input type="text" placeholder="タスク..." onblur="saveSidebarData()"></div>
+        `);
+      }
     }
 
     function saveSidebarData() {
-      const todos = Array.from(document.querySelectorAll('#sidebarTodoContainer .todo-item')).map(item => ({
-        text: item.querySelector('input[type="text"]').value,
-        done: item.querySelector('input[type="checkbox"]').checked
-      })).filter(t => t.text.trim() !== "" || t.done);
-      const subjData = {};
-      SUBJECTS.forEach(sub => {
-        const el = document.getElementById(`prog_${sub}`);
-        if (el) subjData[sub] = el.value;
-      });
-      appState.sidebar[getMonthKey()] = {
-        goal: document.getElementById('monthGoal').value,
-        important: document.getElementById('monthImportant').value,
-        todos: todos,
-        subjects: subjData
-      };
-      saveState();
+      try {
+        const todos = Array.from(document.querySelectorAll('#sidebarTodoContainer .todo-item')).map(item => ({
+          text: item.querySelector('input[type="text"]').value,
+          done: item.querySelector('input[type="checkbox"]').checked
+        })).filter(t => t.text.trim() !== "" || t.done);
+        const subjData = {};
+        SUBJECTS.forEach(sub => {
+          const el = document.getElementById(`prog_${sub}`);
+          if (el) subjData[sub] = el.value;
+        });
+        appState.sidebar[getMonthKey()] = {
+          goal: document.getElementById('monthGoal') ? document.getElementById('monthGoal').value : "",
+          important: document.getElementById('monthImportant') ? document.getElementById('monthImportant').value : "",
+          todos: todos,
+          subjects: subjData
+        };
+        saveState();
+      } catch (e) {
+        console.error("サイドバーの保存中にエラーが発生しました:", e);
+      }
     }
 
     function openDailyModal(dateStr, dayNum) {
-      const d = new Date(dateStr);
-      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
-      document.getElementById('modalDateTitle').innerText = `${d.getFullYear()}年${d.getMonth() + 1}月${dayNum}日 (${dayOfWeek})`;
       document.getElementById('currentEditDate').value = dateStr;
-      const data = appState.schedule[dateStr] || {
-        timetable: [],
-        customFields: [],
-        customMemos: [],
-        todos: []
-      };
-      const s = appState.settings;
-      document.getElementById('inputEvent').value = data.event || '';
-      const ttSection = document.getElementById('timetableSection');
-      const ttGrid = document.getElementById('timetableGrid');
-      if (s.useTimetable && s.timetableCount > 0) {
-        ttSection.style.display = 'block';
-        ttGrid.innerHTML = '';
-        for (let i = 0; i < s.timetableCount; i++) {
-          ttGrid.insertAdjacentHTML('beforeend', `
-            <div style="margin:0;">
-              <label style="font-size:12px; color:var(--text-muted); font-weight:bold;">${i + 1}限</label>
-              <input type="text" id="tt_${i}" class="form-control" value="${(data.timetable && data.timetable[i]) || ''}">
-            </div>
-          `);
+      try {
+        const d = new Date(dateStr);
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()] || '';
+        document.getElementById('modalDateTitle').innerText = `${d.getFullYear()}年${d.getMonth() + 1}月${dayNum}日 (${dayOfWeek})`;
+        const data = appState.schedule[dateStr] || {};
+        const s = appState.settings || defaultState.settings;
+        document.getElementById('inputEvent').value = data.event || '';
+        let tData = Array.isArray(data.timetable) ? data.timetable : [];
+        let cFields = Array.isArray(data.customFields) ? data.customFields : [];
+        let cMemos = Array.isArray(data.customMemos) ? data.customMemos : [];
+        let tTodos = Array.isArray(data.todos) ? data.todos : [];
+        if (tTodos.length === 0) tTodos = [{
+          text: "",
+          done: false
+        }];
+        const ttSection = document.getElementById('timetableSection');
+        const ttGrid = document.getElementById('timetableGrid');
+        if (s.useTimetable && s.timetableCount > 0) {
+          ttSection.style.display = 'block';
+          ttGrid.innerHTML = '';
+          for (let i = 0; i < s.timetableCount; i++) {
+            ttGrid.insertAdjacentHTML('beforeend', `
+              <div style="margin:0;">
+                <label style="font-size:12px; color:var(--text-muted); font-weight:bold;">${i + 1}限</label>
+                <input type="text" id="tt_${i}" class="form-control" value="${escapeHTML(tData[i] || '')}">
+              </div>
+            `);
+          }
+        } else {
+          ttSection.style.display = 'none';
         }
-      } else {
-        ttSection.style.display = 'none';
-      }
-      const cfSection = document.getElementById('customFieldsSection');
-      const cfGrid = document.getElementById('customFieldsGrid');
-      if (s.customFields.length > 0) {
-        cfSection.style.display = 'block';
-        cfGrid.innerHTML = '';
-        s.customFields.forEach((label, idx) => {
-          cfGrid.insertAdjacentHTML('beforeend', `
-            <div style="margin:0;">
-              <label style="font-size:12px; color:var(--text-muted); font-weight:bold;">${label}</label>
-              <input type="text" id="cf_${idx}" class="form-control" value="${(data.customFields && data.customFields[idx]) || ''}">
+        const cfSection = document.getElementById('customFieldsSection');
+        const cfGrid = document.getElementById('customFieldsGrid');
+        if (s.customFields && s.customFields.length > 0) {
+          cfSection.style.display = 'block';
+          cfGrid.innerHTML = '';
+          s.customFields.forEach((label, idx) => {
+            cfGrid.insertAdjacentHTML('beforeend', `
+              <div style="margin:0;">
+                <label style="font-size:12px; color:var(--text-muted); font-weight:bold;">${escapeHTML(label)}</label>
+                <input type="text" id="cf_${idx}" class="form-control" value="${escapeHTML(cFields[idx] || '')}">
+              </div>
+            `);
+          });
+        } else {
+          cfSection.style.display = 'none';
+        }
+        const cmSection = document.getElementById('customMemosSection');
+        const cmList = document.getElementById('customMemosList');
+        if (s.customMemos && s.customMemos.length > 0) {
+          cmSection.style.display = 'block';
+          cmList.innerHTML = '';
+          s.customMemos.forEach((label, idx) => {
+            cmList.insertAdjacentHTML('beforeend', `
+              <div>
+                <label style="font-size:13px; font-weight:bold; color:var(--text-main); display:block; margin-bottom:5px;">${escapeHTML(label)}</label>
+                <textarea id="cm_${idx}" class="form-control" rows="4">${escapeHTML(cMemos[idx] || '')}</textarea>
+              </div>
+            `);
+          });
+        } else {
+          cmSection.style.display = 'none';
+        }
+        const tdContainer = document.getElementById('dailyTodoContainer');
+        tdContainer.innerHTML = '';
+        tTodos.forEach(t => {
+          if (!t || typeof t !== 'object') return;
+          tdContainer.insertAdjacentHTML('beforeend', `
+            <div class="todo-item">
+              <input type="checkbox" ${t.done ? 'checked' : ''}>
+              <input type="text" value="${escapeHTML(t.text || '')}" placeholder="タスク...">
             </div>
           `);
         });
-      } else {
-        cfSection.style.display = 'none';
+      } catch (e) {
+        console.error("モーダル展開エラー:", e);
+        document.getElementById('inputEvent').value = '';
+        document.getElementById('timetableGrid').innerHTML = '';
+        document.getElementById('customFieldsGrid').innerHTML = '';
+        document.getElementById('customMemosList').innerHTML = '';
+        document.getElementById('dailyTodoContainer').innerHTML = '';
+        alert("データを開く際にエラーがありました。");
       }
-      const cmSection = document.getElementById('customMemosSection');
-      const cmList = document.getElementById('customMemosList');
-      if (s.customMemos.length > 0) {
-        cmSection.style.display = 'block';
-        cmList.innerHTML = '';
-        s.customMemos.forEach((label, idx) => {
-          cmList.insertAdjacentHTML('beforeend', `
-            <div>
-              <label style="font-size:13px; font-weight:bold; color:var(--text-main); display:block; margin-bottom:5px;">${label}</label>
-              <textarea id="cm_${idx}" class="form-control" rows="4">${(data.customMemos && data.customMemos[idx]) || ''}</textarea>
-            </div>
-          `);
-        });
-      } else {
-        cmSection.style.display = 'none';
-      }
-      const tdContainer = document.getElementById('dailyTodoContainer');
-      tdContainer.innerHTML = '';
-      const dailyTodos = data.todos && data.todos.length > 0 ? data.todos : [{
-        text: "",
-        done: false
-      }];
-      dailyTodos.forEach(t => {
-        tdContainer.insertAdjacentHTML('beforeend', `
-          <div class="todo-item">
-            <input type="checkbox" ${t.done ? 'checked' : ''}>
-            <input type="text" value="${t.text}" placeholder="タスク...">
-          </div>
-        `);
-      });
       document.getElementById('dailyModal').style.display = 'flex';
     }
 
     function addDailyTodo() {
-      document.getElementById('dailyTodoContainer').insertAdjacentHTML('beforeend', `
-        <div class="todo-item"><input type="checkbox"><input type="text" placeholder="タスク..."></div>
-      `);
+      const container = document.getElementById('dailyTodoContainer');
+      if (container) {
+        container.insertAdjacentHTML('beforeend', `
+          <div class="todo-item"><input type="checkbox"><input type="text" placeholder="タスク..."></div>
+        `);
+      }
     }
 
     function saveDailyData() {
-      const dateStr = document.getElementById('currentEditDate').value;
-      const s = appState.settings;
-      const data = {
-        event: document.getElementById('inputEvent').value,
-        timetable: [],
-        customFields: [],
-        customMemos: [],
-        todos: []
-      };
-      let hasData = !!data.event;
-      if (s.useTimetable) {
-        for (let i = 0; i < s.timetableCount; i++) {
-          const val = document.getElementById(`tt_${i}`).value;
-          data.timetable.push(val);
-          if (val) hasData = true;
+      try {
+        const dateStr = document.getElementById('currentEditDate').value;
+        if (!dateStr) return;
+        const s = appState.settings;
+        const data = {
+          event: document.getElementById('inputEvent').value,
+          timetable: [],
+          customFields: [],
+          customMemos: [],
+          todos: []
+        };
+        let hasData = !!data.event;
+        if (s.useTimetable) {
+          for (let i = 0; i < s.timetableCount; i++) {
+            const el = document.getElementById(`tt_${i}`);
+            const val = el ? el.value : '';
+            data.timetable.push(val);
+            if (val) hasData = true;
+          }
         }
+        if (s.customFields) {
+          s.customFields.forEach((_, idx) => {
+            const el = document.getElementById(`cf_${idx}`);
+            const val = el ? el.value : '';
+            data.customFields.push(val);
+            if (val) hasData = true;
+          });
+        }
+        if (s.customMemos) {
+          s.customMemos.forEach((_, idx) => {
+            const el = document.getElementById(`cm_${idx}`);
+            const val = el ? el.value : '';
+            data.customMemos.push(val);
+            if (val) hasData = true;
+          });
+        }
+        const todos = Array.from(document.querySelectorAll('#dailyTodoContainer .todo-item')).map(item => ({
+          text: item.querySelector('input[type="text"]').value,
+          done: item.querySelector('input[type="checkbox"]').checked
+        })).filter(t => t.text.trim() !== "" || t.done);
+        data.todos = todos;
+        if (todos.length > 0) hasData = true;
+        if (hasData) {
+          appState.schedule[dateStr] = data;
+        } else {
+          delete appState.schedule[dateStr];
+        }
+        saveState();
+        closeModal('dailyModal');
+        renderCalendar();
+      } catch (e) {
+        console.error("保存時にエラーが発生しました:", e);
       }
-      s.customFields.forEach((_, idx) => {
-        const val = document.getElementById(`cf_${idx}`).value;
-        data.customFields.push(val);
-        if (val) hasData = true;
-      });
-      s.customMemos.forEach((_, idx) => {
-        const val = document.getElementById(`cm_${idx}`).value;
-        data.customMemos.push(val);
-        if (val) hasData = true;
-      });
-      const todos = Array.from(document.querySelectorAll('#dailyTodoContainer .todo-item')).map(item => ({
-        text: item.querySelector('input[type="text"]').value,
-        done: item.querySelector('input[type="checkbox"]').checked
-      })).filter(t => t.text.trim() !== "" || t.done);
-      data.todos = todos;
-      if (todos.length > 0) hasData = true;
-      if (hasData) {
-        appState.schedule[dateStr] = data;
-      } else {
-        delete appState.schedule[dateStr];
-      }
-      saveState();
-      closeModal('dailyModal');
-      renderCalendar();
     }
 
     function addStamp(stamp) {
       const input = document.getElementById('inputEvent');
-      input.value = input.value ? input.value + ' ' + stamp : stamp;
+      if (input) {
+        input.value = input.value ? input.value + ' ' + stamp : stamp;
+      }
     }
 
     function openSettingsModal() {
@@ -1332,24 +1426,27 @@
       document.getElementById('setTimetableCount').value = s.timetableCount;
       document.getElementById('setUseSubjectTracker').checked = !!s.useSubjectTracker;
       toggleTimetableSettings();
-      renderSettingsList('setFieldsContainer', s.customFields, '項目の名前 (例: 持ち物)');
-      renderSettingsList('setMemosContainer', s.customMemos, 'メモ枠の名前 (例: 日記)');
+      renderSettingsList('setFieldsContainer', s.customFields || [], '項目の名前 (例: 持ち物)');
+      renderSettingsList('setMemosContainer', s.customMemos || [], 'メモ枠の名前 (例: 日記)');
       document.getElementById('settingsModal').style.display = 'flex';
     }
 
     function toggleTimetableSettings() {
       const isChecked = document.getElementById('setUseTimetable').checked;
-      document.getElementById('timetableSettingsArea').style.opacity = isChecked ? '1' : '0.4';
-      document.getElementById('setTimetableCount').disabled = !isChecked;
+      const area = document.getElementById('timetableSettingsArea');
+      if (area) area.style.opacity = isChecked ? '1' : '0.4';
+      const countInput = document.getElementById('setTimetableCount');
+      if (countInput) countInput.disabled = !isChecked;
     }
 
     function renderSettingsList(containerId, items, placeholder) {
       const container = document.getElementById(containerId);
+      if (!container) return;
       container.innerHTML = '';
       items.forEach(val => {
         container.insertAdjacentHTML('beforeend', `
           <div class="settings-item">
-            <input type="text" class="form-control" value="${val}" placeholder="${placeholder}">
+            <input type="text" class="form-control" value="${escapeHTML(val)}" placeholder="${escapeHTML(placeholder)}">
             <button class="btn-delete" onclick="this.parentElement.remove()">✕</button>
           </div>
         `);
@@ -1357,30 +1454,37 @@
     }
 
     function addSettingItem(containerId, placeholder) {
-      document.getElementById(containerId).insertAdjacentHTML('beforeend', `
-        <div class="settings-item">
-          <input type="text" class="form-control" placeholder="${placeholder}">
-          <button class="btn-delete" onclick="this.parentElement.remove()">✕</button>
-        </div>
-      `);
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.insertAdjacentHTML('beforeend', `
+          <div class="settings-item">
+            <input type="text" class="form-control" placeholder="${escapeHTML(placeholder)}">
+            <button class="btn-delete" onclick="this.parentElement.remove()">✕</button>
+          </div>
+        `);
+      }
     }
 
     function saveSettings() {
-      appState.settings.theme = document.getElementById('setThemeColor').value;
-      appState.settings.useTimetable = document.getElementById('setUseTimetable').checked;
-      appState.settings.useSubjectTracker = document.getElementById('setUseSubjectTracker').checked;
-      let count = parseInt(document.getElementById('setTimetableCount').value);
-      if (isNaN(count) || count < 1) count = 1;
-      if (count > 8) count = 8;
-      appState.settings.timetableCount = count;
-      appState.settings.customFields = Array.from(document.querySelectorAll('#setFieldsContainer input'))
-        .map(input => input.value.trim()).filter(v => v !== "");
-      appState.settings.customMemos = Array.from(document.querySelectorAll('#setMemosContainer input'))
-        .map(input => input.value.trim()).filter(v => v !== "");
-      saveState();
-      applyTheme(appState.settings.theme);
-      closeModal('settingsModal');
-      renderCalendar();
+      try {
+        appState.settings.theme = document.getElementById('setThemeColor').value;
+        appState.settings.useTimetable = document.getElementById('setUseTimetable').checked;
+        appState.settings.useSubjectTracker = document.getElementById('setUseSubjectTracker').checked;
+        let count = parseInt(document.getElementById('setTimetableCount').value);
+        if (isNaN(count) || count < 1) count = 1;
+        if (count > 8) count = 8;
+        appState.settings.timetableCount = count;
+        appState.settings.customFields = Array.from(document.querySelectorAll('#setFieldsContainer input'))
+          .map(input => input.value.trim()).filter(v => v !== "");
+        appState.settings.customMemos = Array.from(document.querySelectorAll('#setMemosContainer input'))
+          .map(input => input.value.trim()).filter(v => v !== "");
+        saveState();
+        applyTheme(appState.settings.theme);
+        closeModal('settingsModal');
+        renderCalendar();
+      } catch (e) {
+        console.error("設定保存エラー:", e);
+      }
     }
 
     function applyPreset(type) {
@@ -1417,7 +1521,8 @@
     }
 
     function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
     }
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('mousedown', function(e) {
