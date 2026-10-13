@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Responsive Form</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <title>もじモン 大ぼうけん</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Klee+One:wght@600&display=swap">
+<style>
+/* レトロ携帯ゲーム風：15:11 のステージにフィールド・バトル・メニューを重ねる。夜の紺 × 金のアクセント */
+:root{
+  color-scheme:dark;
+  --night:#0b1026;--navy:#1d2d62;--ink:#16213e;--paper:#fffdf5;--line:#1a1633;
+  --gold:#ffd166;--red:#ef476f;--grn:#06d6a0;--sky:#7fc4f0;--mute:#cdd6f5;
+  --ui:'DotGothic16','Hiragino Sans','Yu Gothic',sans-serif;
+  --kj:'Klee One','UD デジタル 教科書体 N','Yu Kyokasho','Hiragino Mincho ProN',serif;
+  --ctl:70px;
+}
+@media(pointer:coarse),(max-width:760px){:root{--ctl:240px}#pad{display:flex!important}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overflow:hidden}
+body{color:#fff;background:radial-gradient(circle at 50% 0,var(--navy),var(--night) 70%);font-family:var(--ui);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-inline:8px}
+#stage{container-type:inline-size;position:relative;width:min(100%,calc((100dvh - var(--ctl) - 24px)*15/11),820px);aspect-ratio:15/11;max-width:100%;border:4px solid #eef1fa;border-radius:12px;box-shadow:0 0 0 4px #2b3a6b,0 14px 40px #000a;overflow:hidden;background:#000}
+#stage.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+canvas#cv{width:100%;height:100%;display:block;image-rendering:pixelated}
+img.px{image-rendering:pixelated}
+button{font-family:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;padding:2.5cqw;gap:1.5cqw}
+#fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .22s}
+#hud{position:absolute;top:2cqw;left:2cqw;right:2cqw;display:flex;justify-content:space-between;align-items:center;pointer-events:none;gap:2cqw}
+#hud .hs,#hud button{background:#0b1026d8;border:.4cqw solid #fff8;padding:.6cqw 2cqw;border-radius:2cqw;font-size:3cqw;color:#fff;display:flex;align-items:center;gap:1.2cqw;white-space:nowrap}
+#hud img{width:5cqw;height:6.25cqw}
+#hud button{pointer-events:auto;border-color:var(--gold);color:var(--gold)}
+#sv{opacity:0;transition:opacity .3s}#sv.on{opacity:1}
+#toast{position:absolute;top:11cqw;left:50%;transform:translateX(-50%);background:#0b1026e8;border:.5cqw solid var(--gold);color:var(--gold);font-size:3.4cqw;padding:1cqw 4cqw;border-radius:2cqw;white-space:nowrap;transition:opacity .4s;opacity:0;pointer-events:none;z-index:5}
+#toast.on{opacity:1}
+#dlg{position:absolute;left:3cqw;right:3cqw;bottom:3cqw;background:var(--paper);color:var(--ink);border:.7cqw solid var(--ink);border-radius:2cqw;padding:2cqw 3cqw;font-size:3.9cqw;line-height:1.6;min-height:15cqw;cursor:pointer;z-index:4}
+#dlg i{float:right;animation:bk 1s infinite;font-style:normal}@keyframes bk{50%{opacity:0}}
+.yn{display:flex;gap:2cqw;margin-top:1.5cqw}
+.yn button{flex:1;background:var(--gold);border:.5cqw solid var(--ink);border-radius:2cqw;font-size:3.6cqw;padding:1.2cqw;color:var(--ink)}
+.yn button+button{background:#e6e9f5}
+
+/* ---------- バトル ---------- */
+#bt{background:linear-gradient(#10224f,#2b1b5e);z-index:3}
+#bt[data-th=town]{background:linear-gradient(#7fc7f5,#cdeffd 52%,#86cf6e 52%,#4e9f45)}
+#bt[data-th=forest]{background:linear-gradient(#2e6b4a,#4f9a5c 52%,#2f7e3a 52%,#1d5b28)}
+#bt[data-th=flower]{background:linear-gradient(#ffc7df,#fff0f6 52%,#a4dc86 52%,#5fb35a)}
+#bt[data-th=beach]{background:linear-gradient(#5ab8ef,#c4ecff 52%,#efd9a0 52%,#d9b874)}
+#bt[data-th=cave]{background:linear-gradient(#1b1726,#3a3346 52%,#2a2433 52%,#15121c)}
+#bt[data-th=castle]{background:linear-gradient(#2b0f2e,#5a1f45 52%,#3b2347 52%,#160b1d)}
+#bt.flash{animation:fl .5s}@keyframes fl{0%,40%{filter:brightness(4)}20%{filter:brightness(.3)}}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:3.2cqw;height:5.5cqw;gap:2cqw;background:#0b1026c8;border-radius:2cqw;padding:0 2cqw}
+#bh{color:#ff7a98;letter-spacing:.2cqw}#be{color:var(--gold)}#b2{color:var(--mute);font-size:2.8cqw}
+#mw{position:relative;flex:none;height:23cqw;min-height:0;display:flex;align-items:flex-end;justify-content:center;transition:flex-basis .25s}
+#mw::after{content:'';position:absolute;bottom:.3cqw;left:50%;transform:translateX(-50%);width:36cqw;height:4cqw;border-radius:50%;background:#0003;z-index:0}
+#bt.kk #mw{height:9cqw}
+#bt.kk #q small{font-size:2.4cqw}
+#bn{position:absolute;right:1cqw;top:.5cqw;font-size:2.8cqw;background:#0b1026c8;padding:.4cqw 1.6cqw;border-radius:1.5cqw;z-index:2}
+#cmb{position:absolute;right:1cqw;top:5cqw;font-size:3cqw;color:#ffb347;text-shadow:0 0 1cqw #000;z-index:2}
+#pw{position:absolute;left:1cqw;bottom:0;display:flex;flex-direction:column;align-items:center;gap:.4cqw;z-index:2}
+#pw img{width:12cqw;height:15cqw}
+#bt.kk #pw img{width:6cqw;height:7.5cqw}
+#gauge{width:11cqw;height:1.4cqw;background:#0008;border-radius:1cqw;overflow:hidden;border:.25cqw solid #fff8}
+#gauge i{display:block;height:100%;background:linear-gradient(90deg,#7d93ee,#ffd166);transition:width .3s}
+#gauge.full{box-shadow:0 0 1.5cqw var(--gold)}
+#monbox{position:relative;z-index:1;height:100%;display:flex;align-items:flex-end;transition:transform .25s;transform-origin:bottom center}
+#bt.kk #monbox{transform:scale(.4)}
+.pop{position:absolute;left:50%;top:20%;font-size:6cqw;color:#fff;text-shadow:0 0 .8cqw #000,0 0 .8cqw #000;animation:pop 1s forwards;pointer-events:none;z-index:5;white-space:nowrap}
+.pop.r{color:#ff6b8a}
+@keyframes pop{0%{transform:translate(-50%,0) scale(.6);opacity:0}20%{transform:translate(-50%,-2cqw) scale(1.2);opacity:1}100%{transform:translate(-50%,-9cqw);opacity:0}}
+
+/* もじモンのからだ */
+.mm{--h:200;position:relative;width:32cqw;height:22cqw;display:flex;justify-content:center;align-items:flex-end;animation:fy 2.4s ease-in-out infinite}
+@keyframes fy{50%{transform:translateY(-1.1cqw)}}
+.mm .bd{position:relative;width:24cqw;height:17cqw;background:radial-gradient(circle at 35% 28%,hsl(var(--h) 90% 76%),hsl(var(--h) 72% 50%) 72%);border:.6cqw solid var(--line);border-radius:50% 50% 44% 44%/58% 58% 42% 42%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:1.3cqw;margin-bottom:1cqw}
+.mm.s1 .bd{width:20cqw;height:19cqw;border-radius:46% 46% 40% 40%/52% 52% 48% 48%}
+.mm.s2 .bd{width:28cqw;height:14.5cqw;border-radius:42%}
+.mm.s3 .bd{border-radius:30% 30% 48% 48%/40% 40% 60% 60%}
+.mm .ey{position:absolute;top:2.4cqw;width:2.8cqw;height:3.4cqw;background:var(--line);border-radius:50%;box-shadow:inset .7cqw .6cqw 0 #fff;animation:blink 4s infinite}
+.mm .ey:nth-of-type(1){left:27%}.mm .ey:nth-of-type(2){right:27%}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.mm .kj{position:relative;background:var(--paper);color:var(--ink);font-family:var(--kj);font-size:8cqw;line-height:1;padding:.5cqw 1.4cqw;border-radius:2cqw;border:.4cqw solid var(--line);white-space:nowrap}
+.mm .kj.l2{font-size:5.4cqw}.mm .kj.l3{font-size:3.8cqw}
+.mm.e1 .bd::before,.mm.e1 .bd::after{content:'';position:absolute;top:-3.6cqw;border:2.2cqw solid transparent;border-bottom:3.6cqw solid hsl(var(--h) 72% 46%)}
+.mm.e1 .bd::before{left:12%}.mm.e1 .bd::after{right:12%}
+.mm.e2 .bd::before{content:'';position:absolute;top:-4cqw;left:calc(50% - .25cqw);width:.5cqw;height:4cqw;background:var(--line)}
+.mm.e2 .bd::after{content:'';position:absolute;top:-5.6cqw;left:calc(50% - 1.3cqw);width:2.6cqw;height:2.6cqw;border-radius:50%;background:var(--gold);border:.4cqw solid var(--line)}
+.mm .ft{position:absolute;bottom:0;left:calc(50% - 7.5cqw);width:5cqw;height:2.4cqw;background:hsl(var(--h) 55% 34%);border:.4cqw solid var(--line);border-radius:50%;box-shadow:10cqw 0 0 -.0cqw hsl(var(--h) 55% 34%)}
+.mm.shy .bd{background:radial-gradient(circle at 35% 28%,#fffbe0,#f2b632 72%);box-shadow:0 0 3cqw #ffd166}
+.mm.evil .bd{background:radial-gradient(circle at 35% 28%,#b37ad1,#4a1a5e 72%)}
+.mm.evil .ey{background:#ff2d55;box-shadow:inset .7cqw .6cqw 0 #ffd0dc}
+.mm.big{transform:scale(1.15)}
+.mm.hit{animation:hit .45s}@keyframes hit{20%,60%{transform:translateX(-2cqw);filter:brightness(3)}40%,80%{transform:translateX(2cqw)}}
+.mm.gone{animation:gone .6s forwards}@keyframes gone{to{transform:scale(.1) translateY(10cqw);opacity:0}}
+
+#q{flex:0 0 auto;min-height:12.5cqw;background:var(--paper);color:var(--ink);border:.6cqw solid var(--ink);border-radius:2cqw;padding:1cqw 2.5cqw;font-size:3.5cqw;line-height:1.45;display:flex;flex-direction:column;justify-content:center;cursor:pointer;position:relative;z-index:2}
+#q .qs{font-family:var(--kj);font-size:4.5cqw;line-height:1.7}
+#q small{font-size:2.7cqw;color:#4a5272}
+#q u{text-decoration-color:var(--red);text-decoration-thickness:.6cqw;color:#c0143c}
+#tm{position:absolute;left:0;bottom:0;height:.8cqw;background:var(--grn);border-radius:0 0 0 1.5cqw;transition:width linear}
+ruby.bl{color:var(--red);letter-spacing:.3cqw}rt{font-family:var(--ui);font-size:2.5cqw;color:#c0143c}
+#act{flex:1;min-height:0;position:relative;z-index:2}
+#act.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.3cqw}
+#act.g3{grid-template-columns:1fr 1fr 1fr}
+#act.grid button{background:#fff;color:var(--ink);border:.5cqw solid var(--ink);border-bottom-width:1cqw;border-radius:2cqw;font-size:4cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;padding:.3cqw}
+#act.grid button small{font-size:2.3cqw;color:#5a6280}
+#act.grid button.k{background:var(--gold)}
+#act.grid button.p{background:#cfd8ff}
+#act.grid button.p.full{background:linear-gradient(90deg,#ffd166,#ff9ad5);animation:glow 1s infinite alternate}
+@keyframes glow{to{box-shadow:0 0 2cqw #ffd166}}
+#act.grid button:disabled{opacity:.45}
+#act.ch button{font-size:5cqw}
+#act.kjc button{font-family:var(--kj);font-size:6cqw}
+#act.grid button:active{transform:translateY(.5cqw)}
+#act .ok{background:var(--grn)!important}#act .ng{background:var(--red)!important;color:#fff!important}
+#act.kaki{display:flex;gap:2cqw;justify-content:center;align-items:center}
+.kp{position:relative;display:flex;flex:none;background:#fff;border:.6cqw solid var(--ink);border-radius:1.5cqw;overflow:hidden}
+.cell{flex:1;position:relative;display:flex;align-items:center;justify-content:center;border-right:.3cqw dashed #b9c0d6}
+.cell:last-child{border-right:0}
+.cell::before{content:'';position:absolute;left:0;right:0;top:50%;border-top:.3cqw dashed #e2e6f0}
+.cell::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:.3cqw dashed #e2e6f0}
+.cell span{font-family:var(--kj);color:var(--ink);opacity:.15;line-height:1;position:relative;z-index:1}
+.kp.ov2 .cell span{opacity:.55;color:#e0103c}
+.kp canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;z-index:2}
+.ks{display:flex;flex-direction:column;gap:1.1cqw;width:24cqw}
+.ks .r2{display:flex;gap:1cqw}.ks .r2 button{flex:1}
+.ks button{font-size:3.2cqw;padding:1.3cqw .4cqw;border-radius:2cqw;border:.5cqw solid var(--ink);background:#fff;color:var(--ink)}
+.ks .pri{background:var(--gold);font-size:3.9cqw}
+.ans{background:var(--paper);color:var(--ink);border-radius:2cqw;text-align:center;padding:.5cqw;font-size:2.5cqw}
+.ans b{display:block;font-family:var(--kj);line-height:1.15;white-space:nowrap}
+
+/* ---------- メニュー系 ---------- */
+.pn{background:linear-gradient(#10224f,#1c2a5c);overflow:auto;z-index:6}
+.pn h2{margin:0;font-size:4.3cqw;color:var(--gold);font-weight:normal}
+.hd{display:flex;align-items:center;gap:2cqw}.hd h2{flex:1}
+.back{background:#2b3a6b;border:0;border-radius:2cqw;font-size:3cqw;padding:.8cqw 2.5cqw;color:#fff}
+.card{display:flex;gap:3cqw;align-items:center;background:#0006;border-radius:2cqw;padding:1.6cqw 3cqw;font-size:3.1cqw;line-height:1.6}
+.card img{width:14cqw;height:17.5cqw;flex:none}
+.bdg{display:grid;grid-template-columns:repeat(6,1fr);gap:1.2cqw}
+.bdg div{background:#0006;border:.4cqw solid #fff3;border-radius:2cqw;text-align:center;font-size:5.4cqw;padding:.8cqw 0;line-height:1.2}
+.bdg div small{display:block;font-size:2cqw;color:var(--mute)}
+.bdg .no{filter:grayscale(1);opacity:.25}
+.obj{background:#fff1;border-left:1cqw solid var(--gold);padding:1cqw 2.5cqw;font-size:3cqw;border-radius:0 2cqw 2cqw 0;line-height:1.5}
+.row{display:flex;gap:1.3cqw;flex-wrap:wrap}
+.mg4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.3cqw}
+.btn{flex:1;background:var(--gold);border:0;border-radius:2cqw;font-size:3.3cqw;padding:1.4cqw 1.5cqw;color:var(--ink)}
+.btn.sub{background:#2b3a6b;color:#fff}
+.btn:disabled{opacity:.4}
+.tiny{background:none;border:0;color:#ff9ab3;font-size:2.6cqw;text-decoration:underline;align-self:flex-end}
+.lst{display:flex;flex-direction:column;gap:1.1cqw}
+.it{display:flex;justify-content:space-between;align-items:center;gap:2cqw;background:#0006;border-radius:2cqw;padding:1.2cqw 2.5cqw;font-size:3.1cqw}
+.it small{display:block;font-size:2.4cqw;color:var(--mute)}
+.it button{background:var(--gold);color:var(--ink);border:0;border-radius:1.5cqw;font-size:3cqw;padding:1cqw 2.6cqw;flex:none}
+.it.dn{opacity:.55}
+.bar{height:1.6cqw;background:#0008;border-radius:1cqw;overflow:hidden;margin-top:.6cqw}.bar i{display:block;height:100%;background:var(--grn)}
+.sw{display:flex;gap:1.5cqw}.sw button{width:6cqw;height:6cqw;border-radius:50%;border:.6cqw solid #fff4}.sw button.on{border-color:var(--gold)}
+#zt{display:flex;gap:1cqw}#zt button{flex:1;background:#0006;border:.4cqw solid #fff4;border-radius:2cqw;font-size:3cqw;padding:.7cqw}
+#zt button.on{background:var(--gold);color:var(--ink)}
+#zg{flex:1;min-height:12cqw;overflow:auto;display:grid;grid-template-columns:repeat(10,1fr);gap:1cqw;align-content:start}
+#zg button{aspect-ratio:1;background:#ffffff14;border:.3cqw solid #fff4;border-radius:1.2cqw;font-family:var(--kj);font-size:4cqw;padding:0;line-height:1;overflow:hidden;white-space:nowrap;position:relative}
+#zg button.l2{font-size:2.4cqw}#zg button.l3{font-size:1.7cqw}
+#zg button.no{color:#fff5;font-family:var(--ui)}
+#zg button.weak{border-color:var(--red)}
+#zg button.shy{background:#ffd16644}
+#zd{flex:0 0 auto;min-height:13cqw;font-size:2.9cqw;line-height:1.55;background:#0006;border-radius:2cqw;padding:1.2cqw 2.5cqw;display:flex;gap:2.5cqw;align-items:center}
+#zd .bigk{font-family:var(--kj);font-size:10cqw;color:var(--gold);line-height:1;flex:none}
+#zd .zbtn{background:var(--gold);color:var(--ink);border:0;border-radius:1.5cqw;font-size:2.8cqw;padding:.8cqw 2cqw;margin-top:.6cqw}
+.petbig{display:flex;gap:3cqw;align-items:center}
+.petbig img{width:24cqw;height:30cqw;flex:none;background:radial-gradient(circle,#ffffff22,transparent 70%)}
+.petbig input,#ti input{font-family:var(--ui);font-size:3.4cqw;width:30cqw;padding:.8cqw 2cqw;border-radius:1.5cqw;border:.5cqw solid var(--gold);background:var(--paper);color:var(--ink)}
+.acc{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2cqw}
+.acc button{background:#0006;border:.4cqw solid #fff4;border-radius:2cqw;font-size:2.9cqw;padding:1cqw}
+.acc button.on{border-color:var(--gold);color:var(--gold)}
+.help{font-size:3cqw;line-height:1.7}.help b{color:var(--gold);font-weight:normal}
+#ti{background:radial-gradient(circle at 50% 30%,#2d4a9a,#0b1026 75%);align-items:center;justify-content:center;gap:1.8cqw;text-align:center;z-index:8}
+#ti h1{margin:0;font-size:12cqw;color:var(--gold);font-weight:normal;text-shadow:0 .8cqw 0 #b5651d,0 0 4cqw #f9a825aa;letter-spacing:.5cqw;line-height:1}
+#ti p{margin:0;font-size:3.4cqw;color:var(--mute)}
+#ti .mons{font-family:var(--kj);font-size:5cqw;letter-spacing:2cqw;opacity:.8}
+#ti label{font-size:3.2cqw;display:flex;gap:2cqw;align-items:center}
+#ti .row{width:70cqw}
+#ti .tp{width:12cqw;height:15cqw}
+#en,#evo{background:radial-gradient(circle,#ffd16655,#0b1026 70%);align-items:center;justify-content:center;text-align:center;gap:2cqw;z-index:7}
+#en h2{font-size:9cqw;color:var(--gold);margin:0;font-weight:normal}
+#en p{font-size:3.4cqw;margin:0;line-height:1.7}
+.cred{height:34cqw;overflow:hidden;position:relative;width:80cqw;mask-image:linear-gradient(transparent,#000 20%,#000 80%,transparent)}
+.cred div{position:absolute;width:100%;animation:roll 22s linear forwards;font-size:3.2cqw;line-height:2}
+@keyframes roll{from{transform:translateY(34cqw)}to{transform:translateY(-100%)}}
+#evo img{width:30cqw;height:37.5cqw}
+#evo .fx{animation:evf 2.4s steps(1) forwards}
+@keyframes evf{0%,20%,40%,55%,68%,78%,86%,92%,96%{filter:brightness(1)}10%,30%,48%,62%,74%,82%,89%,94%,98%{filter:brightness(0) invert(1)}100%{filter:brightness(1)}}
+#evo p{font-size:3.8cqw;margin:0}
+#mg{background:linear-gradient(#2b1b5e,#10224f);z-index:6}
+#mg .tbar{height:2cqw;background:#0008;border-radius:1cqw;overflow:hidden}#mg .tbar i{display:block;height:100%;background:var(--gold)}
+#mg .mq{background:var(--paper);color:var(--ink);border-radius:2cqw;padding:2cqw;font-family:var(--kj);font-size:5cqw;text-align:center}
+#mg .mq u{color:#c0143c;text-decoration-color:var(--red)}
+#mg .mc{display:grid;grid-template-columns:1fr 1fr;gap:1.5cqw;flex:1}
+#mg .mc button{background:#fff;color:var(--ink);border:.5cqw solid var(--ink);border-radius:2cqw;font-size:5cqw}
+#mg .mc .ok{background:var(--grn)}#mg .mc .ng{background:var(--red);color:#fff}
+
+#pad{display:none;width:min(100%,430px);justify-content:space-between;align-items:center;padding:0 12px}
+.dp{display:grid;grid-template:repeat(3,52px)/repeat(3,52px)}
+.dp button,.ab button{background:#2b3a6b;border:0;border-radius:12px;color:#fff;font-size:22px;box-shadow:0 4px 0 #111a3a;touch-action:none}
+.ab{display:grid;grid-template-columns:auto auto;gap:10px 14px;align-items:center}
+#bA{width:76px;height:76px;border-radius:50%!important;background:var(--red)!important;font-size:26px!important;box-shadow:0 6px 0 #8f2144!important;grid-row:span 2}
+#bB,#bX{width:52px;height:52px;border-radius:50%!important;font-size:13px!important}
+#bB.on{background:#e07a00!important}
+@media(prefers-reduced-motion:reduce){.mm,.mm .ey,#dlg i{animation:none}#stage.shake,#bt.flash{animation:none}}
+</style>
+
+<div id="app">
+ <div id="stage">
+  <canvas id="cv" width="240" height="176"></canvas>
+  <div id="hud"><span class="hs" id="rk"></span><span style="flex:1"></span><button id="mb">メニュー</button></div>
+  <div id="toast"></div>
+  <div id="dlg" hidden></div>
+  <div id="bt" class="ov" hidden>
+   <div class="top"><span id="bh"></span><span id="b2"></span><span id="be"></span></div>
+   <div id="mw"><div id="pw"><img id="pimg" class="px" alt="あいぼう"><div id="gauge"><i></i></div></div><div id="monbox"></div><span id="bn"></span><span id="cmb"></span></div>
+   <div id="q"></div>
+   <div id="act"></div>
+  </div>
+  <div id="mn" class="ov pn" hidden></div>
+  <div id="zk" class="ov pn" hidden>
+   <div class="hd"><h2>もじモン ずかん</h2><span id="zc" style="font-size:2.8cqw"></span><button class="back" id="zx">もどる</button></div>
+   <div id="zt"><button data-g="1">1年生</button><button data-g="2">2年生</button><button data-g="3">3年生</button><button data-g="w">にがて</button></div>
+   <div id="zr"></div>
+   <div id="zg"></div><div id="zd"></div>
+  </div>
+  <div id="sh" class="ov pn" hidden></div>
+  <div id="mg" class="ov" hidden></div>
+  <div id="evo" class="ov" hidden></div>
+  <div id="en" class="ov" hidden></div>
+  <div id="ti" class="ov">
+   <div class="mons">一 木 雲 海 漢</div>
+   <h1>もじモン</h1>
+   <p>ナガレヤマ地方の 大ぼうけん</p>
+   <div class="row" style="justify-content:center;align-items:center;gap:4cqw"><img id="tp" class="px tp" alt=""><div style="display:flex;flex-direction:column;gap:1.4cqw;align-items:flex-start">
+   <label for="nm">なまえ <input id="nm" maxlength="6" value="ゆうしゃ" autocomplete="off"></label>
+   <label for="pnm">あいぼう <input id="pnm" maxlength="6" value="スミタマ" autocomplete="off"></label>
+   <label>ふくの いろ <span class="sw" id="sw"></span></label></div></div>
+   <div class="row"><button class="btn" id="tN">はじめから</button><button class="btn sub" id="tC" hidden>つづきから</button></div>
+   <p style="font-size:2.5cqw">うごく：やじるし／WASD（ちょんと おすと 1マス）　しらべる：Z・Enter　ダッシュ：Shift　メニュー：X</p>
+  </div>
+  <div id="fade"></div>
+ </div>
+ <div id="pad">
+  <div class="dp"><span></span><button data-k="u" aria-label="うえ">▲</button><span></span><button data-k="l" aria-label="ひだり">◀</button><span></span><button data-k="r" aria-label="みぎ">▶</button><span></span><button data-k="d" aria-label="した">▼</button><span></span></div>
+  <div class="ab"><button id="bX">MENU</button><button id="bA">A</button><button id="bB">ダッシュ</button></div>
+ </div>
+</div>
+
+<script>
+const $=i=>document.getElementById(i);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=a=>a[Math.random()*a.length|0];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+const hsh=s=>{let h=7;for(const ch of s)h=(h*31+ch.codePointAt(0))>>>0;return h};
+
+// ===================== 漢字データ（漢字のぼうけん より） =====================
+const QD=[
+  // === 1年生 ===
+  {grade:"grade1",unit:"レベル1",pre:"",target:"一",post:"まいのおりがみ",yomi:"いち",meaning:"かずの 1。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"一",post:"ぴきのこぶた",yomi:"いっ",meaning:"かずの 1。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"一",post:"つのりんご",yomi:"ひと",meaning:"かずの 1。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"二",post:"このおにぎり",yomi:"に",meaning:"かずの 2。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"二",post:"つのうでどけい",yomi:"ふた",meaning:"かずの 2。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"三",post:"さつのほん",yomi:"さん",meaning:"かずの 3。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"三",post:"つのふくろ",yomi:"みっ",meaning:"かずの 3。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"四",post:"ほんのえんぴつ",yomi:"よん",meaning:"かずの 4。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"四",post:"つのどんぐり",yomi:"よっ",meaning:"かずの 4。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"五",post:"まいのおりがみ",yomi:"ご",meaning:"かずの 5。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"五",post:"ひきのこぶた",yomi:"ご",meaning:"かずの 5。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"五",post:"つのりんご",yomi:"いつ",meaning:"かずの 5。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"六",post:"まいのいろがみ",yomi:"ろく",meaning:"かずの 6。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"六",post:"ぴきのこいぬ",yomi:"ろっ",meaning:"かずの 6。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"六",post:"つのたまご",yomi:"むっ",meaning:"かずの 6。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"七",post:"まいのはがき",yomi:"なな",meaning:"かずの 7。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"七",post:"にんのさむらい",yomi:"しち",meaning:"かずの 7。"},
+  {grade:"grade1",unit:"レベル1",pre:"",target:"七",post:"つのこ",yomi:"なな",meaning:"かずの 7。"},
+  {grade:"grade1",unit:"レベル2",pre:"おおきな",target:"木",post:"",yomi:"き",meaning:"地面からはえる、大きな植物。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"大",post:"きなかぶ",yomi:"おお",meaning:"サイズがおおきいこと。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"小",post:"さいいぬ",yomi:"ちい",meaning:"サイズがちいさいこと。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"力",post:"をあわせる",yomi:"ちから",meaning:"ものを動かすパワー。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"大",post:"ぜいのひと",yomi:"おお",meaning:"人がたくさんいること。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"山",post:"をのぼる",yomi:"やま",meaning:"地面が高く盛り上がったところ。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"月",post:"のかんさつ",yomi:"つき",meaning:"夜空に光る星。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"文",post:"しょうをかく",yomi:"ぶん",meaning:"言葉を書き記したもの。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"右",post:"にまがる",yomi:"みぎ",meaning:"お箸を持つほうの手の側。"},
+  {grade:"grade1",unit:"レベル2",pre:"",target:"左",post:"をむく",yomi:"ひだり",meaning:"お茶わんを持つほうの手の側。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"手",post:"をあらう",yomi:"て",meaning:"腕の先にある、物をつかむ部分。"},
+  {grade:"grade1",unit:"レベル3",pre:"きれいな",target:"川",post:"",yomi:"かわ",meaning:"水が流れているところ。"},
+  {grade:"grade1",unit:"レベル3",pre:"りっぱな",target:"王",post:"さま",yomi:"おう",meaning:"国で一番えらい人。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"田",post:"うえをする",yomi:"た",meaning:"お米を育てるところ。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"虫",post:"をつかまえる",yomi:"むし",meaning:"こんちゅうなどの小さな生き物。"},
+  {grade:"grade1",unit:"レベル3",pre:"白い",target:"花",post:"",yomi:"はな",meaning:"植物に咲く、きれいな色の部分。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"火",post:"をけす",yomi:"ひ",meaning:"あかくて、熱くてもえているもの。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"水",post:"をはこぶ",yomi:"みず",meaning:"川や海にある、冷たいえきたい。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"一年",post:"がすぎた",yomi:"いちねん",meaning:"1年のあいだ。"},
+  {grade:"grade1",unit:"レベル3",pre:"",target:"名",post:"まえをかく",yomi:"な",meaning:"人や物のなまえ。"},
+  {grade:"grade1",unit:"レベル4",pre:"おきなわの",target:"天気",post:"",yomi:"てんき",meaning:"空のようす。晴れや雨など。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"犬",post:"のさんぽ",yomi:"いぬ",meaning:"ワンワンと鳴く動物。"},
+  {grade:"grade1",unit:"レベル4",pre:"きれいな",target:"夕日",post:"",yomi:"ゆうひ",meaning:"夕方に沈んでいく太陽。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"上",post:"をみる",yomi:"うえ",meaning:"たかいほう。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"足",post:"をあらう",yomi:"あし",meaning:"歩くときに使う体の部分。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"男の子",post:"がいる",yomi:"おとこのこ",meaning:"男の子供。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"土",post:"をかぶせる",yomi:"つち",meaning:"地面のつち。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"先生",post:"にきく",yomi:"せんせい",meaning:"学校で勉強を教えてくれる人。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"草",post:"をかる",yomi:"くさ",meaning:"地面にはえる緑の植物。"},
+  {grade:"grade1",unit:"レベル4",pre:"",target:"竹",post:"とんぼ",yomi:"たけ",meaning:"まっすぐ伸びる、緑色の植物。"},
+  {grade:"grade1",unit:"レベル4",pre:"まいごの",target:"女の子",post:"",yomi:"おんなのこ",meaning:"女の子供。"},
+  {grade:"grade1",unit:"レベル5",pre:"あさ",target:"早",post:"くおきる",yomi:"はや",meaning:"じかんがはやいこと。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"目",post:"をうたがう",yomi:"め",meaning:"ものを見る体の部分。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"耳",post:"をうたがう",yomi:"みみ",meaning:"音を聞く体の部分。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"口",post:"がかたい",yomi:"くち",meaning:"食べたり話したりする体の部分。"},
+  {grade:"grade1",unit:"レベル5",pre:"",target:"森",post:"の中ですごす",yomi:"もり",meaning:"木がたくさん生えているところ。"},
+  {grade:"grade1",unit:"レベル5",pre:"うつくしい",target:"町",post:"",yomi:"まち",meaning:"家やお店がたくさん集まっているところ。"},
+  {grade:"grade1",unit:"レベル5",pre:"あすは",target:"金曜日",post:"",yomi:"きんようび",meaning:"1週間の曜日のひとつ。"},
+  {grade:"grade1",unit:"レベル5",pre:"だいの上に",target:"立",post:"つ",yomi:"た",meaning:"足でまっすぐ体を支えること。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"足",post:"がはやい",yomi:"あし",meaning:"歩いたり走ったりする体の部分。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"村人",post:"にたずねる",yomi:"むらびと",meaning:"村に住んでいる人。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"大",post:"きなかぶ",yomi:"おお",meaning:"サイズがおおきいこと。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"男",post:"まえな人",yomi:"おとこ",meaning:"男性のこと。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"虫",post:"のかんさつ",yomi:"むし",meaning:"小さな生き物。"},
+  {grade:"grade1",unit:"レベル6",pre:"こん",target:"虫",post:"ずかん",yomi:"ちゅう",meaning:"小さな生き物（昆虫）のこと。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"中",post:"にはいる",yomi:"なか",meaning:"ものの内側。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"草",post:"がしげる",yomi:"くさ",meaning:"地面に生える植物。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"草",post:"げんにむかう",yomi:"くさ",meaning:"草がたくさん生えている広い場所（草原）。"},
+  {grade:"grade1",unit:"レベル6",pre:"れつの",target:"中",post:"かん",yomi:"ちゅう",meaning:"まんなかのあたり。"},
+  {grade:"grade1",unit:"レベル6",pre:"",target:"川",post:"ぎしをあるく",yomi:"かわ",meaning:"水が流れるところ。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"水中",post:"にもぐる",yomi:"すいちゅう",meaning:"水の中のこと。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"水",post:"べのいきもの",yomi:"みず",meaning:"川や海にある、冷たいえきたい。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"青森",post:"にいく",yomi:"あおもり",meaning:"日本の県のなまえ。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"赤",post:"トンボをみる",yomi:"あか",meaning:"りんごや火のような色。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"石",post:"をひろう",yomi:"いし",meaning:"かたくて小さい岩のかけら。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"石",post:"たんをみつける",yomi:"せき",meaning:"もやすとエネルギーになる黒い石。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"夕",post:"がたになる",yomi:"ゆう",meaning:"日が沈むころの時間。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"夕日",post:"をみつめる",yomi:"ゆうひ",meaning:"夕方に沈んでいく太陽。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"千",post:"ねんごのみらい",yomi:"せん",meaning:"百の１０倍のかず。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"千",post:"ばけんにすむ",yomi:"ち",meaning:"日本の県のなまえ（千葉県）。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"先",post:"にいく",yomi:"さき",meaning:"まえのほう。はじめ。"},
+  {grade:"grade1",unit:"レベル7",pre:"",target:"天",post:"さいになる",yomi:"てん",meaning:"生まれつきとてもかしこいこと。"},
+  {grade:"grade1",unit:"レベル8",pre:"かくれた",target:"名",post:"てん",yomi:"めい",meaning:"なまえが知られている、すぐれたお店。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"木",post:"ざいをあつめる",yomi:"もく",meaning:"木からとった材料のこと。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"目",post:"ひょうをきめる",yomi:"もく",meaning:"目ざすところ。めじるし。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"目",post:"をみつめる",yomi:"め",meaning:"ものを見る体の部分。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"文",post:"しょうをかく",yomi:"ぶん",meaning:"言葉を書き記したもの。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"力",post:"をつける",yomi:"ちから",meaning:"パワー。また、できる能力。"},
+  {grade:"grade1",unit:"レベル8",pre:"ど",target:"力",post:"をする",yomi:"りょく",meaning:"いっしょうけんめいがんばること。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"立",post:"ぱな木",yomi:"りっ",meaning:"とてもすばらしいようす。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"林",post:"さんにあう",yomi:"はやし",meaning:"人のなまえ。または木がたくさんあるところ。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"森林",post:"がおおい",yomi:"しんりん",meaning:"木がたくさん生えているところ。"},
+  {grade:"grade1",unit:"レベル8",pre:"",target:"本",post:"をよむ",yomi:"ほん",meaning:"紙をたばねて、文字や絵をかいたもの。"},
+  {grade:"grade1",unit:"レベル8",pre:"こん",target:"本",post:"てきにちがう",yomi:"ぽん",meaning:"おおもと。一番だいじなところ。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"百",post:"もしょうち",yomi:"ひゃく",meaning:"よくわかっていること。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"百足",post:"はきけん",yomi:"むかで",meaning:"足がたくさんある虫。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"土",post:"をかぶせる",yomi:"つち",meaning:"地面のつち。"},
+  {grade:"grade1",unit:"レベル9",pre:"みせに",target:"入",post:"る",yomi:"はい",meaning:"外から中へすすむこと。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"年",post:"に一ど",yomi:"ねん",meaning:"１年のあいだに。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"白",post:"いいき",yomi:"しろ",meaning:"雪のような色。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"白",post:"さいをかう",yomi:"はく",meaning:"葉っぱが白い、冬の野菜。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"人",post:"をみつける",yomi:"ひと",meaning:"にんげんのこと。"},
+  {grade:"grade1",unit:"レベル9",pre:"お",target:"玉",post:"であそぶ",yomi:"だま",meaning:"中に小豆などを入れた丸いおもちゃ。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"空",post:"を見上げる",yomi:"そら",meaning:"頭の上にある、青いところ。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"空気",post:"がおいしい",yomi:"くうき",meaning:"いきをするために必要な、すきとおった気体。"},
+  {grade:"grade1",unit:"レベル9",pre:"",target:"空",post:"そうのせかい",yomi:"くう",meaning:"頭の中で想像すること。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"月",post:"にいきたい",yomi:"つき",meaning:"夜空に光る星。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"月",post:"めんを見る",yomi:"げつ",meaning:"月の表面のこと。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"犬",post:"をかう",yomi:"いぬ",meaning:"ワンワンと鳴く動物。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"犬",post:"しゅをあてる",yomi:"けん",meaning:"犬のしゅるいのこと。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"一休",post:"さんをよむ",yomi:"いっきゅう",meaning:"昔のえらいお坊さんのなまえ。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"休",post:"みじかん",yomi:"やす",meaning:"体をやすめること。勉強などをおやすみすること。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"音",post:"をかなでる",yomi:"おと",meaning:"耳に聞こえるもの。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"音",post:"いろがここちよい",yomi:"ね",meaning:"楽器などの音の感じ。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"五月雨",post:"",yomi:"さみだれ",meaning:"春の終わりから夏にかけて降る雨。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"円",post:"をかく",yomi:"えん",meaning:"丸い形のこと。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"百円",post:"をあつめる",yomi:"ひゃくえん",meaning:"お金の単位。"},
+  {grade:"grade1",unit:"レベル10",pre:"",target:"王",post:"さまになりたい",yomi:"おう",meaning:"国で一番えらい人。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"花火",post:"を見る",yomi:"はなび",meaning:"火薬を空に打ち上げて光らせるもの。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"花",post:"をみつける",yomi:"はな",meaning:"植物に咲く、きれいな色の部分。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"草花",post:"にいやされる",yomi:"くさばな",meaning:"草と花のこと。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"貝",post:"がらをひろう",yomi:"かい",meaning:"海や川にいる、かたいカラを持った生き物。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"学",post:"びあう",yomi:"まな",meaning:"勉強して覚えること。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"学力",post:"がたかい",yomi:"がくりょく",meaning:"勉強して身についた力。"},
+  {grade:"grade1",unit:"レベル11",pre:"ことばを",target:"口",post:"にする",yomi:"くち",meaning:"食べたり話したりする体の部分。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"口",post:"かくが上がる",yomi:"こう",meaning:"くちびるの端っこのこと。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"学校",post:"に行く",yomi:"がっこう",meaning:"みんなで勉強や運動をするところ。"},
+  {grade:"grade1",unit:"レベル11",pre:"",target:"手",post:"をつなぐ",yomi:"て",meaning:"腕の先にある、物をつかむ部分。"},
+  {grade:"grade1",unit:"レベル11",pre:"学校を",target:"出",post:"る",yomi:"で",meaning:"中から外へいくこと。"},
+  {grade:"grade1",unit:"レベル11",pre:"がい",target:"出",post:"をする",yomi:"しゅつ",meaning:"家の外にでかけること。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"小学生",post:"になる",yomi:"しょうがくせい",meaning:"小学校に通う子ども。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"正",post:"しいかんじ",yomi:"ただ",meaning:"まちがいがないこと。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"正",post:"面に行く",yomi:"しょう",meaning:"一番まえの、おもてがわ。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"車",post:"にのる",yomi:"くるま",meaning:"タイヤがついていて、道路を走る乗り物。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"耳",post:"をかたむける",yomi:"みみ",meaning:"音を聞く体の部分。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"耳",post:"びかに行く",yomi:"じ",meaning:"耳や鼻の病気をみるお医者さん。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"金",post:"をあつめる",yomi:"かね",meaning:"ものを買うときに使うもの。"},
+  {grade:"grade1",unit:"レベル12",pre:"",target:"子",post:"どもの日",yomi:"こ",meaning:"大人の反対。ちいさい人。"},
+  {grade:"grade1",unit:"レベル12",pre:"くもの",target:"糸",post:"",yomi:"いと",meaning:"細くて長い、ヒモのようなもの。"},
+  {grade:"grade1",unit:"レベル12",pre:"でん",target:"車",post:"にのる",yomi:"しゃ",meaning:"電気の力で線路を走る乗り物。"},
+
+  // === 2年生 ===
+  {grade:"grade2",unit:"レベル1",pre:"",target:"引",post:"用する",yomi:"いん",meaning:"人の言葉などを引いて使うこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"じしょを",target:"引",post:"く",yomi:"ひ",meaning:"言葉の意味をさがすこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"羽",post:"をぬく",yomi:"はね",meaning:"鳥のからだにはえているもの。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"羽",post:"ペンを作る",yomi:"はね",meaning:"鳥のはねで作ったペン。"},
+  {grade:"grade2",unit:"レベル1",pre:"どうぶつ",target:"園",post:"に行く",yomi:"えん",meaning:"動物がたくさんいるところ。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"遠",post:"い町に行く",yomi:"とお",meaning:"きょりがはなれていること。"},
+  {grade:"grade2",unit:"レベル1",pre:"花の",target:"園",post:"に行く",yomi:"その",meaning:"花がたくさんさいているところ。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"遠",post:"足に行く",yomi:"えん",meaning:"みんなで遠くまで歩いていくこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"雲",post:"がきれい",yomi:"くも",meaning:"空にうかんでいる白や黒のかたまり。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"雲",post:"海にしずむ",yomi:"うん",meaning:"海のように広がるたくさんの雲。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"何",post:"もできない",yomi:"なに",meaning:"わからないことを聞くときの言葉。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"何",post:"でもそうだん",yomi:"なん",meaning:"どれでも、どんなことでも。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"科",post:"学を学ぶ",yomi:"か",meaning:"しぜんのふしぎを研究する学問。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"夏",post:"を感じる",yomi:"なつ",meaning:"1年の中でいちばん暑いきせつ。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"家",post:"にかえる",yomi:"いえ",meaning:"人がすむたてもの。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"家",post:"ていかを学ぶ",yomi:"か",meaning:"料理やせんたくなどを学ぶ教科。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"歌",post:"手になりたい",yomi:"か",meaning:"歌をうたうことを仕事にする人。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"歌",post:"が大すき",yomi:"うた",meaning:"メロディにのせて声を出すこと。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"画",post:"数のおおいかんじ",yomi:"かく",meaning:"漢字を書くときの、線の数。"},
+  {grade:"grade2",unit:"レベル1",pre:"絵",target:"画",post:"を見る",yomi:"が",meaning:"えのぐなどでかかれた絵。"},
+  {grade:"grade2",unit:"レベル1",pre:"",target:"回",post:"数けんをかう",yomi:"かい",meaning:"何回も使えるチケット。"},
+  {grade:"grade2",unit:"レベル2",pre:"帰りの",target:"会",post:"に出る",yomi:"かい",meaning:"学校の帰りに行う集まり。"},
+  {grade:"grade2",unit:"レベル2",pre:"友だちに",target:"会",post:"う",yomi:"あ",meaning:"人と顔をあわせること。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"海",post:"に行く",yomi:"うみ",meaning:"しょっぱい水がひろがっているところ。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"海",post:"水よくに行く",yomi:"かい",meaning:"海のしょっぱい水。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"絵",post:"をかく",yomi:"え",meaning:"えのぐやペンでかいたもの。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"外",post:"を歩く",yomi:"そと",meaning:"家や建物のなかの反対。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"外",post:"出する",yomi:"がい",meaning:"家のそとに出かけること。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"角",post:"をつかう",yomi:"かど",meaning:"道がまがっているところ。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"角",post:"でつつく",yomi:"つの",meaning:"動物の頭にはえているかたいもの。"},
+  {grade:"grade2",unit:"レベル2",pre:"楽しい",target:"学",post:"きゅう",yomi:"がっ",meaning:"学校のクラスのこと。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"楽",post:"園に行きたい",yomi:"らく",meaning:"楽しくてすばらしい場所。"},
+  {grade:"grade2",unit:"レベル2",pre:"",target:"楽",post:"にする",yomi:"らく",meaning:"心や体を休ませること。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"活",post:"ぱつにすごす",yomi:"かつ",meaning:"元気に動くこと。"},
+  {grade:"grade2",unit:"レベル3",pre:"生",target:"活",post:"がうるおう",yomi:"かつ",meaning:"日々のくらし。"},
+  {grade:"grade2",unit:"レベル3",pre:"さかなが",target:"活",post:"ぱつ",yomi:"かつ",meaning:"いきいきとしているようす。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"間",post:"をあける",yomi:"あいだ",meaning:"物と物のすきま。"},
+  {grade:"grade2",unit:"レベル3",pre:"時",target:"間",post:"をかくにんする",yomi:"かん",meaning:"ときの流れの長さ。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"丸",post:"をつける",yomi:"まる",meaning:"まるい形。"},
+  {grade:"grade2",unit:"レベル3",pre:"いん",target:"石",post:"がおちる",yomi:"せき",meaning:"宇宙から落ちてきた石。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"岩",post:"をもちあげる",yomi:"いわ",meaning:"大きくてかたい石。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"顔",post:"をあらう",yomi:"かお",meaning:"目や鼻や口がある、頭の前の部分。"},
+  {grade:"grade2",unit:"レベル3",pre:"せん",target:"顔",post:"をする",yomi:"がん",meaning:"顔をあらうこと。"},
+  {grade:"grade2",unit:"レベル3",pre:"汽",target:"車",post:"にのる",yomi:"しゃ",meaning:"蒸気で走る昔のれっしゃ。"},
+  {grade:"grade2",unit:"レベル3",pre:"",target:"記",post:"事にする",yomi:"き",meaning:"新聞などに書かれたニュース。"},
+  {grade:"grade2",unit:"レベル4",pre:"日記に",target:"記",post:"す",yomi:"しる",meaning:"わすれないように文字で書くこと。"},
+  {grade:"grade2",unit:"レベル4",pre:"家に",target:"帰",post:"る",yomi:"かえ",meaning:"自分の家にもどること。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"帰",post:"たくする",yomi:"き",meaning:"自分の家にもどること。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"弓",post:"をいる",yomi:"ゆみ",meaning:"矢を飛ばすための道具。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"弓",post:"道をたしなむ",yomi:"きゅう",meaning:"弓矢を使う日本のスポーツ。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"牛",post:"をかう",yomi:"うし",meaning:"ミルクやお肉をとる大きな動物。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"牛",post:"肉を食べたい",yomi:"ぎゅう",meaning:"牛のお肉のこと。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"魚",post:"を食べる",yomi:"さかな",meaning:"水の中で生きている動物。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"魚",post:"たくを作る",yomi:"ぎょ",meaning:"釣った魚に墨をぬって紙にうつしたもの。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"京",post:"とに行く",yomi:"きょう",meaning:"日本の昔の都があったところ（京都）。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"京",post:"ひん線にのる",yomi:"けい",meaning:"東京と横浜をつなぐ電車の線。"},
+  {grade:"grade2",unit:"レベル4",pre:"",target:"強",post:"い人とたたかう",yomi:"つよ",meaning:"ちからがあること。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"強",post:"てきとたたかう",yomi:"きょう",meaning:"手ごわい相手（強敵）。"},
+  {grade:"grade2",unit:"レベル5",pre:"先生に",target:"教",post:"わる",yomi:"おそ",meaning:"知らないことを教えてもらうこと。"},
+  {grade:"grade2",unit:"レベル5",pre:"学校が",target:"近",post:"い",yomi:"ちか",meaning:"きょりがみじかいこと。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"近",post:"みらいになる",yomi:"きん",meaning:"もうすぐやってくる未来のこと。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"兄",post:"となかよし",yomi:"あに",meaning:"自分より年上の男のきょうだい。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"兄",post:"だいです",yomi:"きょう",meaning:"おなじ親から生まれた子どもたち。"},
+  {grade:"grade2",unit:"レベル5",pre:"ねんどで",target:"形",post:"づくる",yomi:"かたち",meaning:"もののすがたを作ること。"},
+  {grade:"grade2",unit:"レベル5",pre:"ねんどの",target:"形",post:"せい",yomi:"けい",meaning:"形をつくりあげること（形成）。"},
+  {grade:"grade2",unit:"レベル5",pre:"計",target:"算",post:"を学ぶ",yomi:"さん",meaning:"数をたしたりひいたりすること。"},
+  {grade:"grade2",unit:"レベル5",pre:"おもさを",target:"計",post:"る",yomi:"はか",meaning:"数や量をしらべること。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"元",post:"の国に帰る",yomi:"もと",meaning:"いちばんはじめ。"},
+  {grade:"grade2",unit:"レベル5",pre:"",target:"元",post:"気にあいさつ",yomi:"げん",meaning:"心や体がひじょうに良い状態。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"言",post:"ばを学ぶ",yomi:"こと",meaning:"人が話す言葉。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"言",post:"うことをきく",yomi:"い",meaning:"声に出して話をすること。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"原",post:"いんをつきとめる",yomi:"げん",meaning:"物事が起きたおおもとの理由。"},
+  {grade:"grade2",unit:"レベル6",pre:"野",target:"原",post:"に行く",yomi:"はら",meaning:"草がたくさん生えている広いところ。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"戸",post:"をあける",yomi:"と",meaning:"家や部屋の出入り口のドア。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"古",post:"い時計",yomi:"ふる",meaning:"昔からあること。新しいの反対。"},
+  {grade:"grade2",unit:"レベル6",pre:"考",target:"古",post:"学者になる",yomi:"こ",meaning:"昔の人が残したものを調べる人。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"午",post:"後のこうちゃ",yomi:"ご",meaning:"お昼の12時から夜の12時まで。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"後",post:"ろを歩く",yomi:"うし",meaning:"背中のほう。前の反対。"},
+  {grade:"grade2",unit:"レベル6",pre:"国",target:"語",post:"のべんきょう",yomi:"ご",meaning:"日本の言葉について学ぶこと。"},
+  {grade:"grade2",unit:"レベル6",pre:"物",target:"語",post:"を読む",yomi:"がたり",meaning:"作られたおはなしのこと。"},
+  {grade:"grade2",unit:"レベル6",pre:"",target:"工",post:"ふうをする",yomi:"こう",meaning:"よい方法をいろいろと考えること。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"工",post:"じょう見学",yomi:"こう",meaning:"物を作るための大きな建物（工場）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"公",post:"になる",yomi:"おおやけ",meaning:"みんなに知られるようになること。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"公",post:"園に行く",yomi:"こう",meaning:"みんなが遊んだり休んだりする場所。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"広",post:"しまに行きたい",yomi:"ひろ",meaning:"日本の県のなまえ（広島）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"広",post:"大な土地にすむ",yomi:"こう",meaning:"とても広くて大きいこと。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"交",post:"かん日記をする",yomi:"こう",meaning:"おたがいにやり取りすること。"},
+  {grade:"grade2",unit:"レベル7",pre:"せんが",target:"交",post:"わる",yomi:"まじ",meaning:"線と線がクロスすること。"},
+  {grade:"grade2",unit:"レベル7",pre:"まぶしい",target:"光",post:"",yomi:"ひかり",meaning:"あかるく照らすもの。"},
+  {grade:"grade2",unit:"レベル7",pre:"ほたるのはっ",target:"光",post:"",yomi:"こう",meaning:"光をだすこと（発光）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"考",post:"える時間",yomi:"かんが",meaning:"頭をつかって思うこと。"},
+  {grade:"grade2",unit:"レベル7",pre:"話の",target:"考",post:"さつする",yomi:"こう",meaning:"よく考えて調べること（考察）。"},
+  {grade:"grade2",unit:"レベル7",pre:"",target:"行",post:"いのよい人",yomi:"おこな",meaning:"人のふだんの行動や態度のこと。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"行",post:"く時間",yomi:"い",meaning:"目的地にむかってすすむこと。"},
+  {grade:"grade2",unit:"レベル8",pre:"高",target:"校",post:"生になりたい",yomi:"こう",meaning:"中学校の次に行く学校の生徒。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黄",post:"色のくだもの",yomi:"き",meaning:"レモンやバナナのような色。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黄",post:"土色の土",yomi:"おう",meaning:"すこし茶色がかった黄色。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"合",post:"言葉を言う",yomi:"あい",meaning:"仲間どうしで決めておく秘密の言葉。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"合",post:"りゅうする",yomi:"ごう",meaning:"分かれていたものが一つになること。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"国",post:"を作る",yomi:"くに",meaning:"人々が住んでいて、政府がある地域。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"国",post:"道でを走る",yomi:"こく",meaning:"国が管理している大きな道路。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黒",post:"いひとみ",yomi:"くろ",meaning:"夜の空のような色。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"黒",post:"えんが上がる",yomi:"こく",meaning:"もえたときに出る黒いけむり（黒煙）。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"今",post:"すぐに行きたい",yomi:"いま",meaning:"この時間。現在。"},
+  {grade:"grade2",unit:"レベル8",pre:"",target:"今",post:"年のもくひょう",yomi:"こん",meaning:"この一年（今年）のこと。"},
+  {grade:"grade2",unit:"レベル9",pre:"天",target:"才",post:"になりたい",yomi:"さい",meaning:"生まれつきすぐれた能力がある人。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"才",post:"のうにあふれる",yomi:"さい",meaning:"物事をうまくできる能力。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"細",post:"い糸",yomi:"ほそ",meaning:"はばがせまいこと。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"細",post:"心のちゅうい",yomi:"さい",meaning:"細かいところまで気をつけること。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"細",post:"かい字で書く",yomi:"こま",meaning:"とても小さいようす。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"作",post:"ひんをめでる",yomi:"さく",meaning:"作ったもの（作品）。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"作",post:"りたいものがある",yomi:"つく",meaning:"新しくものをうみだすこと。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"算",post:"数の時間",yomi:"さん",meaning:"数や図形の計算を学ぶ教科。"},
+  {grade:"grade2",unit:"レベル9",pre:"車が",target:"止",post:"まる",yomi:"と",meaning:"動いていたものがストップすること。"},
+  {grade:"grade2",unit:"レベル9",pre:"てい",target:"止",post:"線でとまる",yomi:"し",meaning:"車などが止まる場所の線（停止線）。"},
+  {grade:"grade2",unit:"レベル9",pre:"ながれやま",target:"市",post:"にすむ",yomi:"し",meaning:"人がたくさん住んでいるところ。"},
+  {grade:"grade2",unit:"レベル9",pre:"弓",target:"矢",post:"をいる",yomi:"や",meaning:"弓でとばすための細長い道具。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"姉",post:"の友だち",yomi:"あね",meaning:"自分より年上の女のきょうだい。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"姉",post:"まいでおそろい",yomi:"し",meaning:"姉と妹のこと（姉妹）。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"思",post:"いびとをまつ",yomi:"おも",meaning:"心の中で好きだと思っている人。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"思",post:"考がするどい",yomi:"し",meaning:"物事について頭で考えること（思考）。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"紙",post:"にていねいに書く",yomi:"かみ",meaning:"字を書いたり絵を描いたりするもの。"},
+  {grade:"grade2",unit:"レベル9",pre:"",target:"紙",post:"面にサイン",yomi:"し",meaning:"紙の表面のこと（紙面）。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"寺",post:"でしゅぎょう",yomi:"てら",meaning:"お坊さんがいるところ。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"寺",post:"いんに行く",yomi:"じ",meaning:"お寺のこと（寺院）。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"自",post:"らをまもる",yomi:"みずか",meaning:"自分自身のこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"自",post:"分の家にある",yomi:"じ",meaning:"わたし自身のこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"時",target:"間",post:"に間に合う",yomi:"かん",meaning:"ときの流れの長さ。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"時",post:"を止める",yomi:"とき",meaning:"時間のこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"教",target:"室",post:"に行く",yomi:"しつ",meaning:"学校で勉強する部屋。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"室",post:"町時代のせかい",yomi:"むろ",meaning:"日本の昔の時代のなまえ。"},
+  {grade:"grade2",unit:"レベル10",pre:"会",target:"社",post:"に行く",yomi:"しゃ",meaning:"大人が仕事をする場所。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"弱",post:"い虫にさされる",yomi:"よわ",meaning:"ちからがないこと。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"弱",post:"しゃをすくう",yomi:"じゃく",meaning:"力が弱い人のこと（弱者）。"},
+  {grade:"grade2",unit:"レベル10",pre:"",target:"首",post:"がかゆい",yomi:"くび",meaning:"頭と胴体をつなぐ部分。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"首",post:"尾があまい",yomi:"しゅ",meaning:"はじめと終わり。結果のこと（首尾）。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"秋",post:"のサンマ",yomi:"あき",meaning:"夏と冬の間のきせつ。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"秋",post:"分の日",yomi:"しゅう",meaning:"秋のお休みの日のひとつ。"},
+  {grade:"grade2",unit:"レベル11",pre:"一",target:"週",post:"間がたつ",yomi:"しゅう",meaning:"日曜日から土曜日までの７日間。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"春",post:"をかんじる",yomi:"はる",meaning:"冬と夏の間のきせつ。あたたかい。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"春",post:"分の日",yomi:"しゅん",meaning:"春のお休みの日のひとつ。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"書",post:"るいをみる",yomi:"しょ",meaning:"文字が書かれた紙（書類）。"},
+  {grade:"grade2",unit:"レベル11",pre:"文しょうを",target:"書",post:"く",yomi:"か",meaning:"文字をペンなどで記すこと。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"少",post:"年のせいしゅん",yomi:"しょう",meaning:"わかい男の子のこと。"},
+  {grade:"grade2",unit:"レベル11",pre:"",target:"少",post:"ないおこづかい",yomi:"すく",meaning:"数や量がすこしであること。"},
+  {grade:"grade2",unit:"レベル11",pre:"場",target:"所",post:"をかえる",yomi:"しょ",meaning:"ある物があるところ。"},
+  {grade:"grade2",unit:"レベル11",pre:"うんどう",target:"場",post:"にいく",yomi:"じょう",meaning:"みんなで運動するための広い場所。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"色",post:"とりどりの花",yomi:"いろ",meaning:"赤や青などのカラーのこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"色",post:"紙にサイン",yomi:"しき",meaning:"サインを書くための四角い紙（色紙）。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"心",post:"を読む",yomi:"こころ",meaning:"気持ちや思いのこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"心",post:"ぞうにわるい",yomi:"しん",meaning:"血液を全身におくる体の部分（心臓）。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"新",post:"しいけしゴム",yomi:"あたら",meaning:"できたばかりであること。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"新",post:"入しゃいん",yomi:"しん",meaning:"新しく会社に入った人のこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"親",post:"子ですごす",yomi:"おや",meaning:"親と子どものこと。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"親",post:"切にする",yomi:"しん",meaning:"相手のためにやさしくすること。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"図",post:"工が大好き",yomi:"ず",meaning:"絵をかいたり工作をする授業。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"数",post:"字がたくさん",yomi:"すう",meaning:"数をあらわす文字（１、２など）。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"西",post:"にすすむ",yomi:"にし",meaning:"太陽が沈む方角。"},
+  {grade:"grade2",unit:"レベル12",pre:"",target:"声",post:"をかえる",yomi:"こえ",meaning:"口から出るおと。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"音",post:"声のへんかん",yomi:"おん",meaning:"口から出る声（音声）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"声",post:"色をかえる",yomi:"こわ",meaning:"声の感じのこと（声色）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"星",post:"の名前",yomi:"ほし",meaning:"夜空に光る天体。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"星",post:"ざをさがす",yomi:"せい",meaning:"星をつないで形にしたもの（星座）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"晴",post:"れの日にあそぶ",yomi:"は",meaning:"空に雲が少なく太陽が出ていること。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"晴",post:"天の日",yomi:"せい",meaning:"よく晴れた空のこと（晴天）。"},
+  {grade:"grade2",unit:"レベル13",pre:"紙を",target:"切",post:"る",yomi:"き",meaning:"ハサミなどで分けること。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"雪",post:"がふる",yomi:"ゆき",meaning:"冬に空から降ってくる白いもの。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"雪",post:"原が広がる",yomi:"せつ",meaning:"雪が積もった広い野原（雪原）。"},
+  {grade:"grade2",unit:"レベル13",pre:"",target:"船",post:"にのる",yomi:"ふね",meaning:"海や川を移動するための乗り物。"},
+  {grade:"grade2",unit:"レベル13",pre:"紙に",target:"線",post:"を書く",yomi:"せん",meaning:"細長いつながり。ライン。"},
+  {grade:"grade2",unit:"レベル13",pre:"ひまわり",target:"組",post:"",yomi:"ぐみ",meaning:"クラスやグループのこと。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"組",post:"みたてる",yomi:"く",meaning:"バラバラのものを合わせて作ること。"},
+  {grade:"grade2",unit:"レベル14",pre:"ひみつの",target:"組",post:"しき",yomi:"そ",meaning:"人々が集まって作られた団体（組織）。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"走",post:"りたい気分",yomi:"はし",meaning:"足を速く動かしてすすむこと。"},
+  {grade:"grade2",unit:"レベル14",pre:"ぼう",target:"走",post:"きかん車",yomi:"そう",meaning:"あばれて走ること（暴走）。"},
+  {grade:"grade2",unit:"レベル14",pre:"草の",target:"多",post:"い場所",yomi:"おお",meaning:"かずがたくさんあること。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"多",post:"数けつにする",yomi:"た",meaning:"人数の多いほうで決めること。"},
+  {grade:"grade2",unit:"レベル14",pre:"字が",target:"太",post:"い",yomi:"ふと",meaning:"ほそいの反対。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"体",post:"がかたい",yomi:"からだ",meaning:"人間のからだ。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"体",post:"そうをする",yomi:"たい",meaning:"体を動かす運動のこと（体操）。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"台",post:"本を読む",yomi:"だい",meaning:"おしばいのセリフが書かれた本。"},
+  {grade:"grade2",unit:"レベル14",pre:"ぶ",target:"台",post:"に立つ",yomi:"たい",meaning:"おしばいや発表をする場所（舞台）。"},
+  {grade:"grade2",unit:"レベル14",pre:"",target:"地",post:"元に帰る",yomi:"ち",meaning:"自分が育ったところ。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"地",post:"いきにねづく",yomi:"ち",meaning:"ある一定の場所（地域）。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"池",post:"の水の魚",yomi:"いけ",meaning:"水がたまっているところ。"},
+  {grade:"grade2",unit:"レベル15",pre:"ちょすい",target:"池",post:"",yomi:"ち",meaning:"水をためておく池（貯水池）。"},
+  {grade:"grade2",unit:"レベル15",pre:"物",target:"知",post:"りはかせ",yomi:"し",meaning:"いろんなことを知っている人。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"知",post:"力が高い",yomi:"ち",meaning:"物事を理解する頭のよさ（知力）。"},
+  {grade:"grade2",unit:"レベル15",pre:"お",target:"茶",post:"をのむ",yomi:"ちゃ",meaning:"のどがかわいたときに飲むもの。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"茶",post:"道をたしなむ",yomi:"さ",meaning:"日本の伝統的なお茶の作法（茶道）。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"昼",post:"ごはんを食べる",yomi:"ひる",meaning:"太陽が出ている明るい時間。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"昼",post:"食にする",yomi:"ちゅう",meaning:"お昼ごはんのこと（昼食）。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"長",post:"の言うとおり",yomi:"おさ",meaning:"グループのトップの人。"},
+  {grade:"grade2",unit:"レベル15",pre:"校",target:"長",post:"先生の話し",yomi:"ちょう",meaning:"学校で一番えらい先生。"},
+  {grade:"grade2",unit:"レベル15",pre:"",target:"鳥",post:"をかんさつする",yomi:"とり",meaning:"羽があって空を飛ぶ動物。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"朝",post:"日を見る",yomi:"あさ",meaning:"夜があけて明るくなる時間。"},
+  {grade:"grade2",unit:"レベル16",pre:"全校",target:"朝",post:"会に出る",yomi:"ちょう",meaning:"朝に行う学校の集まり（朝会）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"直",post:"線を引く",yomi:"ちょく",meaning:"まっすぐな線のこと（直線）。"},
+  {grade:"grade2",unit:"レベル16",pre:"おもちゃを",target:"直",post:"す",yomi:"なお",meaning:"こわれたものを元にもどすこと。"},
+  {grade:"grade2",unit:"レベル16",pre:"道を",target:"通",post:"る",yomi:"とお",meaning:"ある場所をすぎていくこと。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"通",post:"行しょうめいしょ",yomi:"つう",meaning:"通るための許可（通行）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"弟",post:"のせわをする",yomi:"おとうと",meaning:"自分より年下の男のきょうだい。"},
+  {grade:"grade2",unit:"レベル16",pre:"兄",target:"弟",post:"なかがよい",yomi:"だい",meaning:"男のきょうだいのこと（兄弟）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"店",post:"の中に入る",yomi:"みせ",meaning:"物を売っているところ。"},
+  {grade:"grade2",unit:"レベル16",pre:"しょう",target:"店",post:"がい",yomi:"てん",meaning:"お店がたくさん集まった通り（商店街）。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"点",post:"をむすぶ",yomi:"てん",meaning:"ちいさいしるし。テストの成績。"},
+  {grade:"grade2",unit:"レベル16",pre:"",target:"電",post:"気をつける",yomi:"でん",meaning:"あかりをつけたり機械を動かすエネルギー。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"刀",post:"をふる",yomi:"かたな",meaning:"昔の武士がもっていた武器。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"刀",post:"しんがにぶる",yomi:"とう",meaning:"刀の刃の部分（刀身）。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"冬",post:"の時き",yomi:"ふゆ",meaning:"1年の中でいちばん寒い季節。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"冬",post:"きがさる",yomi:"とう",meaning:"冬の季節のこと（冬季）。"},
+  {grade:"grade2",unit:"レベル17",pre:"アイスの",target:"当",post:"たり",yomi:"あ",meaning:"くじなどで良い結果が出ること。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"当",post:"ばんばんごう",yomi:"とう",meaning:"役割にあたること（当番）。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"東",post:"にむかう",yomi:"ひがし",meaning:"太陽が昇る方角。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"答",post:"えを出す",yomi:"こた",meaning:"質問への正解。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"頭",post:"が回る",yomi:"あたま",meaning:"首から上の部分。"},
+  {grade:"grade2",unit:"レベル17",pre:"二",target:"頭",post:"身の体",yomi:"とう",meaning:"頭と体のバランスのこと（頭身）。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"同",post:"じ日に行く",yomi:"おな",meaning:"ちがいがないこと。"},
+  {grade:"grade2",unit:"レベル17",pre:"",target:"同",post:"るいであつまる",yomi:"どう",meaning:"同じ種類の仲間のこと（同類）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"内",post:"がわを歩く",yomi:"うち",meaning:"もののなかのほう。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"内",post:"心こわいよー",yomi:"ない",meaning:"心の中の気持ち（内心）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"南",post:"にすすむ",yomi:"みなみ",meaning:"北の反対の方角。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"南",post:"国にすむ",yomi:"なん",meaning:"あたたかい南の国（南国）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"馬",post:"にのりたい",yomi:"うま",meaning:"パカパカと走る動物。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"馬",post:"肉を食べる",yomi:"ば",meaning:"馬のお肉のこと（馬肉）。"},
+  {grade:"grade2",unit:"レベル18",pre:"お肉を",target:"売",post:"る",yomi:"う",meaning:"お金と引き換えに品物をわたすこと。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"買",post:"い物に行く",yomi:"か",meaning:"お金をはらって品物をもらうこと。"},
+  {grade:"grade2",unit:"レベル18",pre:"物の",target:"売",post:"買する",yomi:"ばい",meaning:"売ったり買ったりすること（売買）。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"麦",post:"をそだてる",yomi:"むぎ",meaning:"パンやうどんの材料になる植物。"},
+  {grade:"grade2",unit:"レベル18",pre:"",target:"半",post:"そでをきる",yomi:"はん",meaning:"全体の半分。短いこと。"},
+  {grade:"grade2",unit:"レベル18",pre:"春の",target:"半",post:"ば",yomi:"なか",meaning:"ちょうど真ん中ぐらいの時期。"},
+  {grade:"grade2",unit:"レベル19",pre:"交",target:"番",post:"に行く",yomi:"ばん",meaning:"順番や、見張りをするところ。"},
+  {grade:"grade2",unit:"レベル19",pre:"電話",target:"番",post:"ごう",yomi:"ばん",meaning:"電話にかける数字のこと（番号）。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"父",post:"をたずねる",yomi:"ちち",meaning:"自分のおとうさん。"},
+  {grade:"grade2",unit:"レベル19",pre:"そ",target:"父",post:"に会いに行く",yomi:"ふ",meaning:"おじいさんのこと（祖父）。"},
+  {grade:"grade2",unit:"レベル19",pre:"お",target:"父",post:"さんがすき",yomi:"とう",meaning:"おとうさんのこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"風",post:"のながれ",yomi:"かぜ",meaning:"空気が動くこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"風",post:"りんの音",yomi:"ふう",meaning:"風でチリンと鳴るかざり（風鈴）。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"分",post:"けた数",yomi:"わ",meaning:"いくつかに切りはなすこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"新",target:"聞",post:"紙を買う",yomi:"ぶん",meaning:"ニュースが書いてある紙（新聞）。"},
+  {grade:"grade2",unit:"レベル19",pre:"お",target:"米",post:"をたく",yomi:"こめ",meaning:"ごはんになる白い粒。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"歩",post:"くのがはやい",yomi:"ある",meaning:"足をつかってすすむこと。"},
+  {grade:"grade2",unit:"レベル19",pre:"",target:"歩",post:"はばが広い",yomi:"ほ",meaning:"歩くときの足の広さ（歩幅）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"方",post:"角があっている",yomi:"ほう",meaning:"東西南北のむき（方角）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"北",post:"の国から",yomi:"きた",meaning:"南の反対の方角。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"毎",post:"日ごはんを食べる",yomi:"まい",meaning:"いつも、いつも。"},
+  {grade:"grade2",unit:"レベル20",pre:"姉",target:"妹",post:"でおそろい",yomi:"まい",meaning:"姉と妹のこと（姉妹）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"妹",post:"がかわいい",yomi:"いもうと",meaning:"自分より年下の女のきょうだい。"},
+  {grade:"grade2",unit:"レベル20",pre:"一",target:"万",post:"円がほしい",yomi:"まん",meaning:"千の10倍の数。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"万",post:"屋をいとなむ",yomi:"よろず",meaning:"いろんな物を売るお店（万屋）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"明",post:"け方に帰る",yomi:"あ",meaning:"夜が終わって朝になるころ。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"明",post:"るいみらい",yomi:"あか",meaning:"光があってよく見えること。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"明",post:"日帰ります",yomi:"みょう",meaning:"次の日のこと（明日）。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"鳴",post:"き声がうるさい",yomi:"な",meaning:"動物が声を出すこと。"},
+  {grade:"grade2",unit:"レベル20",pre:"",target:"毛",post:"がぬける",yomi:"け",meaning:"体にはえている細い糸のようなもの。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"門",post:"の前に行く",yomi:"もん",meaning:"家や学校の大きな入り口。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"門",post:"出をいわう",yomi:"かど",meaning:"新しい出発をすること（門出）。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"夜",post:"のまちなみ",yomi:"よる",meaning:"太陽が沈んで暗い時間。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"夜",post:"食を食べる",yomi:"や",meaning:"夜おそくに食べるごはん（夜食）。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"野",post:"原でねそべる",yomi:"の",meaning:"草がたくさん生えている広い場所。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"友",post:"だちに会いに行く",yomi:"とも",meaning:"なかよしの人のこと。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"曜",post:"日にあそぶ",yomi:"よう",meaning:"月、火、水などの週の日のこと。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"母",post:"が来る",yomi:"はは",meaning:"自分のおかあさん。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"母",post:"校をたずねる",yomi:"ぼ",meaning:"自分が卒業した学校（母校）。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"里",post:"帰りをする",yomi:"さと",meaning:"自分の生まれ故郷に帰ること。"},
+  {grade:"grade2",unit:"レベル21",pre:"",target:"理",post:"科室でじっけん",yomi:"り",meaning:"自然について学ぶ教科。"},
+  {grade:"grade2",unit:"レベル21",pre:"この世のこ",target:"理",post:"",yomi:"とわり",meaning:"物事のすじみち（ことわり）。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"話",post:"しをすりかえる",yomi:"はな",meaning:"言葉をつたえること。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"話",post:"じゅつがとくい",yomi:"わ",meaning:"上手に話すテクニック（話術）。"},
+  {grade:"grade2",unit:"レベル22",pre:"時",target:"間",post:"をまもる",yomi:"かん",meaning:"ときの流れの長さ。"},
+  {grade:"grade2",unit:"レベル22",pre:"お",target:"寺",post:"のおしょう",yomi:"てら",meaning:"お坊さんがいるところ。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"紙",post:"に書く",yomi:"かみ",meaning:"字を書いたり絵を描いたりするもの。"},
+  {grade:"grade2",unit:"レベル22",pre:"気",target:"分",post:"がわるい",yomi:"ぶん",meaning:"そのときの心や体の状態（気分）。"},
+  {grade:"grade2",unit:"レベル22",pre:"細い",target:"字",post:"を書く",yomi:"じ",meaning:"言葉をあらわすマーク（文字）。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"才",post:"のうのかたまり",yomi:"さい",meaning:"物事をうまくできる能力（才能）。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"今",post:"を生きるわかもの",yomi:"いま",meaning:"この時間。現在。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"今",post:"年はもうおわり",yomi:"こん",meaning:"この一年（今年）のこと。"},
+  {grade:"grade2",unit:"レベル22",pre:"高いお",target:"金",post:"をはらう",yomi:"かね",meaning:"ものを買うときに使うもの。"},
+  {grade:"grade2",unit:"レベル22",pre:"",target:"教",post:"えをこう",yomi:"おし",meaning:"先生などが伝えてくれる大切なこと。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"顔",post:"にどろをぬる",yomi:"かお",meaning:"目や鼻や口がある、頭の前の部分。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"外",post:"からのけしき",yomi:"そと",meaning:"家や建物のなかの反対。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"絵",post:"をかくしごと",yomi:"え",meaning:"えのぐやペンでかいたもの。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"画",post:"数の多いかんじ",yomi:"かく",meaning:"漢字を書くときの、線の数。"},
+  {grade:"grade2",unit:"レベル23",pre:"さおを",target:"引",post:"く",yomi:"ひ",meaning:"自分の方へ引っ張ること。"},
+  {grade:"grade2",unit:"レベル23",pre:"ほいく",target:"園",post:"ですごす",yomi:"えん",meaning:"子どもがあつまって過ごす場所。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"雲",post:"ひとつないけしき",yomi:"くも",meaning:"空にうかんでいる白や黒のかたまり。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"回",post:"想する",yomi:"かい",meaning:"昔のことを思い出すこと（回想）。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"角",post:"をまがる",yomi:"かど",meaning:"道がまがっているところ。"},
+  {grade:"grade2",unit:"レベル23",pre:"ごく",target:"楽",post:"おんせん",yomi:"らく",meaning:"楽しくてすばらしい場所（極楽）。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"間",post:"をあける",yomi:"ま",meaning:"物と物のすきま。"},
+  {grade:"grade2",unit:"レベル23",pre:"",target:"京",post:"とに行こう！",yomi:"きょう",meaning:"日本の昔の都があったところ（京都）。"},
+
+  // === 3年生 ===
+  { grade: "grade3", unit: "白い花びら", pre: "つぼみが ", target: "開", post: "く", yomi: "ひら", meaning: "とじていたものが、あくこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "戸を ", target: "開", post: "ける", yomi: "あ", meaning: "とまっているものを、あけること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "開花", post: " する", yomi: "かいか", meaning: "花がさくこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "一年をふり", target: "返", post: "る", yomi: "かえ", meaning: "むかしのことを、思いだすこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "返事", post: " をする", yomi: "へんじ", meaning: "よばれたときに、こたえること。" },
+  { grade: "grade3", unit: "大切な ", target: "事", post: "がら", yomi: "こと", meaning: "ものごと、できごと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "行動", post: " する", yomi: "こうどう", meaning: "なにかをすること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "電車が ", target: "動", post: "く", yomi: "うご", meaning: "とまっていたものが、すすんだり、かわったりすること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "動物", post: " が好き", yomi: "どうぶつ", meaning: "生き物のうち、動くことができるもの。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "乗", post: "り物がある", yomi: "の", meaning: "車や電車など、人がのるもの。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "乗用車", post: " がある", yomi: "じょうようしゃ", meaning: "人がのるための、ふつうの自動車。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "登場", post: " する", yomi: "とうじょう", meaning: "おはなしや舞台に、人がでてくること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "登山", post: " をする", yomi: "とざん", meaning: "山にのぼること。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "物語", post: " の主人公", yomi: "ものがたり", meaning: "おはなしのこと。" },
+  { grade: "grade3", unit: "白い花びら", pre: "もち", target: "主", post: " がいた", yomi: "ぬし", meaning: "それを持っている人。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "橋", post: " をわたる", yomi: "はし", meaning: "川などをわたるために、かけられたもの。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "歩道橋", post: " がある", yomi: "ほどうきょう", meaning: "人が安全に道をわたるための、高いところにある橋。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "海岸", post: " に行く", yomi: "かいがん", meaning: "海と陸のさかいめのところ。" },
+  { grade: "grade3", unit: "白い花びら", pre: "", target: "川岸", post: " を歩く", yomi: "かわぎし", meaning: "川のよこの、陸のところ。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "茶", post: " つみ", yomi: "ちゃ", meaning: "お茶の葉をつむこと。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "海", post: " びらき", yomi: "うみ", meaning: "夏の海水浴場がオープンすること。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "水の ", target: "週間", post: "", yomi: "しゅうかん", meaning: "水について考える一週間のこと。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "秋", post: " まつり", yomi: "あき", meaning: "秋に行われるおまつり。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "新米", post: " がおいしい", yomi: "しんまい", meaning: "その年にとれた、あたらしいお米。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "雪", post: " がっせん", yomi: "ゆき", meaning: "雪を丸めてなげあう遊び。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "春一番", post: " が来る", yomi: "はるいちばん", meaning: "春の初めにふく、強い南風。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "花", post: " めぐり", yomi: "はな", meaning: "いろいろな花を見てまわること。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "入道雲", post: " がある", yomi: "にゅうどうぐも", meaning: "夏によくできる、モクモクとした大きな雲。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "夕立", post: " がふる", yomi: "ゆうだち", meaning: "夏の夕方に、急にふる強い雨。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "名月", post: "", yomi: "めいげつ", meaning: "とても美しく見える、秋の満月のこと。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "秋晴れ", post: "", yomi: "あきばれ", meaning: "秋の、空がすっきりと晴れたお天気。" },
+  { grade: "grade3", unit: "言葉ふやそう", pre: "", target: "北風", post: "", yomi: "きたかぜ", meaning: "北のほうからふいてくる、つめたい風。" },
+  { grade: "grade3", unit: "発見ノート", pre: "星を", target: "発見", post: "する", yomi: "はっけん", meaning: "まだ知られていなかったものを、新しく見つけること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "発音", post: "する", yomi: "はつおん", meaning: "声に出して言葉を言うこと。" },
+  { grade: "grade3", unit: "発見ノート", pre: "五時に", target: "出発", post: "する", yomi: "しゅっぱつ", meaning: "目的地にむかって、そこを出ること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "予定", post: "を立てる", yomi: "よてい", meaning: "前もって決めておく、これからの計画。" },
+  { grade: "grade3", unit: "発見ノート", pre: "国語の", target: "予習", post: "", yomi: "よしゅう", meaning: "学校で習う前に、自分で勉強しておくこと。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "予想", post: "が当たる", yomi: "よそう", meaning: "これからどうなるか、前もって考えること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "空想", post: "の生き物", yomi: "くうそう", meaning: "実際にはないことを、頭の中で想像すること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "地図", post: "で調べる", yomi: "ちず", meaning: "土地の様子を、記号などを使ってかいた図。" },
+  { grade: "grade3", unit: "発見ノート", pre: "温度の", target: "調節", post: "", yomi: "ちょうせつ", meaning: "ちょうどいい具合に、合わせること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "せわをする", target: "時", post: "", yomi: "とき", meaning: "時間。または、あることをするその瞬間。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "言葉", post: "でつたえる", yomi: "ことば", meaning: "思っていることを表す、音声や文字。" },
+  { grade: "grade3", unit: "発見ノート", pre: "朝顔の", target: "子葉", post: "", yomi: "しよう", meaning: "種から芽が出たときに、最初に出る葉っぱ（ふたば）。" },
+  { grade: "grade3", unit: "発見ノート", pre: "気持ちを", target: "表", post: "す", yomi: "あらわ", meaning: "心の中にあるものを、外に見えるようにすること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "発表", post: "会に行く", yomi: "はっぴょう", meaning: "みんなの前で、自分の意見や作品を知らせること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "表", post: "を作る", yomi: "ひょう", meaning: "わかりやすいように、線で区切って文字や数字をまとめたもの。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "理由", post: "を聞く", yomi: "りゆう", meaning: "なぜそうなるのか、というわけ。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "体温", post: "をはかる", yomi: "たいおん", meaning: "体の温度。" },
+  { grade: "grade3", unit: "発見ノート", pre: "水を", target: "温", post: "める", yomi: "あたた", meaning: "冷たいものを、熱くすること。" },
+  { grade: "grade3", unit: "発見ノート", pre: "毎日の", target: "生活", post: "", yomi: "せいかつ", meaning: "毎日をいきていくこと。くらし。" },
+  { grade: "grade3", unit: "発見ノート", pre: "", target: "温", post: "かな心", yomi: "あたた", meaning: "おもいやりのある、やさしい様子。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "漢字", post: "の学習", yomi: "かんじ", meaning: "中国から伝わり、日本でも使われている文字。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "漢数字", post: "で書く", yomi: "かんすうじ", meaning: "一、二、三などの、数を表す漢字。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "意見", post: "をつたえる", yomi: "いけん", meaning: "あることについての、自分の考え。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "紙を", target: "用意", post: "する", yomi: "ようい", meaning: "必要なものを、前もってそろえておくこと。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "意味", post: "を調べる", yomi: "いみ", meaning: "言葉が表している、中身やわけ。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "味", post: "わう", yomi: "あじ", meaning: "食べ物のあじを感じること。または、よさをじっくり感じること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "地図記号", post: "", yomi: "ちずきごう", meaning: "地図の中で、建物や土地の様子を表すしるし。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "電話番号", post: "", yomi: "でんわばんごう", meaning: "電話をかけるための、決められた数字。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "重", post: "い本", yomi: "おも", meaning: "目方が多いこと。ずっしりしていること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "重複", post: "する", yomi: "ちょうふく", meaning: "同じ物事が、もう一度かさなること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "紙を", target: "重", post: "ねる", yomi: "かさ", meaning: "物の上に、さらに物をのせること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "名前を", target: "問", post: "う", yomi: "と", meaning: "わからないことを、人に聞くこと。たずねること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "学問", post: "を学ぶ", yomi: "がくもん", meaning: "勉強して、知識を身につけること。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "問屋", post: "で買う", yomi: "とんや", meaning: "品物をまとめて仕入れ、お店に売る会社。" },
+  { grade: "grade3", unit: "国語辞典の使い方", pre: "", target: "八重", post: "さくら", yomi: "やえ", meaning: "花びらが何まいも重なってさくこと。" },
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"実",post:"がなる",yomi:"み",meaning:"草や木にできる実（フルーツや種など）。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"実",post:"力がある",yomi:"じつ",meaning:"ほんとうの力。中身。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"作物が",target:"実",post:"る",yomi:"みの",meaning:"実ができること。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"消",post:"ぼう車",yomi:"しょう",meaning:"火事をけすための車。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"消",post:"しゴムがある",yomi:"け",meaning:"書いたものをなくすこと。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"消",post:"化のよいもの",yomi:"しょう",meaning:"食べたものを体にとりこみやすくすること。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"化",post:"け物がいる",yomi:"ば",meaning:"すがたをかえた、あやしいもの。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"水",target:"面",post:"にうかぶ",yomi:"めん",meaning:"水のひょうめん。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"物語の場",target:"面",post:"",yomi:"めん",meaning:"おはなしの、そのときのようすや場所。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"面",post:"白い顔",yomi:"おも",meaning:"たのしい、または、かわったようす。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"水",target:"泳",post:"をする",yomi:"えい",meaning:"水の中をおよぐこと。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"泳",post:"ぎたい気分",yomi:"およ",meaning:"水の中をすすむこと。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"身",post:"体のうりょく",yomi:"しん",meaning:"人間のからだ。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"身",post:"を守る",yomi:"み",meaning:"自分のからだや、いのち。"},
+  {grade:"grade3",unit:"うめぼしのはたらき",pre:"",target:"守",post:"りがかたい",yomi:"まも",meaning:"がいから身をふせぐこと。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"次",post:"の日になる",yomi:"つぎ",meaning:"あとにくるもの。"},
+  {grade:"grade3",unit:"めだか",pre:"本の目",target:"次",post:"",yomi:"じ",meaning:"本の内容がどのページにあるかまとめたもの。"},
+  {grade:"grade3",unit:"めだか",pre:"電話を取り",target:"次",post:"ぐ",yomi:"つ",meaning:"間に入って、人につなぐこと。"},
+  {grade:"grade3",unit:"めだか",pre:"虫が",target:"死",post:"ぬ",yomi:"し",meaning:"いのちがなくなること。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"死",post:"をかなしむ",yomi:"し",meaning:"いのちがなくなること。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"三十度",post:"の気温",yomi:"さんじゅうど",meaning:"温度の高さ。"},
+  {grade:"grade3",unit:"めだか",pre:"もう",target:"一度",post:"",yomi:"いちど",meaning:"もういっかい。"},
+  {grade:"grade3",unit:"めだか",pre:"この",target:"度",post:"は",yomi:"たび",meaning:"今回のこと。この機会。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"一流",post:"のシェフ",yomi:"いちりゅう",meaning:"一番すぐれていること。"},
+  {grade:"grade3",unit:"めだか",pre:"",target:"流",post:"れがはやい",yomi:"なが",meaning:"水などが動いていくこと。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"研究",post:"をする",yomi:"けんきゅう",meaning:"よく調べて、深く考えること。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"究",post:"きょくの料理",yomi:"きゅう",meaning:"いちばん最後、これ以上ないところまで行きつくこと。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"問題を",target:"究明",post:"する",yomi:"きゅうめい",meaning:"深く調べて、はっきりとさせること。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"一秒",post:"の長さ",yomi:"いちびょう",meaning:"時計のいちばん短い時間のたんい。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"研修",post:"をする",yomi:"けんしゅう",meaning:"勉強して、知識や技術を身につけること。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"昭和",post:"の時代",yomi:"しょうわ",meaning:"日本の昔の年号のひとつ。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"和食",post:"を食べる",yomi:"わしょく",meaning:"日本ふうの料理。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"",target:"図書館",post:"に行く",yomi:"としょかん",meaning:"本がたくさん置いてあるところ。"},
+  {grade:"grade3",unit:"本をさがそう",pre:"大きな",target:"館",post:"",yomi:"やかた",meaning:"大きくてりっぱな家やたてもの。"}
+];
+QD.forEach(q=>{
+  if(q.unit==='大切な '){q.unit='白い花びら';q.pre='大切な '}
+  q.pre=(q.pre||'').trim();q.post=(q.post||'').trim();
+  if(q.post==='道でを走る')q.post='道を走る';
+  q.g=+q.grade.slice(5);
+});
+const G={1:{u:[],m:{},y:new Set()},2:{u:[],m:{},y:new Set()},3:{u:[],m:{},y:new Set()}};
+QD.forEach(q=>{const o=G[q.g];if(!o.u.includes(q.unit))o.u.push(q.unit);(o.m[q.target]=o.m[q.target]||[]).push(q);o.y.add(q.yomi)});
+const KEYS=[1,2,3].flatMap(g=>Object.keys(G[g].m).map(t=>g+':'+t));
+const TOTAL=KEYS.length,GCNT=g=>Object.keys(G[g].m).length;
+const kG=k=>+k[0],kT=k=>k.slice(2),ents=k=>G[kG(k)].m[kT(k)];
+function pool(g,a,b){const u=G[g].u.slice(a,b+1);return[...new Set(QD.filter(q=>q.g==g&&u.includes(q.unit)).map(q=>g+':'+q.target))]}
+const P1=pool(1,0,5),P2=pool(1,6,11),P3=pool(2,0,10),P4=pool(2,11,22),P5=pool(3,0,2),P6=pool(3,3,6),PALL=KEYS;
+
+// ===================== セーブ =====================
+const SV='mojimonRPG1';
+const NEW=()=>({v:2,name:'ゆうしゃ',col:0,m:0,x:9,y:6,hp:5,exp:0,coin:100,
+  it:{kizu:2,ii:0,hint:3,fude:0,mitsu:0,mushi:0,cookie:1},acc:{own:[],on:null},pet:{nick:'スミタマ',aff:0,g:0},
+  b:[],f:{},z:{},q:{},tro:{},vis:{0:1},rs:{m:0,x:3,y:5},
+  st:{ans:0,ok:0,kaki:0,kakiok:0,yomiok:0,sagok:0,catch:0,wins:0,steps:0,maxc:0,shiny:0,trace:0,petm:0,rematch:0},
+  cfg:{snd:1,bgm:1,spd:1,pen:1},dm:null,login:{last:'',days:0},hi:0,zr:0,mushi:0,mitsu:0});
+let S=null;try{S=JSON.parse(localStorage.getItem(SV))}catch(e){}
+const hasSave=!!(S&&S.f);
+function migrate(o){const n=NEW();if(!o)return n;const r=Object.assign(n,o);['it','acc','pet','st','cfg','login','q','tro','vis'].forEach(k=>r[k]=Object.assign(NEW()[k],o[k]||{}));r.v=2;return r}
+S=migrate(hasSave?S:null);
+let svT=0;
+const save=()=>{try{localStorage.setItem(SV,JSON.stringify(S))}catch(e){}const s=$('sv');if(s){s.classList.add('on');clearTimeout(svT);svT=setTimeout(()=>s.classList.remove('on'),700)}};
+const fmt=s=>String(s).replace(/\{N\}/g,S.name).replace(/\{P\}/g,S.pet.nick);
+const zz=k=>S.z[k]||(S.z[k]={c:0,ok:0,ng:0,w:0});
+const caught=g=>KEYS.filter(k=>(!g||kG(k)==g)&&S.z[k]&&S.z[k].c).length;
+
+// ===================== あいぼう（オリジナル ドット絵） =====================
+const PNM=['スミタマ','ポッチ','フデポチ','ハネフデ','スミリュウ','ボクリュウ','コウリュウ'];
+const MOVES=['ころがる','すみでっぽう','ふでアタック','ハネかぜ','スミブレス','ぼくじゅうりゅう','こうりゅうは'];
+const STG=[1,3,6,10,15,21,28];
+const lv=()=>1+Math.floor(S.exp/60);
+const stg=()=>{let s=0;STG.forEach((v,i)=>{if(lv()>=v)s=i});return s};
+const maxhp=()=>5+Math.min(5,Math.floor((lv()-1)/5));
+const SPR=[
+["................","......kkkk......",".....kcccck.....","....kcccccck....","...kccbbcccck...","...kcccbbccck...","..kcccccbbccck..","..kccbbbbbbcck..","..kcccccbbccck..","..kccccbbcccck..","..kcccbbccccck..","...kcccccccck...","...kcccccccck...","....kcccccck....",".....kkkkkk.....","................"],
+["................",".......kk.......","......kbbk......",".....kbbbbk.....","....kblbbbbk....","...kbbbbbbbbk...","..kbbwwbbwwbbk..","..kbbwebbwebbk..","..kbbbbbbbbbbk..","..kbpbbkkbbpbk..","..kbbbbbbbbbbk..","...kbbbbbbbbk...","....kkbbbbkk....","......kkkk......","................","................"],
+["........h.......",".......hhg......","......kbbk......",".....kbbbbk.....","....kblbbbbk....","...kbbbbbbbbk...","..kbbwwbbwwbbk..","..kbbwebbwebbk..","..kbbbbbbbbbbk..","..kbpbbkkbbpbk..","..kbbbbbbbbbbk..","...kbbbbbbbbk...","....kbbbbbbk....","....kbk..kbk....","....kk....kk....","................"],
+[".......hhg......","......kbbk......",".....kbbbbk.....",".kk.kblbbbbk.kk.","kllkbbbbbbbbkllk","kllkbwwbbwwbkllk",".kkkbwebbwebkkk.","...kbbbbbbbbk...","...kpbbkkbbpk...","...kbbbbbbbbk...","....kbccccbk....","....kbccccbk....",".....kbbbbk.kk..","....kbk..kbk.k..","....kk....kk....","................"],
+["...g........g...","...gk......kg...","....kkkkkkkk....","...kbbbbbbbbk...","..kbbwwbbwwbbk..","..kbbwebbwebbk..","..kbbbbbbbbbbk..","..kbbbkkkkbbbk..","...kbbbbbbbbk...",".kk.kbccccbk.kk.",".kbkbccccbkbk...","..kkbccccbkk....","...kbccccbk.kk..","...kbbbbbbkkbk..","...kbk..kbkk....","...kk...kk......"],
+["..g..........g..","..gk........kg..","...kkkkkkkkkk...","..kbbbbbbbbbbk..",".kbbwwbbbbwwbbk.",".kbbwebbbbwebbk.","kkbbbbbbbbbbbbkk","klkbbbkkkkbbbklk","kllkbbbbbbbbkllk","kllkbccccccbkllk",".kkkbccccccbkkk.","...kbccccccbk...","...kbccccccbkkk.","...kbbbbbbbbkgk.","...kbbk..kbbkk..","...kkk...kkk...."]
+];
+const PPAL={k:'#1a1633',b:'#3b4fa8',l:'#7d93ee',w:'#ffffff',e:'#1a1633',g:'#ffd166',p:'#ff8fb1',c:'#fff3d6',h:'#26213f',r:'#ef476f',u:'#3fa7ff',o:'#ff7b39',y:'#ffe066',n:'#7a3b12'};
+const GPAL={...PPAL,b:'#f2b632',l:'#fff3a0',c:'#fff8e1',k:'#5a3a00',h:'#5a3a00',e:'#3a2200',g:'#ff6b8a'};
+const ACC={ribbon:{n:'リボン',p:300,s:['rr..rr','rrkkrr','rr..rr']},cap:{n:'ぼうし',p:400,s:['.uuuu.','uuuuuu','uuuuuuuu']},flower:{n:'はなかざり',s:['p.p','.y.','p.p']},glass:{n:'サングラス'},crown:{n:'かんむり',s:['g.g.g','ggggg','grgrg']}};
+const pcache={};
+function petCv(st,acc){
+  const key=st+'|'+acc;if(pcache[key])return pcache[key];
+  const cv=document.createElement('canvas');cv.width=16;cv.height=20;const x=cv.getContext('2d');
+  const spr=SPR[Math.min(st,5)],pal=st>=6?GPAL:PPAL;let top=99,ey=-1,ex0=99,ex1=-1;
+  spr.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch=='.')return;top=Math.min(top,j);if(ch=='e'){ey=j;ex0=Math.min(ex0,i);ex1=Math.max(ex1,i)}x.fillStyle=pal[ch];x.fillRect(i,j+4,1,1)}));
+  if(st>=6){x.fillStyle='#fff';[[1,6],[14,9],[2,15]].forEach(([a,b])=>x.fillRect(a,b,1,1))}
+  if(acc==='glass'&&ey>=0){x.fillStyle='#1a1633';x.fillRect(ex0-2,ey+3,ex1-ex0+5,1);x.fillStyle='#3d3d6b';x.fillRect(ex0-1,ey+4,2,1);x.fillRect(ex1,ey+4,2,1)}
+  else if(acc&&ACC[acc]&&ACC[acc].s){const s=ACC[acc].s;s.forEach((r,j)=>{const w=r.length,x0=8-Math.ceil(w/2);[...r].forEach((ch,i)=>{if(ch!='.'){x.fillStyle=PPAL[ch];x.fillRect(x0+i,top+4-s.length+j+1,1,1)}})})}
+  return pcache[key]=cv;
+}
+const purl={};
+const petURL=(st=stg(),acc=S.acc.on)=>{const k=st+'|'+acc;return purl[k]||(purl[k]=petCv(st,acc).toDataURL())};
+
+// ===================== 音（BGM・効果音） =====================
+let AC=null;
+function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+const mf=n=>440*Math.pow(2,(n-69)/12);
+function note(n,t,d,type,v){if(!n||!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=mf(n);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}
+const SFX={ok:[76,79,84],ng:[52,47],lvl:[72,76,79,84,88],cat:[79,84,88,91],bang:[88,88],bump:[40],hit:[60,55],evo:[72,74,76,77,79,81,83,84],coin:[88,95],win:[72,72,72,76,79,76,79,84]};
+function sfx(k){if(!S.cfg.snd||!ac())return;const s=SFX[k],t=AC.currentTime;s.forEach((n,i)=>note(n,t+i*(k=='win'?.12:.07),k=='bump'?.06:.16,k=='bump'?'triangle':'square',k=='bump'?.08:.05))}
+const TUNES={
+ town:{t:150,m:[72,0,76,79,77,76,74,0,72,74,76,77,79,0,79,0,81,79,77,76,74,72,74,76,77,76,74,71,72,0,0,0],b:[48,48,53,55,48,48,55,48,53,53,48,48,50,55,48,48]},
+ route:{t:156,m:[69,72,76,72,74,77,81,77,79,76,72,76,74,71,67,71,69,72,76,79,77,74,72,74,76,72,69,72,71,0,0,0],b:[45,45,50,50,52,52,47,47,45,45,50,50,52,52,45,45]},
+ cave:{t:100,m:[64,0,67,0,63,0,62,0,64,0,67,70,69,0,0,0],b:[40,40,39,38,40,40,45,45]},
+ castle:{t:130,m:[62,65,69,68,62,65,69,70,62,65,69,68,67,65,64,61],b:[38,38,38,37,38,38,43,42]},
+ battle:{t:172,m:[76,0,76,79,76,74,72,74,76,0,76,79,81,79,76,74,72,0,72,76,74,72,71,72,74,0,76,0,71,0,74,0],b:[52,52,52,52,48,48,50,50,48,48,48,48,47,47,50,50]},
+ boss:{t:160,m:[69,0,68,69,72,0,71,69,68,0,64,0,65,64,62,64,69,0,68,69,74,0,72,71,72,71,69,68,69,0,0,0],b:[45,45,44,44,41,41,40,40,45,45,44,44,41,41,40,40]}
+};
+let bgmI=null,bgmN='';
+function bgm(n){
+  if(!S.cfg.bgm||!ac()){stopBgm();return}
+  if(bgmN===n&&bgmI)return;stopBgm();bgmN=n;const T=TUNES[n];if(!T)return;
+  const dt=60/T.t/2;let nx=AC.currentTime+.08,i=0;
+  bgmI=setInterval(()=>{while(nx<AC.currentTime+.25){const k=i%T.m.length;note(T.m[k],nx,dt*.85,'square',.018);if(k%2==0)note(T.b[(k/2|0)%T.b.length],nx,dt*1.7,'triangle',.045);nx+=dt;i++}},60);
+}
+function stopBgm(){clearInterval(bgmI);bgmI=null;bgmN=''}
+const mapBgm=()=>M.bg||'town';
+
+// ===================== マップ =====================
+const LAY={
+T0:["TTTTTTTTT..TTTTTTTTT","T..................T","T.HHHH......LLLLL..T","T.HHHH......LLLLL..T","T.HDHH...i..LLDLL..T","T..................T","T.,,,.........,,,..T","T.,,,..wwwww..,,,..T","T......wwwww.......T","T......wwwww...HHH.T","T...i..........HDH.T","T..................T","T.TT..,,,,..,,,.TT.T","T..................T","TTTTTTTTTTTTTTTTTTTT"],
+TA:["TTTTTTTTT..TTTTTTTTT","T..................T","T.GGGGG.......CCCC.T","T.GGGGG.......CCCC.T","T.GGDGG...i...CDCC.T","T..................T","T.,,,..........,,,.T","T......HHHH........T","T......HHHH...MMM..T","T......HDHH...MDM..T","T..................T","T.ww.........,,,...T","T.ww...........TT..T","T..................T","TTTTTTTTT..TTTTTTTTT"],
+RF:["TTTTTTTTT..TTTTTTTTT","T....gggg..gggg....T","T....gggg..gggg..i.T","T..TTTTTT..TTTTTT..T","T..gggg........gg..T","T..gggg..TTT..ggg..T","T..gggg..TTT..ggg..T","T........TTT.......T","TTTTT..........TTTTT","T,,,...ggggggg...,,T","T......ggggggg.....T","T..TT..ggggggg..TT.T","T..TT...........TT.T","T..................T","TTTTTTTTT..TTTTTTTTT"],
+RB:["TTTTTTTTT..TTTTTTTTT","T...gggg...gggg....T","T...gggg...gggg..i.T","T..................T","wwwwwwwww==wwwwwwwww","wwwwwwwww==wwwwwwwww","T..................T","T.gggggg....gggggg.T","T.gggggg.TT.gggggg.T","T.gggggg.TT.gggggg.T","T........TT.......,T","TTTT............TTTT","T,,....gggggg....,,T","T..................T","TTTTTTTTT..TTTTTTTTT"],
+CV:["RRRRRRRRR..RRRRRRRRR","R..gggg......gggg..R","R..gggg.RRRR.gggg..R","R.......RRRR.......R","RRRRR..........RRRRR","R...ggggg..ggggg...R","R...ggggg..ggggg...R","R..RRRR......RRRR..R","R..RRRR......RRRR.iR","R.......gggg.......R","R.......gggg.......R","RRR..............RRR","R..ggg........ggg..R","R..................R","RRRRRRRRR..RRRRRRRRR"],
+CS:["RRRRRRRRRRRRRRRRRRRR","R.......RRRR.......R","R..................R","R.RR.RR......RR.RR.R","R..................R","R..ggggg....ggggg..R","R..ggggg....ggggg..R","R.RR.RR......RR.RR.R","R..................R","R..ggggg....ggggg..R","R..ggggg....ggggg..R","R.RR.RR......RR.RR.R","R........i.........R","R..................R","RRRRRRRRR..RRRRRRRRR"]
+};
+const TR=(id,name,pool,n,hp,coin,pre,win,o={})=>({id,name,pool,n,hp,coin,pre,win,...o});
+const C_KESI={h:'#e8e8e8',b:'#2d2d2d',look:'kesi'},C_SORA={h:'#1a1a1a',b:'#2b6cb0'};
+const RIV1=TR('riv1','ライバル ソラ',pool(1,0,2),2,2,100,
+ ['ソラ「まてよ、{N}！ おれは ソラ。 むん先生の 一ばん弟子は おれだ！」','「おまえの {P}と おれの 漢字ぢから、 どっちが 上か しょうぶだ！」'],
+ ['ソラ「くっ… やるじゃん！ でも つぎは まけないからな！」','ソラは 北へ かけていった…']);
+const K1=TR('k1','ケシゴム団 したっぱ',P2,2,2,120,
+ ['ケシゴム団「ケッケッケ！ この先の 町の かんばんは おれたちが ゴシゴシ けしてやる！」','「じゃまする やつも まとめて けしてやるぜ！」'],
+ ['ケシゴム団「ひぇ〜！ 漢字の ちからが つよすぎる！」','「おぼえてろ！ 幹部の ケシカスさまが だまっちゃ いないぞ！」']);
+const RIV2=TR('riv2','ライバル ソラ',pool(2,0,7),3,2,200,
+ ['ソラ「よう、{N}！ バッジ 2こか… おれも 2こだ！」','「2年生の 漢字で しょうぶだ！ 手かげんは しないぜ！」'],
+ ['ソラ「また まけた… おまえ、 まいにち れんしゅう してるんだな。」','「おれも まけて られない！ じゃあな！」']);
+const B1=TR('boss1','幹部 ケシカス',P4,3,3,400,
+ ['ケシカス「ホホホ… わたしは ケシゴム団 幹部の ケシカス。」','「この どうくつで あつめた 文字の ちからで、 もじ魔王さまを めざめさせるのよ！」','「おじゃまむしは きれいに ゴシゴシ してあげる！」'],
+ ['ケシカス「そ、そんな… わたしの けしゴムが すりへって しまったわ！」','「でも もう おそいわ… 魔王さまは まもなく めざめる…！」','ケシカスは にげていった。 とじこめられていた 文字たちが 外へ とびだしていった！'],{look:'kan',evil:1});
+const K2=TR('k2','ケシゴム団 したっぱ',P5,3,2,250,
+ ['ケシゴム団「ここは とおさん！ 3年生の 漢字は むずかしいぞ〜！」'],
+ ['ケシゴム団「うわ〜ん！ 3年生の 漢字も スラスラだ…！」','「魔王さまの おしろは 6この バッジが ないと 入れないんだぞ！ …あ、 言っちゃった。」']);
+const RIV3=TR('riv3','ライバル ソラ',P6,3,3,400,
+ ['ソラ「{N}… まってたぜ。」','「おれ、 ずっと 一ばんに なりたくて あせってた。 でも おまえと {P}を 見て わかったんだ。」','「漢字は かずを こなすより、 ひとつずつ ていねいに かくのが 大事なんだって。」','「さいごの しょうぶだ！ 本気で いくぞ！」'],
+ ['ソラ「…かんぱいだ。 魔王を たおせるのは おまえしか いない。」','「魔王城の 入り口で まってるからな！」']);
+const B2=TR('boss2','幹部 ケシズミ',pool(3,0,6),4,3,600,
+ ['ケシズミ「わたしは ケシゴム団 さいごの 幹部、 ケシズミ！」','「魔王さまの もとへは 一歩も 行かせん！」'],
+ ['ケシズミ「ば、 ばかな…！ 魔王さま、 もうしわけ ありません…」','ケシズミは くずれるように きえていった…'],{look:'kan',evil:1});
+const B3=TR('boss3','もじ魔王 マッサツ',PALL,4,3,1000,
+ ['魔王「よくぞ きた… ちいさき もじつかい よ。」','「漢字など めんどうな だけだ。 すべて けして、 まっしろな せかいに してくれる！」','{N}「漢字には ひとつひとつ いみと いのちが あるんだ！ ぜったいに けさせない！」','{P}も まけじと 魔王を にらみつけた！','魔王「おもしろい… ならば わが ぜんりょくを うけてみよ！」'],
+ ['魔王「グワァァ… これが… 文字を あいする ものの ちから…」','もじ魔王 マッサツは ひかりに つつまれて きえていった…','せかいじゅうの かんばんに 文字が もどってきた！'],
+ {look:'boss',evil:1,p2:1,done:()=>ending()});
+const CHAMP=TR('champ','チャンピオン ソラ',PALL,6,3,500,
+ ['ソラ「{N}！ おれも ずっと れんしゅう してたんだ。」','「ナガレヤマ地方 さいきょう けっていせん、 いくぜ！」'],
+ ['ソラ「やっぱり おまえは すげえよ。 また いつでも しょうぶ しような！」'],{rep:1});
+
+const GYM=[
+ {nm:'ヒトミ',t:'かずのジム',bd:'かずバッジ',p:P1,n:3,hp:3,coin:300,
+  pre:['ジムリーダー ヒトミ「ようこそ かずのジムへ！」','「一、二、三… かずと しぜんの 漢字は すべての きほん。 あなたの ちから、 見せてちょうだい！」'],
+  win:['ヒトミ「おみごと！ ていねいな 字だったわ。」','ヒトミ「北の みちには ケシゴム団が いるらしいの。 気をつけてね。」']},
+ {nm:'ガクト',t:'まなびのジム',bd:'まなびバッジ',p:P2,n:3,hp:3,coin:350,
+  pre:['ジムリーダー ガクト「ここは まなびのジム。 1年生の 漢字の しあげだ！」','「さいごの しれん、 うけてみろ！」'],
+  win:['ガクト「まいった！ 1年生の 漢字は もう きみの ものだ。」'],
+  after:['そのとき、 むん先生から でんわが かかってきた！','むん先生「{N}、 1年生の 漢字を マスターしたね！ すばらしい！」','「ここからは 2年生の 漢字の ちほうだ。 もじモンも ぐっと つよくなる。」','「ケシゴム団は 北の どうくつに アジトを つくって いるらしい… たのんだよ！」']},
+ {nm:'ミナミ',t:'ながれのジム',bd:'ながれバッジ',p:P3,n:3,hp:3,coin:400,
+  pre:['ジムリーダー ミナミ「川の ながれのように スラスラ かけるかしら？」','「2年生の 漢字、 いくわよ！」'],
+  win:['ミナミ「さらさら きれいに かけたわね！」','ミナミ「バッジが 3こに なったから、 メニューの「そらとぶ」で 行ったことのある 町へ ひとっとび できるわ！」','ミナミ「北の くらやみどうくつで ケシゴム団が なにか たくらんでいるわ。」']},
+ {nm:'ゴウ',t:'いわおのジム',bd:'いわおバッジ',p:P4,n:4,hp:3,coin:450,
+  pre:['ジムリーダー ゴウ「ガハハ！ わしの ジムは 岩のように かたいぞ！」','「2年生の むずかしい 漢字で いざ しょうぶ！」'],
+  win:['ゴウ「ガハハ！ 岩のように かたい いしだ！ みとめよう！」'],
+  after:['むん先生から でんわだ！','むん先生「2年生の 漢字も クリアだね！ もう 一人前の もじつかい だ。」','「さいごは 3年生の 漢字。 いみの ある ことばが いっぱい 出てくるよ。 がんばれ！」']},
+ {nm:'サクラ',t:'はなびらのジム',bd:'はなびらバッジ',p:P5,n:4,hp:3,coin:500,
+  pre:['ジムリーダー サクラ「ようこそ。 花びらのように 字を ひらかせましょう。」','「3年生の 漢字、 あなたに さかせられるかしら？」'],
+  win:['サクラ「まあ、 きれいに さいたわ…！」']},
+ {nm:'ホンダ',t:'ほんのジム',bd:'みなとバッジ',p:P6,n:4,hp:3,coin:600,
+  pre:['ジムリーダー ホンダ「わたしは ほんの むし、 ホンダ。 国語じてんは ともだちさ。」','「さいごの ジム、 3年生の 漢字の しあげだよ！」'],
+  win:['ホンダ「すばらしい。 きみの あたまの 中は りっぱな じてんだ。」'],
+  after:['むん先生から でんわだ！','むん先生「{N}、 バッジが 6こ そろったね！」','「北の 魔王城の とびらが ひらいた。 もじ魔王 マッサツは そこに いる。」','「きみと {P}なら ぜったい だいじょうぶ。 いってこい！」']}
+];
+const BADGE=['🔢','🎒','🌊','🪨','🌸','⚓'];
+const TOWNS=['イチネン村','ガッコウ町','カワベ市','ヤマノ町','ハナビラ市','ミナト市'];
+const ITEMS={
+ kizu:{n:'きずぐすり',p:60,d:'♥を 3 かいふく',ic:'💊',use:'both'},
+ ii:{n:'いいきずぐすり',p:150,d:'♥を ぜんぶ かいふく',ic:'💖',use:'both'},
+ hint:{n:'ヒントのは',p:40,d:'つぎの もんだいで ヒント（なぞりがき／2たく）',ic:'🍃',use:'bt'},
+ fude:{n:'きんのふで',p:150,d:'つぎの 手がき せいかいで 3ばいダメージ',ic:'🖌️',use:'bt'},
+ cookie:{n:'もじクッキー',p:30,d:'あいぼうの ごはん。 なつき度アップ・きずなゲージ+2',ic:'🍪',use:'both'},
+ mitsu:{n:'あまいミツ',p:80,d:'40ぽ もじモンが 出やすく、 いろちがいも 出やすい',ic:'🍯',use:'fd'},
+ mushi:{n:'むしよけスプレー',p:60,d:'60ぽ やせいの もじモンが 出なくなる',ic:'🧴',use:'fd'}
+};
+const guard=(x,y,need,say)=>({x,y,h:'#4a3020',b:'#5a6b8c',say,cond:()=>S.b.length<need});
+const gateB=(need,say)=>()=>S.b.length<need?{say}:null;
+const QUESTS=[
+ {id:'q1',m:0,who:'となりの おじいさん',t:'1年生の もじモンを 15しゅるい あつめる',ck:()=>caught(1)>=15,rw:()=>{S.it.ii+=2;return 'いいきずぐすり×2'},
+  intro:['となりの おじいさん「わしは むかし、 町の かんばんを かく しょくにん だったんじゃ。」','「ケシゴム団の せいで かんばんの 文字が きえてのう…」','「1年生の もじモンを 15しゅるい あつめて くれんか？ その字で かんばんを かきなおしたいんじゃ。」'],
+  done:['おじいさん「おお！ これで かんばんが かける！ ほんとうに ありがとう！」']},
+ {id:'q2',m:2,who:'むらの おばあさん',t:'手がきで 30かい せいかい する',ck:()=>S.st.kakiok>=30,rw:()=>{S.it.fude+=2;S.coin+=200;return 'きんのふで×2 と 200コイン'},
+  intro:['むらの おばあさん「「一」は よこぼう 1本。 かんたんな 字ほど ていねいに かくのが コツじゃよ。」','「手がきで 30かい せいかい できたら、 だいじな ふでを あげようね。」'],
+  done:['おばあさん「りっぱな 手に なったねえ。 この きんのふでを つかいなさい。」']},
+ {id:'q3',m:6,who:'りょうりにん',t:'2年生の もじモンを 30しゅるい あつめる',ck:()=>caught(2)>=30,rw:()=>{addAcc('flower');return 'はなかざり（あいぼうの きせかえ）'},
+  intro:['りょうりにん「「海」「池」「汽」… 水の 字には さんずいが つくことが 多いんだ。」','「2年生の もじモンを 30しゅるい 見せてくれたら、 {P}に にあう かざりを あげよう！」'],
+  done:['りょうりにん「すごい コレクションだ！ はい、 はなかざり！」']},
+ {id:'q4',m:10,who:'花やさん',t:'いろちがい もじモンを 1ぴき つかまえる',ck:()=>S.st.shiny>=1,rw:()=>{addAcc('glass');S.it.mitsu+=2;return 'サングラス と あまいミツ×2'},
+  intro:['花やさん「キラキラ 金色に ひかる「いろちがい」の もじモンを 見たこと ある？」','「あまいミツを つかうと 出やすく なるのよ。 1ぴき つかまえたら おしえてね！」'],
+  done:['花やさん「まあ すてき！ おれいに サングラスを どうぞ。」']},
+ {id:'q5',m:12,who:'ふなのり',t:'3年生の もじモンを 25しゅるい あつめる',ck:()=>caught(3)>=25,rw:()=>{addAcc('crown');return 'かんむり（あいぼうの きせかえ）'},
+  intro:['ふなのり「「港」は 水の そばの みち。 ふねが あつまる ところさ。」','「3年生の もじモンを 25しゅるい あつめた ゆうしゃには、 たからの かんむりを わたそう！」'],
+  done:['ふなのり「みごとだ！ この かんむりは きみの ものだ！」']}
+];
+function addAcc(a){if(!S.acc.own.includes(a))S.acc.own.push(a)}
+
+const MAPS=[
+ {nm:'ハジマリ町',L:'T0',th:'town',bg:'town',n:1,hq:'q1',
+  sg:['ハジマリ町 ― もじの たびが はじまる 町。 みぎの しろい たてものは むん研究所。','↑ 北：1ばんどうろ → イチネン村'],
+  npcs:[{x:6,y:8,h:'#8b5a2b',b:'#6aa84f',say:['おねえさん「くさむらでは やせいの もじモンが とびだしてくるよ！」','「とびらには ぶつかるだけで 入れるよ。 ♥が へったら おうちで やすもうね。」']},
+        {x:13,y:13,h:'#e0a030',b:'#e06666',say:['こども「メニューは みぎうえの ボタンか Xキーで ひらけるよ！」','「キラキラ ひかる ところには どうぐが おちてるんだって！」']}],
+  hid:[{x:17,y:13,it:'kizu'}],
+  gate:()=>!S.f.egg?{say:['…まって！ まだ あいぼうが いない。','むん先生の 研究所（みぎの しろい たてもの）へ いこう！']}:null},
+ {nm:'1ばんどうろ',L:'RF',th:'forest',bg:'route',n:2,s:0,enc:P1,sg:['1ばんどうろ ― ↑ イチネン村'],
+  npcs:[{x:8,y:4,h:'#7a4a1a',b:'#3fa34d',see:'r',tr:TR('t1a','がくしゅうボーイ ユウ',P1,2,2,60,['ユウ「目と 目が あったら もじバトルだ！」'],['ユウ「まけた〜！ もっと かいて れんしゅう しよっと。」'])},
+        {x:15,y:10,h:'#c0392b',b:'#f39c12',see:'l',tr:TR('t1b','えにっきガール ハナ',P1,2,2,60,['ハナ「えにっきを かくと 漢字が すきに なるよ！ しょうぶ！」'],['ハナ「すごーい！ あなたの 字、 とっても ていねい！」'])},
+        {x:10,y:1,...C_SORA,cond:()=>!S.f.riv1,tr:RIV1}],
+  hid:[{x:1,y:13,it:'hint'},{x:18,y:7,it:'cookie'}],
+  gate:()=>!S.f.riv1?{tr:RIV1}:null},
+ {nm:'イチネン村',L:'TA',th:'town',bg:'town',n:3,s:1,gym:0,hq:'q2',sg:['イチネン村 ― かずと しぜんの 村'],
+  npcs:[guard(8,1,1,['ガードマン「この先へは かずバッジが ないと とおれないよ。」','（ジムは ひだりの 大きな たてもの だ）']),
+        {x:5,y:6,h:'#555',b:'#a0522d',say:['むらびと「村の かんばんの 文字が とつぜん きえたんだ…」','「ケシゴム団の しわざに ちがいない！」']},
+        {x:12,y:10,h:'#f1c40f',b:'#16a085',say:['こども「¥の マークは ショップ、 ＋の マークは もじセンター！」','「センターで やすむと、 まけた ときに そこへ もどれるよ。」']}],
+  hid:[{x:17,y:13,it:'kizu'}],
+  gate:gateB(1,['ガードマン「かずバッジを もってから また おいで。」'])},
+ {nm:'おがわのみち',L:'RB',th:'forest',bg:'route',n:4,s:2,enc:P2,sg:['おがわのみち ― ↑ ガッコウ町'],
+  npcs:[{x:5,y:6,h:'#333',b:'#2e86c1',see:'r',tr:TR('t3a','つりびと ゲン',P2,2,2,80,['ゲン「さかなも 漢字も、 じっくり まつのが コツさ。 しょうぶ！」'],['ゲン「おみごと！ 大きな 魚を にがしたな〜。」'])},
+        {x:14,y:3,h:'#7a4a1a',b:'#8e44ad',see:'l',tr:TR('t3b','がくしゅうボーイ ケン',P2,2,2,80,['ケン「1年生の 漢字なら まけないぞ！」'],['ケン「くやしい〜！ つぎは かきじゅんも おぼえて くる！」'])},
+        {x:10,y:1,...C_KESI,cond:()=>!S.f.k1,tr:K1}],
+  hid:[{x:18,y:13,it:'fude'}],
+  gate:()=>!S.f.k1?{tr:K1}:null},
+ {nm:'ガッコウ町',L:'TA',mir:1,th:'town',bg:'town',n:5,s:3,gym:1,sg:['ガッコウ町 ― まなびの 町'],
+  house:['せんせい「わからない 字は ずかんで よみかたを たしかめよう。」','「1日 10分でも まいにち かくと、 漢字は わすれにくく なるよ。」'],
+  npcs:[guard(8,1,2,['ガードマン「まなびバッジが ないと この先には 行けないよ。」','（ジムは みぎの 大きな たてもの だ）']),
+        {x:5,y:6,h:'#222',b:'#ecf0f1',say:['こうちょう先生「ケシゴム団が 学校の こくばんまで けして しまった…」','「きみの ちからで 文字を とりもどしてくれ！」']},
+        {x:12,y:10,h:'#e67e22',b:'#e84393',say:['おんなのこ「ずかんの「にがて」タブで まちがえた 字だけ 見られるの！」','「メニューの「ふくしゅう」で にがてな 字と たたかえるよ。」']},
+        {x:4,y:13,h:'#ffd166',b:'#ef476f',ev:()=>minigameEv()}],
+  hid:[{x:17,y:13,it:'mushi'}],
+  gate:gateB(2,['ガードマン「まなびバッジを もってから また おいで。」'])},
+ {nm:'かぜのみち',L:'RF',mir:1,th:'town',bg:'route',n:6,s:4,enc:P3,sg:['かぜのみち ― ↑ カワベ市'],
+  npcs:[{x:8,y:4,h:'#6d4c41',b:'#ff7675',see:'r',tr:TR('t5a','えかきガール ミオ',pool(2,0,5),2,2,100,['ミオ「絵も 字も、 線を ていねいに 引くのが 大事！」'],['ミオ「わあ、 あなたの 線 きれい！」'])},
+        {x:15,y:10,h:'#2d3436',b:'#00b894',see:'l',tr:TR('t5b','ランナー タク',pool(2,4,10),2,2,100,['タク「はしるのも かくのも はやいぜ！」'],['タク「はやいだけじゃ だめだな… ていねいに かこう。」'])},
+        {x:10,y:1,...C_SORA,cond:()=>!S.f.riv2,tr:RIV2}],
+  hid:[{x:18,y:7,it:'mitsu'}],
+  gate:()=>!S.f.riv2?{tr:RIV2}:null},
+ {nm:'カワベ市',L:'TA',th:'town',bg:'town',n:7,s:5,gym:2,hq:'q3',sg:['カワベ市 ― 川と ともに いきる 町'],
+  npcs:[guard(8,1,3,['ガードマン「どうくつは きけんだ。 ながれバッジを もっている人だけ とおすよ。」']),
+        {x:5,y:6,h:'#333',b:'#1e6091',say:['つりびと「北の どうくつから あやしい わらいごえが きこえるんだ…」','「どうくつは まっくらだから、 あいぼうから はなれないようにね。」']},
+        {x:12,y:10,h:'#b8860b',b:'#9b59b6',say:['おじさん「2年生の 漢字は 160字。 1年生の 2ばいだ！ でも きみなら できる！」']}],
+  hid:[{x:1,y:10,it:'ii'}],
+  gate:gateB(3,['ガードマン「ながれバッジを もってから また おいで。」'])},
+ {nm:'くらやみどうくつ',L:'CV',th:'cave',bg:'cave',n:8,s:6,enc:P4,sg:['くらやみどうくつ ― ケシゴム団の アジトが あるらしい…'],
+  npcs:[{x:5,y:3,...C_KESI,see:'r',tr:TR('t7a','ケシゴム団 したっぱ',pool(2,11,16),2,2,150,['ケシゴム団「アジトに 入りこむとは いい どきょうだ！」'],['ケシゴム団「うう… 幹部に おこられる…」'],{evil:1})},
+        {x:14,y:9,...C_KESI,see:'l',tr:TR('t7b','ケシゴム団 したっぱ',pool(2,17,22),2,2,150,['ケシゴム団「ここの 文字は ぜんぶ けしてやったぜ！」'],['ケシゴム団「け、 けした 文字が もどっていく〜！」'],{evil:1})},
+        {x:10,y:1,h:'#c0392b',b:'#5b2a86',look:'kan',cond:()=>!S.f.boss1,tr:B1}],
+  hid:[{x:1,y:13,it:'fude'},{x:18,y:1,it:'ii'}],
+  gate:()=>!S.f.boss1?{tr:B1}:null},
+ {nm:'ヤマノ町',L:'TA',mir:1,th:'town',bg:'town',n:9,s:7,gym:3,sg:['ヤマノ町 ― 岩山の ふもとの 町'],
+  house:['やまおとこ「「岩」は 山の 下に 石。 字の なりたちを しると おぼえやすいぞ。」'],
+  npcs:[guard(8,1,4,['ガードマン「いわおバッジが ないと はなびらのみちには 行けないよ。」']),
+        {x:5,y:6,h:'#5d4037',b:'#795548',say:['こうふ「どうくつから 文字たちが かえってきた！ きみの おかげだ！」']},
+        {x:12,y:10,h:'#fdcb6e',b:'#e17055',say:['こども「{P}に なんども 話しかけると なかよく なるんだって！」','「なかよしだと、 ピンチの ときに かばって くれるらしいよ！」']}],
+  hid:[{x:1,y:10,it:'cookie'}],
+  gate:gateB(4,['ガードマン「いわおバッジを もってから また おいで。」'])},
+ {nm:'はなびらのみち',L:'RF',th:'flower',bg:'route',n:10,s:8,enc:P5,sg:['はなびらのみち ― ↑ ハナビラ市'],
+  npcs:[{x:8,y:4,h:'#eee',b:'#6c5ce7',see:'r',tr:TR('t9a','ほんずき ハカセ',pool(3,0,1),3,2,150,['ハカセ「「発見」の 発は 「出発」の 発。 れんそう すると おぼえやすい！ しょうぶ！」'],['ハカセ「うむ、 はっけんが あったぞ！」'])},
+        {x:15,y:10,h:'#d63031',b:'#fd79a8',see:'l',tr:TR('t9b','はなうりの ユリ',pool(3,1,2),3,2,150,['ユリ「花の 名前も 漢字で かけたら すてきよね！」'],['ユリ「まあ、 お見事！」'])},
+        {x:10,y:1,...C_KESI,cond:()=>!S.f.k2,tr:K2}],
+  hid:[{x:18,y:7,it:'mitsu'}],
+  gate:()=>!S.f.k2?{tr:K2}:null},
+ {nm:'ハナビラ市',L:'TA',th:'flower',bg:'town',n:11,s:9,gym:4,hq:'q4',sg:['ハナビラ市 ― 一年中 花が さく 町'],
+  npcs:[guard(8,1,5,['ガードマン「はなびらバッジを もっていない人は とおせないよ。」']),
+        {x:5,y:6,h:'#2d3436',b:'#fab1a0',say:['おばあさん「むかし この町にも ケシゴム団が きてねえ… 花の 名前が ぜんぶ きえたのさ。」']},
+        {x:12,y:10,h:'#0984e3',b:'#55efc4',say:['しょうねん「ソラって やつが 海の ほうへ 走っていったよ。 だれかを まってるみたい。」']}],
+  hid:[{x:17,y:13,it:'ii'}],
+  gate:gateB(5,['ガードマン「はなびらバッジを もってから また おいで。」'])},
+ {nm:'うみべのみち',L:'RB',mir:1,th:'beach',bg:'route',n:12,s:10,enc:P6,sg:['うみべのみち ― ↑ ミナト市'],
+  npcs:[{x:5,y:6,h:'#2d3436',b:'#0984e3',see:'r',tr:TR('t11a','うみのこ カイ',pool(3,3,4),3,2,200,['カイ「「泳ぐ」の さんずいは 水の しるし！ しょうぶだ！」'],['カイ「ザブーン！ まけた〜！」'])},
+        {x:14,y:3,h:'#6c5ce7',b:'#ffeaa7',see:'l',tr:TR('t11b','としょいいん シオリ',pool(3,5,6),3,2,200,['シオリ「本を さがすのも 漢字の ちから。 しょうぶよ。」'],['シオリ「「研究」が よく できてるわね。」'])},
+        {x:10,y:1,...C_SORA,cond:()=>!S.f.riv3,tr:RIV3}],
+  hid:[{x:18,y:13,it:'fude'}],
+  gate:()=>!S.f.riv3?{tr:RIV3}:null},
+ {nm:'ミナト市',L:'TA',mir:1,th:'beach',bg:'town',n:13,s:11,gym:5,hq:'q5',sg:['ミナト市 ― ふねと 本の みなとまち'],
+  npcs:[guard(8,1,6,['へいし「魔王城へは 6この バッジが ひつようだ。」']),
+        {x:5,y:6,h:'#222',b:'#2c3e50',say:['ふなのり「北の そらが くらく なってきた… 魔王が めざめたのか…？」']},
+        {x:12,y:10,h:'#e17055',b:'#00cec9',say:['おんなのこ「いいきずぐすりは ♥が ぜんぶ もどるの。 魔王城の 前に かっておこうね！」']}],
+  hid:[{x:1,y:10,it:'cookie'}],
+  gate:gateB(6,['へいし「6この バッジを あつめてから くるのだ。」'])},
+ {nm:'魔王城',L:'CS',th:'castle',bg:'castle',s:12,enc:PALL,sg:['魔王城 ― きえた 文字たちの なげきが きこえる…'],
+  npcs:[{x:11,y:12,...C_SORA,cond:()=>!S.f.boss3,say:['ソラ「ここから先は おまえに まかせた。 おれは 入り口を まもる！」','「ムリだと おもったら メニューの そらとぶで いったん もどれよ！」']},
+        {x:11,y:12,...C_SORA,cond:()=>!!S.f.boss3,tr:CHAMP},
+        {x:9,y:8,h:'#c0392b',b:'#5b2a86',look:'kan',cond:()=>!S.f.boss2,tr:B2},
+        {x:10,y:2,look:'boss',cond:()=>!S.f.boss3,ev:async()=>{if(!S.f.boss2)return talk(['魔王「…わが 幹部 ケシズミを たおしてから くるが よい。」']);return trainerEv(B3)}}],
+  hid:[{x:1,y:1,it:'ii'},{x:18,y:13,it:'fude'}]}
+];
+const DV={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
+const BL='HCMGLD';
+MAPS.forEach((m,mi)=>{
+  m.t=m.mir?LAY[m.L].map(r=>[...r].reverse().join('')):LAY[m.L];
+  if(m.mir){m.npcs.forEach(n=>{n.x=19-n.x;if(n.see)n.see={l:'r',r:'l'}[n.see]||n.see});(m.hid||[]).forEach(h=>h.x=19-h.x)}
+  (m.hid||[]).forEach((h,i)=>h.id='h'+mi+'_'+i);
+  m.signs={};let i=0;m.t.forEach((r,y)=>[...r].forEach((ch,x)=>{if(ch=='i')m.signs[x+','+y]=m.sg[i++]||'…'}));
+});
+const isB=v=>v&&BL.includes(v);
+const doorTypeOf=(m,x,y)=>{const l=m.t[y][x-1];return isB(l)&&l!='D'?l:m.t[y][x+1]};
+function centerPos(mi){const m=MAPS[mi];if(mi==0)return{x:3,y:5};for(let y=0;y<m.t.length;y++)for(let x=0;x<20;x++)if(m.t[y][x]=='D'&&doorTypeOf(m,x,y)=='C')return{x,y:y+1};return{x:9,y:7}}
+
+// ===================== フィールド描画 =====================
+const TH={
+ town:{g0:'#7ccf6a',g1:'#6bbd5c',gr:'#3f9b45',gb:'#2c7a37',gl:'#9be58f',tr:['#1f6b34','#2e8f46','#52c06a'],tk:'#5b3a1a'},
+ forest:{g0:'#5aa552',g1:'#4c9246',gr:'#2f7e3a',gb:'#1d5b28',gl:'#7fcf74',tr:['#123f20','#1d5a30','#3a8a4c'],tk:'#3e2812'},
+ flower:{g0:'#a4dc86',g1:'#f39cc4',gr:'#5fb35a',gb:'#3d8a3d',gl:'#c8f0b0',tr:['#c86a98','#e98fb8','#f7c6dc'],tk:'#6b4226'},
+ beach:{g0:'#efd9a0',g1:'#ddc184',gr:'#7bbf63',gb:'#4f9140',gl:'#b5e39b',tr:['#2f8f4e','#45ad63','#8fdc8a'],tk:'#8a5a2b'},
+ cave:{g0:'#4a4357',g1:'#3c3648',gr:'#3a3346',gb:'#2a2433',gl:'#7d73a0',rk:['#231f2b','#332d3e','#5d5470']},
+ castle:{g0:'#3b2347',g1:'#472b56',gr:'#4a1a3a',gb:'#9b3d7d',gl:'#ff7bc8',rk:['#160b1d','#26142f','#6b3f7d']}
+};
+const ROOF={H:['#d9534f','#b23c3a'],C:['#f08a24','#c96d12'],M:['#3a7bd5','#2a5ea8'],G:['#7d6bb3','#5d4d8f'],L:['#e8eef5','#c3cfdd']};
+const ICON={H:'',C:'+',M:'¥',G:'★',L:'研'};
+const COLS=['#ef476f','#3a86ff','#06a77d','#9b5de5'];
+const cv=$('cv'),c=cv.getContext('2d');
+let mode='title',busy=false,px=0,py=0,tx=0,ty=0,mv=false,fx=0,fy=1,fr=0,steps=0,M=MAPS[S.m]||MAPS[0],dash=false;
+const pet={x:0,y:0,px:0,py:0,heart:0};
+let PT=[];
+const SP=["..hhhh..",".hhhhhh.",".ssssss.",".sesses.","..ssss..",".bbbbbb.","..bbbb..","..l..l.."];
+const SPB=["..hhhh..",".hhhhhh.",".hhhhhh.",".hhhhhh.","..ssss..",".bbbbbb.","..bbbb..","..l..l.."];
+function person(X,Y,hair,body,w,back){
+  const P={h:hair,s:'#ffd7a8',e:'#222',b:body,l:'#2b3a6b'};
+  c.fillStyle='#0004';c.fillRect(X+3,Y+14,10,2);
+  (back?SPB:SP).forEach((r,j)=>[...(j==7&&w?'.l....l.':r)].forEach((ch,i)=>{if(ch!='.'){c.fillStyle=P[ch];c.fillRect(X+i*2,Y+j*2,2,2)}}));
+}
+const tileAt=(x,y)=>M.t[y]&&M.t[y][x];
+function tile(t,X,Y,x,y){
+  const h=TH[M.th],g=(x*7+y*13)%5;
+  if(t=='R'){const k=h.rk||['#555','#666','#888'];c.fillStyle=k[0];c.fillRect(X,Y,16,16);c.fillStyle=k[1];c.fillRect(X+1,Y+1,14,13);c.fillStyle=k[2];c.fillRect(X+3,Y+3,4,3);c.fillRect(X+9,Y+9,3,2);return}
+  if(t=='w'||t=='='){c.fillStyle='#3a86d1';c.fillRect(X,Y,16,16);c.fillStyle='#9dd0f7';const o=(fr>>4)%2*3;c.fillRect(X+2+o,Y+5,5,1);c.fillRect(X+8-o,Y+11,5,1);
+    if(t=='='){c.fillStyle='#a0703c';c.fillRect(X,Y,16,16);c.fillStyle='#7a5228';for(let i=3;i<16;i+=4)c.fillRect(X,Y+i,16,1);c.fillRect(X,Y,1,16);c.fillRect(X+15,Y,1,16)}return}
+  c.fillStyle=h.g0;c.fillRect(X,Y,16,16);
+  if(g<2){c.fillStyle=h.g1;c.fillRect(X+3+g*4,Y+5+g*3,2,2)}
+  if(t==','){const fc=['#ff6b8a','#ffd166','#ffffff'];for(let i=0;i<3;i++){c.fillStyle=fc[(i+x+y)%3];c.fillRect(X+2+i*5,Y+3+((i+x)%3)*4,3,3)}}
+  if(t=='g'){
+    c.fillStyle=h.gr;c.fillRect(X,Y,16,16);
+    if(M.th=='cave'){c.fillStyle=h.gb;c.fillRect(X+2,Y+3,3,2);c.fillRect(X+9,Y+10,4,2);c.fillStyle=h.gl;c.fillRect(X+11,Y+4,1,1)}
+    else if(M.th=='castle'){c.fillStyle=h.gb;c.fillRect(X+1,Y+1,14,14);c.fillStyle=h.gr;c.fillRect(X+2,Y+2,12,12);c.fillStyle=(fr>>5)%2?h.gl:h.gb;c.fillRect(X+7,Y+7,2,2)}
+    else{const sw=(x+y+(fr>>5))%2;c.fillStyle=h.gb;for(let i=0;i<3;i++)c.fillRect(X+2+i*5+(i==1?sw:0),Y+4+(i%2)*4,2,7);c.fillStyle=h.gl;c.fillRect(X+3,Y+4,1,2)}
+  }
+  if(t=='T'){c.fillStyle=h.tk;c.fillRect(X+6,Y+10,4,6);c.fillStyle=h.tr[0];c.fillRect(X+1,Y+2,14,9);c.fillStyle=h.tr[1];c.fillRect(X+3,Y+1,10,5);c.fillStyle=h.tr[2];c.fillRect(X+4,Y+3,3,2)}
+  if(t=='i'){c.fillStyle='#6b3f1d';c.fillRect(X+7,Y+9,2,6);c.fillStyle='#c8955a';c.fillRect(X+2,Y+3,12,7);c.fillStyle='#8a5a2b';c.fillRect(X+4,Y+5,8,1);c.fillRect(X+4,Y+7,6,1)}
+  if(isB(t)){
+    const u=tileAt(x,y-1);let k=t;
+    if(t=='D')k=doorTypeOf(M,x,y);
+    if(!isB(u)&&t!='D'){c.fillStyle=ROOF[k][0];c.fillRect(X,Y,16,16);c.fillStyle=ROOF[k][1];for(let i=0;i<16;i+=4)c.fillRect(X,Y+i+2,16,1);
+      if(ICON[k]&&(tileAt(x,y+1)=='D'||tileAt(x,y+2)=='D')){c.fillStyle='#fff';c.font='bold 10px sans-serif';c.textAlign='center';c.fillText(ICON[k],X+8,Y+12);c.textAlign='left'}}
+    else{c.fillStyle='#f4e4b8';c.fillRect(X,Y,16,16);c.fillStyle='#d8c490';c.fillRect(X,Y+15,16,1);
+      if(t=='D'){c.fillStyle='#6b3f1d';c.fillRect(X+3,Y+3,10,13);c.fillStyle='#ffd166';c.fillRect(X+10,Y+9,2,2);c.fillStyle='#ffffff55';c.fillRect(X+4,Y+15,8,1)}
+      else{c.fillStyle=isNight()?'#ffe08a':'#7fc4f0';c.fillRect(X+4,Y+4,8,6);c.fillStyle='#fff8';c.fillRect(X+5,Y+5,2,2)}}
+  }
+}
+function drawNPC(n,X,Y){
+  const w=(fr>>5)%2;
+  if(n.look=='boss'){c.fillStyle='#0006';c.fillRect(X-2,Y+14,20,3);c.fillStyle='#8e44ad';c.fillRect(X-2,Y-4,20,19);c.fillStyle='#000';c.fillRect(X+1,Y+2,4,4);c.fillRect(X+11,Y+2,4,4);c.fillStyle='#ff4d6d';c.fillRect(X+2,Y+3,2,2);c.fillRect(X+12,Y+3,2,2);c.fillStyle='#f1c40f';c.fillRect(X+2,Y-7,12,3);c.fillRect(X+2,Y-9,2,2);c.fillRect(X+7,Y-9,2,2);c.fillRect(X+12,Y-9,2,2);c.fillStyle='#000';c.fillRect(X+4,Y+9,8,2)}
+  else{
+    person(X,Y,n.h||'#555',n.b||'#888',w);
+    if(n.look=='kesi'){c.fillStyle='#fff';c.fillRect(X+6,Y+11,4,2)}
+    if(n.look=='kan'){c.fillStyle='#f1c40f';c.fillRect(X+4,Y-1,8,2)}
+  }
+  if(n.tr&&!S.f[n.tr.id]&&!n.bang){c.fillStyle='#ffd166';c.fillRect(X+7,Y-6,2,3);c.fillRect(X+7,Y-2,2,1)}
+  if(n.ev&&!n.tr&&n.look!='boss'){c.fillStyle='#7fe7ff';c.fillRect(X+6,Y-5,4,1);c.fillRect(X+9,Y-4,1,1);c.fillRect(X+8,Y-3,1,1);c.fillRect(X+7,Y-1,1,1)}
+  if(n.bang>0){n.bang--;c.fillStyle='#fff';c.fillRect(X+4,Y-14,8,11);c.fillStyle='#ef476f';c.fillRect(X+7,Y-12,2,5);c.fillRect(X+7,Y-6,2,2)}
+}
+function npcAt(x,y){return M.npcs.find(n=>n.x==x&&n.y==y&&(!n.cond||n.cond()))}
+const hardT=t=>!t||'TwRi'.includes(t)||isB(t);
+function solid(x,y){return hardT(tileAt(x,y))||!!npcAt(x,y)}
+function isNight(){const h=new Date().getHours();return h>=19||h<5}
+const todIcon=()=>{const h=new Date().getHours();return isNight()?'🌙':h>=17?'🌇':'☀️'};
+function draw(){
+  const W=M.t[0].length*16,H=M.t.length*16;
+  const cx=Math.round(Math.max(0,Math.min(px-112,W-240))),cy=Math.round(Math.max(0,Math.min(py-80,H-176)));
+  for(let y=cy>>4;y<=(cy+175)>>4;y++)for(let x=cx>>4;x<=(cx+239)>>4;x++){const t=tileAt(x,y);if(t)tile(t,x*16-cx,y*16-cy,x,y)}
+  (M.hid||[]).forEach(h=>{if(S.f[h.id])return;const p=(fr+h.x*13)%80;if(p<24){const X=h.x*16-cx+8,Y=h.y*16-cy+8,s=p<12?p/4:(24-p)/4;c.fillStyle='#fff';c.fillRect(X-s,Y,s*2+1,1);c.fillRect(X,Y-s,1,s*2+1)}});
+  const items=[];
+  M.npcs.forEach(n=>{if(!n.cond||n.cond())items.push({y:n.y*16,d:()=>drawNPC(n,n.x*16-cx,n.y*16-cy)})});
+  if(S.f.egg&&(pet.px!=px||pet.py!=py))items.push({y:pet.py-.5,d:()=>{const b=mv?0:((fr>>4)%2);c.fillStyle='#0004';c.fillRect(pet.px-cx+4,pet.py-cy+14,8,2);c.drawImage(petCv(stg(),S.acc.on),pet.px-cx,pet.py-cy-5-b);
+    if(pet.heart>0){pet.heart--;c.fillStyle='#ff6b8a';const X=pet.px-cx+6,Y=pet.py-cy-14-(40-pet.heart)/6;c.fillRect(X,Y,2,2);c.fillRect(X+3,Y,2,2);c.fillRect(X,Y+1,5,2);c.fillRect(X+1,Y+3,3,1);c.fillRect(X+2,Y+4,1,1)}}});
+  items.push({y:py,d:()=>person(px-cx,py-cy,'#3a2a1a',COLS[S.col]||COLS[0],mv&&(fr>>3)%2,fy<0)});
+  items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
+  lighting(cx,cy);parts(cx,cy);
+}
+function lighting(cx,cy){
+  const h=new Date().getHours();let dark=0;
+  if(M.th=='cave')dark=.86;else if(M.th=='castle')dark=.5;else if(isNight())dark=.55;
+  else if(h>=17){c.fillStyle='rgba(255,140,60,.16)';c.fillRect(0,0,240,176)}
+  if(dark){const x=px-cx+8,y=py-cy+8,gr=c.createRadialGradient(x,y,16,x,y,M.th=='cave'?66:105);gr.addColorStop(0,'rgba(6,6,28,0)');gr.addColorStop(1,`rgba(6,6,28,${dark})`);c.fillStyle=gr;c.fillRect(0,0,240,176)}
+}
+function parts(cx,cy){
+  const k=M.th=='flower'?'petal':M.th=='castle'?'ember':M.th=='cave'?'dust':isNight()?'fly':M.th=='beach'?'spark':null;
+  if(k&&PT.length<16&&Math.random()<.12){const p={k,x:Math.random()*240,y:k=='ember'?180:k=='petal'?-4:Math.random()*176,l:220};
+    if(k=='petal'){p.vx=.25+Math.random()*.3;p.vy=.35+Math.random()*.25}else if(k=='ember'){p.vx=(Math.random()-.5)*.3;p.vy=-.5}else{p.vx=(Math.random()-.5)*.25;p.vy=(Math.random()-.5)*.25;p.l=160}PT.push(p)}
+  PT=PT.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.l--;
+    const a=Math.min(1,p.l/40);
+    if(p.k=='petal'){c.fillStyle=`rgba(255,170,205,${a})`;c.fillRect(p.x,p.y,2,1);c.fillRect(p.x+1,p.y+1,1,1)}
+    else if(p.k=='ember'){c.fillStyle=`rgba(255,${120+(p.l%60)},80,${a})`;c.fillRect(p.x,p.y,1,1)}
+    else if(p.k=='fly'){c.fillStyle=`rgba(255,240,140,${a*((fr+p.l)%30<15?1:.4)})`;c.fillRect(p.x,p.y,2,2)}
+    else if(p.k=='spark'){if((fr+p.l)%40<6){c.fillStyle=`rgba(255,255,255,${a})`;c.fillRect(p.x,p.y,1,1)}}
+    else{c.fillStyle=`rgba(200,190,255,${a*.6})`;c.fillRect(p.x,p.y,1,1)}
+    return p.l>0&&p.y<190&&p.y>-10});
+}
+function place(){px=S.x*16;py=S.y*16;tx=S.x;ty=S.y;mv=false;pet.x=S.x;pet.y=S.y;pet.px=px;pet.py=py}
+let toastQ=[],toastOn=false;
+function toast(s){toastQ.push(s);if(!toastOn)toastNext()}
+function toastNext(){const s=toastQ.shift();const t=$('toast');if(!s){toastOn=false;t.classList.remove('on');return}toastOn=true;t.textContent=s;t.classList.add('on');setTimeout(()=>{t.classList.remove('on');setTimeout(toastNext,350)},1800)}
+function go(m,x,y){S.m=m;S.x=x;S.y=y;M=MAPS[m];S.vis[m]=1;place();PT=[];toast(M.nm);save();bgm(mapBgm())}
+async function fade(v){$('fade').style.opacity=v;await sleep(230)}
+async function warp(m,x,y){await fade(1);go(m,x,y);fy=y<=1?1:-1;fx=0;await fade(0)}
+function hud(){
+  const ps=S.f.egg?`<img class="px" src="${petURL()}" alt="">`:'';
+  $('rk').innerHTML=`${ps}Lv${lv()}　♥${S.hp}/${maxhp()}　🪙${S.coin}　${todIcon()}${S.mushi>0?'🧴':''}${S.mitsu>0?'🍯':''}<span id="sv">💾</span>`;
+}
+
+// ===================== 移動（ちょんと押すと1マス・長おしで歩く） =====================
+const held={u:0,d:0,l:0,r:0};let tapQ=null,lastK=null,pressT=0;
+function press(k){if(held[k])return;held[k]=1;lastK=k;pressT=performance.now();tapQ=k}
+function release(k){held[k]=0;if(lastK==k){lastK=Object.keys(held).find(q=>held[q])||null;if(lastK)pressT=performance.now()-200}}
+function stopHeld(){for(const k in held)held[k]=0;tapQ=null;lastK=null}
+function tick(){
+  fr++;
+  if(mode=='field'&&!busy){
+    const sp=dash?4:2;
+    if(mv){
+      px+=Math.sign(tx*16-px)*sp;py+=Math.sign(ty*16-py)*sp;
+      pet.px+=Math.sign(pet.x*16-pet.px)*Math.min(sp,Math.abs(pet.x*16-pet.px));pet.py+=Math.sign(pet.y*16-pet.py)*Math.min(sp,Math.abs(pet.y*16-pet.py));
+      if(px==tx*16&&py==ty*16){mv=false;pet.px=pet.x*16;pet.py=pet.y*16;S.x=tx;S.y=ty;arrive()}
+    }else{
+      const now=performance.now(),q=tapQ;
+      const k=q||(lastK&&held[lastK]&&now-pressT>170?lastK:null);
+      if(k){tapQ=null;const[dx,dy]=DV[k];
+        if(q&&(fx!=dx||fy!=dy)){fx=dx;fy=dy}
+        else{fx=dx;fy=dy;tryStep(dx,dy)}}
+    }
+  }
+  draw();requestAnimationFrame(tick);
+}
+let bumpT=0;
+function tryStep(dx,dy){
+  const nx=S.x+dx,ny=S.y+dy,t=tileAt(nx,ny);
+  if(ny==0&&M.gate&&!solid(nx,ny)){const g=M.gate();if(g){run(async()=>{if(g.say)await talk(g.say);if(g.tr)await trainerEv(g.tr)});return}}
+  if(t=='D'){run(()=>doorEv(nx,ny));return}
+  if(!solid(nx,ny)){pet.x=S.x;pet.y=S.y;tx=nx;ty=ny;mv=true;return}
+  if(fr-bumpT>18){bumpT=fr;sfx('bump')}
+}
+function arrive(){
+  S.st.steps++;if(S.mushi>0)S.mushi--;if(S.mitsu>0)S.mitsu--;
+  if((S.mushi==1||S.mitsu==1))toast(S.mushi==1?'むしよけスプレーの こうかが きれた':'あまいミツの こうかが きれた');
+  const H=M.t.length;
+  if(S.y==0&&M.n!=null){run(()=>warp(M.n,S.x,MAPS[M.n].t.length-2));return}
+  if(S.y==H-1&&M.s!=null){run(()=>warp(M.s,S.x,1));return}
+  const h=(M.hid||[]).find(h=>h.x==S.x&&h.y==S.y&&!S.f[h.id]);
+  if(h){S.f[h.id]=1;S.it[h.it]++;save();run(async()=>{sfx('coin');await talk([`キラキラを しらべた！`,`${ITEMS[h.it].ic} ${ITEMS[h.it].n}を みつけた！`])});return}
+  for(const n of M.npcs){
+    if(!n.tr||!n.see||S.f[n.tr.id]||(n.cond&&!n.cond()))continue;
+    const[dx,dy]=DV[n.see];
+    for(let s=1;s<=3;s++){const x=n.x+dx*s,y=n.y+dy*s;
+      if(x==S.x&&y==S.y){fx=-dx;fy=-dy;run(async()=>{n.bang=45;sfx('bang');await sleep(750);await trainerEv(n.tr)});return}
+      if(hardT(tileAt(x,y)))break}
+  }
+  steps++;
+  if(tileAt(S.x,S.y)=='g'&&M.enc&&S.mushi<=0&&steps>3&&Math.random()<(S.mitsu>0?.3:.13)){steps=0;run(wild);return}
+  if(S.st.steps%10==0)save();
+}
+function run(fn){stopHeld();busy=true;Promise.resolve().then(fn).catch(e=>console.error(e)).finally(()=>{busy=false;if(mode=='talk'||mode=='ask'||mode=='battle')mode='field';hud();chkTro()})}
+
+// ===================== 会話（文字送り） =====================
+let L=[],talkRes=null,typing=null,curLine='';
+function talk(lines){return new Promise(r=>{L=lines.map(fmt);talkRes=r;mode='talk';next()})}
+function next(){
+  const d=$('dlg');
+  if(typing){clearInterval(typing);typing=null;d.innerHTML=curLine+'<i>▼</i>';return}
+  if(!L.length){d.hidden=true;mode='field';const r=talkRes;talkRes=null;r&&r();return}
+  curLine=L.shift();const ch=Array.from(curLine);let i=0;d.hidden=false;d.innerHTML='';
+  const sp=[48,24,8][S.cfg.spd];
+  typing=setInterval(()=>{i++;d.textContent=ch.slice(0,i).join('');if(i>=ch.length){clearInterval(typing);typing=null;d.innerHTML=curLine+'<i>▼</i>'}},sp);
+}
+function ask(text,opts){return new Promise(r=>{mode='ask';const d=$('dlg');d.hidden=false;d.innerHTML=fmt(text)+'<div class="yn">'+opts.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')+'</div>';
+  d.querySelectorAll('.yn button').forEach(b=>b.onclick=ev=>{ev.stopPropagation();d.hidden=true;mode='field';r(+b.dataset.i)})})}
+function A(){
+  if(mode=='talk')return next();
+  if(mode!='field'||busy||mv)return;
+  const x=S.x+fx,y=S.y+fy,n=npcAt(x,y),t=tileAt(x,y);
+  if(n)run(()=>n.ev?n.ev():n.tr?trainerEv(n.tr):talk(n.say));
+  else if(S.f.egg&&pet.x==x&&pet.y==y&&(pet.x!=S.x||pet.y!=S.y))run(petTalk);
+  else if(t=='D')run(()=>doorEv(x,y));
+  else if(t=='i')run(()=>talk([M.signs[x+','+y]]));
+}
+let petT=0;
+async function petTalk(){
+  pet.heart=40;
+  if(Date.now()-petT>20000){petT=Date.now();S.pet.aff=Math.min(100,S.pet.aff+2)}
+  const st=stg(),near=M.enc?'{P}「（くさむらから もじモンの けはいが する…）」':null;
+  const L1=['{P}は うれしそうに とびはねた！','{P}は {N}の 足もとに すりよってきた。','{P}は しっぽで 字を かく まねを している！','{P}は ちょっぴり おなかが すいているようだ。','{P}は {N}の かおを じっと 見つめている。'];
+  const lines=[rnd(L1)];if(near&&Math.random()<.4)lines.push(near);
+  if(S.pet.aff>=60)lines.push('{P}は {N}のことが だいすき みたいだ！');
+  if(st<6){const nx=STG[st+1];lines.push(`（Lv${nx}で しんかしそうだ… いまは Lv${lv()}）`)}
+  save();return talk(lines);
+}
+async function trainerEv(tr){
+  if(S.f[tr.id]&&!tr.rep)return talk(tr.aft||[tr.win[0]]);
+  await talk(tr.pre);
+  const r=await fight({tr});
+  if(r=='win'){S.f[tr.id]=1;save();await talk(tr.win);if(tr.done)await tr.done()}
+}
+async function doorEv(x,y){
+  const k=doorTypeOf(M,x,y);
+  sfx('bump');
+  if(k=='C'){S.hp=maxhp();S.rs={m:S.m,x,y:y+1};save();hud();sfx('lvl');return talk(['もじセンターの おねえさん「ようこそ！ あなたの ♥を かいふく しますね♪」','…ピロリロリン♪ ♥が ぜんぶ かいふく した！','「ここが つぎの スタートちてんに なりますよ。」'])}
+  if(k=='M')return shop();
+  if(k=='G')return gym();
+  if(k=='L')return lab();
+  if(S.m==0&&x==3){S.hp=maxhp();S.rs={m:0,x:3,y:5};save();hud();return talk(['おかあさん「おかえり、 {N}！ {P}も おつかれさま。 ゆっくり やすんでね。」','♥が ぜんぶ かいふく した！'])}
+  if(M.hq)return questEv(QUESTS.find(q=>q.id==M.hq));
+  return talk(M.house||['だれも いないようだ…']);
+}
+async function questEv(q){
+  const s=S.q[q.id];
+  if(s==2)return talk([`${q.who}「また あそびに きておくれ。」`]);
+  if(!s){await talk(q.intro);S.q[q.id]=1;save();toast('📜 クエスト「'+q.t+'」');return}
+  if(q.ck()){await talk(q.done);const r=q.rw();S.q[q.id]=2;save();sfx('win');return talk([`{N}は ${r} を もらった！`])}
+  return talk([`${q.who}「「${q.t}」 の ちょうしは どうだい？」`]);
+}
+async function lab(){
+  if(!S.f.egg){
+    await talk(['むん先生「おお、 {N}！ よく きたね。」','「ケシゴム団の うしろには、 もじ魔王 マッサツが いるらしい。」','「魔王は 1年生から 3年生までの 漢字を ぜんぶ けして、 せかいを まっしろに しようと しているんだ。」','「そこで きみに この タマゴを たくそう。 漢字を おぼえるほど そだつ、 ふしぎな すみの いきもの だ。」',
+      '{N}は あいぼうの タマゴ「{P}」を もらった！','「くさむらに 入ると、 やせいの もじモンが とびだしてくる。」','「✍️かく は 手で 漢字を かく こうげき。 2ダメージの つよい わざだ！」','「かき おわったら こたえと くらべて まるつけ しよう。「かさねる」で 字を かさねて くらべられるよ。」','「👀よむ は よみかたを、 🔍さがす は 正しい 漢字を えらぶ こうげきだ。」',
+      '「せいかいすると {P}の きずなゲージが たまる。 いっぱいに なったら あいぼうわざ だ！」',`「たおした もじモンは ずかんに とうろく される。 ぜんぶで ${TOTAL}しゅるい！」`,'「きずぐすりと ヒントのはも あげよう。」','{N}は きずぐすり×3 と ヒントのは×3 を もらった！','「まずは 北の 1ばんどうろを ぬけて、 イチネン村の ジムに ちょうせんだ！」']);
+    S.f.egg=1;S.it.kizu+=3;S.it.hint+=3;place();save();hud();return;
+  }
+  if(S.f.boss3){const n=caught();return talk(n>=TOTAL?['むん先生「なんと… ずかんが ぜんぶ うまった！」','「{N}、 きみこそ しんの もじマスターだ！ おめでとう！」']:[`むん先生「ずかんは いま ${n}/${TOTAL}。」`,'「ぜんぶ あつめたら、 きみは しんの もじマスターだ！」'])}
+  return talk(['むん先生「やあ、 {N}。 {P}は げんき かな？」','「つぎの もくてきは… "'+objective()+'" だね。」','「まちがえた もじモンは また 出てきやすいから、 ふくしゅうの チャンスだよ！」']);
+}
+async function gym(){
+  const i=M.gym,gd=GYM[i];
+  if(S.b.includes(i)){
+    const a=await ask(`${gd.nm}「また 来てくれたのね！ つよさアップの さいせん、 する？」`,['さいせん する','やめておく']);
+    if(a)return;
+    const r=await fight({tr:{name:'ジムリーダー '+gd.nm+'★',pool:gd.p,n:gd.n+1,hp:4,coin:gd.coin>>1}});
+    if(r=='win'){S.st.rematch++;save();await talk([`${gd.nm}「まいった！ きみは どんどん つよく なるね！」`])}
+    return;
+  }
+  await talk([`${gd.t}に 入った！`]);
+  if(!S.f['gj'+i]){
+    await talk(['ジムトレーナー「リーダーに いどむなら、 まずは わたしを たおしてから！」']);
+    const r=await fight({tr:{name:'ジムトレーナー',pool:gd.p,n:2,hp:2,coin:100}});
+    if(r!='win')return;
+    S.f['gj'+i]=1;save();await talk(['ジムトレーナー「おみごと… リーダーが おくで まってるよ！」']);
+  }
+  await talk(gd.pre);
+  const r=await fight({tr:{name:'ジムリーダー '+gd.nm,pool:gd.p,n:gd.n,hp:gd.hp,coin:gd.coin}});
+  if(r!='win')return;
+  S.b.push(i);save();hud();sfx('win');
+  await talk([gd.win[0],`{N}は ${BADGE[i]} ${gd.bd}を 手に入れた！`,...gd.win.slice(1)]);
+  if(gd.after)await talk(gd.after);
+}
+function objective(){
+  if(!S.f.egg)return 'むん研究所で むん先生に 会おう';
+  if(S.f.boss3)return `ずかんを ぜんぶ うめよう！（${caught()}/${TOTAL}）`;
+  const b=S.b.length;
+  if(b>=6)return '北の 魔王城で もじ魔王 マッサツを たおそう';
+  return `${TOWNS[b]}の ジムで ジムリーダー ${GYM[b].nm}に かとう`;
+}
+async function ending(){
+  await talk(['むん先生「{N}！ ほんとうに よくやった！」','「きみと {P}が まいにち こつこつ 漢字を おぼえたから、 せかいは すくわれたんだ。」','ソラ「へへっ… やっぱり おまえが 一ばんだよ。」','むん先生「ずかんを ぜんぶ うめたら、 きみは しんの もじマスターだ！」']);
+  mode='menu';stopBgm();sfx('win');const e=$('en');
+  const roll=['〜 もじモン 大ぼうけん 〜','','しゅじんこう　'+S.name,'あいぼう　'+S.pet.nick+'（'+PNM[stg()]+'）','','はかせ　むん先生','ライバル　ソラ','','ジムリーダー',...GYM.map(g=>g.nm+'（'+g.t+'）'),'','ケシゴム団','ケシカス　ケシズミ','もじ魔王 マッサツ','','そして '+caught()+'しゅるいの もじモンたち','','あそんでくれて ありがとう！'];
+  e.innerHTML=`<h2>🎉 クリア！</h2><div class="cred"><div>${roll.map(r=>r||'&nbsp;').join('<br>')}</div></div><p>Lv ${lv()}　ずかん ${caught()}/${TOTAL}　バッジ ${S.b.length}こ</p><p style="font-size:2.8cqw;color:var(--mute)">魔王城には チャンピオンが まっている… ずかんを ぜんぶ うめよう！</p><button class="btn" id="enx" style="flex:none;width:50cqw">ぼうけんを つづける</button>`;
+  e.hidden=false;
+  await new Promise(r=>$('enx').onclick=r);
+  e.hidden=true;mode='field';bgm(mapBgm());
+}
+
+// ===================== バトル =====================
+let curK,ehp,ehpMax,hintNext=false,fudeNext=false,skip=null,combo=0,shiny=false,evil=false;const pend=[];let evoFrom=null;
+function bstat(){
+  $('bh').textContent='♥'.repeat(Math.max(0,S.hp))+'♡'.repeat(Math.max(0,maxhp()-S.hp));
+  $('be').textContent='てき '+'◆'.repeat(ehp)+'◇'.repeat(Math.max(0,ehpMax-ehp));
+  $('cmb').textContent=combo>=2?`🔥${combo}れんぞく`:'';
+  const g=$('gauge');g.firstChild.style.width=(S.pet.g/5*100)+'%';g.classList.toggle('full',S.pet.g>=5);
+}
+function monHTML(k,hide){
+  const t=kT(k),h=hsh(t),n=[...t].length,hue=[130,205,25][kG(k)-1]+(h%40)-20;
+  return `<div class="mm s${h%4} e${(h>>3)%3}${shiny?' shy':''}${evil?' evil':''}" style="--h:${hue}"><div class="bd"><i class="ey"></i><i class="ey"></i><b class="kj ${n>2?'l3':n>1?'l2':''}">${hide?'？'.repeat(Math.min(n,2)):t}</b></div><i class="ft"></i></div>`;
+}
+function showMon(k,hide){$('monbox').innerHTML=monHTML(k,hide)}
+function monFx(cls){const m=$('monbox').firstChild;if(!m)return;m.classList.remove('hit');void m.offsetWidth;m.classList.add(cls)}
+function popN(txt,red){const p=document.createElement('span');p.className='pop'+(red?' r':'');p.textContent=txt;$('mw').append(p);setTimeout(()=>p.remove(),1000)}
+function msg(h,ms=1200){$('q').innerHTML=fmt(h);ms*=[1.35,1,.7][S.cfg.spd];return new Promise(r=>{const t=setTimeout(()=>{skip=null;r()},ms);skip=()=>{clearTimeout(t);skip=null;r()}})}
+$('q').onclick=()=>skip&&skip();
+function choose(opts,cls='grid'){
+  const a=$('act');a.className=cls;a.innerHTML='';delete a.dataset.lk;
+  return new Promise(res=>opts.forEach(o=>{const b=document.createElement('button');b.innerHTML=o.t;if(o.c)b.className=o.c;if(o.dis)b.disabled=true;b.onclick=()=>{if(a.dataset.lk)return;a.dataset.lk=1;res(o.v)};a.append(b)}));
+}
+function gain(n){
+  const l0=lv(),s0=stg();S.exp+=n;
+  if(lv()>l0){S.hp=Math.min(maxhp(),S.hp+1);pend.push(`レベルアップ！ Lv${lv()} に なった！（♥さいだい ${maxhp()}）`)}
+  if(stg()>s0&&evoFrom==null)evoFrom=s0;
+}
+function setupPad(cvs){
+  const r=cvs.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  cvs.width=Math.max(1,r.width*dpr);cvs.height=Math.max(1,r.height*dpr);
+  const x=cvs.getContext('2d');x.scale(dpr,dpr);x.lineCap=x.lineJoin='round';x.lineWidth=Math.max(3,r.height/[34,26,19][S.cfg.pen]);x.strokeStyle='#16213e';
+  let d=false,lk=false,strokes=[],cur=null;
+  const pt=e=>{const b=cvs.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]};
+  const redraw=()=>{x.clearRect(0,0,r.width,r.height);strokes.forEach(s=>{x.beginPath();x.moveTo(s[0][0],s[0][1]);s.forEach(p=>x.lineTo(p[0],p[1]));if(s.length==1)x.lineTo(s[0][0]+.1,s[0][1]+.1);x.stroke()})};
+  cvs.onpointerdown=e=>{if(lk)return;e.preventDefault();try{cvs.setPointerCapture(e.pointerId)}catch(_){}d=true;cur=[pt(e)];strokes.push(cur);redraw()};
+  cvs.onpointermove=e=>{if(!d)return;e.preventDefault();const p=pt(e),l=cur[cur.length-1];x.beginPath();x.moveTo(l[0],l[1]);x.lineTo(p[0],p[1]);x.stroke();cur.push(p)};
+  cvs.onpointerup=cvs.onpointercancel=()=>{d=false};
+  return{clear(){strokes=[];redraw()},undo(){strokes.pop();redraw()},get n(){return strokes.length},lock(){lk=true;d=false}};
+}
+function kakiPanel(e,hint,side){
+  const ch=[...e.target],n=ch.length,cs=Math.min(25,56/n);
+  const a=$('act');a.className='kaki';
+  a.innerHTML=`<div class="kp" style="width:${cs*n}cqw;height:${cs}cqw">${ch.map(t=>`<div class="cell"><span style="font-size:${cs*.8}cqw;${hint?'':'display:none'}">${t}</span></div>`).join('')}<canvas></canvas></div><div class="ks">${side}</div>`;
+  return a;
+}
+async function kakiQ(e,hint){
+  const n=[...e.target].length;
+  $('bt').classList.add('kk');showMon(curK,true);
+  $('q').innerHTML=`<span class="qs">${e.pre}<ruby class="bl">${'〇'.repeat(n)}<rt>${e.yomi}</rt></ruby>${e.post}</span><small>〇に 入る 漢字を かこう！ ― ${e.meaning}</small>`;
+  const a=kakiPanel(e,hint,`<div class="r2"><button id="ku">↩ 1かく</button><button id="kc">🗑️</button></div><button id="kd" class="pri">かけた！</button>`);
+  await sleep(40);
+  const pad=setupPad(a.querySelector('canvas'));
+  await new Promise(r=>{$('ku').onclick=()=>pad.undo();$('kc').onclick=()=>pad.clear();$('kd').onclick=()=>{if(!pad.n){$('kd').textContent='まず かいてね';return}r()}});
+  pad.lock();
+  const kp=a.querySelector('.kp');
+  a.querySelector('.ks').innerHTML=`<div class="ans">こたえ<b style="font-size:${Math.min(10,18/n)}cqw">${e.target}</b></div><button id="kv">👀 かさねる</button><div class="r2"><button id="ko" style="background:var(--grn)">⭕</button><button id="kx" style="background:#ffd0db">❌</button></div>`;
+  $('q').innerHTML=`<span class="qs">${e.pre}<u>${e.target}</u>${e.post}</span><small>じぶんの 字と くらべて ⭕か❌を えらぼう（とめ・はね・はらい も 見てね）</small>`;
+  $('kv').onclick=()=>{kp.classList.toggle('ov2');kp.querySelectorAll('.cell span').forEach(s=>s.style.display=kp.classList.contains('ov2')||hint?'':'none')};
+  const ok=await new Promise(r=>{$('ko').onclick=()=>r(true);$('kx').onclick=()=>r(false)});
+  showMon(curK,false);return {ok};
+}
+async function traceQ(e){
+  $('bt').classList.add('kk');
+  $('q').innerHTML=`<span class="qs">${e.pre}<u>${e.target}</u>${e.post}</span><small>うすい 字を なぞって おぼえよう！（${e.yomi}）</small>`;
+  const a=kakiPanel(e,true,`<div class="r2"><button id="ku">↩</button><button id="kc">🗑️</button></div><button id="kd" class="pri">なぞった！</button>`);
+  await sleep(40);const pad=setupPad(a.querySelector('canvas'));
+  await new Promise(r=>{$('ku').onclick=()=>pad.undo();$('kc').onclick=()=>pad.clear();$('kd').onclick=()=>{if(pad.n)r()}});
+  S.coin+=5;S.st.trace++;mis('trace');gain(2);sfx('coin');
+  await msg('よく なぞれたね！ +5🪙',900);
+}
+let qT0=0,qTimer=null;
+function startTimer(){qT0=performance.now();const q=$('q');const t=document.createElement('i');t.id='tm';q.append(t);t.style.width='100%';requestAnimationFrame(()=>{t.style.transitionDuration='3s';t.style.width='0%'})}
+async function yomiQ(e,hint){
+  $('bt').classList.remove('kk');showMon(curK,false);
+  const o=shuf([...G[e.g].y].filter(y=>y!==e.yomi)).slice(0,hint?1:3);o.push(e.yomi);shuf(o);
+  $('q').innerHTML=`<span class="qs">${e.pre}<u>${e.target}</u>${e.post}</span><small>せんの 漢字の よみかたは？ ― ${e.meaning}</small>`;startTimer();
+  const i=await choose(o.map((t,i)=>({t,v:i})),'grid ch');
+  const fast=performance.now()-qT0<3000,bs=[...$('act').children],ok=o[i]===e.yomi;
+  bs[i].classList.add(ok?'ok':'ng');if(!ok)bs.forEach((b,j)=>{if(o[j]===e.yomi)b.classList.add('ok')});
+  await sleep(850);return {ok,fast};
+}
+async function sagasuQ(e,hint){
+  $('bt').classList.remove('kk');showMon(curK,true);
+  const n=[...e.target].length;
+  let cand=Object.keys(G[e.g].m).filter(t=>t!==e.target&&[...t].length==n&&!G[e.g].m[t].some(x=>x.yomi===e.yomi));
+  if(cand.length<3)cand=[...new Set(QD.filter(q=>q.target!==e.target&&[...q.target].length==n&&q.yomi!==e.yomi).map(q=>q.target))];
+  const o=shuf(cand).slice(0,hint?1:3);o.push(e.target);shuf(o);
+  $('q').innerHTML=`<span class="qs">${e.pre}<ruby class="bl">${'〇'.repeat(n)}<rt>${e.yomi}</rt></ruby>${e.post}</span><small>〇に 入る 正しい 漢字を さがそう！ ― ${e.meaning}</small>`;startTimer();
+  const i=await choose(o.map((t,i)=>({t,v:i})),'grid kjc');
+  const fast=performance.now()-qT0<3000,bs=[...$('act').children],ok=o[i]===e.target;
+  bs[i].classList.add(ok?'ok':'ng');if(!ok)bs.forEach((b,j)=>{if(o[j]===e.target)b.classList.add('ok')});
+  showMon(curK,false);await sleep(850);return {ok,fast};
+}
+async function bItem(){
+  const keys=Object.keys(ITEMS).filter(k=>ITEMS[k].use!='fd');
+  const v=await choose([...keys.map(k=>({t:`${ITEMS[k].ic} ${ITEMS[k].n}<small>のこり ${S.it[k]}</small>`,v:k,dis:!S.it[k]})),{t:'↩ もどる',v:0}],'grid g3');
+  if(!v)return;
+  if(v=='kizu'||v=='ii'){if(S.hp>=maxhp())return msg('♥は まんたんだ！',900);S.it[v]--;S.hp=v=='ii'?maxhp():Math.min(maxhp(),S.hp+3);bstat();sfx('lvl');return msg(`${ITEMS[v].n}を つかった！ ♥が かいふく した！`,1100)}
+  if(v=='cookie'){S.it.cookie--;S.pet.aff=Math.min(100,S.pet.aff+5);S.pet.g=Math.min(5,S.pet.g+2);bstat();return msg('{P}は もじクッキーを おいしそうに たべた！ きずなゲージが たまった！',1300)}
+  if(v=='hint'){if(hintNext)return msg('もう ヒントは じゅんび できている！',900);S.it.hint--;hintNext=true;return msg('ヒントのはを つかった！ つぎの もんだいで ヒントが 出るよ！',1200)}
+  if(v=='fude'){if(fudeNext)return msg('もう きんのふでを もっている！',900);S.it.fude--;fudeNext=true;return msg('きんのふでを かまえた！ つぎの 手がき せいかいで 3ばいダメージ！',1300)}
+}
+const canRun=tr=>!tr||tr.prac;
+async function fight(cfg){
+  stopHeld();mode='battle';
+  const tr=cfg.tr;evil=!!(tr&&tr.evil);
+  bgm(tr&&tr.look=='boss'?'boss':'battle');
+  const bt=$('bt');bt.dataset.th=M.th;bt.hidden=false;bt.classList.remove('kk');bt.classList.add('flash');setTimeout(()=>bt.classList.remove('flash'),500);
+  const team=tr?shuf([...tr.pool]).slice(0,tr.n):[cfg.wild];
+  ehpMax=tr?tr.hp:(kG(cfg.wild)==1?2:3);hintNext=false;fudeNext=false;combo=0;evoFrom=null;
+  shiny=!tr&&Math.random()<(S.mitsu>0?1/8:1/40);
+  let covered=false,p2=false,res='win',tname=tr?tr.name:'やせいの もじモン';
+  $('bn').textContent=tname;$('pimg').src=petURL();$('pw').style.visibility=S.f.egg?'visible':'hidden';
+  for(let i=0;i<team.length;i++){
+    curK=team[i];ehp=ehpMax;showMon(curK,false);bstat();$('act').innerHTML='';$('act').className='';
+    $('b2').textContent=tr?'のこり '+'●'.repeat(team.length-i)+'○'.repeat(i):`${kG(curK)}年生${shiny?' ✨':''}`;
+    await msg(tr?(i==0&&!p2?`${tname}が しょうぶを しかけてきた！<br>「${kT(curK)}」を くりだした！`:`${tname}は「${kT(curK)}」を くりだした！`):shiny?`✨ キラキラ ひかる いろちがいの「${kT(curK)}」が あらわれた！`:`あっ！ やせいの もじモン「${kT(curK)}」が とびだしてきた！`,1500);
+    while(ehp>0){
+      bt.classList.remove('kk');showMon(curK,false);bstat();
+      $('q').innerHTML=`どうする、 ${fmt('{N}')}？<small>${fmt('{P}')}が おうえん している！${hintNext?' 🍃ヒント じゅんびOK':''}${fudeNext?' 🖌️きんのふで':''}</small>`;
+      const full=S.pet.g>=5;
+      const cmd=await choose([{t:'✍️ かく<small>手がき 2ダメージ</small>',v:'kaki',c:'k'},{t:'👀 よむ<small>よみかた 1ダメージ</small>',v:'yomi'},{t:'🔍 さがす<small>漢字を えらぶ 1ダメージ</small>',v:'sagasu'},
+        {t:`⭐ ${S.f.egg?MOVES[stg()]:'あいぼう'}<small>きずな ${S.pet.g}/5</small>`,v:'pet',c:'p'+(full?' full':''),dis:!S.f.egg},{t:'🎒 どうぐ',v:'item'},{t:'🏃 にげる',v:'run'}],'grid g3');
+      if(cmd=='run'){if(!canRun(tr)){await msg('トレーナーとの しょうぶからは にげられない！',1000);continue}await msg('うまく にげきれた！',900);res='run';break}
+      if(cmd=='item'){await bItem();continue}
+      if(cmd=='pet'){
+        if(!full){await msg(`きずなゲージが たりない…（${S.pet.g}/5）<br>せいかいすると たまるよ！`,1300);continue}
+        S.pet.g=0;const st=stg(),dmg=st>=4?3:st==0?1:2;ehp=Math.max(0,ehp-dmg);S.st.petm++;mis('pet');sfx('hit');monFx('hit');popN('-'+dmg);bstat();
+        await msg(`${fmt('{P}')}の「${MOVES[st]}」！ ${dmg}ダメージ！`,1300);continue;
+      }
+      const e=rnd(ents(curK)),h=hintNext;hintNext=false;
+      const r=cmd=='kaki'?await kakiQ(e,h):cmd=='yomi'?await yomiQ(e,h):await sagasuQ(e,h);
+      const z=zz(curK);S.st.ans++;
+      if(r.ok){
+        let dmg=cmd=='kaki'?2:1,cn=cmd=='kaki'?20:10;const bon=[];
+        combo++;S.st.maxc=Math.max(S.st.maxc,combo);S.st.ok++;
+        if(combo>=3){dmg++;bon.push(`🔥${combo}れんぞく！`)}
+        if(Math.random()<.1){dmg++;bon.push('💥かいしんの いちげき！')}
+        if(cmd=='kaki'&&fudeNext){dmg*=3;fudeNext=false;bon.push('🖌️きんのふで！')}
+        if(r.fast){cn+=5;bon.push('⚡すばやい！')}
+        cn+=Math.min(combo,10)*2;if(shiny)cn*=2;
+        ehp=Math.max(0,ehp-dmg);z.ok++;S.coin+=cn;
+        if(cmd=='kaki'){z.w++;S.st.kaki++;S.st.kakiok++;mis('kaki')}else if(cmd=='yomi'){S.st.yomiok++;mis('yomi')}else{S.st.sagok++;mis('sagasu')}
+        if(combo==5)mis('combo');
+        S.pet.g=Math.min(5,S.pet.g+1+(S.pet.aff>=60&&Math.random()<.3?1:0));
+        gain(cmd=='kaki'?10:5);sfx('ok');monFx('hit');popN('-'+dmg);bstat();
+        await msg(`せいかい！ ${cmd=='kaki'?'✍️ かきこうげき':cmd=='yomi'?'👀 よみこうげき':'🔍 さがしこうげき'}！ ${dmg}ダメージ！（+${cn}🪙）${bon.length?'<br>'+bon.join(' '):''}`,1300);
+      }else{
+        if(cmd=='kaki')S.st.kaki++;
+        z.ng++;combo=0;S.hp--;bstat();sfx('ng');popN('♥-1',true);$('stage').classList.add('shake');setTimeout(()=>$('stage').classList.remove('shake'),400);
+        await msg(`ざんねん… こたえは「${cmd=='yomi'?e.yomi:e.target}」<br>「${kT(curK)}」の はんげき！ ♥が 1 へった…`,2000);
+        if(S.hp<=0&&!covered&&S.f.egg&&S.pet.aff>=30&&Math.random()<.5){covered=true;S.hp=1;bstat();await msg('{P}が かばって くれた！ ♥1で ふみとどまった！',1600)}
+        if(S.hp>0&&cmd!='yomi'){const t=await choose([{t:'✏️ なぞって おぼえる<small>+5🪙</small>',v:1,c:'k'},{t:'つぎへ',v:0}]);if(t)await traceQ(e)}
+      }
+      save();
+      if(S.hp<=0){await msg('めのまえが まっくらに なった…',1600);res='lose';break}
+    }
+    if(res!='win')break;
+    const z=zz(curK),nw=!z.c;z.c=1;S.st.catch++;if(!tr)mis('catch');if(shiny){z.sh=1;S.st.shiny++}
+    gain(10);save();monFx('gone');sfx('cat');
+    await msg(tr?`「${kT(curK)}」を たおした！${nw?'<br>ずかんに とうろく された！':''}`:`やったー！「${kT(curK)}」を つかまえた！${nw?'<br>📖 ずかんに あたらしく とうろく！':''}`,1700);
+    if(tr&&tr.p2&&i==team.length-1&&!p2){
+      p2=true;evil=true;await msg('魔王「まだだ… まだ おわらんぞ…！」',1500);
+      $('stage').classList.add('shake');setTimeout(()=>$('stage').classList.remove('shake'),400);
+      tname='しんの 魔王 マッサツ';$('bn').textContent=tname;ehpMax=4;
+      team.push(...shuf([...PALL]).slice(0,3));
+      await msg('魔王は しんの すがたを あらわした！',1500);
+    }
+  }
+  if(res=='win'&&tr){S.coin+=tr.coin;if(!tr.prac){S.st.wins++;mis('win')}gain(tr.prac?5:30);sfx('win');await msg(`${tname}に かった！${tr.coin?`<br>${tr.coin}コインを もらった！`:''}`,1700)}
+  for(const m of pend.splice(0)){sfx('lvl');await msg(m,1700)}
+  bt.hidden=true;bt.classList.remove('kk');mode='field';save();hud();
+  if(evoFrom!=null){const f=evoFrom;evoFrom=null;await evolve(f,stg())}
+  bgm(mapBgm());
+  if(res=='lose'){S.hp=maxhp();await warp(S.rs.m,S.rs.x,S.rs.y);await talk(['{N}は いそいで やすめる ばしょへ もどった…','♥が かいふく した！ ずかんで ふくしゅうして また ちょうせん しよう！'])}
+  return res;
+}
+async function evolve(a,b){
+  mode='menu';const e=$('evo');
+  e.innerHTML=`<p>おや…？ ${S.pet.nick}の ようすが…！</p><img class="px fx" id="evi" src="${petURL(a)}" alt=""><p id="evt">&nbsp;</p>`;
+  e.hidden=false;sfx('evo');
+  const im=$('evi');let k=0;const iv=setInterval(()=>{im.src=petURL(k++%2?b:a)},170);
+  await sleep(2400);clearInterval(iv);im.src=petURL(b);sfx('win');
+  $('evt').innerHTML=`${PNM[a]} は ${PNM[b]} に しんかした！<br><small style="font-size:2.8cqw">あいぼうわざ「${MOVES[b]}」を おぼえた！</small>`;
+  await sleep(2400);e.hidden=true;mode='field';hud();
+}
+async function wild(){
+  const w=M.enc.map(k=>{const z=S.z[k];return !(z&&z.c)?3:z.ng>z.ok?3:1});
+  let r=Math.random()*w.reduce((a,b)=>a+b),i=0;
+  while(i<M.enc.length-1&&(r-=w[i])>0)i++;
+  await fight({wild:M.enc[i]});
+}
+
+// ===================== ミッション・トロフィー・ログイン =====================
+const MT={kaki:['手がきで せいかい',5],yomi:['よむで せいかい',8],sagasu:['さがすで せいかい',6],catch:['もじモンを つかまえる',3],win:['トレーナーに かつ',1],combo:['5れんぞく せいかい',1],pet:['あいぼうわざを つかう',2],trace:['なぞり れんしゅう',2]};
+function daily(){
+  const d=today();const out=[];
+  if(S.login.last!==d){
+    S.login.last=d;S.login.days++;const bonus=50+Math.min(S.login.days,10)*10;S.coin+=bonus;
+    out.push(`📅 ログインボーナス！ ${S.login.days}日め`,`${bonus}コインを もらった！`);
+    if(S.login.days%5==0){S.it.ii++;S.it.mitsu++;out.push('5日 スタンプ ボーナス！ いいきずぐすり と あまいミツを もらった！')}
+    S.dm={d,all:0,list:shuf(Object.keys(MT)).slice(0,3).map(t=>({t,p:0,n:MT[t][1],done:0}))};
+    out.push('きょうの ミッションが とどいた！（メニューで 見られるよ）');save();
+  }
+  return out;
+}
+function mis(t){
+  if(!S.dm)return;S.dm.list.forEach(m=>{if(m.t==t&&!m.done){m.p++;if(m.p>=m.n){m.done=1;S.coin+=100;toast('🎯 ミッション クリア！ +100🪙')}}});
+  if(!S.dm.all&&S.dm.list.every(m=>m.done)){S.dm.all=1;S.it.cookie+=2;S.it.fude++;toast('🎉 きょうの ミッション ぜんぶ クリア！')}
+}
+const TRO=[
+ ['c1','はじめての なかま','もじモンを つかまえた',()=>caught()>=1],
+ ['c50','もじコレクター','50しゅるい あつめた',()=>caught()>=50],
+ ['c150','もじはかせ','150しゅるい あつめた',()=>caught()>=150],
+ ['call','もじマスター','ずかんを コンプリート',()=>caught()>=TOTAL],
+ ['g1','1年生 はかせ','1年生の ずかんを ぜんぶ',()=>caught(1)>=GCNT(1)],
+ ['g2','2年生 はかせ','2年生の ずかんを ぜんぶ',()=>caught(2)>=GCNT(2)],
+ ['g3','3年生 はかせ','3年生の ずかんを ぜんぶ',()=>caught(3)>=GCNT(3)],
+ ['k100','てがき めいじん','手がきで 100かい せいかい',()=>S.st.kakiok>=100],
+ ['cb10','コンボ キング','10れんぞく せいかい',()=>S.st.maxc>=10],
+ ['shy','キラキラ はっけん','いろちがいを つかまえた',()=>S.st.shiny>=1],
+ ['b1','はじめての バッジ','バッジを 1こ ゲット',()=>S.b.length>=1],
+ ['b6','バッジ コンプリート','バッジを 6こ ゲット',()=>S.b.length>=6],
+ ['clr','せかいを すくった','もじ魔王を たおした',()=>!!S.f.boss3],
+ ['chp','でんせつの もじつかい','チャンピオンに かった',()=>!!S.f.champ],
+ ['pet','きずなの あかし','あいぼうが さいごまで しんか',()=>stg()>=6],
+ ['qst','たよれる ゆうしゃ','サイドクエストを ぜんぶ クリア',()=>QUESTS.every(q=>S.q[q.id]==2)],
+ ['mg','タイムアタッカー','ミニゲームで 15てん',()=>S.hi>=15],
+ ['rich','おかねもち','3000コイン もった',()=>S.coin>=3000],
+ ['trc','なぞりの たつじん','なぞり れんしゅう 20かい',()=>S.st.trace>=20],
+ ['day7','まいにち コツコツ','7日 ログイン',()=>S.login.days>=7]
+];
+function chkTro(){TRO.forEach(([id,n,,f])=>{if(!S.tro[id]&&f()){S.tro[id]=1;save();toast('🏆 トロフィー「'+n+'」')}})}
+
+// ===================== メニュー =====================
+let wipe=0;
+function openMenu(){if(mode!='field'||busy||mv)return;stopHeld();mode='menu';wipe=0;panel('top');$('mn').hidden=false}
+function closeMenu(){$('mn').hidden=true;mode='field';hud()}
+const back='<button class="back" data-p="top">もどる</button>';
+function panel(p){
+  const mn=$('mn');let h='';
+  if(p=='top'){
+    const st=stg();
+    h=`<div class="hd"><h2>${S.name}の ぼうけん</h2><button class="back" id="mx">とじる</button></div>
+    <div class="card">${S.f.egg?`<img class="px" src="${petURL()}" alt="">`:''}<div>${S.f.egg?`${S.pet.nick}（${PNM[st]}）　`:''}Lv ${lv()}<br>♥ ${S.hp}/${maxhp()}　🪙 ${S.coin}　ずかん ${caught()}/${TOTAL}<br>いま：${M.nm}　${todIcon()}</div></div>
+    <div class="bdg">${GYM.map((g,i)=>`<div class="${S.b.includes(i)?'':'no'}">${BADGE[i]}<small>${g.bd}</small></div>`).join('')}</div>
+    <div class="obj">🧭 つぎの もくてき：${objective()}</div>
+    <div class="mg4"><button class="btn" data-p="z">📖 ずかん</button><button class="btn" data-p="it">🎒 どうぐ</button><button class="btn" data-p="pet" ${S.f.egg?'':'disabled'}>🐾 あいぼう</button><button class="btn" data-p="ms">🎯 ミッション</button>
+    <button class="btn sub" data-p="qs">📜 クエスト</button><button class="btn sub" data-p="tr">🏆 トロフィー</button><button class="btn sub" data-p="rc">📊 きろく</button><button class="btn sub" data-p="fl" ${S.b.length>=3?'':'disabled'}>🕊️ そらとぶ</button>
+    <button class="btn sub" id="mrev">🔁 ふくしゅう</button><button class="btn sub" data-p="cf">⚙️ せってい</button><button class="btn sub" data-p="hp">❓ あそびかた</button><button class="btn sub" id="mx2">✖ とじる</button></div>
+    <button class="tiny" id="mw0">${wipe?'ほんとうに けす？ もういちど おしてね':'データを けして さいしょから'}</button>`;
+  }
+  else if(p=='it'){
+    h=`<div class="hd"><h2>🎒 どうぐ</h2>${back}</div><div class="lst">${Object.entries(ITEMS).map(([k,v])=>`<div class="it"><div>${v.ic} ${v.n} ×${S.it[k]}<small>${v.d}${v.use=='bt'?'（バトルで つかう）':''}</small></div>${v.use!='bt'?`<button data-u="${k}" ${S.it[k]?'':'disabled'}>つかう</button>`:''}</div>`).join('')}</div><div class="obj" id="imsg">${S.mushi>0?`🧴 むしよけ のこり ${S.mushi}ぽ　`:''}${S.mitsu>0?`🍯 あまいミツ のこり ${S.mitsu}ぽ`:''}&nbsp;</div>`;
+  }
+  else if(p=='pet'){
+    const st=stg(),nx=st<6?STG[st+1]:null,hearts=Math.floor(S.pet.aff/20);
+    h=`<div class="hd"><h2>🐾 あいぼう</h2>${back}</div>
+    <div class="petbig"><img class="px" src="${petURL()}" alt="${S.pet.nick}"><div style="font-size:3.1cqw;line-height:1.7">${PNM[st]}　<b style="color:var(--gold);font-weight:normal">${MOVES[st]}</b><br>なつき度 ${'❤'.repeat(hearts)}${'♡'.repeat(5-hearts)}（${S.pet.aff}）<br>きずなゲージ ${S.pet.g}/5<br>${nx?`つぎの しんか：Lv${nx}（いま Lv${lv()}）`:'さいごまで しんかした！'}<br><label>なまえ <input id="pnick" maxlength="6" value="${S.pet.nick}"></label> <button class="back" id="pren">かえる</button></div></div>
+    <div class="row"><button class="btn" id="pfeed" ${S.it.cookie?'':'disabled'}>🍪 クッキーを あげる（${S.it.cookie}）</button><button class="btn sub" id="ppat">🤚 なでる</button></div>
+    <h2 style="font-size:3.4cqw">きせかえ</h2><div class="acc"><button data-a="" class="${S.acc.on?'':'on'}">なし</button>${S.acc.own.map(a=>`<button data-a="${a}" class="${S.acc.on==a?'on':''}">${ACC[a].n}</button>`).join('')}</div>
+    <div class="obj" id="pmsg">きせかえは ショップや クエストで 手に入るよ。 なつき度が 30いじょうだと ピンチで かばって くれることも！</div>`;
+  }
+  else if(p=='ms'){
+    const dm=S.dm;
+    h=`<div class="hd"><h2>🎯 きょうの ミッション</h2>${back}</div>${dm?`<div class="lst">${dm.list.map(m=>`<div class="it ${m.done?'dn':''}"><div>${m.done?'✅':'⬜'} ${MT[m.t][0]}（${Math.min(m.p,m.n)}/${m.n}）<div class="bar"><i style="width:${Math.min(100,m.p/m.n*100)}%"></i></div></div><span>+100🪙</span></div>`).join('')}</div><div class="obj">ぜんぶ クリアで もじクッキー×2 と きんのふで！ ${dm.all?'（うけとりずみ）':''}<br>📅 ログイン ${S.login.days}日め（5日ごとに ボーナス）</div>`:'<div class="obj">あしたまた 見てね</div>'}`;
+  }
+  else if(p=='qs'){
+    h=`<div class="hd"><h2>📜 サイドクエスト</h2>${back}</div><div class="lst">${QUESTS.map(q=>{const s=S.q[q.id];return `<div class="it ${s==2?'dn':''}"><div>${s==2?'✅':s?(q.ck()?'❗':'📜'):'❔'} ${s?q.t:'？？？'}<small>${s?q.who+'（'+MAPS[q.m].nm+'）':MAPS[q.m].nm+'の 家に だれかが いるようだ'}${s==1&&q.ck()?' ― たっせい！ ほうこく しよう':''}</small></div></div>`}).join('')}</div>`;
+  }
+  else if(p=='tr'){
+    h=`<div class="hd"><h2>🏆 トロフィー ${Object.keys(S.tro).length}/${TRO.length}</h2>${back}</div><div class="lst">${TRO.map(([id,n,d])=>`<div class="it ${S.tro[id]?'':'dn'}"><div>${S.tro[id]?'🏆':'🔒'} ${n}<small>${d}</small></div></div>`).join('')}</div>`;
+  }
+  else if(p=='rc'){
+    const s=S.st,acc=s.ans?Math.round(s.ok/s.ans*100):0;
+    h=`<div class="hd"><h2>📊 ぼうけんの きろく</h2>${back}</div><div class="lst">${[
+      ['こたえた かず',s.ans+'かい'],['せいかいりつ',acc+'%'],['手がき せいかい',s.kakiok+' ／ '+s.kaki+'かい'],['よむ せいかい',s.yomiok+'かい'],['さがす せいかい',s.sagok+'かい'],['さいこう れんぞく',s.maxc+'かい'],['たおした・つかまえた',s.catch+'ひき'],['いろちがい',s.shiny+'ひき'],['トレーナーに かった',s.wins+'かい'],['なぞり れんしゅう',s.trace+'かい'],['あるいた ほすう',s.steps+'ぽ'],['ミニゲーム さいこう',S.hi+'てん'],['ログイン',S.login.days+'日']
+    ].map(([a,b])=>`<div class="it"><span>${a}</span><b style="font-weight:normal;color:var(--gold)">${b}</b></div>`).join('')}</div>`;
+  }
+  else if(p=='fl'){
+    const towns=[0,2,4,6,8,10,12].filter(m=>S.vis[m]);
+    h=`<div class="hd"><h2>🕊️ そらとぶ</h2>${back}</div><div class="obj">{P}の ちからで 行ったことのある 町へ ひとっとび！</div><div class="mg4">${towns.map(m=>`<button class="btn" data-fly="${m}">${MAPS[m].nm}</button>`).join('')}</div>`;
+  }
+  else if(p=='cf'){
+    const sw=(k,labels)=>labels.map((l,i)=>`<button class="btn ${S.cfg[k]==i?'':'sub'}" data-c="${k}:${i}">${l}</button>`).join('');
+    h=`<div class="hd"><h2>⚙️ せってい</h2>${back}</div>
+    <div class="obj">こうかおん</div><div class="row">${sw('snd',['OFF','ON'])}</div>
+    <div class="obj">BGM</div><div class="row">${sw('bgm',['OFF','ON'])}</div>
+    <div class="obj">メッセージの はやさ</div><div class="row">${sw('spd',['ゆっくり','ふつう','はやい'])}</div>
+    <div class="obj">ペンの ふとさ</div><div class="row">${sw('pen',['ほそい','ふつう','ふとい'])}</div>`;
+  }
+  else if(p=='hp'){
+    h=`<div class="hd"><h2>❓ あそびかた</h2>${back}</div><div class="help">
+    <b>いどう</b>：やじるしを ちょんと おすと その むきを むく／1マス すすむ。 おしっぱなしで あるく。 <b>ダッシュ</b>は Shift か ダッシュボタン。<br>
+    <b>とびら</b>：ぶつかると 入れる。 <b>Aボタン</b>（Z・Enter）で 人・かんばん・あいぼうを しらべる。<br>
+    <b>✍️かく</b>：〇の 漢字を 手で かいて「かけた！」→ こたえと くらべて ⭕か❌。 おうちの人に 見てもらっても OK。 2ダメージ。<br>
+    <b>👀よむ</b>：よみかたを えらぶ。 <b>🔍さがす</b>：正しい 漢字を えらぶ。 3びょう いないで ⚡すばやいボーナス。<br>
+    <b>🔥コンボ</b>：3れんぞく せいかいから ダメージ アップ。 <b>⭐あいぼうわざ</b>：きずなゲージ 5で つかえる。<br>
+    <b>まちがえたら</b>：なぞりれんしゅうで おぼえなおそう。 にがての 字は ずかんの「にがて」タブと メニューの「ふくしゅう」へ。<br>
+    <b>キラキラ</b>：地面の キラキラに のると どうぐが 手に入る。 <b>❗</b>：トレーナーの 目の前を とおると しょうぶに なる。<br>
+    <b>いろちがい</b>：まれに 金色の もじモンが 出る。 コイン2ばい！</div>`;
+  }
+  mn.innerHTML=fmt(h);
+  mn.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{if(b.dataset.p=='z')return openZ();panel(b.dataset.p)});
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on('mx',closeMenu);on('mx2',closeMenu);
+  on('mw0',()=>{if(!wipe){wipe=1;return panel('top')}try{localStorage.removeItem(SV)}catch(e){}S=NEW();M=MAPS[0];place();$('mn').hidden=true;$('ti').hidden=false;$('tC').hidden=true;mode='title';stopBgm();renderTitle()});
+  on('mrev',()=>{const w=KEYS.filter(k=>S.z[k]&&S.z[k].ng>S.z[k].ok).sort((a,b)=>(S.z[b].ng-S.z[b].ok)-(S.z[a].ng-S.z[a].ok)).slice(0,4);
+    closeMenu();if(!w.length)return run(()=>talk(['にがてな 字は まだ ないみたい！ すごいね！']));
+    run(async()=>{await talk(['🔁 ふくしゅう道場！ にがてな 字と もういちど たたかおう！']);await fight({tr:{name:'ふくしゅう道場',pool:w,n:w.length,hp:2,coin:0,prac:1}})})});
+  mn.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const k=b.dataset.u;let m='';
+    if(!S.it[k])return;
+    if(k=='kizu'||k=='ii'){if(S.hp>=maxhp())m='♥は まんたんだ！';else{S.it[k]--;S.hp=k=='ii'?maxhp():Math.min(maxhp(),S.hp+3);m='♥が かいふく した！'}}
+    else if(k=='cookie'){S.it.cookie--;S.pet.aff=Math.min(100,S.pet.aff+5);S.pet.g=Math.min(5,S.pet.g+2);m=fmt('{P}は おいしそうに たべた！')}
+    else if(k=='mushi'){S.it.mushi--;S.mushi=60;m='むしよけスプレーを つかった！ 60ぽ もじモンが 出ない'}
+    else if(k=='mitsu'){S.it.mitsu--;S.mitsu=40;m='あまいミツを ぬった！ 40ぽ もじモンが 出やすい'}
+    save();hud();panel('it');$('imsg').textContent=m});
+  on('pfeed',()=>{if(!S.it.cookie)return;S.it.cookie--;S.pet.aff=Math.min(100,S.pet.aff+5);S.pet.g=Math.min(5,S.pet.g+2);save();panel('pet');$('pmsg').textContent=fmt('{P}は もぐもぐ たべた！ なつき度と きずなゲージが アップ！')});
+  on('ppat',()=>{let m=fmt('{P}は きもちよさそうに めを ほそめた。');if(Date.now()-petT>20000){petT=Date.now();S.pet.aff=Math.min(100,S.pet.aff+2);save();panel('pet')}else m=fmt('{P}は まんぞく そうだ。');$('pmsg').textContent=m});
+  on('pren',()=>{const v=($('pnick').value||'').trim();if(v){S.pet.nick=v.slice(0,6);save();panel('pet');$('pmsg').textContent='なまえを かえた！'}});
+  mn.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{S.acc.on=b.dataset.a||null;save();hud();panel('pet')});
+  mn.querySelectorAll('[data-fly]').forEach(b=>b.onclick=()=>{const m=+b.dataset.fly,p=centerPos(m);closeMenu();run(async()=>{await warp(m,p.x,p.y);fy=1})});
+  mn.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const[k,v]=b.dataset.c.split(':');S.cfg[k]=+v;save();if(k=='bgm'){if(+v)bgm(mapBgm());else stopBgm()}panel('cf')});
+}
+// ---- ずかん ----
+let zg=1;
+function openZ(){$('mn').hidden=true;$('zk').hidden=false;mode='menu';renderZ()}
+function renderZ(){
+  [...$('zt').children].forEach(b=>b.classList.toggle('on',b.dataset.g==String(zg)));
+  $('zc').textContent=`ぜんぶ ${caught()}/${TOTAL}`;
+  const avail=Math.floor(caught()*10/TOTAL);
+  $('zr').innerHTML=S.zr<avail?`<button class="btn" id="zrb" style="width:100%">🎁 ずかんほうしゅう（${(S.zr+1)*10}%たっせい）を うけとる</button>`:`<div class="obj">🎁 つぎの ほうしゅう：${Math.min(100,(S.zr+1)*10)}%（あと ${Math.max(0,Math.ceil(TOTAL*(S.zr+1)/10)-caught())}しゅるい）</div>`;
+  const zb=$('zrb');if(zb)zb.onclick=()=>{S.zr++;S.coin+=200;const it=['ii','fude','mitsu','cookie'][S.zr%4];S.it[it]++;if(S.zr==5)addAcc('ribbon');save();hud();sfx('win');renderZ();$('zd').textContent=`ほうしゅう：200コイン と ${ITEMS[it].n}${S.zr==5?' と リボン':''}！`};
+  const g=$('zg');g.innerHTML='';
+  const list=zg=='w'?KEYS.filter(k=>S.z[k]&&S.z[k].ng>S.z[k].ok):Object.keys(G[zg].m).map(t=>zg+':'+t);
+  if(zg=='w'&&!list.length)g.innerHTML='<div style="grid-column:1/-1;font-size:3cqw;color:var(--mute)">にがてな 字は まだ ないよ！</div>';
+  list.forEach(k=>{
+    const t=kT(k),z=S.z[k],ok=z&&z.c,b=document.createElement('button'),n=[...t].length;
+    b.textContent=ok||zg=='w'?t:'？';b.className=(ok||zg=='w'?(n>2?'l3':n>1?'l2':''):'no')+(z&&z.ng>z.ok?' weak':'')+(z&&z.sh?' shy':'');
+    b.onclick=()=>{
+      const zd=$('zd');
+      if(!ok&&zg!='w'){zd.innerHTML=z?`まだ つかまえていない もじモン（せいかい ${z.ok}／まちがい ${z.ng}）`:'まだ 見たことが ない もじモン';return}
+      const es=ents(k),ys=[...new Set(es.map(e=>e.yomi))];
+      zd.innerHTML=`<span class="bigk">${t}</span><div>${kG(k)}年生　よみ：${ys.join('・')}${z.sh?'　✨いろちがい':''}<br>${es.slice(0,3).map(e=>e.pre+'<b style="color:var(--gold);font-weight:normal">'+e.target+'</b>'+e.post).join(' ／ ')}<br><small>${es[0].meaning}　せいかい ${z.ok}（手がき ${z.w}）／まちがい ${z.ng}</small><br><button class="zbtn" id="zfb">⚔️ この字と れんしゅうバトル</button></div>`;
+      $('zfb').onclick=()=>{$('zk').hidden=true;mode='field';run(()=>fight({tr:{name:'れんしゅう',pool:[k],n:1,hp:2,coin:0,prac:1}}))};
+    };
+    g.append(b);
+  });
+  $('zd').textContent='もじを タップすると くわしく 見られるよ。 赤い わくは にがて、 金色は いろちがい。';
+}
+document.querySelectorAll('#zt button').forEach(b=>b.onclick=()=>{zg=b.dataset.g=='w'?'w':+b.dataset.g;renderZ()});
+$('zx').onclick=()=>{$('zk').hidden=true;$('mn').hidden=false;panel('top')};
+// ---- ショップ ----
+let shopRes=null;
+function shop(){mode='menu';renderShop();$('sh').hidden=false;return new Promise(r=>shopRes=r)}
+function renderShop(m=''){
+  const accs=['ribbon','cap'];
+  $('sh').innerHTML=`<div class="hd"><h2>¥ フレンドリィショップ</h2><span style="font-size:3.2cqw">🪙${S.coin}</span></div>
+  <div class="lst">${Object.entries(ITEMS).map(([k,v])=>`<div class="it"><div>${v.ic} ${v.n}（${S.it[k]}こ）<small>${v.d}</small></div><button data-b="${k}">${v.p}🪙</button></div>`).join('')}
+  ${accs.map(a=>`<div class="it ${S.acc.own.includes(a)?'dn':''}"><div>🎀 ${ACC[a].n}（あいぼうの きせかえ）<small>メニューの あいぼう から つけられるよ</small></div>${S.acc.own.includes(a)?'<span>かった</span>':`<button data-ac="${a}">${ACC[a].p}🪙</button>`}</div>`).join('')}</div>
+  <div class="obj" style="min-height:6cqw">${m||'てんいん「いらっしゃいませ！」'}</div><button class="btn sub" id="shx" style="flex:none">おみせを でる</button>`;
+  $('sh').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const k=b.dataset.b,v=ITEMS[k];if(S.coin<v.p)return renderShop('コインが たりないみたい… もじモンと たたかって あつめよう！');S.coin-=v.p;S.it[k]++;save();hud();sfx('coin');renderShop(`${v.n}を かった！ まいど ありがとう！`)});
+  $('sh').querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>{const a=b.dataset.ac;if(S.coin<ACC[a].p)return renderShop('コインが たりないみたい…');S.coin-=ACC[a].p;addAcc(a);S.acc.on=a;save();hud();sfx('coin');renderShop(`${ACC[a].n}を かった！ さっそく {P}に つけてあげたよ！`.replace('{P}',S.pet.nick))});
+  $('shx').onclick=()=>{$('sh').hidden=true;mode='field';chkTro();const r=shopRes;shopRes=null;r&&r()};
+}
+// ---- ミニゲーム ----
+async function minigameEv(){
+  const a=await ask(`ゲームマスター「よみかた タイムアタック！ 30びょうで いくつ こたえられるかな？（さいこう ${S.hi}てん）」`,['あそぶ','やめる']);
+  if(a)return;
+  mode='menu';const ov=$('mg');ov.hidden=false;
+  const g=Math.min(3,1+Math.floor(S.b.length/2)),pl=QD.filter(q=>q.g<=g);
+  let score=0;const end=performance.now()+30000;
+  ov.innerHTML=`<div class="hd"><h2>⏱ よみかた タイムアタック</h2><span id="mgs" style="font-size:3.6cqw">0てん</span></div><div class="tbar"><i id="mgt" style="width:100%"></i></div><div class="mq" id="mgq"></div><div class="mc" id="mgc"></div>`;
+  const tI=setInterval(()=>{$('mgt').style.width=Math.max(0,(end-performance.now())/300)+'%'},100);
+  while(performance.now()<end){
+    const e=rnd(pl),o=shuf([...G[e.g].y].filter(y=>y!==e.yomi)).slice(0,3);o.push(e.yomi);shuf(o);
+    $('mgq').innerHTML=`${e.pre}<u>${e.target}</u>${e.post}`;
+    const c=$('mgc');c.innerHTML='';
+    const pick=await Promise.race([new Promise(r=>o.forEach((t,i)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>r(i);c.append(b)})),sleep(Math.max(0,end-performance.now())).then(()=>-1)]);
+    if(pick<0)break;
+    const bs=[...c.children];
+    if(o[pick]===e.yomi){score++;bs[pick].className='ok';sfx('ok')}else{bs[pick].className='ng';bs.forEach((b,j)=>{if(o[j]===e.yomi)b.className='ok'});sfx('ng')}
+    $('mgs').textContent=score+'てん';await sleep(o[pick]===e.yomi?250:700);
+  }
+  clearInterval(tI);
+  const best=score>S.hi;if(best)S.hi=score;S.coin+=score*10;save();
+  ov.innerHTML=`<div class="hd"><h2>⏱ けっか</h2></div><div class="mq">${score}てん${best?'<br>🎉 しんきろく！':''}</div><div class="obj">${score*10}コインを もらった！　さいこう ${S.hi}てん</div><button class="btn" id="mgx" style="flex:none">おわる</button>`;
+  await new Promise(r=>$('mgx').onclick=r);
+  ov.hidden=true;mode='field';hud();
+}
+
+// ===================== タイトル =====================
+let col=S.col||0;
+function renderTitle(){
+  $('sw').innerHTML=COLS.map((c2,i)=>`<button style="background:${c2}" class="${i==col?'on':''}" data-i="${i}" aria-label="いろ ${i+1}"></button>`).join('');
+  $('sw').querySelectorAll('button').forEach(b=>b.onclick=()=>{col=+b.dataset.i;renderTitle()});
+  $('tp').src=petURL(hasSave&&S.f.egg?stg():1,hasSave?S.acc.on:null);
+}
+if(hasSave){$('tC').hidden=false;$('nm').value=S.name;$('pnm').value=S.pet.nick}
+renderTitle();
+let newArm=0;
+function startCommon(lines){
+  ac();$('ti').hidden=true;mode='field';hud();toast(M.nm);bgm(mapBgm());
+  const d=daily();
+  run(async()=>{if(lines)await talk(lines);if(d.length){sfx('coin');await talk(d)}});
+}
+$('tN').onclick=()=>{
+  if(hasSave&&!newArm){newArm=1;$('tN').textContent='もういちど おすと さいしょから';return}
+  const nm=($('nm').value||'').trim()||'ゆうしゃ',pn=($('pnm').value||'').trim()||'スミタマ';
+  S=NEW();S.name=nm.slice(0,6);S.pet.nick=pn.slice(0,6);S.col=col;M=MAPS[0];place();save();
+  startCommon(['ここは もじの国、 ナガレヤマ地方。','この せかいでは 漢字に いのちが やどり、「もじモン」として くらしている。','ところが さいきん、 なぞの「ケシゴム団」が もじモンを けして まわり、 町の かんばんから 文字が きえはじめた…','{N}は きょう、 むん先生に よばれている。','みぎの しろい たてもの「むん研究所」の とびらに ぶつかって 入ろう！']);
+};
+$('tC').onclick=()=>{S.col=col;M=MAPS[S.m]||MAPS[0];place();startCommon(null)};
+
+// ===================== 入力 =====================
+const km={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r',w:'u',s:'d',a:'l',d:'r',W:'u',S:'d',A:'l',D:'r'};
+addEventListener('keydown',e=>{
+  if(e.target.tagName=='INPUT')return;
+  if(e.key=='Shift'){dash=true;$('bB').classList.add('on');return}
+  const k=km[e.key];
+  if(k){e.preventDefault();if(!e.repeat)press(k);return}
+  if(e.key=='z'||e.key=='Z'||e.key=='Enter'||e.key==' '){e.preventDefault();if(e.repeat)return;if(mode=='battle'){skip&&skip()}else A()}
+  else if(e.key=='x'||e.key=='X'||e.key=='Escape'){if(mode=='field')openMenu();else if(mode=='menu'&&!$('mn').hidden)closeMenu()}
+  else if('123456'.includes(e.key)){
+    if(mode=='battle'){const b=$('act').querySelectorAll('button')[+e.key-1];b&&!b.disabled&&b.click()}
+    else if(mode=='ask'){const b=$('dlg').querySelectorAll('.yn button')[+e.key-1];b&&b.click()}
+  }
+});
+addEventListener('keyup',e=>{if(e.key=='Shift'){dash=false;$('bB').classList.remove('on');return}const k=km[e.key];if(k)release(k)});
+addEventListener('blur',stopHeld);
+document.querySelectorAll('[data-k]').forEach(b=>{
+  const k=b.dataset.k;
+  b.onpointerdown=e=>{e.preventDefault();ac();press(k)};
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>b['on'+ev]=()=>release(k));
+});
+$('bA').onpointerdown=e=>{e.preventDefault();ac();if(mode=='battle')skip&&skip();else A()};
+$('bB').onclick=()=>{dash=!dash;$('bB').classList.toggle('on',dash)};
+$('bX').onclick=()=>{if(mode=='field')openMenu();else if(mode=='menu'&&!$('mn').hidden)closeMenu()};
+$('mb').onclick=openMenu;$('dlg').onclick=()=>{if(mode=='talk')A()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopHeld();save()}});
+
+place();hud();requestAnimationFrame(tick);
+</script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
