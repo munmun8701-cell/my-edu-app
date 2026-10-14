@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>予定</title>
+    <title>予定帳</title>
     <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
 
 
@@ -16,943 +16,1965 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Universal Planner - All-in-One Edition (A4 Perfect Fit)</title>
+  <title>予定帳プランナー</title>
+  <!-- 印刷用紙サイズ（JSで書き換えます） -->
+  <style id="pageStyle">
+    @page {
+      size: 297mm 210mm;
+      margin: 8mm;
+    }
+  </style>
   <style>
     :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --primary-light: #e0e7ff;
-      --bg-color: #f8fafc;
+      --accent: #4f46e5;
+      --accent-strong: #4338ca;
+      --accent-soft: #4f46e526;
+      --accent-faint: #4f46e50f;
+      --paper: #f5f3ee;
       --surface: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --weekend-sat: #eff6ff;
-      --weekend-sun: #fef2f2;
-      --today-bg: #fffbeb;
-      --today-border: #fbbf24;
-      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+      --surface-2: #faf9f6;
+      --ink: #1f2433;
+      --ink-2: #3d4354;
+      --muted: #7a7f8c;
+      --line: #e7e3da;
+      --sun: #d43c3c;
+      --sat: #2f6fd6;
+      --sun-bg: #fdf3f2;
+      --sat-bg: #f2f6fd;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(30, 36, 51, .05), 0 8px 24px -12px rgba(30, 36, 51, .14);
+      --font: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", "Meiryo", "Noto Sans JP", system-ui, sans-serif;
     }
 
     * {
       box-sizing: border-box;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    html,
+    body {
+      margin: 0;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding: 20px;
-      transition: background-color 0.3s;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .container {
-      max-width: 1600px;
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    .app {
+      max-width: 1680px;
       margin: 0 auto;
+      padding: 16px 20px 48px;
     }
 
-    /* Glass Header */
-    .header {
+    /* ---------- トップバー ---------- */
+    .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 15px 30px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .08em;
+      color: var(--ink-2);
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
     }
 
     .month-nav {
       display: flex;
       align-items: center;
-      gap: 20px;
-    }
-
-    .month-nav button {
-      background: var(--primary-light);
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: var(--primary);
-      padding: 8px 16px;
-      border-radius: 10px;
-      font-weight: bold;
-      transition: 0.2s;
-    }
-
-    .month-nav button:hover {
-      background: var(--primary);
-      color: white;
-      transform: translateY(-1px);
-    }
-
-    .month-title {
-      font-size: 28px;
-      font-weight: 900;
-      min-width: 180px;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
       gap: 6px;
-      transition: all 0.2s;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-      box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-    }
-
-    .btn-outline {
-      background: white;
-      border: 2px solid var(--border);
-      color: var(--text-main);
-    }
-
-    .btn-outline:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    /* Layout */
-    .main-layout {
-      display: flex;
-      gap: 25px;
-      align-items: flex-start;
-    }
-
-    /* Calendar Grid */
-    .calendar-wrapper {
-      flex: 1;
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
       background: var(--surface);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .weekdays {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      background: #f8fafc;
-      border-bottom: 1px solid var(--border);
+      place-items: center;
+      color: var(--ink-2);
+      transition: .15s;
+      padding: 0;
     }
 
-    .weekday {
-      padding: 15px;
-      text-align: center;
-      font-weight: 800;
-      color: var(--text-muted);
-      font-size: 14px;
-      letter-spacing: 1px;
+    .icon-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      grid-auto-rows: minmax(150px, auto);
-    }
-
-    .day-cell {
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 10px;
-      cursor: pointer;
+    .month-label {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      transition: all 0.2s;
-      position: relative;
-    }
-
-    .day-cell:hover {
-      background: var(--primary-light);
-    }
-
-    .day-cell.empty {
-      background: var(--bg-color);
-      cursor: default;
-    }
-
-    .day-cell.empty:hover {
-      background: var(--bg-color);
-    }
-
-    .day-cell:nth-child(7n+1) {
-      background: var(--weekend-sun);
-    }
-
-    .day-cell:nth-child(7n) {
-      background: var(--weekend-sat);
-    }
-
-    .day-cell.today {
-      background-color: var(--today-bg);
-      box-shadow: inset 0 0 0 3px var(--today-border);
-    }
-
-    .day-number {
-      font-size: 15px;
-      font-weight: 900;
-      margin-bottom: 4px;
-      color: var(--text-main);
-      border-bottom: 1px dashed #cbd5e1;
-      padding-bottom: 2px;
-    }
-
-    /* Previews */
-    .preview-event {
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-weight: bold;
-      background: var(--primary);
-      color: white;
-      white-space: normal;
-      word-break: break-word;
-      line-height: 1.3;
-    }
-
-    .preview-data {
-      font-size: 11px;
-      color: #334155;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .memo-block {
-      background: #f1f5f9;
-      padding: 6px;
-      border-radius: 6px;
-      margin-top: 2px;
-      border-left: 3px solid var(--primary);
-    }
-
-    .memo-label {
-      font-size: 10px;
-      font-weight: bold;
-      color: var(--primary);
-      margin-bottom: 2px;
-    }
-
-    .todo-list-preview {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      margin-top: 4px;
-      border-top: 1px dashed var(--border);
-      padding-top: 6px;
-    }
-
-    .todo-preview-item {
-      font-size: 11px;
-      color: #059669;
-      font-weight: bold;
-      display: flex;
+      align-items: baseline;
       gap: 4px;
-      align-items: flex-start;
-      line-height: 1.3;
-      word-break: break-word;
+      min-width: 150px;
+      justify-content: center;
+      padding: 0 4px;
     }
 
-    .todo-preview-item.done {
-      color: var(--text-muted);
-      text-decoration: line-through;
+    .month-label .y {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-right: 4px;
     }
 
-    /* Sidebar Dashboard */
-    .sidebar {
-      width: 340px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      flex-shrink: 0;
-    }
-
-    .sidebar-card {
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-    }
-
-    .sidebar-title {
-      font-size: 14px;
+    .month-label .m {
+      font-size: 34px;
       font-weight: 800;
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 8px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      color: var(--text-main);
+      line-height: 1;
+      letter-spacing: -.02em;
     }
 
-    .form-control {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      transition: all 0.2s;
-      background: #f8fafc;
+    .month-label .mu {
+      font-size: 15px;
+      font-weight: 700;
     }
 
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      background: white;
-      box-shadow: 0 0 0 3px var(--primary-light);
+    .spacer {
+      flex: 1;
     }
 
-    .subject-tracker-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .subject-row {
+    .save-status {
+      font-size: 12px;
+      color: var(--muted);
       display: flex;
       align-items: center;
       gap: 6px;
-    }
-
-    .subject-row label {
-      font-size: 11px;
-      font-weight: bold;
-      color: var(--text-muted);
-      min-width: 25px;
       white-space: nowrap;
     }
 
-    .subject-row input {
-      padding: 6px 8px;
-      margin: 0;
+    .save-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22a06b;
     }
 
-    .todo-list-global .todo-item {
-      display: flex;
+    .save-status.err {
+      color: var(--sun);
+    }
+
+    .save-status.err::before {
+      background: var(--sun);
+    }
+
+    .btn {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      background: white;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .todo-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-      accent-color: var(--primary);
-    }
-
-    .todo-item input[type="text"] {
-      flex: 1;
-      border: none;
-      font-size: 13px;
-      background: transparent;
-      outline: none;
-    }
-
-    .btn-add-text {
-      font-size: 12px;
-      color: var(--primary);
-      cursor: pointer;
-      font-weight: bold;
-      padding: 5px 0;
-      display: inline-block;
-    }
-
-    .btn-add-text:hover {
-      text-decoration: underline;
-    }
-
-    /* Modals */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
-      display: none;
       justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      backdrop-filter: blur(5px);
+      gap: 6px;
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: .15s;
     }
 
-    .modal-content {
-      background: var(--surface);
-      width: 100%;
-      max-width: 650px;
-      border-radius: 20px;
-      padding: 30px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .btn-danger {
+      color: var(--sun);
+    }
+
+    .btn-danger:hover {
+      border-color: var(--sun);
+      color: var(--sun);
+    }
+
+    .btn-sm {
+      height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .menu {
       position: relative;
     }
 
-    .modal-header {
+    .menu>summary {
+      list-style: none;
+    }
+
+    .menu>summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .menu-pop {
+      position: absolute;
+      right: 0;
+      top: 44px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 6px;
+      min-width: 250px;
+      z-index: 50;
+    }
+
+    .menu-pop button {
       display: flex;
-      justify-content: space-between;
+      width: 100%;
       align-items: center;
-      margin-bottom: 20px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 15px;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 0;
+      background: none;
+      border-radius: 8px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .menu-pop button:hover {
+      background: var(--accent-faint);
+      color: var(--accent);
+    }
+
+    .menu-note {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 8px 12px 4px;
+      border-top: 1px solid var(--line);
+      margin-top: 4px;
+    }
+
+    /* ---------- レイアウト ---------- */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* ---------- カレンダー（画面） ---------- */
+    .cal {
+      overflow: hidden;
+    }
+
+    .cal-head {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+
+    .cal-head div {
+      padding: 10px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: .12em;
+    }
+
+    .cal-head .sun {
+      color: var(--sun);
+    }
+
+    .cal-head .sat {
+      color: var(--sat);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-auto-rows: minmax(128px, auto);
+    }
+
+    .cell {
+      position: relative;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 7px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      min-width: 0;
+      transition: background .15s, box-shadow .15s;
+      outline: none;
+    }
+
+    .cell:nth-child(7n) {
+      border-right: 0;
+    }
+
+    .cell.sat {
+      background: var(--sat-bg);
+    }
+
+    .cell.sun,
+    .cell.hol,
+    .cell.off {
+      background: var(--sun-bg);
+    }
+
+    .cell:hover,
+    .cell:focus-visible {
+      background: var(--accent-faint);
+      box-shadow: inset 0 0 0 2px var(--accent-soft);
+    }
+
+    .cell.blank {
+      background: repeating-linear-gradient(135deg, transparent 0 7px, rgba(0, 0, 0, .025) 7px 14px);
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .cell.today {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .cell-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+    }
+
+    .num {
+      font-size: 15px;
+      font-weight: 800;
+      width: 27px;
+      height: 27px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cell.sun .num,
+    .cell.hol .num,
+    .cell.off .num {
+      color: var(--sun);
+    }
+
+    .cell.sat .num {
+      color: var(--sat);
+    }
+
+    .cell.today .num {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .dow {
+      display: none;
+    }
+
+    .hol-name {
+      font-size: 10.5px;
+      color: var(--sun);
+      font-weight: 700;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .add-hint {
+      margin-left: auto;
+      opacity: 0;
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 17px;
+      line-height: 1;
+      transition: .15s;
+    }
+
+    .cell:hover .add-hint {
+      opacity: 1;
+    }
+
+    .cell .ev {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: var(--evbg);
+      border-left: 3px solid var(--evc);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .cell .tt {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px 7px;
+      font-size: 11px;
+      color: var(--ink-2);
+      line-height: 1.45;
+    }
+
+    .cell .tti {
+      overflow-wrap: anywhere;
+    }
+
+    .cell .tti b {
+      font-size: 9.5px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-right: 2px;
+    }
+
+    .cell .fld {
+      font-size: 11px;
+      color: var(--ink-2);
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .cell .fld b {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .cell .memo {
+      font-size: 11px;
+      background: var(--surface-2);
+      border-left: 2px solid var(--accent);
+      padding: 3px 6px;
+      border-radius: 0 6px 6px 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+    }
+
+    .cell .memo b {
+      display: block;
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    .cell .todos {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .cell .todo {
+      display: flex;
+      gap: 4px;
+      overflow-wrap: anywhere;
+      color: #0f7a55;
+      font-weight: 600;
+    }
+
+    .cell .todo.done {
+      color: var(--muted);
+      text-decoration: line-through;
+      font-weight: 400;
+    }
+
+    /* ---------- サイドバー ---------- */
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .side-card {
+      padding: 14px 16px 12px;
+    }
+
+    .side-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .side-title::before {
+      content: "";
+      width: 4px;
+      height: 15px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 13px;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    .field:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    textarea.field {
+      resize: vertical;
+      line-height: 1.55;
+      min-height: 64px;
+    }
+
+    .side textarea.field {
+      resize: none;
+      overflow: hidden;
+    }
+
+    .subj-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 10px;
+      align-items: center;
+    }
+
+    .subj-grid label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .subj-grid .field {
+      padding: 6px 8px;
+      font-size: 12.5px;
+    }
+
+    .todo-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .todo-row input[type=checkbox] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+      margin: 0;
+    }
+
+    .todo-row input[type=text] {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      font-size: 13px;
+      padding: 5px 0;
+      min-width: 0;
+      outline: none;
+    }
+
+    .todo-row input[type=checkbox]:checked+input[type=text] {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .todo-row .x {
+      border: 0;
+      background: none;
+      color: var(--muted);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      opacity: .45;
+      flex-shrink: 0;
+    }
+
+    .todo-row .x:hover {
+      opacity: 1;
+      color: var(--sun);
+      background: var(--sun-bg);
+    }
+
+    .link-btn {
+      border: 0;
+      background: none;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12.5px;
+      padding: 8px 0 2px;
+    }
+
+    .link-btn:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------- モーダル ---------- */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 28, 40, .45);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      width: 100%;
+      max-width: 700px;
+      max-height: calc(100vh - 32px);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .35);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
     }
 
     .modal-title {
-      font-size: 20px;
-      font-weight: 900;
-      color: var(--primary);
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.3;
     }
 
-    .section-title {
-      font-size: 14px;
+    .modal-title small {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .modal-sub {
+      font-size: 12px;
+      color: var(--sun);
+      font-weight: 700;
+      min-height: 0;
+    }
+
+    .modal-body {
+      padding: 2px 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-foot {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 12px 18px;
+      border-top: 1px solid var(--line);
+      background: var(--surface-2);
+      flex-wrap: wrap;
+    }
+
+    .kbd-hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .sec {
+      margin-top: 20px;
+    }
+
+    .sec-title {
+      font-size: 12px;
       font-weight: 800;
-      color: var(--text-muted);
-      margin: 20px 0 10px 0;
+      color: var(--muted);
+      letter-spacing: .06em;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    .dynamic-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      background: #f8fafc;
-      padding: 15px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-
-    .stamp-container {
-      display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-top: 10px;
     }
 
-    .stamp-btn {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.2s;
+    .sec-title .tools {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
-    .stamp-btn:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-      color: var(--primary);
+    .sec-note {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin: -2px 0 8px;
     }
 
-    .settings-list {
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stack {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
+      gap: 12px;
     }
 
-    .settings-item {
+    .lbl {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .chips {
       display: flex;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-faint);
+    }
+
+    .swatches {
+      display: flex;
+      gap: 5px;
       align-items: center;
     }
 
-    .btn-delete {
-      background: #fee2e2;
-      color: #ef4444;
-      border: none;
-      border-radius: 6px;
-      width: 32px;
-      height: 32px;
-      font-weight: bold;
+    .sw {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px var(--line);
+      padding: 0;
+    }
+
+    .sw.on {
+      box-shadow: 0 0 0 2px var(--ink);
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
     }
 
-    .preset-container {
+    .check input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent);
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    .tt-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tt-input b {
+      font-size: 11px;
+      color: var(--muted);
+      width: 26px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .tt-input .field {
+      padding: 6px 8px;
+    }
+
+    /* 設定 */
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .list-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .del-btn {
+      border: 0;
+      background: var(--sun-bg);
+      color: var(--sun);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .preset-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 10px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
     }
 
     .preset-btn {
-      padding: 12px;
-      border: 2px solid var(--border);
-      background: white;
+      border: 1px solid var(--line);
+      background: #fff;
       border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.2s;
-      text-align: center;
-      font-size: 14px;
+      padding: 12px 6px;
+      font-weight: 700;
+      font-size: 13px;
     }
 
     .preset-btn:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
+      border-color: var(--accent);
+      background: var(--accent-faint);
+      color: var(--accent);
+    }
+
+    .panel {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .tt-table-wrap {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    .tt-table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 480px;
+    }
+
+    .tt-table th {
+      font-size: 11.5px;
+      color: var(--muted);
+      padding: 4px;
+      font-weight: 800;
+    }
+
+    .tt-table td {
+      padding: 2px;
+    }
+
+    .tt-table input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 5px 6px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .tt-table input:focus {
+      outline: none;
+      border-color: var(--accent);
     }
 
     #toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--text-main);
-      color: white;
-      padding: 12px 24px;
+      bottom: 22px;
+      left: 50%;
+      transform: translate(-50%, 20px);
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 20px;
       border-radius: 10px;
-      font-weight: bold;
+      font-weight: 700;
+      font-size: 13px;
       opacity: 0;
-      transform: translateY(20px);
-      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 2000;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+      transition: .3s;
+      z-index: 400;
+      box-shadow: 0 10px 20px -6px rgba(0, 0, 0, .3);
     }
 
     #toast.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate(-50%, 0);
     }
 
-    /* =========================================
-       完全印刷用CSS（A4一枚に収める＆すべて表示）
-       ========================================= */
+    /* ---------- 印刷プレビュー ---------- */
+    #printOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: #4a4f5c;
+      display: flex;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #printOverlay.open {
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #printOverlay:not(.open) * {
+      transition: none !important;
+    }
+
+    .pv-panel>* {
+      flex-shrink: 0;
+    }
+
+    .pv-panel {
+      width: 330px;
+      flex-shrink: 0;
+      background: var(--surface);
+      overflow-y: auto;
+      padding: 16px 18px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pv-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pv-month {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 6px;
+    }
+
+    .pv-month div {
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .seg {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg button {
+      border: 0;
+      background: none;
+      border-radius: 7px;
+      padding: 7px 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .seg button.on {
+      background: #fff;
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+    }
+
+    .pv-status {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      background: #e7f6ee;
+      color: #146c45;
+      line-height: 1.55;
+    }
+
+    .pv-status.warn {
+      background: #fff3dc;
+      color: #8a5300;
+    }
+
+    .pv-status small {
+      display: block;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .pv-hint {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.7;
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .pv-hint b {
+      color: var(--ink-2);
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .range-row input {
+      flex: 1;
+      accent-color: var(--accent);
+    }
+
+    .pv-checks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 10px;
+    }
+
+    .pv-checks.one {
+      grid-template-columns: 1fr;
+    }
+
+    .pv-print {
+      height: 46px;
+      font-size: 14px;
+    }
+
+    .pv-stage {
+      flex: 1;
+      overflow: auto;
+      padding: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .pv-scaler {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .pv-paper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #fff;
+      transform-origin: top left;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+    }
+
+    .pv-guide {
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      border-top: 2px dashed #ff7a59;
+      z-index: 2;
+    }
+
+    .pv-guide span {
+      position: absolute;
+      right: 0;
+      top: -20px;
+      background: #ff7a59;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    /* ---------- 印刷シート（画面プレビュー／印刷 共通） ---------- */
+    .sheet {
+      background: #fff;
+      color: #111;
+      font-family: var(--font);
+      line-height: 1.28;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sheet.flow {
+      overflow: visible;
+    }
+
+    .sheet .s-head {
+      display: flex;
+      align-items: flex-end;
+      gap: 1.2em;
+      padding-bottom: .35em;
+      margin-bottom: .5em;
+      border-bottom: .2em solid var(--sa);
+    }
+
+    .sheet .s-month {
+      display: flex;
+      align-items: baseline;
+      gap: .2em;
+      white-space: nowrap;
+    }
+
+    .sheet .s-month .y {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #555;
+      margin-right: .2em;
+    }
+
+    .sheet .s-month .m {
+      font-size: 2.5em;
+      font-weight: 800;
+      line-height: .9;
+    }
+
+    .sheet .s-month .mu {
+      font-size: 1.1em;
+      font-weight: 700;
+    }
+
+    .sheet .s-title {
+      font-size: 1.3em;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .sheet .s-goal {
+      flex: 1;
+      font-size: 1em;
+      text-align: right;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+
+    .sheet .s-goal b {
+      color: var(--sa);
+      margin-right: .4em;
+    }
+
+    .sheet .s-body {
+      flex: 1;
+      display: flex;
+      gap: .7em;
+      min-height: 0;
+    }
+
+    .sheet .s-body.bottom {
+      flex-direction: column;
+    }
+
+    .sheet .s-cal {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border: .12em solid #333;
+      min-width: 0;
+    }
+
+    .sheet .s-wk {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      background: #eee;
+      border-bottom: .1em solid #333;
+    }
+
+    .sheet .s-wk div {
+      text-align: center;
+      font-weight: 800;
+      font-size: .9em;
+      padding: .2em 0;
+      border-right: .06em solid #999;
+    }
+
+    .sheet .s-wk div:last-child {
+      border-right: 0;
+    }
+
+    .sheet .s-wk .sun {
+      color: #c62828;
+    }
+
+    .sheet .s-wk .sat {
+      color: #1e5bbf;
+    }
+
+    .sheet .s-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-auto-rows: minmax(min-content, 1fr);
+    }
+
+    .sheet .sc {
+      border-right: .06em solid #999;
+      border-bottom: .06em solid #999;
+      padding: .22em .32em .3em;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      break-inside: avoid;
+      display: flex;
+      flex-direction: column;
+      gap: .18em;
+    }
+
+    .sheet .sc:nth-child(7n) {
+      border-right: 0;
+    }
+
+    .sheet .sc.lastrow {
+      border-bottom: 0;
+    }
+
+    .sheet .sc.blank {
+      background: #f3f3f3;
+    }
+
+    .sheet .sc.sat {
+      background: #f1f5fc;
+    }
+
+    .sheet .sc.sun,
+    .sheet .sc.hol,
+    .sheet .sc.off {
+      background: #fcf0f0;
+    }
+
+    .sheet .st {
+      display: flex;
+      align-items: baseline;
+      gap: .35em;
+    }
+
+    .sheet .sn {
+      font-weight: 800;
+      font-size: 1.2em;
+      line-height: 1;
+    }
+
+    .sheet .sc.sun .sn,
+    .sheet .sc.hol .sn,
+    .sheet .sc.off .sn {
+      color: #c62828;
+    }
+
+    .sheet .sc.sat .sn {
+      color: #1e5bbf;
+    }
+
+    .sheet .sh {
+      font-size: .72em;
+      color: #c62828;
+      font-weight: 700;
+    }
+
+    .sheet .ev {
+      font-size: .95em;
+      font-weight: 700;
+      border-left: .28em solid var(--evc);
+      background: var(--evbg);
+      padding: .05em .3em;
+      white-space: pre-wrap;
+    }
+
+    .sheet .tt {
+      font-size: .82em;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 .5em;
+      color: #222;
+    }
+
+    .sheet .tti b {
+      font-size: .85em;
+      color: #777;
+      margin-right: .12em;
+    }
+
+    .sheet .fld {
+      font-size: .82em;
+      white-space: pre-wrap;
+    }
+
+    .sheet .fld b {
+      color: #555;
+    }
+
+    .sheet .memo {
+      font-size: .82em;
+      white-space: pre-wrap;
+      border-left: .16em solid var(--sa);
+      padding-left: .3em;
+    }
+
+    .sheet .memo b {
+      display: block;
+      font-size: .88em;
+      color: var(--sa);
+    }
+
+    .sheet .todo {
+      font-size: .82em;
+      display: flex;
+      gap: .25em;
+    }
+
+    .sheet .todo.done {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .sheet .s-side {
+      flex: 0 0 23%;
+      display: flex;
+      flex-direction: column;
+      gap: .55em;
+      min-width: 0;
+    }
+
+    .sheet .s-body.bottom .s-side {
+      flex: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(16em, 1fr));
+    }
+
+    .sheet .s-card {
+      border: .1em solid #333;
+      padding: .3em .45em .45em;
+      break-inside: avoid;
+      min-width: 0;
+    }
+
+    .sheet .s-card.grow {
+      flex: 1;
+    }
+
+    .sheet .s-card h4 {
+      margin: 0 0 .3em;
+      font-size: .95em;
+      font-weight: 800;
+      border-bottom: .08em solid #999;
+      padding-bottom: .15em;
+      color: var(--sa);
+    }
+
+    .sheet .s-card .txt {
+      font-size: .9em;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      min-height: 1.3em;
+    }
+
+    .sheet .s-subj {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .12em .55em;
+      font-size: .88em;
+    }
+
+    .sheet .s-subj b {
+      white-space: nowrap;
+    }
+
+    .sheet .s-subj span {
+      overflow-wrap: anywhere;
+      border-bottom: .05em dotted #bbb;
+      min-height: 1.2em;
+    }
+
+    .sheet .s-mt {
+      font-size: .9em;
+      display: flex;
+      gap: .3em;
+    }
+
+    .sheet .s-mt.done {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .sheet.mono .sc.sat,
+    .sheet.mono .sc.sun,
+    .sheet.mono .sc.hol,
+    .sheet.mono .sc.off,
+    .sheet.mono .sc.blank,
+    .sheet.mono .s-wk,
+    .sheet.mono .ev {
+      background: none;
+    }
+
+    /* ---------- レスポンシブ ---------- */
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 12px 10px 40px;
+      }
+
+      .topbar {
+        gap: 8px;
+      }
+
+      .brand span,
+      .btn .lbl,
+      .save-status {
+        display: none;
+      }
+
+      .month-label .m {
+        font-size: 28px;
+      }
+
+      .cal-head {
+        display: none;
+      }
+
+      .cal-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+      }
+
+      .cell {
+        border-right: 0;
+        min-height: 52px;
+      }
+
+      .cell.blank {
+        display: none;
+      }
+
+      .dow {
+        display: inline;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .grid2,
+      .grid3 {
+        grid-template-columns: 1fr;
+      }
+
+      .preset-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #printOverlay {
+        flex-direction: column;
+      }
+
+      .pv-panel {
+        width: auto;
+        max-height: 52vh;
+      }
+
+      .pv-stage {
+        padding: 14px;
+      }
+    }
+
+    /* ---------- 印刷 ---------- */
     @media print {
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
 
-      @page {
-        size: A4 landscape;
-        margin: 5mm;
-        /* 余白を最小化してスペースを確保 */
-      }
-
       html,
       body {
-        background: white !important;
-        width: 100% !important;
-        height: auto !important;
-        min-height: 100vh !important;
-        padding: 0 !important;
+        background: #fff !important;
         margin: 0 !important;
-        overflow: visible !important;
+        padding: 0 !important;
       }
 
-      .container {
-        width: 100% !important;
-        max-width: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: block !important;
-      }
-
-      .no-print {
+      body>*:not(#printOverlay) {
         display: none !important;
       }
 
-      #printTitle {
+      #printOverlay {
+        position: static !important;
+        visibility: visible !important;
         display: block !important;
-        font-size: 16px !important;
-        margin: 0 0 5px 0 !important;
-        text-align: center;
+        background: none !important;
       }
 
-      /* カレンダー（左）とサイドバー（右）の横並びレイアウトに変更して、1枚に押し込む */
-      .main-layout {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: stretch !important;
-        gap: 10px !important;
-        width: 100% !important;
+      .pv-panel,
+      .pv-guide {
+        display: none !important;
       }
 
-      /* カレンダーエリア：可能な限り横幅を広く取る */
-      .calendar-wrapper {
-        flex: 1 !important;
-        border: 2px solid #000;
-        box-shadow: none !important;
-        margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        border-radius: 0 !important;
-      }
-
-      .weekdays {
-        border-bottom: 2px solid #000 !important;
-        background: #f1f5f9 !important;
-      }
-
-      .weekday {
-        padding: 4px !important;
-        font-size: 10px !important;
-        border-right: 1px solid #000 !important;
-      }
-
-      .weekday:last-child {
-        border-right: none !important;
-      }
-
-      .calendar-grid {
-        display: grid !important;
-        flex: 1 !important;
-        /* セルが内容に合わせて均等かつ自然に伸びるようにする */
-        grid-auto-rows: minmax(60px, auto) !important;
-      }
-
-      .day-cell {
-        border-right: 1px solid #000 !important;
-        border-bottom: 1px solid #000 !important;
-        padding: 2px 4px !important;
-        min-height: 0 !important;
-        height: auto !important;
-        page-break-inside: avoid !important;
-      }
-
-      .day-cell:nth-child(7n) {
-        border-right: none !important;
-      }
-
-      .calendar-grid .day-cell:nth-last-child(-n+7) {
-        border-bottom: none !important;
-      }
-
-      /* 印刷時の文字サイズを限界まで小さくし、切れないようにする */
-      .day-number {
-        font-size: 10px !important;
-        margin-bottom: 2px !important;
-      }
-
-      .preview-event {
-        font-size: 9px !important;
-        padding: 2px !important;
-        margin-bottom: 2px !important;
-        line-height: 1.2 !important;
-      }
-
-      .preview-data {
-        font-size: 9px !important;
-        line-height: 1.2 !important;
-      }
-
-      .memo-block {
-        padding: 2px !important;
-        margin-top: 2px !important;
-        border-left-width: 2px !important;
-      }
-
-      .memo-label {
-        font-size: 8px !important;
-      }
-
-      .todo-preview-item {
-        font-size: 9px !important;
-        line-height: 1.2 !important;
-      }
-
-      /* サイドバーエリア：右側にコンパクトに配置 */
-      .sidebar {
-        width: 240px !important;
-        /* 横幅を細めに固定 */
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 6px !important;
-      }
-
-      .sidebar-card {
-        border: 2px solid #000;
-        box-shadow: none !important;
-        padding: 6px !important;
-        margin: 0 !important;
-        page-break-inside: avoid !important;
-        border-radius: 0 !important;
-      }
-
-      .sidebar-title {
-        font-size: 11px !important;
-        margin-bottom: 4px !important;
-        padding-bottom: 2px !important;
-        border-bottom: 1px solid #000 !important;
-      }
-
-      /* textareaの文字が絶対に切れないよう高さを自動拡張させる */
-      textarea.form-control {
-        height: auto !important;
-        min-height: 40px !important;
+      .pv-stage {
+        padding: 0 !important;
         overflow: visible !important;
-        font-size: 9px !important;
-        padding: 4px !important;
-        background: transparent !important;
-        border: 1px dotted #ccc !important;
+        display: block !important;
       }
 
-      .form-control {
-        font-size: 9px !important;
-        padding: 4px !important;
+      .pv-scaler {
+        width: auto !important;
+        height: auto !important;
       }
 
-      .subject-tracker-grid {
-        gap: 4px !important;
-      }
-
-      .subject-row label {
-        font-size: 9px !important;
-      }
-
-      .subject-row input {
-        padding: 2px !important;
-      }
-
-      .todo-list-global .todo-item {
-        padding: 2px !important;
-        margin-bottom: 2px !important;
-        border: 1px solid #ccc !important;
-      }
-
-      .todo-item input[type="text"] {
-        font-size: 9px !important;
+      .pv-paper {
+        position: static !important;
+        transform: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: auto !important;
+        min-height: 0 !important;
       }
     }
   </style>
 </head>
 
 <body>
-
-  <div class="container">
-    <div class="header no-print">
-      <div class="month-nav">
-        <button onclick="changeMonth(-1)">◀</button>
-        <div class="month-title" id="monthTitle"></div>
-        <button onclick="changeMonth(1)">▶</button>
-        <button class="btn btn-outline" style="padding: 6px 12px;" onclick="goToToday()">今日</button>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <rect x="3" y="5" width="18" height="16" rx="3" />
+            <path d="M3 10h18M8 3v4M16 3v4" />
+          </svg></div>
+        <span>予定帳</span>
       </div>
-      <div class="actions">
-        <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
-        <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📥 復元 (読込)</button>
-        <button class="btn btn-outline" onclick="exportData()">📤 出力 (保存)</button>
-        <button class="btn btn-outline" onclick="openSettingsModal()">⚙️ カスタマイズ設定</button>
-        <button class="btn btn-primary" onclick="window.print()">🖨️ すべて印刷</button>
+      <div class="month-nav">
+        <button class="icon-btn" onclick="changeMonth(-1)" title="前の月 (←)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg></button>
+        <div class="month-label"><span class="y" id="mY"></span><span class="m" id="mM"></span><span class="mu">月</span></div>
+        <button class="icon-btn" onclick="changeMonth(1)" title="次の月 (→)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg></button>
+        <button class="btn btn-sm" onclick="goToday()">今日</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="save-status" id="saveStatus">自動保存</div>
+      <details class="menu" id="dataMenu">
+        <summary class="btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <ellipse cx="12" cy="5" rx="8" ry="3" />
+            <path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" />
+          </svg><span class="lbl">データ</span></summary>
+        <div class="menu-pop">
+          <button onclick="exportData()">📤 バックアップを保存（ファイルに書き出し）</button>
+          <button onclick="document.getElementById('importFile').click()">📥 バックアップから復元</button>
+          <div class="menu-note" id="backupNote"></div>
+        </div>
+      </details>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importData(event)">
+      <button class="btn" onclick="openSettings()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+        </svg><span class="lbl">設定</span></button>
+      <button class="btn btn-primary" onclick="openPrint()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
+          <path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="7" />
+        </svg><span class="lbl">印刷・PDF</span></button>
+    </header>
+
+    <main class="layout">
+      <section class="card cal">
+        <div class="cal-head" id="calHead"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </section>
+
+      <aside class="side" id="side">
+        <div class="card side-card">
+          <div class="side-title">今月の目標・テーマ</div>
+          <textarea class="field" id="monthGoal" rows="2" placeholder="目標を入力…"></textarea>
+        </div>
+        <div class="card side-card" id="subjCard">
+          <div class="side-title">教科・単元の進度</div>
+          <div class="subj-grid" id="subjGrid"></div>
+        </div>
+        <div class="card side-card">
+          <div class="side-title">共有・引継ぎメモ</div>
+          <textarea class="field" id="monthImportant" rows="3" placeholder="特記事項…"></textarea>
+        </div>
+        <div class="card side-card">
+          <div class="side-title">月間タスク</div>
+          <div id="sideTodos"></div>
+          <button class="link-btn" onclick="addTodoRow('#sideTodos', '', false, true)">＋ タスクを追加</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ===== 日別モーダル ===== -->
+  <div class="overlay" id="dayModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <button class="icon-btn" onclick="moveDay(-1)" title="前の日へ（保存して移動）"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg></button>
+        <div>
+          <div class="modal-title" id="dTitle"></div>
+          <div class="modal-sub" id="dSub"></div>
+        </div>
+        <button class="icon-btn" onclick="moveDay(1)" title="次の日へ（保存して移動）"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg></button>
+        <div class="spacer"></div>
+        <button class="icon-btn" onclick="closeDay()" title="閉じる (Esc)">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="sec">
+          <div class="sec-title">行事・予定 <span class="tools"><span class="swatches" id="dSwatches"></span></span></div>
+          <textarea id="dEvent" class="field" rows="2" placeholder="例：全校朝会／授業参観／職員会議 16:00"></textarea>
+          <div class="chips" id="dStamps"></div>
+          <div style="margin-top:12px"><label class="check"><input type="checkbox" id="dOff"> この日を休みの日にする（赤で表示）</label></div>
+        </div>
+        <div class="sec" id="dTTSec">
+          <div class="sec-title">時間割
+            <span class="tools">
+              <button class="btn btn-sm" id="dBaseBtn" onclick="fillBaseTT()" title="設定の「曜日ごとの基本時間割」を入れます">基本の時間割</button>
+              <button class="btn btn-sm" onclick="copyPrevWeekTT()">先週の同じ曜日から</button>
+              <button class="btn btn-sm btn-ghost" onclick="clearTT()">消す</button>
+            </span>
+          </div>
+          <div class="grid3" id="dTT"></div>
+        </div>
+        <div class="sec" id="dFSec">
+          <div class="sec-title">記録項目</div>
+          <div class="grid2" id="dF"></div>
+        </div>
+        <div class="sec" id="dMSec">
+          <div class="sec-title">詳細メモ</div>
+          <div class="stack" id="dM"></div>
+        </div>
+        <div class="sec">
+          <div class="sec-title">この日のToDo</div>
+          <div id="dTodos"></div>
+          <button class="link-btn" onclick="addTodoRow('#dTodos', '', false, true)">＋ タスクを追加</button>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-sm btn-danger" onclick="clearDay()">この日を空にする</button>
+        <span class="spacer"></span>
+        <span class="kbd-hint">Ctrl+Enter で保存</span>
+        <button class="btn" onclick="closeDay()">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveDay()">保存する</button>
       </div>
     </div>
+  </div>
 
-    <h1 id="printTitle" style="display:none; font-weight: 900;" class="print-only"></h1>
-
-    <div class="main-layout">
-      <!-- カレンダーエリア -->
-      <div class="calendar-wrapper">
-        <div class="weekdays">
-          <div class="weekday" style="color:#ef4444;">日 SUN</div>
-          <div class="weekday">月 MON</div>
-          <div class="weekday">火 TUE</div>
-          <div class="weekday">水 WED</div>
-          <div class="weekday">木 THU</div>
-          <div class="weekday">金 FRI</div>
-          <div class="weekday" style="color:#3b82f6;">土 SAT</div>
-        </div>
-        <div class="calendar-grid" id="calendarGrid"></div>
+  <!-- ===== 設定モーダル ===== -->
+  <div class="overlay" id="setModal">
+    <div class="modal" style="max-width:780px" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div class="modal-title">設定</div>
+        <div class="spacer"></div>
+        <button class="icon-btn" onclick="closeOverlay('setModal')" title="閉じる (Esc)">✕</button>
       </div>
-
-      <!-- サイドバー -->
-      <aside class="sidebar">
-        <div class="sidebar-card">
-          <div class="sidebar-title">🎯 今月の目標・テーマ</div>
-          <textarea class="form-control" id="monthGoal" rows="3" placeholder="目標を入力..." onblur="saveSidebarData()"></textarea>
+      <div class="modal-body">
+        <div class="sec">
+          <div class="sec-title">基本</div>
+          <div class="grid2">
+            <div><label class="lbl">テーマカラー</label><input type="color" id="sTheme" class="field" style="height:40px;padding:3px;cursor:pointer"></div>
+            <div><label class="lbl">週の始まり</label>
+              <select id="sWeekStart" class="field">
+                <option value="0">日曜日はじまり</option>
+                <option value="1">月曜日はじまり</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px"><label class="check"><input type="checkbox" id="sHolidays"> 日本の祝日・振替休日を表示する</label></div>
         </div>
 
-        <div class="sidebar-card" id="subjectTrackerCard" style="display: none;">
-          <div class="sidebar-title">📚 教科・単元進度</div>
-          <div class="subject-tracker-grid">
-            <div class="subject-row"><label>国語</label><input type="text" id="prog_kokugo" class="form-control" onblur="saveSidebarData()"></div>
-            <div class="subject-row"><label>算数</label><input type="text" id="prog_sansu" class="form-control" onblur="saveSidebarData()"></div>
-            <div class="subject-row"><label>理科</label><input type="text" id="prog_rika" class="form-control" onblur="saveSidebarData()"></div>
-            <div class="subject-row"><label>社会</label><input type="text" id="prog_shakai" class="form-control" onblur="saveSidebarData()"></div>
-            <div class="subject-row"><label>学活</label><input type="text" id="prog_gakkatsu" class="form-control" onblur="saveSidebarData()"></div>
-            <div class="subject-row"><label>音楽</label><input type="text" id="prog_ongaku" class="form-control" onblur="saveSidebarData()"></div>
-            <div class="subject-row"><label>英語</label><input type="text" id="prog_eigo" class="form-control" onblur="saveSidebarData()"></div>
+        <div class="sec">
+          <div class="sec-title">一発セットアップ（プリセット）</div>
+          <p class="sec-note">選ぶと下の項目が自動で入ります。「設定を適用」を押すまで保存されません。</p>
+          <div class="preset-grid">
+            <button class="preset-btn" onclick="applyPreset('teacher')">👩‍🏫 先生用</button>
+            <button class="preset-btn" onclick="applyPreset('student')">🎒 児童・生徒用</button>
+            <button class="preset-btn" onclick="applyPreset('parent')">🏠 保護者用</button>
+            <button class="preset-btn" onclick="applyPreset('university')">🎓 大学生用</button>
           </div>
         </div>
 
-        <div class="sidebar-card">
-          <div class="sidebar-title">📝 共有・引継ぎメモ</div>
-          <textarea class="form-control" id="monthImportant" rows="4" placeholder="特記事項..." onblur="saveSidebarData()"></textarea>
+        <div class="sec panel">
+          <div class="sec-title" style="margin-bottom:6px">時間割
+            <span class="tools"><label class="check"><input type="checkbox" id="sUseTT" onchange="toggleTTSettings()"> 使う</label></span>
+          </div>
+          <div id="sTTArea">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:13px;font-weight:700">1日のコマ数</span>
+              <input type="number" id="sTTCount" class="field" style="width:80px" min="1" max="8" oninput="onTTCountChange()">
+            </div>
+            <div style="margin-top:12px;font-size:12px;font-weight:800;color:var(--muted)">曜日ごとの基本時間割</div>
+            <p class="sec-note" style="margin-top:2px">ここに入れておくと、日ごとの画面で「基本の時間割」ボタン1つで入力できます。</p>
+            <div class="tt-table-wrap">
+              <table class="tt-table" id="sBaseTT"></table>
+            </div>
+          </div>
         </div>
 
-        <div class="sidebar-card">
-          <div class="sidebar-title">☑️ 月間タスクリスト</div>
-          <div id="sidebarTodoContainer" class="todo-list-global"></div>
-          <div class="btn-add-text no-print" onclick="addSidebarTodo()">+ タスクを追加</div>
+        <div class="sec">
+          <div class="sec-title">記録項目（短い文：宿題、持ち物、会議など）</div>
+          <div class="list" id="sFields"></div>
+          <button class="link-btn" onclick="addListItem('sFields', '項目名')">＋ 項目を追加</button>
         </div>
-      </aside>
+        <div class="sec">
+          <div class="sec-title">詳細メモ枠（複数行：日記、連絡、児童の様子など）</div>
+          <div class="list" id="sMemos"></div>
+          <button class="link-btn" onclick="addListItem('sMemos', 'メモ枠の名前')">＋ メモ枠を追加</button>
+        </div>
+        <div class="sec">
+          <div class="sec-title">スタンプ（行事欄にワンタッチで入る言葉）</div>
+          <div class="list" id="sStamps"></div>
+          <button class="link-btn" onclick="addListItem('sStamps', '例：🏫 行事')">＋ スタンプを追加</button>
+        </div>
+        <div class="sec panel">
+          <div class="sec-title" style="margin-bottom:6px">教科・単元の進度
+            <span class="tools"><label class="check"><input type="checkbox" id="sUseSubj"> サイドに表示</label></span>
+          </div>
+          <div class="list" id="sSubjects"></div>
+          <button class="link-btn" onclick="addListItem('sSubjects', '教科名')">＋ 教科を追加</button>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span class="spacer"></span>
+        <button class="btn" onclick="closeOverlay('setModal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveSettings()">設定を適用</button>
+      </div>
     </div>
   </div>
 
-  <!-- 日別モーダル -->
-  <div class="modal-overlay" id="dailyModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title" id="modalDateTitle"></div>
-        <button class="btn btn-outline" style="padding: 6px 12px; border-radius: 50%;" onclick="closeModal('dailyModal')">✕</button>
+  <!-- ===== 印刷プレビュー ===== -->
+  <div id="printOverlay" aria-hidden="true">
+    <aside class="pv-panel">
+      <div class="pv-head">
+        <div class="modal-title">印刷・PDF</div>
+        <button class="icon-btn" onclick="closePrint()" title="閉じる (Esc)">✕</button>
       </div>
-      <input type="hidden" id="currentEditDate">
-
-      <div class="section-title">🎈 行事・イベント・スタンプ</div>
-      <input type="text" id="inputEvent" class="form-control" placeholder="例：全校朝会 / 習い事 / バイト / 飲み会">
-      <div class="stamp-container">
-        <button class="stamp-btn" onclick="addStamp('🏫 学校/講義')">🏫 学校/講義</button>
-        <button class="stamp-btn" onclick="addStamp('📝 課題/テスト')">📝 課題/テスト</button>
-        <button class="stamp-btn" onclick="addStamp('⚽ サークル/部活')">⚽ サークル/部活</button>
-        <button class="stamp-btn" onclick="addStamp('💰 バイト')">💰 バイト</button>
-        <button class="stamp-btn" onclick="addStamp('🏢 就活/インターン')">🏢 就活/インターン</button>
-        <button class="stamp-btn" onclick="addStamp('🛒 買物')">🛒 買物</button>
-        <button class="stamp-btn" onclick="addStamp('🎉 遊び/飲み会')">🎉 遊び/飲み会</button>
-        <button class="stamp-btn" onclick="addStamp('💼 業務')">💼 業務</button>
+      <div class="pv-month">
+        <button class="icon-btn" onclick="pvMove(-1)" title="前の月">‹</button>
+        <div id="pvMonthLabel"></div>
+        <button class="icon-btn" onclick="pvMove(1)" title="次の月">›</button>
       </div>
-
-      <div id="timetableSection">
-        <div class="section-title">📚 時間割 / コマ</div>
-        <div class="dynamic-grid" id="timetableGrid"></div>
-      </div>
-
-      <div id="customFieldsSection">
-        <div class="section-title">📋 記録項目</div>
-        <div class="dynamic-grid" id="customFieldsGrid"></div>
-      </div>
-
-      <div id="customMemosSection">
-        <div class="section-title">📝 詳細メモ</div>
-        <div id="customMemosList" style="display: flex; flex-direction: column; gap: 15px;"></div>
-      </div>
-
+      <div class="pv-status" id="pvStatus"></div>
       <div>
-        <div class="section-title">☑️ 本日のToDo</div>
-        <div id="dailyTodoContainer" class="todo-list-global"></div>
-        <div class="btn-add-text" onclick="addDailyTodo()">+ タスクを追加</div>
+        <label class="lbl">用紙サイズ</label>
+        <div class="seg" data-k="paper"><button data-v="A4">A4</button><button data-v="B5">B5</button><button data-v="B4">B4</button><button data-v="A3">A3</button></div>
       </div>
-
-      <div class="actions" style="justify-content: flex-end; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
-        <button class="btn btn-outline" onclick="closeModal('dailyModal')">キャンセル</button>
-        <button class="btn btn-primary" onclick="saveDailyData()" style="padding: 12px 30px;">💾 保存する</button>
+      <div>
+        <label class="lbl">向き</label>
+        <div class="seg" data-k="orient"><button data-v="landscape">横</button><button data-v="portrait">縦</button></div>
+      </div>
+      <div>
+        <label class="lbl">メモ欄（目標以外のサイド欄）の位置</label>
+        <div class="seg" data-k="side"><button data-v="auto">自動</button><button data-v="right">右</button><button data-v="bottom">下</button><button data-v="none">なし</button></div>
+      </div>
+      <div>
+        <label class="lbl">文字の大きさ <span id="pvFsVal"></span></label>
+        <div class="range-row"><span>小</span><input type="range" id="pvFs" min="7" max="16" step="0.5"><span>大</span></div>
+        <label class="check"><input type="checkbox" id="pvAuto"> はみ出す時は自動で縮小して1枚に収める</label>
+      </div>
+      <div>
+        <label class="lbl">余白</label>
+        <div class="seg" data-k="margin"><button data-v="5">狭い</button><button data-v="8">標準</button><button data-v="12">広い</button></div>
+      </div>
+      <div>
+        <label class="lbl">見出し（任意）</label>
+        <input class="field" id="pvTitle" placeholder="例：5年1組　月間予定">
+      </div>
+      <div>
+        <label class="lbl">印刷する内容</label>
+        <div class="pv-checks">
+          <label class="check"><input type="checkbox" data-inc="tt"> 時間割</label>
+          <label class="check"><input type="checkbox" data-inc="fields"> 記録項目</label>
+          <label class="check"><input type="checkbox" data-inc="memos"> 詳細メモ</label>
+          <label class="check"><input type="checkbox" data-inc="todos"> 日のToDo</label>
+          <label class="check"><input type="checkbox" data-inc="goal"> 今月の目標</label>
+          <label class="check"><input type="checkbox" data-inc="subjects"> 教科の進度</label>
+          <label class="check"><input type="checkbox" data-inc="notes"> 引継ぎメモ</label>
+          <label class="check"><input type="checkbox" data-inc="mtodos"> 月間タスク</label>
+        </div>
+      </div>
+      <div class="pv-checks one">
+        <label class="check"><input type="checkbox" id="pvBlank"> 空の欄も印刷する（手書き用）</label>
+        <label class="check"><input type="checkbox" id="pvMono"> インク節約（背景色を付けない）</label>
+      </div>
+      <button class="btn btn-primary pv-print" onclick="doPrint()">🖨 印刷する／PDFに保存</button>
+      <div class="pv-hint" id="pvHint"></div>
+    </aside>
+    <div class="pv-stage" id="pvStage">
+      <div class="pv-scaler" id="pvScaler">
+        <div class="pv-paper" id="pvPaper">
+          <div class="sheet" id="sheet"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 設定モーダル -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">⚙️ 完全カスタマイズ設定</div>
-        <button class="btn btn-outline" style="padding: 6px 12px; border-radius: 50%;" onclick="closeModal('settingsModal')">✕</button>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div class="section-title" style="margin-top:0;">🎨 テーマカラー</div>
-        <input type="color" id="setThemeColor" class="form-control" style="height:45px; padding:2px; cursor:pointer;">
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div class="section-title">👤 一発セットアップ（プリセット）</div>
-        <p style="font-size: 12px; color: var(--text-muted); margin-top: -5px; margin-bottom: 10px;">※選ぶと下の項目が自動でセットされます（後から自由に変更可能）。</p>
-        <div class="preset-container">
-          <button class="preset-btn" onclick="applyPreset('teacher')">👨‍🏫 先生用</button>
-          <button class="preset-btn" onclick="applyPreset('student')">🎒 児童・生徒用</button>
-          <button class="preset-btn" onclick="applyPreset('parent')">🏠 保護者用</button>
-          <button class="preset-btn" onclick="applyPreset('university')">🎓 大学生用</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div class="section-title" style="margin:0;">👩‍🏫 教科・単元トラッカー (先生用機能)</div>
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:bold;">
-            <input type="checkbox" id="setUseSubjectTracker" style="width:18px; height:18px; accent-color:var(--primary);"> サイドバーに表示
-          </label>
-        </div>
-        <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px; margin-bottom: 0;">※ 国語、算数、理科などの進度をサイドバーで管理できます。</p>
-      </div>
-
-      <div style="margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div class="section-title" style="margin:0;">📚 日別の時間割機能</div>
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:bold;">
-            <input type="checkbox" id="setUseTimetable" style="width:18px; height:18px; accent-color:var(--primary);" onchange="toggleTimetableSettings()"> 有効にする
-          </label>
-        </div>
-        <div id="timetableSettingsArea" style="margin-top: 15px; display:flex; align-items:center; gap:10px;">
-          <span style="font-size: 14px; font-weight:bold;">コマ数 (1〜8):</span>
-          <input type="number" id="setTimetableCount" class="form-control" style="width: 80px;" min="1" max="8">
-        </div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div class="section-title">📋 記録項目 (短いテキスト: 宿題, 持ち物, バイトなど)</div>
-        <div id="setFieldsContainer" class="settings-list"></div>
-        <div class="btn-add-text" onclick="addSettingItem('setFieldsContainer', '新しい項目')">+ 項目を追加する</div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div class="section-title">📝 詳細メモ枠 (複数行: 日記, 連絡帳, レポート記録など)</div>
-        <div id="setMemosContainer" class="settings-list"></div>
-        <div class="btn-add-text" onclick="addSettingItem('setMemosContainer', '新しいメモ枠')">+ メモ枠を追加する</div>
-      </div>
-
-      <div class="actions" style="justify-content: flex-end; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
-        <button class="btn btn-outline" onclick="closeModal('settingsModal')">キャンセル</button>
-        <button class="btn btn-primary" onclick="saveSettings()" style="padding: 12px 30px;">💾 設定を適用</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast">✅ 保存しました</div>
+  <div id="toast"></div>
 
   <script>
-    function escapeHTML(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-    const SUBJECTS = ['kokugo', 'sansu', 'rika', 'shakai', 'gakkatsu', 'ongaku', 'eigo'];
+    /* =========================================================
+       基本データ
+       ========================================================= */
+    const STORE_KEY = 'universalPlannerUltimateAllInOne'; // 旧バージョンと同じ保存場所（データはそのまま引き継がれます）
+    const PAPERS = {
+      A4: [210, 297],
+      B5: [182, 257],
+      B4: [257, 364],
+      A3: [297, 420]
+    }; // B判は日本のJIS規格
+    const PAPER_LABEL = {
+      A4: 'A4',
+      B5: 'B5（JIS）',
+      B4: 'B4（JIS）',
+      A3: 'A3'
+    };
+    const EV_COLORS = [null, '#d43c3c', '#e07b00', '#1f9d55', '#0e8f8f', '#2f6fd6', '#8b4fd6', '#6b7280']; // null = テーマ色
+    const DOW = ['日', '月', '火', '水', '木', '金', '土'];
+    const OLD_SUBJ = {
+      kokugo: '国語',
+      sansu: '算数',
+      rika: '理科',
+      shakai: '社会',
+      gakkatsu: '学活',
+      ongaku: '音楽',
+      eigo: '英語'
+    };
+    const MM = 96 / 25.4; // 1mm あたりの CSS px
+    const defaultPrint = {
+      paper: 'A4',
+      orient: 'landscape',
+      side: 'auto',
+      fontPx: 11,
+      autoFit: true,
+      margin: 8,
+      title: '',
+      mono: false,
+      blankSide: false,
+      inc: {
+        tt: true,
+        fields: true,
+        memos: true,
+        todos: true,
+        goal: true,
+        subjects: true,
+        notes: true,
+        mtodos: true
+      }
+    };
     const defaultState = {
       settings: {
         theme: '#4f46e5',
@@ -960,576 +1982,1081 @@
         timetableCount: 6,
         useSubjectTracker: false,
         customFields: ['宿題・提出物', '持ち物'],
-        customMemos: ['ひとこと日記', '保護者・先生への連絡']
+        customMemos: ['ひとこと日記', '保護者・先生への連絡'],
+        weekStart: 0,
+        showHolidays: true,
+        stamps: ['🏫 行事', '📢 会議', '🚌 出張・研修', '📝 テスト', '🎒 持ち物', '📄 提出物', '🎉 イベント', '💼 業務'],
+        subjects: ['国語', '算数', '理科', '社会', '学活', '音楽', '英語'],
+        baseTimetable: {},
+        print: defaultPrint,
+        lastBackup: null
       },
       schedule: {},
       sidebar: {}
     };
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const clone = o => JSON.parse(JSON.stringify(o));
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const parseKey = k => {
+      const [y, m, d] = k.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    };
+
+    function esc(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    const strList = a => Array.isArray(a) ? a.filter(v => typeof v === 'string') : null;
+
+    function mergeState(d) {
+      const st = clone(defaultState);
+      if (!d || typeof d !== 'object') return st;
+      const s = d.settings,
+        S = st.settings;
+      if (s && typeof s === 'object') {
+        if (typeof s.theme === 'string' && /^#[0-9a-f]{6}$/i.test(s.theme)) S.theme = s.theme;
+        if ('useTimetable' in s) S.useTimetable = !!s.useTimetable;
+        S.timetableCount = Math.min(8, Math.max(1, parseInt(s.timetableCount) || 6));
+        S.useSubjectTracker = !!s.useSubjectTracker;
+        ['customFields', 'customMemos', 'stamps', 'subjects'].forEach(k => {
+          const v = strList(s[k]);
+          if (v) S[k] = v;
+        });
+        S.weekStart = Number(s.weekStart) === 1 ? 1 : 0;
+        if ('showHolidays' in s) S.showHolidays = !!s.showHolidays;
+        if (s.baseTimetable && typeof s.baseTimetable === 'object' && !Array.isArray(s.baseTimetable)) S.baseTimetable = s.baseTimetable;
+        if (s.print && typeof s.print === 'object') {
+          const inc = Object.assign(clone(defaultPrint.inc), s.print.inc || {});
+          Object.assign(S.print, s.print);
+          S.print.inc = inc;
+          if (!PAPERS[S.print.paper]) S.print.paper = 'A4';
+          if (!['landscape', 'portrait'].includes(S.print.orient)) S.print.orient = 'landscape';
+          S.print.fontPx = Math.min(16, Math.max(7, Number(S.print.fontPx) || 11));
+          S.print.margin = [5, 8, 12].includes(Number(S.print.margin)) ? Number(S.print.margin) : 8;
+        }
+        if (typeof s.lastBackup === 'string') S.lastBackup = s.lastBackup;
+      }
+      ['schedule', 'sidebar'].forEach(part => {
+        const src = d[part];
+        if (src && typeof src === 'object' && !Array.isArray(src)) {
+          Object.keys(src).forEach(k => {
+            if (src[k] && typeof src[k] === 'object') st[part][k] = src[k];
+          });
+        }
+      });
+      return st;
+    }
     let appState;
-
-    function mergeState(importedData) {
-      const state = JSON.parse(JSON.stringify(defaultState));
-      if (!importedData || typeof importedData !== 'object') return state;
-      if (importedData.settings && typeof importedData.settings === 'object') {
-        state.settings.theme = importedData.settings.theme || state.settings.theme;
-        state.settings.useTimetable = !!importedData.settings.useTimetable;
-        state.settings.timetableCount = parseInt(importedData.settings.timetableCount) || 6;
-        state.settings.useSubjectTracker = !!importedData.settings.useSubjectTracker;
-        if (Array.isArray(importedData.settings.customFields)) {
-          state.settings.customFields = importedData.settings.customFields;
-        }
-        if (Array.isArray(importedData.settings.customMemos)) {
-          state.settings.customMemos = importedData.settings.customMemos;
-        }
-      }
-      if (importedData.schedule && typeof importedData.schedule === 'object' && !Array.isArray(importedData.schedule)) {
-        Object.keys(importedData.schedule).forEach(key => {
-          if (importedData.schedule[key] && typeof importedData.schedule[key] === 'object') {
-            state.schedule[key] = importedData.schedule[key];
-          }
-        });
-      }
-      if (importedData.sidebar && typeof importedData.sidebar === 'object' && !Array.isArray(importedData.sidebar)) {
-        Object.keys(importedData.sidebar).forEach(key => {
-          if (importedData.sidebar[key] && typeof importedData.sidebar[key] === 'object') {
-            state.sidebar[key] = importedData.sidebar[key];
-          }
-        });
-      }
-      return state;
-    }
     try {
-      const savedData = JSON.parse(localStorage.getItem('universalPlannerUltimateAllInOne'));
-      appState = mergeState(savedData);
+      appState = mergeState(JSON.parse(localStorage.getItem(STORE_KEY)));
     } catch (e) {
-      appState = JSON.parse(JSON.stringify(defaultState));
+      appState = clone(defaultState);
     }
-    let currentDate = new Date();
+    const now0 = new Date();
+    let cur = new Date(now0.getFullYear(), now0.getMonth(), 1); // 表示中の月（常に1日にして月送りのズレを防止）
+    /* =========================================================
+       保存
+       ========================================================= */
+    let saveTimer = null;
 
-    function init() {
-      applyTheme(appState.settings.theme);
+    function persist(immediate) {
+      clearTimeout(saveTimer);
+      if (immediate) writeStore();
+      else saveTimer = setTimeout(writeStore, 400);
+    }
+
+    function writeStore() {
+      saveTimer = null;
+      const el = $('#saveStatus');
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(appState));
+        const t = new Date();
+        el.textContent = `自動保存 ${pad(t.getHours())}:${pad(t.getMinutes())}`;
+        el.classList.remove('err');
+      } catch (e) {
+        el.textContent = '保存できませんでした（容量不足？バックアップを保存してください）';
+        el.classList.add('err');
+      }
+    }
+    window.addEventListener('beforeunload', () => {
+      if (saveTimer) writeStore();
+    });
+
+    function toast(msg) {
+      const t = $('#toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function applyTheme(c) {
+      if (!/^#[0-9a-f]{6}$/i.test(c || '')) c = '#4f46e5';
+      const r = document.documentElement.style;
+      r.setProperty('--accent', c);
+      r.setProperty('--accent-strong', shade(c, -24));
+      r.setProperty('--accent-soft', c + '26');
+      r.setProperty('--accent-faint', c + '0f');
+    }
+
+    function shade(c, amt) {
+      return '#' + c.slice(1).replace(/../g, h => pad(Math.min(255, Math.max(0, parseInt(h, 16) + amt)).toString(16)));
+    }
+    /* =========================================================
+       祝日（日本）
+       ========================================================= */
+    const holCache = {};
+
+    function nthMonday(y, m, n) {
+      const first = new Date(y, m - 1, 1).getDay();
+      return 1 + ((8 - first) % 7) + (n - 1) * 7;
+    }
+
+    function getHolidays(y) {
+      if (holCache[y]) return holCache[y];
+      const h = {};
+      const add = (m, d, name) => {
+        h[`${y}-${pad(m)}-${pad(d)}`] = name;
+      };
+      add(1, 1, '元日');
+      add(1, nthMonday(y, 1, 2), '成人の日');
+      add(2, 11, '建国記念の日');
+      if (y >= 2020) add(2, 23, '天皇誕生日');
+      add(3, Math.floor(20.8431 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4)), '春分の日');
+      add(4, 29, '昭和の日');
+      add(5, 3, '憲法記念日');
+      add(5, 4, 'みどりの日');
+      add(5, 5, 'こどもの日');
+      if (y === 2020) {
+        add(7, 23, '海の日');
+        add(7, 24, 'スポーツの日');
+        add(8, 10, '山の日');
+      } else if (y === 2021) {
+        add(7, 22, '海の日');
+        add(7, 23, 'スポーツの日');
+        add(8, 8, '山の日');
+      } else {
+        add(7, nthMonday(y, 7, 3), '海の日');
+        add(8, 11, '山の日');
+        add(10, nthMonday(y, 10, 2), 'スポーツの日');
+      }
+      add(9, nthMonday(y, 9, 3), '敬老の日');
+      add(9, Math.floor(23.2488 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4)), '秋分の日');
+      add(11, 3, '文化の日');
+      add(11, 23, '勤労感謝の日');
+      const base = Object.keys(h);
+      base.forEach(k => { // 国民の休日（祝日にはさまれた平日）
+        const d = parseKey(k),
+          mid = new Date(d),
+          next = new Date(d);
+        mid.setDate(d.getDate() + 1);
+        next.setDate(d.getDate() + 2);
+        if (h[fmt(next)] && !h[fmt(mid)] && mid.getDay() !== 0) h[fmt(mid)] = '国民の休日';
+      });
+      base.forEach(k => { // 振替休日
+        const d = parseKey(k);
+        if (d.getDay() === 0) {
+          const n = new Date(d);
+          do {
+            n.setDate(n.getDate() + 1);
+          } while (h[fmt(n)]);
+          h[fmt(n)] = '振替休日';
+        }
+      });
+      return (holCache[y] = h);
+    }
+    /* =========================================================
+       カレンダー共通
+       ========================================================= */
+    function weekdayOrder() {
+      const ws = appState.settings.weekStart;
+      return [0, 1, 2, 3, 4, 5, 6].map(i => (i + ws) % 7);
+    }
+
+    function monthCells(y, m) {
+      const lead = (new Date(y, m, 1).getDay() - appState.settings.weekStart + 7) % 7;
+      const days = new Date(y, m + 1, 0).getDate();
+      const cells = [];
+      for (let i = 0; i < lead; i++) cells.push(null);
+      for (let d = 1; d <= days; d++) cells.push(new Date(y, m, d));
+      while (cells.length % 7) cells.push(null);
+      return cells;
+    }
+
+    function dayInfo(date) {
+      const k = fmt(date),
+        dow = date.getDay();
+      const hol = appState.settings.showHolidays ? getHolidays(date.getFullYear())[k] : null;
+      const data = appState.schedule[k] || {};
+      const cls = [];
+      if (dow === 0) cls.push('sun');
+      if (dow === 6) cls.push('sat');
+      if (hol) cls.push('hol');
+      if (data.off) cls.push('off');
+      return {
+        k,
+        dow,
+        hol,
+        data,
+        cls: cls.join(' ')
+      };
+    }
+
+    function evColor(idx) {
+      return EV_COLORS[idx] || appState.settings.theme;
+    }
+    // 1日の中身（画面・印刷で共通）
+    function dayContentHTML(data, inc) {
+      inc = inc || {
+        tt: true,
+        fields: true,
+        memos: true,
+        todos: true
+      };
+      const S = appState.settings;
+      let h = '';
+      if (data.event && String(data.event).trim()) {
+        const c = evColor(data.eventColor);
+        h += `<div class="ev" style="--evc:${c};--evbg:${c}1a">${esc(String(data.event).trim())}</div>`;
+      }
+      if (inc.tt && S.useTimetable && Array.isArray(data.timetable)) {
+        const items = data.timetable.slice(0, S.timetableCount)
+          .map((v, i) => v && String(v).trim() ? `<span class="tti"><b>${i + 1}</b>${esc(v)}</span>` : '').join('');
+        if (items) h += `<div class="tt">${items}</div>`;
+      }
+      if (inc.fields && Array.isArray(data.customFields)) {
+        S.customFields.forEach((lab, i) => {
+          const v = data.customFields[i];
+          if (v && String(v).trim()) h += `<div class="fld"><b>${esc(lab)}：</b>${esc(v)}</div>`;
+        });
+      }
+      if (inc.memos && Array.isArray(data.customMemos)) {
+        S.customMemos.forEach((lab, i) => {
+          const v = data.customMemos[i];
+          if (v && String(v).trim()) h += `<div class="memo"><b>${esc(lab)}</b>${esc(String(v).replace(/\s+$/, ''))}</div>`;
+        });
+      }
+      if (inc.todos && Array.isArray(data.todos)) {
+        const t = data.todos.filter(x => x && typeof x === 'object' && String(x.text || '').trim());
+        if (t.length) h += `<div class="todos">${t.map(x => `<div class="todo ${x.done ? 'done' : ''}"><span>${x.done ? '☑' : '☐'}</span><span>${esc(x.text)}</span></div>`).join('')}</div>`;
+      }
+      return h;
+    }
+
+    function monthKeyOf(y, m) {
+      return `monthly_${y}-${pad(m + 1)}`;
+    }
+
+    function monthKey() {
+      return monthKeyOf(cur.getFullYear(), cur.getMonth());
+    }
+
+    function getMonthData(key) {
+      const d = appState.sidebar[key] || {};
+      const subjects = Object.assign({}, d.subjects || {});
+      Object.keys(OLD_SUBJ).forEach(k => {
+        if (subjects[k] && !subjects[OLD_SUBJ[k]]) subjects[OLD_SUBJ[k]] = subjects[k];
+      });
+      return {
+        goal: d.goal || '',
+        important: d.important || '',
+        todos: Array.isArray(d.todos) ? d.todos.filter(t => t && typeof t === 'object') : [],
+        subjects
+      };
+    }
+    /* =========================================================
+       画面のカレンダー
+       ========================================================= */
+    function renderCalendar() {
+      const y = cur.getFullYear(),
+        m = cur.getMonth();
+      $('#mY').textContent = `${y}年`;
+      $('#mM').textContent = m + 1;
+      $('#calHead').innerHTML = weekdayOrder().map(d => `<div class="${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}">${DOW[d]}</div>`).join('');
+      const todayK = fmt(new Date());
+      $('#calGrid').innerHTML = monthCells(y, m).map(date => {
+        if (!date) return '<div class="cell blank"></div>';
+        const I = dayInfo(date);
+        const tag = I.hol ? `<span class="hol-name">${esc(I.hol)}</span>` : (I.data.off ? '<span class="hol-name">休み</span>' : '');
+        return `<div class="cell ${I.cls} ${I.k === todayK ? 'today' : ''}" data-date="${I.k}" tabindex="0">
+          <div class="cell-top"><span class="num">${date.getDate()}</span><span class="dow">${DOW[I.dow]}</span>${tag}<span class="add-hint">＋</span></div>
+          ${dayContentHTML(I.data)}</div>`;
+      }).join('');
+      renderSidebar();
+    }
+    $('#calGrid').addEventListener('click', e => {
+      const c = e.target.closest('.cell[data-date]');
+      if (c) openDay(c.dataset.date);
+    });
+    $('#calGrid').addEventListener('keydown', e => {
+      const c = e.target.closest('.cell[data-date]');
+      if (c && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        openDay(c.dataset.date);
+      }
+    });
+
+    function changeMonth(delta) {
+      cur = new Date(cur.getFullYear(), cur.getMonth() + delta, 1);
       renderCalendar();
     }
 
-    function applyTheme(color) {
-      if (!color) color = '#4f46e5';
-      document.documentElement.style.setProperty('--primary', color);
-      document.documentElement.style.setProperty('--primary-hover', adjustColor(color, -20));
-      document.documentElement.style.setProperty('--primary-light', color + '20');
+    function goToday() {
+      const t = new Date();
+      cur = new Date(t.getFullYear(), t.getMonth(), 1);
+      renderCalendar();
+    }
+    /* =========================================================
+       サイドバー
+       ========================================================= */
+    function autosize(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight + 2) + 'px';
     }
 
-    function adjustColor(color, amount) {
-      return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+    function todoRowHTML(text, done) {
+      return `<div class="todo-row"><input type="checkbox" ${done ? 'checked' : ''}><input type="text" value="${esc(text)}" placeholder="タスクを入力…"><button type="button" class="x" title="削除">✕</button></div>`;
     }
 
-    function showToast(msg = "✅ 保存しました") {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2500);
+    function addTodoRow(sel, text = '', done = false, focus = false) {
+      const c = $(sel);
+      c.insertAdjacentHTML('beforeend', todoRowHTML(text, done));
+      if (focus) c.lastElementChild.querySelector('input[type=text]').focus();
     }
 
-    function saveState() {
-      localStorage.setItem('universalPlannerUltimateAllInOne', JSON.stringify(appState));
-      showToast();
+    function readTodos(sel) {
+      return $$(sel + ' .todo-row').map(r => ({
+          text: r.querySelector('input[type=text]').value,
+          done: r.querySelector('input[type=checkbox]').checked
+        }))
+        .filter(t => t.text.trim() !== '');
+    }
+    // ToDo共通操作（削除・Enterで次の行）
+    function wireTodoList(sel, onChange) {
+      const c = $(sel);
+      c.addEventListener('click', e => {
+        const x = e.target.closest('.x');
+        if (!x) return;
+        x.closest('.todo-row').remove();
+        if (!c.children.length) addTodoRow(sel);
+        onChange();
+      });
+      c.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.isComposing && e.target.type === 'text' && !(e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          const row = e.target.closest('.todo-row');
+          row.insertAdjacentHTML('afterend', todoRowHTML('', false));
+          row.nextElementSibling.querySelector('input[type=text]').focus();
+        }
+      });
+    }
+
+    function renderSidebar() {
+      const S = appState.settings,
+        md = getMonthData(monthKey());
+      $('#monthGoal').value = md.goal;
+      $('#monthImportant').value = md.important;
+      $('#subjCard').style.display = S.useSubjectTracker ? '' : 'none';
+      $('#subjGrid').innerHTML = S.subjects.map((name, i) =>
+        `<label for="subj_${i}">${esc(name)}</label><input type="text" class="field" id="subj_${i}" data-subj="${esc(name)}" value="${esc(md.subjects[name] || '')}" placeholder="単元・ページなど">`).join('');
+      const c = $('#sideTodos');
+      c.innerHTML = '';
+      (md.todos.length ? md.todos : [{
+        text: '',
+        done: false
+      }]).forEach(t => addTodoRow('#sideTodos', t.text || '', !!t.done));
+      requestAnimationFrame(() => {
+        autosize($('#monthGoal'));
+        autosize($('#monthImportant'));
+      });
+    }
+
+    function collectSidebar() {
+      const subjects = {};
+      $$('#subjGrid input[data-subj]').forEach(el => {
+        subjects[el.dataset.subj] = el.value;
+      });
+      const prev = getMonthData(monthKey()).subjects; // 表示していない教科のデータも残す
+      appState.sidebar[monthKey()] = {
+        goal: $('#monthGoal').value,
+        important: $('#monthImportant').value,
+        todos: readTodos('#sideTodos'),
+        subjects: Object.assign(prev, subjects)
+      };
+      persist();
+    }
+    $('#side').addEventListener('input', e => {
+      if (e.target.tagName === 'TEXTAREA') autosize(e.target);
+      collectSidebar();
+    });
+    $('#side').addEventListener('change', collectSidebar);
+    wireTodoList('#sideTodos', collectSidebar);
+    /* =========================================================
+       日別モーダル
+       ========================================================= */
+    let editKey = null,
+      dirty = false,
+      selColor = 0;
+
+    function openOverlay(id) {
+      $('#' + id).classList.add('open');
+    }
+
+    function closeOverlay(id) {
+      $('#' + id).classList.remove('open');
+    }
+
+    function isOpen(id) {
+      return $('#' + id).classList.contains('open');
+    }
+
+    function openDay(k) {
+      editKey = k;
+      fillDay(k);
+      dirty = false;
+      openOverlay('dayModal');
+      setTimeout(() => $('#dEvent').focus(), 30);
+    }
+
+    function fillDay(k) {
+      const date = parseKey(k),
+        I = dayInfo(date),
+        d = I.data,
+        S = appState.settings;
+      $('#dTitle').innerHTML = `<small>${date.getFullYear()}年</small>${date.getMonth() + 1}月${date.getDate()}日（${DOW[I.dow]}）`;
+      $('#dSub').textContent = I.hol || '';
+      $('#dEvent').value = d.event || '';
+      selColor = Number(d.eventColor) || 0;
+      renderSwatches();
+      $('#dOff').checked = !!d.off;
+      $('#dStamps').innerHTML = S.stamps.map(s => `<button type="button" class="chip" data-stamp="${esc(s)}">${esc(s)}</button>`).join('');
+      const tt = Array.isArray(d.timetable) ? d.timetable : [];
+      $('#dTTSec').style.display = S.useTimetable ? '' : 'none';
+      $('#dTT').innerHTML = S.useTimetable ? Array.from({
+          length: S.timetableCount
+        }, (_, i) =>
+        `<div class="tt-input"><b>${i + 1}限</b><input type="text" class="field" id="tt_${i}" value="${esc(tt[i] || '')}"></div>`).join('') : '';
+      const base = S.baseTimetable[I.dow];
+      $('#dBaseBtn').disabled = !(Array.isArray(base) && base.some(v => v && String(v).trim()));
+      const cf = Array.isArray(d.customFields) ? d.customFields : [];
+      $('#dFSec').style.display = S.customFields.length ? '' : 'none';
+      $('#dF').innerHTML = S.customFields.map((lab, i) =>
+        `<div><label class="lbl" for="cf_${i}">${esc(lab)}</label><input type="text" class="field" id="cf_${i}" value="${esc(cf[i] || '')}"></div>`).join('');
+      const cm = Array.isArray(d.customMemos) ? d.customMemos : [];
+      $('#dMSec').style.display = S.customMemos.length ? '' : 'none';
+      $('#dM').innerHTML = S.customMemos.map((lab, i) =>
+        `<div><label class="lbl" for="cm_${i}">${esc(lab)}</label><textarea class="field" id="cm_${i}" rows="3">${esc(cm[i] || '')}</textarea></div>`).join('');
+      $('#dTodos').innerHTML = '';
+      const todos = Array.isArray(d.todos) ? d.todos.filter(t => t && typeof t === 'object') : [];
+      (todos.length ? todos : [{
+        text: '',
+        done: false
+      }]).forEach(t => addTodoRow('#dTodos', t.text || '', !!t.done));
+    }
+
+    function renderSwatches() {
+      $('#dSwatches').innerHTML = EV_COLORS.map((c, i) =>
+        `<button type="button" class="sw ${i === selColor ? 'on' : ''}" data-col="${i}" style="background:${c || appState.settings.theme}" title="行事の色"></button>`).join('');
+    }
+    $('#dSwatches').addEventListener('click', e => {
+      const b = e.target.closest('[data-col]');
+      if (!b) return;
+      selColor = Number(b.dataset.col);
+      renderSwatches();
+      dirty = true;
+    });
+    $('#dStamps').addEventListener('click', e => {
+      const b = e.target.closest('[data-stamp]');
+      if (!b) return;
+      const el = $('#dEvent');
+      el.value = el.value.trim() ? el.value.replace(/\s+$/, '') + '\n' + b.dataset.stamp : b.dataset.stamp;
+      dirty = true;
+      el.focus();
+    });
+    $('#dayModal').addEventListener('input', () => {
+      dirty = true;
+    });
+    $('#dayModal').addEventListener('change', () => {
+      dirty = true;
+    });
+    wireTodoList('#dTodos', () => {
+      dirty = true;
+    });
+
+    function readDay() {
+      const S = appState.settings;
+      const data = {
+        event: $('#dEvent').value,
+        eventColor: selColor,
+        off: $('#dOff').checked,
+        timetable: [],
+        customFields: [],
+        customMemos: [],
+        todos: []
+      };
+      let has = !!data.event.trim() || data.off;
+      if (S.useTimetable) {
+        for (let i = 0; i < S.timetableCount; i++) {
+          const v = ($('#tt_' + i) || {}).value || '';
+          data.timetable.push(v);
+          if (v.trim()) has = true;
+        }
+      } else {
+        const old = (appState.schedule[editKey] || {}).timetable; // 時間割をオフにしていても古いデータは消さない
+        if (Array.isArray(old)) {
+          data.timetable = old;
+          if (old.some(v => v && String(v).trim())) has = true;
+        }
+      }
+      S.customFields.forEach((_, i) => {
+        const v = ($('#cf_' + i) || {}).value || '';
+        data.customFields.push(v);
+        if (v.trim()) has = true;
+      });
+      S.customMemos.forEach((_, i) => {
+        const v = ($('#cm_' + i) || {}).value || '';
+        data.customMemos.push(v);
+        if (v.trim()) has = true;
+      });
+      data.todos = readTodos('#dTodos');
+      if (data.todos.length) has = true;
+      return {
+        data,
+        has
+      };
+    }
+
+    function commitDay() {
+      const {
+        data,
+        has
+      } = readDay();
+      if (has) appState.schedule[editKey] = data;
+      else delete appState.schedule[editKey];
+      persist(true);
+      dirty = false;
+    }
+
+    function saveDay() {
+      commitDay();
+      closeOverlay('dayModal');
+      renderCalendar();
+      toast('保存しました');
+    }
+
+    function closeDay() {
+      if (dirty && !confirm('変更が保存されていません。保存せずに閉じますか？')) return;
+      dirty = false;
+      closeOverlay('dayModal');
+    }
+
+    function moveDay(delta) {
+      if (dirty) commitDay();
+      const d = parseKey(editKey);
+      d.setDate(d.getDate() + delta);
+      if (d.getMonth() !== cur.getMonth() || d.getFullYear() !== cur.getFullYear()) cur = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderCalendar();
+      openDay(fmt(d));
+    }
+
+    function clearDay() {
+      if (!confirm('この日の内容をすべて消しますか？')) return;
+      delete appState.schedule[editKey];
+      persist(true);
+      dirty = false;
+      closeOverlay('dayModal');
+      renderCalendar();
+      toast('この日を空にしました');
+    }
+
+    function setTT(arr) {
+      const S = appState.settings;
+      for (let i = 0; i < S.timetableCount; i++) {
+        const el = $('#tt_' + i);
+        if (el) el.value = (arr && arr[i]) || '';
+      }
+      dirty = true;
+    }
+
+    function fillBaseTT() {
+      setTT(appState.settings.baseTimetable[parseKey(editKey).getDay()]);
+    }
+
+    function copyPrevWeekTT() {
+      const d = parseKey(editKey);
+      d.setDate(d.getDate() - 7);
+      const prev = (appState.schedule[fmt(d)] || {}).timetable;
+      if (!Array.isArray(prev) || !prev.some(v => v && String(v).trim())) {
+        toast('先週の同じ曜日に時間割がありません');
+        return;
+      }
+      setTT(prev);
+    }
+
+    function clearTT() {
+      setTT([]);
+    }
+    /* =========================================================
+       設定
+       ========================================================= */
+    function openSettings() {
+      const S = appState.settings;
+      $('#sTheme').value = S.theme;
+      $('#sWeekStart').value = String(S.weekStart);
+      $('#sHolidays').checked = S.showHolidays;
+      $('#sUseTT').checked = S.useTimetable;
+      $('#sTTCount').value = S.timetableCount;
+      $('#sUseSubj').checked = S.useSubjectTracker;
+      renderBaseTT(S.timetableCount, S.baseTimetable);
+      toggleTTSettings();
+      renderList('sFields', S.customFields, '項目名');
+      renderList('sMemos', S.customMemos, 'メモ枠の名前');
+      renderList('sStamps', S.stamps, '例：🏫 行事');
+      renderList('sSubjects', S.subjects, '教科名');
+      openOverlay('setModal');
+    }
+
+    function renderList(id, items, ph) {
+      $('#' + id).innerHTML = '';
+      items.forEach(v => addListItem(id, ph, v));
+    }
+
+    function addListItem(id, ph, val = '') {
+      $('#' + id).insertAdjacentHTML('beforeend',
+        `<div class="list-item"><input type="text" class="field" value="${esc(val)}" placeholder="${esc(ph)}"><button type="button" class="del-btn" title="削除" onclick="this.parentElement.remove()">✕</button></div>`);
+    }
+    const readList = id => $$('#' + id + ' input').map(i => i.value.trim()).filter(Boolean);
+
+    function renderBaseTT(count, base) {
+      const days = [1, 2, 3, 4, 5, 6];
+      let h = '<tr><th></th>' + days.map(d => `<th>${DOW[d]}</th>`).join('') + '</tr>';
+      for (let i = 0; i < count; i++) {
+        h += `<tr><th>${i + 1}限</th>` + days.map(d => `<td><input data-dow="${d}" data-i="${i}" value="${esc(((base[d] || [])[i]) || '')}"></td>`).join('') + '</tr>';
+      }
+      $('#sBaseTT').innerHTML = h;
+    }
+
+    function readBaseTT() {
+      const o = Object.assign({}, appState.settings.baseTimetable); // 表示外のコマも保持
+      $$('#sBaseTT input').forEach(el => {
+        const d = el.dataset.dow,
+          i = Number(el.dataset.i);
+        o[d] = Array.isArray(o[d]) ? o[d].slice() : [];
+        o[d][i] = el.value;
+      });
+      return o;
+    }
+
+    function onTTCountChange() {
+      let n = parseInt($('#sTTCount').value);
+      if (isNaN(n)) return;
+      n = Math.min(8, Math.max(1, n));
+      renderBaseTT(n, readBaseTT());
+    }
+
+    function toggleTTSettings() {
+      const on = $('#sUseTT').checked;
+      $('#sTTArea').style.opacity = on ? '1' : '.4';
+      $('#sTTArea').style.pointerEvents = on ? '' : 'none';
+    }
+
+    function saveSettings() {
+      const S = appState.settings;
+      S.theme = $('#sTheme').value;
+      S.weekStart = Number($('#sWeekStart').value) === 1 ? 1 : 0;
+      S.showHolidays = $('#sHolidays').checked;
+      S.useTimetable = $('#sUseTT').checked;
+      S.timetableCount = Math.min(8, Math.max(1, parseInt($('#sTTCount').value) || 6));
+      S.baseTimetable = readBaseTT();
+      S.useSubjectTracker = $('#sUseSubj').checked;
+      S.customFields = readList('sFields');
+      S.customMemos = readList('sMemos');
+      S.stamps = readList('sStamps');
+      S.subjects = readList('sSubjects');
+      persist(true);
+      applyTheme(S.theme);
+      closeOverlay('setModal');
+      renderCalendar();
+      toast('設定を保存しました');
+    }
+    const PRESETS = {
+      teacher: {
+        theme: '#4f46e5',
+        tt: true,
+        subj: true,
+        fields: ['放課後会議', '出張・研修'],
+        memos: ['児童の様子・気づき', '翌日の準備・引継ぎ'],
+        stamps: ['🏫 行事', '📢 会議', '🚌 出張・研修', '📝 テスト', '🎒 持ち物', '📄 提出物', '👪 保護者対応', '🍱 給食なし']
+      },
+      student: {
+        theme: '#10b981',
+        tt: true,
+        subj: false,
+        fields: ['宿題・提出物', 'あしたの持ち物', '部活・クラブ'],
+        memos: ['ひとこと日記', '保護者・先生への連絡'],
+        stamps: ['📝 テスト', '📄 提出物', '🎒 持ち物', '⚽ 部活', '🎵 習い事', '🎉 イベント']
+      },
+      parent: {
+        theme: '#f59e0b',
+        tt: true,
+        subj: false,
+        fields: ['子どものお迎え時間', 'お弁当の有無', '習い事', '自分の仕事予定'],
+        memos: ['買い物リスト', '家族への連絡事項'],
+        stamps: ['🏫 学校行事', '🍱 お弁当', '🎵 習い事', '🏥 通院', '🛒 買い物', '👪 家族']
+      },
+      university: {
+        theme: '#8b5cf6',
+        tt: true,
+        subj: false,
+        fields: ['課題・レポート', 'バイト・シフト', 'サークル・予定'],
+        memos: ['就活・インターン記録', '備忘録・アイデア'],
+        stamps: ['🏫 講義', '📝 課題/テスト', '⚽ サークル', '💰 バイト', '🏢 就活', '🎉 遊び/飲み会']
+      }
+    };
+
+    function applyPreset(type) {
+      const p = PRESETS[type];
+      $('#sTheme').value = p.theme;
+      $('#sUseTT').checked = p.tt;
+      $('#sUseSubj').checked = p.subj;
+      renderList('sFields', p.fields, '項目名');
+      renderList('sMemos', p.memos, 'メモ枠の名前');
+      renderList('sStamps', p.stamps, '例：🏫 行事');
+      toggleTTSettings();
+      toast('プリセットを入れました（「設定を適用」で保存）');
+    }
+    /* =========================================================
+       バックアップ
+       ========================================================= */
+    function updateBackupNote() {
+      const lb = appState.settings.lastBackup;
+      $('#backupNote').textContent = lb ? `最後のバックアップ：${lb}` : 'まだバックアップしていません。データはこのブラウザの中だけに保存されています。';
     }
 
     function exportData() {
-      const dataStr = JSON.stringify(appState, null, 2);
-      const blob = new Blob([dataStr], {
-        type: "application/json"
+      const t = new Date();
+      appState.settings.lastBackup = `${t.getFullYear()}/${t.getMonth() + 1}/${t.getDate()} ${pad(t.getHours())}:${pad(t.getMinutes())}`;
+      persist(true);
+      const blob = new Blob([JSON.stringify(appState, null, 2)], {
+        type: 'application/json'
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.download = `UniversalPlanner_Backup_${dateStr}.json`;
+      a.download = `予定帳_バックアップ_${fmt(t)}.json`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       URL.revokeObjectURL(url);
+      updateBackupNote();
+      $('#dataMenu').open = false;
+      toast('バックアップを保存しました');
     }
 
-    function importData(event) {
-      const file = event.target.files[0];
+    function importData(ev) {
+      const file = ev.target.files[0];
+      ev.target.value = '';
       if (!file) return;
+      if (!confirm('今のデータを、選んだバックアップの内容で置き換えます。よろしいですか？')) return;
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = e => {
         try {
-          const imported = JSON.parse(e.target.result);
-          appState = mergeState(imported);
-          saveState();
-          init();
-          showToast("📥 データを復元しました");
+          appState = mergeState(JSON.parse(e.target.result));
+          persist(true);
+          applyTheme(appState.settings.theme);
+          renderCalendar();
+          updateBackupNote();
+          $('#dataMenu').open = false;
+          toast('データを復元しました');
         } catch (err) {
-          alert("ファイルの読み込みに失敗しました。正しいJSONファイルを選択してください。");
+          alert('ファイルを読み込めませんでした。バックアップ用のJSONファイルを選んでください。');
         }
       };
       reader.readAsText(file);
-      event.target.value = '';
+    }
+    /* =========================================================
+       印刷
+       ========================================================= */
+    let pvMonth = null;
+    const P = () => appState.settings.print;
+
+    function pageDims() {
+      const [w, h] = PAPERS[P().paper];
+      return P().orient === 'landscape' ? [h, w] : [w, h];
     }
 
-    function getMonthKey() {
-      return `monthly_${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    function sideMode() {
+      const s = P().side;
+      return s === 'auto' ? (P().orient === 'landscape' ? 'right' : 'bottom') : s;
     }
 
-    function changeMonth(delta) {
-      currentDate.setMonth(currentDate.getMonth() + delta);
-      renderCalendar();
-    }
-
-    function goToToday() {
-      currentDate = new Date();
-      renderCalendar();
-    }
-
-    function renderCalendar() {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const titleStr = `${year}年 ${month + 1}月`;
-      document.getElementById('monthTitle').innerText = titleStr;
-      document.getElementById('printTitle').innerText = titleStr;
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const grid = document.getElementById('calendarGrid');
-      grid.innerHTML = '';
-      const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-      // 【バグ修正】innerHTML += によるイベントリセットを防ぐため、全てDOMの直接追加に変更
-      for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'day-cell empty';
-        grid.appendChild(emptyCell);
+    function sheetHTML(y, m, flow) {
+      const S = appState.settings,
+        p = P(),
+        inc = p.inc,
+        md = getMonthData(monthKeyOf(y, m));
+      const goal = inc.goal && (md.goal.trim() || p.blankSide) ?
+        `<div class="s-goal"><b>今月の目標</b>${esc(md.goal.trim()) || '　'}</div>` : '<div class="s-goal"></div>';
+      let h = `<div class="s-head"><div class="s-month"><span class="y">${y}年</span><span class="m">${m + 1}</span><span class="mu">月</span></div>` +
+        (p.title.trim() ? `<div class="s-title">${esc(p.title)}</div>` : '') + goal + '</div>';
+      const cells = monthCells(y, m),
+        lastStart = cells.length - 7;
+      const cal = `<div class="s-cal"><div class="s-wk">${weekdayOrder().map(d => `<div class="${d === 0 ? 'sun' : d === 6 ? 'sat' : ''}">${DOW[d]}</div>`).join('')}</div>
+        <div class="s-grid">${cells.map((date, idx) => {
+          const last = idx >= lastStart ? ' lastrow' : '';
+          if (!date) return `<div class="sc blank${last}"></div>`;
+          const I = dayInfo(date);
+          const tag = I.hol ? `<span class="sh">${esc(I.hol)}</span>` : (I.data.off ? '<span class="sh">休み</span>' : '');
+          return `<div class="sc ${I.cls}${last}"><div class="st"><span class="sn">${date.getDate()}</span>${tag}</div>${dayContentHTML(I.data, inc)}</div>`;
+        }).join('')}</div></div>`;
+      // サイド欄
+      const cards = [];
+      if (S.useSubjectTracker && inc.subjects && S.subjects.length) {
+        const any = S.subjects.some(n => (md.subjects[n] || '').trim());
+        if (any || p.blankSide) cards.push(`<div class="s-card"><h4>教科・単元の進度</h4><div class="s-subj">${S.subjects.map(n => `<b>${esc(n)}</b><span>${esc(md.subjects[n] || '')}</span>`).join('')}</div></div>`);
       }
-      for (let i = 1; i <= daysInMonth; i++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-        try {
-          const isToday = dateStr === todayStr ? 'today' : '';
-          const data = appState.schedule[dateStr] || {};
-          let cellHTML = `<div class="day-number">${i}</div>`;
-          if (data.event) {
-            cellHTML += `<div class="preview-event">${escapeHTML(data.event)}</div>`;
+      if (inc.notes && (md.important.trim() || p.blankSide)) cards.push(`<div class="s-card grow"><h4>共有・引継ぎメモ</h4><div class="txt">${esc(md.important.replace(/\s+$/, ''))}</div></div>`);
+      const mt = md.todos.filter(t => String(t.text || '').trim());
+      if (inc.mtodos && (mt.length || p.blankSide)) cards.push(`<div class="s-card"><h4>月間タスク</h4>${mt.map(t => `<div class="s-mt ${t.done ? 'done' : ''}"><span>${t.done ? '☑' : '☐'}</span><span>${esc(t.text)}</span></div>`).join('') || '<div class="txt"></div>'}</div>`);
+      let mode = sideMode();
+      if (flow && mode === 'right') mode = 'bottom';
+      const side = (mode !== 'none' && cards.length) ? `<div class="s-side">${cards.join('')}</div>` : '';
+      return h + `<div class="s-body ${mode === 'bottom' ? 'bottom' : ''}">${cal}${side}</div>`;
+    }
+    // 用紙に合わせてシートを作り、はみ出さない文字サイズを探す
+    function buildSheet() {
+      const base = pvMonth || cur,
+        y = base.getFullYear(),
+        m = base.getMonth(),
+        p = P();
+      const [pw, ph] = pageDims(), mar = p.margin;
+      const wMM = pw - 2 * mar - 0.5,
+        hMM = ph - 2 * mar - 1;
+      const availH = hMM * MM;
+      $('#pageStyle').textContent = `@page { size: ${pw}mm ${ph}mm; margin: ${mar}mm; }`;
+      const paper = $('#pvPaper');
+      paper.style.width = pw + 'mm';
+      paper.style.minHeight = ph + 'mm';
+      paper.style.padding = mar + 'mm';
+      const sheet = $('#sheet');
+      sheet.className = 'sheet' + (p.mono ? ' mono' : '');
+      sheet.style.setProperty('--sa', appState.settings.theme);
+      sheet.style.width = wMM + 'mm';
+      sheet.style.height = 'auto';
+      sheet.innerHTML = sheetHTML(y, m, false);
+      const fits = fs => {
+        sheet.style.fontSize = fs + 'px';
+        return sheet.scrollHeight <= availH + 0.5;
+      };
+      let fs = p.fontPx,
+        flow = false,
+        shrunk = false;
+      if (!fits(fs)) {
+        if (p.autoFit && fits(5)) {
+          let lo = 5,
+            hi = fs;
+          for (let i = 0; i < 14; i++) {
+            const mid = (lo + hi) / 2;
+            if (fits(mid)) lo = mid;
+            else hi = mid;
           }
-          const previewLines = [];
-          const timetableData = Array.isArray(data.timetable) ? data.timetable : [];
-          if (appState.settings.useTimetable && timetableData.length > 0) {
-            timetableData.forEach((subject, idx) => {
-              if (subject) previewLines.push(`${idx + 1}限: ${escapeHTML(subject)}`);
-            });
-          }
-          const customFieldsData = Array.isArray(data.customFields) ? data.customFields : [];
-          if (appState.settings.customFields) {
-            appState.settings.customFields.forEach((label, idx) => {
-              if (customFieldsData[idx]) previewLines.push(`[${escapeHTML(label)}] ${escapeHTML(customFieldsData[idx])}`);
-            });
-          }
-          if (previewLines.length > 0) {
-            cellHTML += `<div class="preview-data">${previewLines.join('\n')}</div>`;
-          }
-          const customMemosData = Array.isArray(data.customMemos) ? data.customMemos : [];
-          if (appState.settings.customMemos) {
-            appState.settings.customMemos.forEach((label, idx) => {
-              if (customMemosData[idx]) {
-                cellHTML += `
-                  <div class="memo-block">
-                    <div class="memo-label">${escapeHTML(label)}</div>
-                    <div class="preview-data">${escapeHTML(customMemosData[idx])}</div>
-                  </div>`;
-              }
-            });
-          }
-          let dailyTodos = Array.isArray(data.todos) ? data.todos : [];
-          if (dailyTodos.length > 0) {
-            let todoHtml = '<div class="todo-list-preview">';
-            dailyTodos.forEach(t => {
-              if (!t || typeof t !== 'object') return;
-              const checkIcon = t.done ? '☑' : '☐';
-              const doneClass = t.done ? 'done' : '';
-              todoHtml += `<div class="todo-preview-item ${doneClass}"><span>${checkIcon}</span> <span>${escapeHTML(t.text || '')}</span></div>`;
-            });
-            todoHtml += '</div>';
-            cellHTML += todoHtml;
-          }
-          const cell = document.createElement('div');
-          cell.className = `day-cell ${isToday}`;
-          // 確実にクリックイベントが付与される
-          cell.addEventListener('click', () => {
-            openDailyModal(dateStr, i);
-          });
-          cell.innerHTML = cellHTML;
-          grid.appendChild(cell);
-        } catch (e) {
-          console.error("カレンダーセルの描画中にエラー:", e);
-          const cell = document.createElement('div');
-          cell.className = `day-cell`;
-          cell.addEventListener('click', () => {
-            openDailyModal(dateStr, i);
-          });
-          cell.innerHTML = `<div class="day-number">${i}</div><div class="preview-data" style="color:red; font-weight:bold;">データを修復しました</div>`;
-          grid.appendChild(cell);
+          fs = Math.floor(lo * 20) / 20;
+          fits(fs);
+          shrunk = true;
+        } else {
+          flow = true;
         }
       }
-      const totalCells = firstDay + daysInMonth;
-      const remainder = totalCells % 7;
-      if (remainder > 0) {
-        for (let i = 0; i < 7 - remainder; i++) {
-          const emptyCell = document.createElement('div');
-          emptyCell.className = 'day-cell empty';
-          grid.appendChild(emptyCell);
-        }
+      if (flow) {
+        fs = p.autoFit ? Math.max(6.5, Math.min(p.fontPx, 8)) : p.fontPx;
+        sheet.classList.add('flow');
+        sheet.innerHTML = sheetHTML(y, m, true);
+        sheet.style.fontSize = fs + 'px';
+        sheet.style.height = 'auto';
+      } else {
+        sheet.style.height = hMM + 'mm';
       }
-      const stCard = document.getElementById('subjectTrackerCard');
-      if (stCard) {
-        stCard.style.display = appState.settings.useSubjectTracker ? 'block' : 'none';
-      }
-      loadSidebarData();
-    }
-
-    function loadSidebarData() {
-      try {
-        const mData = appState.sidebar[getMonthKey()] || {
-          goal: "",
-          important: "",
-          todos: [{
-            text: "",
-            done: false
-          }],
-          subjects: {}
-        };
-        const elGoal = document.getElementById('monthGoal');
-        if (elGoal) elGoal.value = mData.goal || '';
-        const elImp = document.getElementById('monthImportant');
-        if (elImp) elImp.value = mData.important || '';
-        SUBJECTS.forEach(sub => {
-          const el = document.getElementById(`prog_${sub}`);
-          if (el) el.value = (mData.subjects && mData.subjects[sub]) || '';
-        });
-        renderSidebarTodos(mData.todos && mData.todos.length ? mData.todos : [{
-          text: "",
-          done: false
-        }]);
-      } catch (e) {
-        console.error("サイドバーデータ読み込みエラー:", e);
-      }
-    }
-
-    function renderSidebarTodos(todos) {
-      const container = document.getElementById('sidebarTodoContainer');
-      if (!container) return;
-      container.innerHTML = '';
-      todos.forEach(t => {
-        if (!t || typeof t !== 'object') return;
-        container.insertAdjacentHTML('beforeend', `
-          <div class="todo-item">
-            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="saveSidebarData()">
-            <input type="text" value="${escapeHTML(t.text || '')}" placeholder="タスク..." onblur="saveSidebarData()">
-          </div>
-        `);
+      const pages = flow ? Math.max(1, Math.ceil(sheet.scrollHeight / availH - 0.01)) : 1;
+      updatePrintStatus({
+        fs,
+        shrunk,
+        flow,
+        pages
       });
+      scalePreview(flow ? pages : 0, availH);
     }
 
-    function addSidebarTodo() {
-      const container = document.getElementById('sidebarTodoContainer');
-      if (container) {
-        container.insertAdjacentHTML('beforeend', `
-          <div class="todo-item"><input type="checkbox" onchange="saveSidebarData()"><input type="text" placeholder="タスク..." onblur="saveSidebarData()"></div>
-        `);
+    function updatePrintStatus({
+      fs,
+      shrunk,
+      flow,
+      pages
+    }) {
+      const p = P(),
+        pt = (fs * 0.75).toFixed(1);
+      const paperName = `${PAPER_LABEL[p.paper]}・${p.orient === 'landscape' ? '横' : '縦'}`;
+      const st = $('#pvStatus');
+      if (flow) {
+        st.className = 'pv-status warn';
+        st.innerHTML = `⚠ 内容が多いため ${pages}ページに分かれます（文字 ${pt}pt）<small>内容はすべて印刷されます。1枚にしたい時は、大きい用紙（B4・A3）を選ぶか、「印刷する内容」を減らしてください。</small>`;
+      } else if (shrunk) {
+        const tiny = fs < 8;
+        st.className = 'pv-status' + (tiny ? ' warn' : '');
+        st.innerHTML = `✓ ${paperName} 1枚に収まるよう ${Math.round(fs / p.fontPx * 100)}% に縮小しました（文字 ${pt}pt）` +
+          (tiny ? '<small>文字がかなり小さくなっています。読みにくい時は、大きい用紙を選ぶか印刷する内容を減らしてください。</small>' : '<small>書いた内容はすべて印刷されます。</small>');
+      } else {
+        st.className = 'pv-status';
+        st.innerHTML = `✓ ${paperName} 1枚にすべて収まります（文字 ${pt}pt）`;
+      }
+      $('#pvFsVal').textContent = `（基本 ${(p.fontPx * 0.75).toFixed(1)}pt）`;
+      $('#pvHint').innerHTML = `<b>印刷画面で確認してください</b><br>・用紙サイズ：<b>${PAPER_LABEL[p.paper]}</b>（向き：${p.orient === 'landscape' ? '横' : '縦'}）<br>・倍率：<b>デフォルト（100%）</b>　※「用紙に合わせる」にしない<br>・ヘッダーとフッター：<b>オフ</b><br>・背景のグラフィック：<b>オン</b><br>PDFにしたい時は、送信先（プリンタ）で「PDFに保存」を選びます。`;
+    }
+
+    function scalePreview(pages, availH) {
+      const stage = $('#pvStage'),
+        paper = $('#pvPaper'),
+        scaler = $('#pvScaler');
+      const w = paper.offsetWidth,
+        h = paper.offsetHeight;
+      const [, ph] = pageDims();
+      const onePage = ph * MM;
+      let sc = Math.min((stage.clientWidth - 56) / w, (stage.clientHeight - 56) / onePage);
+      sc = Math.max(0.15, Math.min(sc, 1.6));
+      paper.style.transform = `scale(${sc})`;
+      scaler.style.width = (w * sc) + 'px';
+      scaler.style.height = (h * sc) + 'px';
+      $$('.pv-guide').forEach(g => g.remove());
+      if (pages > 1) {
+        const top0 = P().margin * MM;
+        for (let i = 1; i < pages; i++) {
+          scaler.insertAdjacentHTML('beforeend', `<div class="pv-guide" style="top:${(top0 + i * availH) * sc}px"><span>ここから${i + 1}ページ目（目安）</span></div>`);
+        }
       }
     }
 
-    function saveSidebarData() {
-      try {
-        const todos = Array.from(document.querySelectorAll('#sidebarTodoContainer .todo-item')).map(item => ({
-          text: item.querySelector('input[type="text"]').value,
-          done: item.querySelector('input[type="checkbox"]').checked
-        })).filter(t => t.text.trim() !== "" || t.done);
-        const subjData = {};
-        SUBJECTS.forEach(sub => {
-          const el = document.getElementById(`prog_${sub}`);
-          if (el) subjData[sub] = el.value;
-        });
-        appState.sidebar[getMonthKey()] = {
-          goal: document.getElementById('monthGoal') ? document.getElementById('monthGoal').value : "",
-          important: document.getElementById('monthImportant') ? document.getElementById('monthImportant').value : "",
-          todos: todos,
-          subjects: subjData
-        };
-        saveState();
-      } catch (e) {
-        console.error("サイドバーの保存中にエラーが発生しました:", e);
-      }
-    }
-
-    function openDailyModal(dateStr, dayNum) {
-      document.getElementById('currentEditDate').value = dateStr;
-      try {
-        const d = new Date(dateStr);
-        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()] || '';
-        document.getElementById('modalDateTitle').innerText = `${d.getFullYear()}年${d.getMonth() + 1}月${dayNum}日 (${dayOfWeek})`;
-        const data = appState.schedule[dateStr] || {};
-        const s = appState.settings || defaultState.settings;
-        document.getElementById('inputEvent').value = data.event || '';
-        let tData = Array.isArray(data.timetable) ? data.timetable : [];
-        let cFields = Array.isArray(data.customFields) ? data.customFields : [];
-        let cMemos = Array.isArray(data.customMemos) ? data.customMemos : [];
-        let tTodos = Array.isArray(data.todos) ? data.todos : [];
-        if (tTodos.length === 0) tTodos = [{
-          text: "",
-          done: false
-        }];
-        const ttSection = document.getElementById('timetableSection');
-        const ttGrid = document.getElementById('timetableGrid');
-        if (s.useTimetable && s.timetableCount > 0) {
-          ttSection.style.display = 'block';
-          ttGrid.innerHTML = '';
-          for (let i = 0; i < s.timetableCount; i++) {
-            ttGrid.insertAdjacentHTML('beforeend', `
-              <div style="margin:0;">
-                <label style="font-size:12px; color:var(--text-muted); font-weight:bold;">${i + 1}限</label>
-                <input type="text" id="tt_${i}" class="form-control" value="${escapeHTML(tData[i] || '')}">
-              </div>
-            `);
-          }
-        } else {
-          ttSection.style.display = 'none';
-        }
-        const cfSection = document.getElementById('customFieldsSection');
-        const cfGrid = document.getElementById('customFieldsGrid');
-        if (s.customFields && s.customFields.length > 0) {
-          cfSection.style.display = 'block';
-          cfGrid.innerHTML = '';
-          s.customFields.forEach((label, idx) => {
-            cfGrid.insertAdjacentHTML('beforeend', `
-              <div style="margin:0;">
-                <label style="font-size:12px; color:var(--text-muted); font-weight:bold;">${escapeHTML(label)}</label>
-                <input type="text" id="cf_${idx}" class="form-control" value="${escapeHTML(cFields[idx] || '')}">
-              </div>
-            `);
-          });
-        } else {
-          cfSection.style.display = 'none';
-        }
-        const cmSection = document.getElementById('customMemosSection');
-        const cmList = document.getElementById('customMemosList');
-        if (s.customMemos && s.customMemos.length > 0) {
-          cmSection.style.display = 'block';
-          cmList.innerHTML = '';
-          s.customMemos.forEach((label, idx) => {
-            cmList.insertAdjacentHTML('beforeend', `
-              <div>
-                <label style="font-size:13px; font-weight:bold; color:var(--text-main); display:block; margin-bottom:5px;">${escapeHTML(label)}</label>
-                <textarea id="cm_${idx}" class="form-control" rows="4">${escapeHTML(cMemos[idx] || '')}</textarea>
-              </div>
-            `);
-          });
-        } else {
-          cmSection.style.display = 'none';
-        }
-        const tdContainer = document.getElementById('dailyTodoContainer');
-        tdContainer.innerHTML = '';
-        tTodos.forEach(t => {
-          if (!t || typeof t !== 'object') return;
-          tdContainer.insertAdjacentHTML('beforeend', `
-            <div class="todo-item">
-              <input type="checkbox" ${t.done ? 'checked' : ''}>
-              <input type="text" value="${escapeHTML(t.text || '')}" placeholder="タスク...">
-            </div>
-          `);
-        });
-      } catch (e) {
-        console.error("モーダル展開エラー:", e);
-        document.getElementById('inputEvent').value = '';
-        document.getElementById('timetableGrid').innerHTML = '';
-        document.getElementById('customFieldsGrid').innerHTML = '';
-        document.getElementById('customMemosList').innerHTML = '';
-        document.getElementById('dailyTodoContainer').innerHTML = '';
-        alert("データを開く際にエラーがありました。");
-      }
-      document.getElementById('dailyModal').style.display = 'flex';
-    }
-
-    function addDailyTodo() {
-      const container = document.getElementById('dailyTodoContainer');
-      if (container) {
-        container.insertAdjacentHTML('beforeend', `
-          <div class="todo-item"><input type="checkbox"><input type="text" placeholder="タスク..."></div>
-        `);
-      }
-    }
-
-    function saveDailyData() {
-      try {
-        const dateStr = document.getElementById('currentEditDate').value;
-        if (!dateStr) return;
-        const s = appState.settings;
-        const data = {
-          event: document.getElementById('inputEvent').value,
-          timetable: [],
-          customFields: [],
-          customMemos: [],
-          todos: []
-        };
-        let hasData = !!data.event;
-        if (s.useTimetable) {
-          for (let i = 0; i < s.timetableCount; i++) {
-            const el = document.getElementById(`tt_${i}`);
-            const val = el ? el.value : '';
-            data.timetable.push(val);
-            if (val) hasData = true;
-          }
-        }
-        if (s.customFields) {
-          s.customFields.forEach((_, idx) => {
-            const el = document.getElementById(`cf_${idx}`);
-            const val = el ? el.value : '';
-            data.customFields.push(val);
-            if (val) hasData = true;
-          });
-        }
-        if (s.customMemos) {
-          s.customMemos.forEach((_, idx) => {
-            const el = document.getElementById(`cm_${idx}`);
-            const val = el ? el.value : '';
-            data.customMemos.push(val);
-            if (val) hasData = true;
-          });
-        }
-        const todos = Array.from(document.querySelectorAll('#dailyTodoContainer .todo-item')).map(item => ({
-          text: item.querySelector('input[type="text"]').value,
-          done: item.querySelector('input[type="checkbox"]').checked
-        })).filter(t => t.text.trim() !== "" || t.done);
-        data.todos = todos;
-        if (todos.length > 0) hasData = true;
-        if (hasData) {
-          appState.schedule[dateStr] = data;
-        } else {
-          delete appState.schedule[dateStr];
-        }
-        saveState();
-        closeModal('dailyModal');
-        renderCalendar();
-      } catch (e) {
-        console.error("保存時にエラーが発生しました:", e);
-      }
-    }
-
-    function addStamp(stamp) {
-      const input = document.getElementById('inputEvent');
-      if (input) {
-        input.value = input.value ? input.value + ' ' + stamp : stamp;
-      }
-    }
-
-    function openSettingsModal() {
-      const s = appState.settings;
-      document.getElementById('setThemeColor').value = s.theme;
-      document.getElementById('setUseTimetable').checked = s.useTimetable;
-      document.getElementById('setTimetableCount').value = s.timetableCount;
-      document.getElementById('setUseSubjectTracker').checked = !!s.useSubjectTracker;
-      toggleTimetableSettings();
-      renderSettingsList('setFieldsContainer', s.customFields || [], '項目の名前 (例: 持ち物)');
-      renderSettingsList('setMemosContainer', s.customMemos || [], 'メモ枠の名前 (例: 日記)');
-      document.getElementById('settingsModal').style.display = 'flex';
-    }
-
-    function toggleTimetableSettings() {
-      const isChecked = document.getElementById('setUseTimetable').checked;
-      const area = document.getElementById('timetableSettingsArea');
-      if (area) area.style.opacity = isChecked ? '1' : '0.4';
-      const countInput = document.getElementById('setTimetableCount');
-      if (countInput) countInput.disabled = !isChecked;
-    }
-
-    function renderSettingsList(containerId, items, placeholder) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      container.innerHTML = '';
-      items.forEach(val => {
-        container.insertAdjacentHTML('beforeend', `
-          <div class="settings-item">
-            <input type="text" class="form-control" value="${escapeHTML(val)}" placeholder="${escapeHTML(placeholder)}">
-            <button class="btn-delete" onclick="this.parentElement.remove()">✕</button>
-          </div>
-        `);
+    function syncPrintControls() {
+      const p = P();
+      $$('#printOverlay .seg').forEach(seg => {
+        const k = seg.dataset.k;
+        seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', String(p[k]) === b.dataset.v));
       });
-    }
-
-    function addSettingItem(containerId, placeholder) {
-      const container = document.getElementById(containerId);
-      if (container) {
-        container.insertAdjacentHTML('beforeend', `
-          <div class="settings-item">
-            <input type="text" class="form-control" placeholder="${escapeHTML(placeholder)}">
-            <button class="btn-delete" onclick="this.parentElement.remove()">✕</button>
-          </div>
-        `);
-      }
-    }
-
-    function saveSettings() {
-      try {
-        appState.settings.theme = document.getElementById('setThemeColor').value;
-        appState.settings.useTimetable = document.getElementById('setUseTimetable').checked;
-        appState.settings.useSubjectTracker = document.getElementById('setUseSubjectTracker').checked;
-        let count = parseInt(document.getElementById('setTimetableCount').value);
-        if (isNaN(count) || count < 1) count = 1;
-        if (count > 8) count = 8;
-        appState.settings.timetableCount = count;
-        appState.settings.customFields = Array.from(document.querySelectorAll('#setFieldsContainer input'))
-          .map(input => input.value.trim()).filter(v => v !== "");
-        appState.settings.customMemos = Array.from(document.querySelectorAll('#setMemosContainer input'))
-          .map(input => input.value.trim()).filter(v => v !== "");
-        saveState();
-        applyTheme(appState.settings.theme);
-        closeModal('settingsModal');
-        renderCalendar();
-      } catch (e) {
-        console.error("設定保存エラー:", e);
-      }
-    }
-
-    function applyPreset(type) {
-      if (type === 'teacher') {
-        document.getElementById('setThemeColor').value = '#4f46e5';
-        document.getElementById('setUseTimetable').checked = true;
-        document.getElementById('setTimetableCount').value = 6;
-        document.getElementById('setUseSubjectTracker').checked = true;
-        renderSettingsList('setFieldsContainer', ['放課後会議', '出張・研修'], '項目名');
-        renderSettingsList('setMemosContainer', ['児童の様子・気づき', '翌日の準備・引継ぎ'], 'メモ枠名');
-      } else if (type === 'student') {
-        document.getElementById('setThemeColor').value = '#10b981';
-        document.getElementById('setUseTimetable').checked = true;
-        document.getElementById('setTimetableCount').value = 6;
-        document.getElementById('setUseSubjectTracker').checked = false;
-        renderSettingsList('setFieldsContainer', ['宿題・提出物', 'あしたの持ち物', '部活・クラブ'], '項目名');
-        renderSettingsList('setMemosContainer', ['ひとこと日記', '保護者・先生への連絡'], 'メモ枠名');
-      } else if (type === 'parent') {
-        document.getElementById('setThemeColor').value = '#f59e0b';
-        document.getElementById('setUseTimetable').checked = true;
-        document.getElementById('setTimetableCount').value = 6;
-        document.getElementById('setUseSubjectTracker').checked = false;
-        renderSettingsList('setFieldsContainer', ['子どものお迎え時間', 'お弁当の有無', '習い事', '自分の仕事予定'], '項目名');
-        renderSettingsList('setMemosContainer', ['買い物リスト', '家族への連絡事項'], 'メモ枠名');
-      } else if (type === 'university') {
-        document.getElementById('setThemeColor').value = '#8b5cf6';
-        document.getElementById('setUseTimetable').checked = true;
-        document.getElementById('setTimetableCount').value = 6;
-        document.getElementById('setUseSubjectTracker').checked = false;
-        renderSettingsList('setFieldsContainer', ['課題・レポート', 'バイト・シフト', 'サークル・予定'], '項目名');
-        renderSettingsList('setMemosContainer', ['就活・インターン記録', '備忘録・アイデア'], 'メモ枠名');
-      }
-      toggleTimetableSettings();
-    }
-
-    function closeModal(id) {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    }
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('mousedown', function(e) {
-        if (e.target === this) this.style.display = 'none';
+      $('#pvFs').value = p.fontPx;
+      $('#pvAuto').checked = p.autoFit;
+      $('#pvTitle').value = p.title;
+      $('#pvBlank').checked = p.blankSide;
+      $('#pvMono').checked = p.mono;
+      $$('#printOverlay [data-inc]').forEach(cb => {
+        cb.checked = !!p.inc[cb.dataset.inc];
       });
+      const b = pvMonth || cur;
+      $('#pvMonthLabel').textContent = `${b.getFullYear()}年 ${b.getMonth() + 1}月`;
+    }
+
+    function onPrintChange() {
+      persist();
+      syncPrintControls();
+      buildSheet();
+    }
+    $$('#printOverlay .seg').forEach(seg => seg.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      const k = seg.dataset.k;
+      P()[k] = k === 'margin' ? Number(b.dataset.v) : b.dataset.v;
+      onPrintChange();
+    }));
+    $('#pvFs').addEventListener('input', e => {
+      P().fontPx = Number(e.target.value);
+      onPrintChange();
     });
-    init();
+    $('#pvAuto').addEventListener('change', e => {
+      P().autoFit = e.target.checked;
+      onPrintChange();
+    });
+    $('#pvTitle').addEventListener('input', e => {
+      P().title = e.target.value;
+      persist();
+      buildSheet();
+    });
+    $('#pvBlank').addEventListener('change', e => {
+      P().blankSide = e.target.checked;
+      onPrintChange();
+    });
+    $('#pvMono').addEventListener('change', e => {
+      P().mono = e.target.checked;
+      onPrintChange();
+    });
+    $$('#printOverlay [data-inc]').forEach(cb => cb.addEventListener('change', () => {
+      P().inc[cb.dataset.inc] = cb.checked;
+      onPrintChange();
+    }));
+
+    function openPrint() {
+      pvMonth = new Date(cur);
+      syncPrintControls();
+      $('#printOverlay').classList.add('open');
+      $('#printOverlay').setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      buildSheet();
+    }
+
+    function closePrint() {
+      $('#printOverlay').classList.remove('open');
+      $('#printOverlay').setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      pvMonth = null;
+    }
+
+    function pvMove(delta) {
+      pvMonth = new Date(pvMonth.getFullYear(), pvMonth.getMonth() + delta, 1);
+      syncPrintControls();
+      buildSheet();
+    }
+
+    function doPrint() {
+      buildSheet();
+      window.print();
+    }
+    // Ctrl+P など、どこから印刷しても最新の内容で印刷用シートを作る
+    window.addEventListener('beforeprint', buildSheet);
+    window.addEventListener('resize', () => {
+      if ($('#printOverlay').classList.contains('open')) buildSheet();
+    });
+    /* =========================================================
+       キーボード操作
+       ========================================================= */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if ($('#printOverlay').classList.contains('open')) closePrint();
+        else if (isOpen('dayModal')) closeDay();
+        else if (isOpen('setModal')) closeOverlay('setModal');
+        else $('#dataMenu').open = false;
+        return;
+      }
+      if (isOpen('dayModal') && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        saveDay();
+        return;
+      }
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || ''));
+      const anyOpen = isOpen('dayModal') || isOpen('setModal') || $('#printOverlay').classList.contains('open');
+      if (!typing && !anyOpen && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (e.key === 'ArrowLeft') changeMonth(-1);
+        if (e.key === 'ArrowRight') changeMonth(1);
+      }
+    });
+    document.addEventListener('click', e => {
+      const dm = $('#dataMenu');
+      if (dm.open && !dm.contains(e.target)) dm.open = false;
+    });
+    /* =========================================================
+       起動
+       ========================================================= */
+    applyTheme(appState.settings.theme);
+    renderCalendar();
+    updateBackupNote();
   </script>
 </body>
 
