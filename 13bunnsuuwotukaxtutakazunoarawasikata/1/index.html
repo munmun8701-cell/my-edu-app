@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8">
     <title>１３　分数を使った数の大きさの表し方　１時間目</title>
-    <link rel="stylesheet" href="./style.css">
+    
 
   </head>
     
@@ -13,9 +13,534 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
   <title>分数を使った長さの表し方（第2時）</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ==================================================
+       基本設定
+       ================================================== */
+    :root {
+      --primary: #fb8c00;      /* テーマカラー（オレンジ） */
+      --bg-color: #fffdf7;
+      --text-main: #333;
+      --accent: #00897b;
+      --accent-dark: #00695c;
+      --tape-border: #757575;
+      --tape-color: #ffcdd2;   /* テープのピンク色 */
+      --pad-x: 30px;           /* カード内の左右余白（スマホでは小さくなる） */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-tap-highlight-color: transparent;
+    }
+    img { max-width: 100%; }
+    button, input { font-family: inherit; }
+
+    /* ==================================================
+       ヘッダー
+       ================================================== */
+    header {
+      background-color: var(--primary);
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    }
+    header h1 { margin: 0; font-size: clamp(1.15rem, 4.8vw, 1.5rem); line-height: 1.4; }
+    header p  { margin: 4px 0 0; font-size: clamp(.85rem, 3.5vw, 1rem); }
+
+    /* ==================================================
+       タブ（画面上部に固定）
+       ================================================== */
+    .tabs-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--bg-color);
+      box-shadow: 0 6px 8px -8px rgba(0, 0, 0, .25);
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 14px 15px 16px;
+    }
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 48px;
+      padding: 8px 10px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      line-height: 1.3;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #555;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #ccc;
+      transition: transform .1s, box-shadow .1s;
+      touch-action: manipulation;
+    }
+    .tab-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #ccc; }
+    .tab-btn.active {
+      background-color: var(--accent);
+      border-color: var(--accent-dark);
+      color: #fff;
+      box-shadow: 0 4px 0 var(--accent-dark);
+    }
+    .tab-btn.active:active { box-shadow: 0 0 0 var(--accent-dark); }
+    .tab-num { flex-shrink: 0; }
+
+    /* ==================================================
+       メイン
+       ================================================== */
+    main { max-width: 800px; margin: 0 auto; padding: 4px 15px 48px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    h2 {
+      font-size: clamp(1.1rem, 4.3vw, 1.3rem);
+      line-height: 1.5;
+      border-left: 5px solid var(--primary);
+      padding-left: 10px;
+      margin: 16px 0;
+    }
+    h2.green-title { color: #2e7d32; border-left-color: #2e7d32; }
+    .d-mark { color: #d84315; }
+
+    h3 {
+      font-size: clamp(1rem, 3.9vw, 1.15rem);
+      line-height: 1.8;
+      margin: 0 0 12px;
+    }
+    .sub-note { display: block; font-size: .9rem; color: #555; font-weight: normal; }
+
+    .simulator-area, .quiz-section {
+      background: #fff;
+      padding: 20px var(--pad-x);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 2px solid #e0e0e0;
+    }
+
+    /* ==================================================
+       分数の表示・入力
+       ================================================== */
+    .inline-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      font-size: 1.1em;
+      line-height: 1.1;
+      font-weight: bold;
+      margin: 0 1px;
+    }
+    .inline-frac .top { border-bottom: 2px solid currentColor; padding: 0 3px; }
+    .inline-frac .bottom { padding: 0 3px; }
+    .inline-frac.large { font-size: 1.5rem; }
+
+    .fraction-input {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      gap: 4px;
+    }
+    .fraction-line { width: 100%; height: 2px; background-color: var(--text-main); }
+
+    .num-input {
+      width: 52px;
+      height: 46px;
+      padding: 0;
+      font-size: 1.5rem;            /* 16px以上にしてiPhoneの自動ズームを防ぐ */
+      text-align: center;
+      color: var(--text-main);
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .num-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 137, 123, .2);
+    }
+    .small-input,
+    .fraction-input.small .num-input { width: 44px; height: 40px; font-size: 1.2rem; }
+
+    /* ==================================================
+       問題バッジ
+       ================================================== */
+    .q-badge {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 8px;
+      font-size: 1rem;
+      line-height: 1.5;
+      vertical-align: middle;
+      display: inline-block;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .q-badge.green { background-color: #81c784; }
+    .q-badge.dark-green {
+      background-color: #2e7d32;
+      border-radius: 50%;
+      width: 26px; height: 26px;
+      padding: 0;
+      text-align: center;
+      line-height: 26px;
+    }
+    .q-badge.triangle {
+      background: none;
+      color: #d84315;
+      border: 2px solid #d84315;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      padding: 8px 12px 2px;
+      border-radius: 0;
+      font-size: .9rem;
+    }
+
+    /* 問い（バッジ｜問題文｜入力欄） */
+    .q-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .q-row .q-badge { margin-right: 0; }
+    .q-row p { margin: 0; font-size: 1.1rem; font-weight: bold; }
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .question-area { margin-top: 30px; }
+
+    /* ==================================================
+       テープ図
+       ================================================== */
+    .tape-container { position: relative; width: 100%; margin-bottom: 20px; }
+    .tape-container.wide { width: 85%; max-width: 500px; margin: 20px auto 24px; }
+
+    .tape-label { text-align: center; margin-bottom: 5px; position: relative; }
+    .tape-label::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      border-top: 1px dashed #777;
+    }
+    .tape-label-text {
+      display: inline-block;
+      background: #fff;
+      padding: 0 10px;
+      position: relative;
+      z-index: 1;
+      font-weight: bold;
+    }
+
+    .tape {
+      display: flex;
+      height: 36px;
+      border: 2px solid var(--tape-border);
+      background-color: #fff;
+    }
+    /* どの画面幅でも区切りが等間隔になるよう、区切り線は疑似要素で描く */
+    .tape-part { flex: 1 1 0; min-width: 0; position: relative; }
+    .tape-part:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; right: 0;
+      border-right: 1px dashed var(--tape-border);
+      pointer-events: none;
+    }
+    .tape-part.colored { background-color: var(--tape-color); }
+
+    .box-pink {
+      display: inline-block;
+      width: 25px; height: 15px;
+      background-color: var(--tape-color);
+      border: 1px solid var(--tape-border);
+      vertical-align: middle;
+    }
+    .box-empty {
+      display: inline-block;
+      width: 20px; height: 15px;
+      border: 1px solid var(--tape-border);
+      vertical-align: middle;
+    }
+
+    /* テープ下のカッコ（位置はJavaScriptで色のついた部分に自動で合わせる） */
+    .tape-measure { position: relative; height: 28px; margin-top: 5px; }
+    .measure-bracket {
+      position: absolute;
+      top: 0;
+      height: 10px;
+      border: 1px dashed #777;
+      border-top: none;
+    }
+    .measure-label {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 0 5px;
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+
+    /* 色をぬるテープ（練習問題2） */
+    .tape.interactive {
+      height: 46px;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .tape.interactive .tape-part {
+      cursor: pointer;
+      transition: background-color .15s;
+      touch-action: manipulation;
+    }
+    /* マウスのある端末だけホバー色を付ける（スマホで色が残らないように） */
+    @media (hover: hover) {
+      .tape.interactive .tape-part:not(.colored):hover { background-color: #ffebee; }
+    }
+
+    /* ==================================================
+       解説・まとめ・キャラクター
+       ================================================== */
+    .explanation-box {
+      background: #fff8e1;
+      border-left: 5px solid #ffca28;
+      padding: 15px;
+      font-size: 1.1rem;
+      line-height: 1.9;
+      margin: 20px 0;
+    }
+    .explanation-box p { margin: 0; }
+    .summary-box {
+      background: #e8f5e9;
+      border: 2px solid #81c784;
+      border-radius: 8px;
+      padding: 15px;
+      font-size: 1.2rem;
+      line-height: 1.8;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .character-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 15px;
+      border: 2px solid #ccc;
+      position: relative;
+      margin-top: 15px;
+    }
+    .character-box.right-align {
+      flex-direction: row-reverse;
+      text-align: right;
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin-top: 10px;
+    }
+    .character-box.small-char { padding: 10px; border-color: #a5d6a7; background: #f1f8e9; margin-bottom: 24px; }
+    .character-box.small-char .char-icon { width: 40px; height: 40px; }
+    .character-box.summary-char { border-color: #2e7d32; margin-top: 30px; }
+    .character-box.feedback-box { background-color: #fff3e0; border-color: #ffcc80; }
+    .character-box.feedback-box .char-icon { width: 40px; height: 40px; }
+
+    /* 画像が読みこめないときも、名前の文字がはみ出さないようにする */
+    .char-icon { width: 60px; height: 60px; flex-shrink: 0; overflow: hidden; font-size: .7rem; }
+    .char-text {
+      flex: 1;
+      min-width: 0;
+      background: #fff;
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      position: relative;
+    }
+    .right-align .char-text { background: #e3f2fd; border-color: #90caf9; text-align: left; }
+    .char-text p { margin: 0; font-size: 1.1rem; line-height: 1.7; }
+    .point-label {
+      position: absolute;
+      top: -12px; left: 10px;
+      background: #2e7d32;
+      color: #fff;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: .9rem;
+      font-weight: bold;
+    }
+
+    /* ==================================================
+       練習問題のレイアウト
+       ================================================== */
+    .q-item-tape {
+      display: grid;
+      align-items: center;
+      column-gap: 14px;
+      row-gap: 10px;
+      margin-bottom: 32px;
+    }
+    /* 練習1：番号｜テープ｜答え */
+    .q-item-tape.answer {
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      grid-template-areas: "num tape inputs";
+    }
+    /* 練習2：番号｜分数｜テープ */
+    .q-item-tape.paint {
+      grid-template-columns: 28px 64px minmax(0, 1fr);
+      grid-template-areas: "num frac tape";
+    }
+    .q-num { grid-area: num; font-size: 1.2rem; font-weight: bold; text-align: center; }
+    .q-item-tape .tape-container { grid-area: tape; margin-bottom: 0; }
+    .target-frac { grid-area: frac; text-align: center; font-weight: bold; white-space: nowrap; }
+    .q-inputs {
+      grid-area: inputs;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .answer-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    /* ==================================================
+       ボタン・結果
+       ================================================== */
+    .check-area { text-align: center; margin-top: 24px; }
+    .action-btn {
+      min-height: 48px;
+      padding: 10px 28px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background-color: #29b6f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0288d1;
+      touch-action: manipulation;
+    }
+    .action-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #0288d1; }
+    .action-btn.orange { background-color: #ff9800; box-shadow: 0 4px 0 #f57c00; }
+    .action-btn.orange:active { box-shadow: 0 0 0 #f57c00; }
+
+    .result-message { font-size: 1.2rem; font-weight: bold; line-height: 1.6; margin-top: 15px; min-height: 24px; }
+    .result-small { font-size: 1rem; font-weight: normal; }
+    .correct { color: #e91e63; }
+    .wrong { color: #1976d2; }
+
+    /* ==================================================
+       スマホ（幅640px以下）
+       ================================================== */
+    @media (max-width: 640px) {
+      :root { --pad-x: 14px; }
+
+      main { padding: 2px 10px 40px; }
+
+      .tabs { gap: 6px; padding: 10px 10px 14px; }
+      .tab-btn {
+        flex-direction: column;
+        gap: 0;
+        min-height: 52px;
+        padding: 6px 4px;
+        font-size: .9rem;
+      }
+      .tab-num { font-size: 1.05rem; }
+
+      .simulator-area, .quiz-section { padding: 16px var(--pad-x); }
+      .tape-container.wide { width: 100%; }
+
+      /* 問い：入力欄は問題文の下に */
+      .q-row { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+      .q-row .q-badge { margin-top: 1px; }
+      .q-row .input-wrap { grid-column: 2; }
+      .q-row p { font-size: 1rem; }
+      .input-wrap { font-size: 1rem; }
+
+      .explanation-box { font-size: 1rem; padding: 12px; }
+      .summary-box { font-size: 1.05rem; padding: 12px; }
+
+      .character-box { gap: 8px; padding: 10px; }
+      .char-icon { width: 44px; height: 44px; }
+      .char-text { padding: 8px 10px; }
+      .char-text p { font-size: 1rem; }
+
+      /* 練習1：番号＋テープ → 答えはその下 */
+      .q-item-tape.answer {
+        grid-template-columns: 24px minmax(0, 1fr);
+        grid-template-areas:
+          "num tape"
+          ".   inputs";
+      }
+      .q-inputs { font-size: 1.1rem; }
+
+      /* 練習2：番号＋分数 → テープは横いっぱい（指でぬりやすく） */
+      .q-item-tape.paint {
+        grid-template-columns: 24px minmax(0, 1fr);
+        grid-template-areas:
+          "num  frac"
+          "tape tape";
+      }
+      .target-frac { text-align: left; }
+
+      .q-num { font-size: 1.1rem; }
+      .result-message { font-size: 1.05rem; }
+      .action-btn { font-size: 1.1rem; }
+    }
+
+    /* とても小さいスマホ（幅360px以下） */
+    @media (max-width: 360px) {
+      .tab-btn { font-size: .82rem; }
+      .num-input { width: 46px; height: 42px; }
+      .small-input,
+      .fraction-input.small .num-input { width: 40px; height: 38px; }
+    }
+
+    /* スマホを横向きにしたとき（高さが低い）はタブを固定しない */
+    @media (max-height: 480px) and (orientation: landscape) {
+      .tabs-wrap { position: static; box-shadow: none; }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -23,19 +548,29 @@
     <p>テープ図を見て、分数の意味や表し方を考えよう！</p>
   </header>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-target="tab1">① はじめの課題</button>
-    <button class="tab-btn" data-target="tab2">② ほかの長さ</button>
-    <button class="tab-btn" data-target="tab3">③ 練習問題</button>
-  </div>
+  <nav class="tabs-wrap">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-target="tab1" role="tab" aria-selected="true" aria-controls="tab1">
+        <span class="tab-num">①</span><span class="tab-label">はじめの課題</span>
+      </button>
+      <button class="tab-btn" data-target="tab2" role="tab" aria-selected="false" aria-controls="tab2">
+        <span class="tab-num">②</span><span class="tab-label">ほかの長さ</span>
+      </button>
+      <button class="tab-btn" data-target="tab3" role="tab" aria-selected="false" aria-controls="tab3">
+        <span class="tab-num">③</span><span class="tab-label">練習問題</span>
+      </button>
+    </div>
+  </nav>
 
   <main>
-    <!-- タブ1：はじめの課題 -->
-    <section id="tab1" class="tab-content active">
+    <!-- ================================================
+         タブ1：はじめの課題
+         ================================================ -->
+    <section id="tab1" class="tab-content active" role="tabpanel">
       <h2>色をぬったところの長さは、何 m といえばよいでしょうか。</h2>
-      
+
       <div class="simulator-area">
-        <div class="tape-container" style="width: 80%; max-width: 500px; margin: 20px auto;">
+        <div class="tape-container wide">
           <div class="tape-label"><span class="tape-label-text">1 m</span></div>
           <div class="tape">
             <div class="tape-part colored"></div>
@@ -43,29 +578,29 @@
             <div class="tape-part"></div>
           </div>
           <div class="tape-measure">
-            <div class="measure-bracket">
-              <span><span class="box-empty"></span> m</span>
+            <div class="measure-bracket" style="left: 0; width: 66.67%;">
+              <span class="measure-label"><span class="box-empty"></span> m</span>
             </div>
           </div>
         </div>
 
         <div class="character-box">
-          <img src="https://api.iconify.design/noto:boy-light-skin-tone-glasses.svg" alt="はると" class="char-icon">
+          <img src="https://api.iconify.design/noto:boy-light-skin-tone-glasses.svg" alt="はると" class="char-icon" width="60" height="60">
           <div class="char-text">
             <p><span class="box-pink"></span> は、1mを3等分した1こ分の長さで <span class="inline-frac"><span class="top">1</span><span class="bottom">3</span></span> m だけど…。</p>
           </div>
         </div>
 
-        <div class="question-area" style="margin-top: 30px;">
+        <div class="question-area">
           <div class="q-row">
             <span class="q-badge green">1</span>
             <p>色をぬったところは、1mを3等分した何こ分ですか。</p>
             <div class="input-wrap">
-              <input type="text" id="q1-1" class="num-input small-input"> こ分
+              <input type="text" id="q1-1" class="num-input small-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="何こ分か"> こ分
             </div>
           </div>
-          
-          <div class="explanation-box" style="margin: 20px 0;">
+
+          <div class="explanation-box">
             <p>1mを3等分した2こ分の長さを、1mの <strong><span class="inline-frac"><span class="top">2</span><span class="bottom">3</span></span> （三分の二）</strong> といいます。<br>
             1mの <span class="inline-frac"><span class="top">2</span><span class="bottom">3</span></span> の長さを、 <strong><span class="inline-frac"><span class="top">2</span><span class="bottom">3</span></span> m</strong> と書き、<br>
             「<strong>三分の二メートル</strong>」と読みます。</p>
@@ -75,15 +610,15 @@
             <span class="q-badge green">2</span>
             <p><span class="inline-frac"><span class="top">2</span><span class="bottom">3</span></span> m は、<span class="inline-frac"><span class="top">1</span><span class="bottom">3</span></span> m の何こ分の長さですか。</p>
             <div class="input-wrap">
-              <input type="text" id="q1-2" class="num-input small-input"> こ分
+              <input type="text" id="q1-2" class="num-input small-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="何こ分か"> こ分
             </div>
           </div>
 
           <div class="summary-box">
             <span class="inline-frac"><span class="top">2</span><span class="bottom">3</span></span> m は、<span class="inline-frac"><span class="top">1</span><span class="bottom">3</span></span> m の <strong>2</strong>こ分の長さです。
           </div>
-          
-          <div style="text-align: center; margin-top: 20px;">
+
+          <div class="check-area">
             <button id="btn-check1" class="action-btn">たしかめる</button>
             <div id="result1" class="result-message"></div>
           </div>
@@ -91,26 +626,28 @@
       </div>
     </section>
 
-    <!-- タブ2：ほかの長さ -->
-    <section id="tab2" class="tab-content">
+    <!-- ================================================
+         タブ2：ほかの長さ
+         ================================================ -->
+    <section id="tab2" class="tab-content" role="tabpanel">
       <div class="character-box right-align">
         <div class="char-text">
           <p>ほかの長さでも同じように表せるのかな。</p>
         </div>
-        <img src="https://api.iconify.design/noto:girl-light-skin-tone.svg" alt="みさき" class="char-icon">
+        <img src="https://api.iconify.design/noto:girl-light-skin-tone.svg" alt="みさき" class="char-icon" width="60" height="60">
       </div>
 
-      <h2 style="color: #2e7d32; border-left-color: #2e7d32;">
+      <h2 class="green-title">
         <span class="q-badge dark-green">?</span> 分数を使った長さの表し方を考えよう。
       </h2>
 
       <div class="simulator-area">
-        <div class="q-row" style="margin-bottom: 20px;">
+        <div class="q-row">
           <span class="q-badge green">3</span>
           <p>色をぬったところの長さは、何 m といえばよいでしょうか。</p>
         </div>
 
-        <div class="tape-container" style="width: 80%; max-width: 500px; margin: 0 auto 30px;">
+        <div class="tape-container wide">
           <div class="tape-label"><span class="tape-label-text">1 m</span></div>
           <div class="tape">
             <div class="tape-part colored"></div>
@@ -120,27 +657,28 @@
             <div class="tape-part"></div>
           </div>
           <div class="tape-measure">
-            <div class="measure-bracket">
-              <span><span class="box-empty"></span> m</span>
+            <div class="measure-bracket" style="left: 0; width: 60%;">
+              <span class="measure-label"><span class="box-empty"></span> m</span>
             </div>
           </div>
         </div>
 
-        <div style="text-align: center;">
+        <div class="answer-row">
           <div class="fraction-input">
-            <input type="text" id="q2-num" class="num-input">
+            <input type="text" id="q2-num" class="num-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="分子">
             <div class="fraction-line"></div>
-            <input type="text" id="q2-den" class="num-input">
-          </div> m
-          
-          <div style="margin-top: 20px;">
-            <button id="btn-check2" class="action-btn">たしかめる</button>
-            <div id="result2" class="result-message"></div>
+            <input type="text" id="q2-den" class="num-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="分母">
           </div>
+          <span>m</span>
         </div>
 
-        <div class="character-box summary-char" id="tab2-summary" style="display: none; border-color: #2e7d32; margin-top: 30px;">
-          <img src="https://api.iconify.design/noto:boy-light-skin-tone.svg" alt="りく" class="char-icon">
+        <div class="check-area">
+          <button id="btn-check2" class="action-btn">たしかめる</button>
+          <div id="result2" class="result-message"></div>
+        </div>
+
+        <div class="character-box summary-char" id="tab2-summary" style="display: none;">
+          <img src="https://api.iconify.design/noto:boy-light-skin-tone.svg" alt="りく" class="char-icon" width="60" height="60">
           <div class="char-text">
             <div class="point-label">まとめ</div>
             <p>1mを何等分かした長さの、何こ分と考えると、表せるね。</p>
@@ -149,23 +687,25 @@
       </div>
     </section>
 
-    <!-- タブ3：練習問題 -->
-    <section id="tab3" class="tab-content">
-      <h2><span style="color: #d84315;">D</span> 練習</h2>
-      
+    <!-- ================================================
+         タブ3：練習問題
+         ================================================ -->
+    <section id="tab3" class="tab-content" role="tabpanel">
+      <h2><span class="d-mark">D</span> 練習</h2>
+
       <!-- 練習問題 1 -->
       <div class="quiz-section">
         <h3><span class="q-badge triangle">1</span> 色をぬったところの長さは、<span class="box-pink"></span> の何こ分の長さで、何 m といえばよいでしょうか。</h3>
-        
+
         <div class="character-box small-char">
-          <img src="https://api.iconify.design/noto:seedling.svg" alt="ふたば" class="char-icon">
+          <img src="https://api.iconify.design/noto:seedling.svg" alt="ふたば" class="char-icon" width="40" height="40">
           <div class="char-text">
             <p><span class="box-pink"></span> は、1mを何等分した長さで、それぞれ何mかな。</p>
           </div>
         </div>
 
         <!-- ① -->
-        <div class="q-item-tape">
+        <div class="q-item-tape answer">
           <span class="q-num">①</span>
           <div class="tape-container">
             <div class="tape-label"><span class="tape-label-text">1 m</span></div>
@@ -180,22 +720,26 @@
               <div class="tape-part colored"></div>
               <div class="tape-part colored"></div>
             </div>
-            <div class="tape-measure right-align-measure" style="width: 44.44%; left: auto; right: 0;">
-               <div class="measure-bracket"><span><span class="box-empty"></span> m</span></div>
+            <div class="tape-measure">
+              <div class="measure-bracket" style="left: 55.56%; width: 44.44%;">
+                <span class="measure-label"><span class="box-empty"></span> m</span>
+              </div>
             </div>
           </div>
-          <div class="q-inputs inline-flex">
-            <input type="text" id="q3-1-parts" class="num-input small-input"> こ分、
-            <div class="fraction-input small" style="margin-left: 10px;">
-              <input type="text" id="q3-1-num" class="num-input">
+          <div class="q-inputs">
+            <input type="text" id="q3-1-parts" class="num-input small-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="何こ分か">
+            <span>こ分、</span>
+            <div class="fraction-input small">
+              <input type="text" id="q3-1-num" class="num-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="分子">
               <div class="fraction-line"></div>
-              <input type="text" id="q3-1-den" class="num-input">
-            </div> m
+              <input type="text" id="q3-1-den" class="num-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="分母">
+            </div>
+            <span>m</span>
           </div>
         </div>
 
         <!-- ② -->
-        <div class="q-item-tape">
+        <div class="q-item-tape answer">
           <span class="q-num">②</span>
           <div class="tape-container">
             <div class="tape-label"><span class="tape-label-text">1 m</span></div>
@@ -211,31 +755,36 @@
               <div class="tape-part colored"></div>
               <div class="tape-part"></div>
             </div>
-            <div class="tape-measure" style="width: 90%;">
-               <div class="measure-bracket"><span><span class="box-empty"></span> m</span></div>
+            <div class="tape-measure">
+              <div class="measure-bracket" style="left: 0; width: 90%;">
+                <span class="measure-label"><span class="box-empty"></span> m</span>
+              </div>
             </div>
           </div>
-          <div class="q-inputs inline-flex">
-            <input type="text" id="q3-2-parts" class="num-input small-input"> こ分、
-            <div class="fraction-input small" style="margin-left: 10px;">
-              <input type="text" id="q3-2-num" class="num-input">
+          <div class="q-inputs">
+            <input type="text" id="q3-2-parts" class="num-input small-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="何こ分か">
+            <span>こ分、</span>
+            <div class="fraction-input small">
+              <input type="text" id="q3-2-num" class="num-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="分子">
               <div class="fraction-line"></div>
-              <input type="text" id="q3-2-den" class="num-input">
-            </div> m
+              <input type="text" id="q3-2-den" class="num-input" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="分母">
+            </div>
+            <span>m</span>
           </div>
         </div>
       </div>
 
       <!-- 練習問題 2 -->
       <div class="quiz-section">
-        <h3><span class="q-badge triangle">2</span> 下の長さの分だけ、左はしから色をぬりましょう。<br>
-        <span style="font-size: 0.9rem; color: #555;">（白いはこをクリックすると、色をぬれるよ！）</span></h3>
-        
+        <h3><span class="q-badge triangle">2</span> 下の長さの分だけ、左はしから色をぬりましょう。
+          <span class="sub-note">（白いはこをタップ・クリックすると、色をぬれるよ！）</span>
+        </h3>
+
         <!-- ① -->
-        <div class="q-item-tape">
+        <div class="q-item-tape paint">
           <span class="q-num">①</span>
           <div class="target-frac">
-             <span class="inline-frac large"><span class="top">2</span><span class="bottom">4</span></span> m
+            <span class="inline-frac large"><span class="top">2</span><span class="bottom">4</span></span> m
           </div>
           <div class="tape-container">
             <div class="tape-label"><span class="tape-label-text">1 m</span></div>
@@ -249,10 +798,10 @@
         </div>
 
         <!-- ② -->
-        <div class="q-item-tape">
+        <div class="q-item-tape paint">
           <span class="q-num">②</span>
           <div class="target-frac">
-             <span class="inline-frac large"><span class="top">3</span><span class="bottom">6</span></span> m
+            <span class="inline-frac large"><span class="top">3</span><span class="bottom">6</span></span> m
           </div>
           <div class="tape-container">
             <div class="tape-label"><span class="tape-label-text">1 m</span></div>
@@ -267,26 +816,184 @@
           </div>
         </div>
 
-        <div style="text-align: center; margin-top: 30px;">
-          <button id="btn-check3" class="action-btn" style="background-color: #ff9800; box-shadow: 0 4px 0 #f57c00;">こたえあわせ</button>
-          <div id="result3" class="result-message" style="text-align: center;"></div>
+        <div class="check-area">
+          <button id="btn-check3" class="action-btn orange">こたえあわせ</button>
+          <div id="result3" class="result-message"></div>
         </div>
       </div>
-      
+
       <!-- 練習問題フィードバック -->
-      <div class="character-box" id="quiz-feedback" style="display: none; background-color: #fff3e0; border-color: #ffcc80;">
-        <img src="https://api.iconify.design/noto:bell.svg" alt="ひらめき" class="char-icon" style="width: 40px; height: 40px;">
+      <div class="character-box feedback-box" id="quiz-feedback" style="display: none;">
+        <img src="https://api.iconify.design/noto:bell.svg" alt="ひらめき" class="char-icon" width="40" height="40">
         <div class="char-text">
           <p id="tool3-message"></p>
         </div>
       </div>
     </section>
   </main>
-  <script src="script.js"></script>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+
+    // ----------------------------------------------------
+    // 全角数字を半角に自動変換し、数字以外は消す
+    // （日本語入力の変換中は待ってから処理する）
+    // ----------------------------------------------------
+    function toHalfWidthMath(str) {
+      return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+    }
+    function sanitize(input) {
+      const v = toHalfWidthMath(input.value).replace(/[^0-9]/g, '');
+      if (v !== input.value) input.value = v;
+    }
+    document.querySelectorAll('.num-input').forEach(input => {
+      input.addEventListener('input', e => { if (!e.isComposing) sanitize(input); });
+      input.addEventListener('compositionend', () => sanitize(input));
+    });
+
+    // ----------------------------------------------------
+    // テープ図の下のカッコを、色のついた部分にぴったり合わせる
+    // ----------------------------------------------------
+    document.querySelectorAll('.tape-measure').forEach(measure => {
+      const tape = measure.parentElement.querySelector('.tape');
+      const bracket = measure.querySelector('.measure-bracket');
+      if (!tape || !bracket) return;
+      const parts = Array.from(tape.querySelectorAll('.tape-part'));
+      const coloredIdx = [];
+      parts.forEach((p, i) => { if (p.classList.contains('colored')) coloredIdx.push(i); });
+      if (coloredIdx.length === 0) return;
+      const n = parts.length;
+      const first = coloredIdx[0];
+      const last = coloredIdx[coloredIdx.length - 1];
+      bracket.style.left = (first / n * 100) + '%';
+      bracket.style.width = ((last - first + 1) / n * 100) + '%';
+    });
+
+    // ----------------------------------------------------
+    // タブ切り替え処理
+    // ----------------------------------------------------
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const header = document.querySelector('header');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        tabContents.forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        document.getElementById(btn.dataset.target).classList.add('active');
+
+        // 下までスクロールしていたら、タブの先頭まで戻す
+        const top = header.offsetHeight;
+        if (window.scrollY > top) {
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+      });
+    });
+
+    // ====================================================
+    // タブ1：はじめの課題
+    // ====================================================
+    const btnCheck1 = document.getElementById('btn-check1');
+    const result1 = document.getElementById('result1');
+
+    btnCheck1.addEventListener('click', () => {
+      const q1_1 = document.getElementById('q1-1').value;
+      const q1_2 = document.getElementById('q1-2').value;
+
+      if (q1_1 === "2" && q1_2 === "2") {
+        result1.textContent = "大せいかい！ 1mを3等分した2こ分だから「2/3 m」だね。";
+        result1.className = "result-message correct";
+      } else {
+        result1.textContent = "おしい！ テープ図のピンク色の部分は、いくつ分あるか数えてみよう。";
+        result1.className = "result-message wrong";
+      }
+    });
+
+    // ====================================================
+    // タブ2：ほかの長さ
+    // ====================================================
+    const btnCheck2 = document.getElementById('btn-check2');
+    const result2 = document.getElementById('result2');
+    const summary2 = document.getElementById('tab2-summary');
+
+    btnCheck2.addEventListener('click', () => {
+      const num = document.getElementById('q2-num').value;
+      const den = document.getElementById('q2-den').value;
+
+      if (num === "3" && den === "5") {
+        result2.textContent = "ばっちり！ 大せいかい！";
+        result2.className = "result-message correct";
+        summary2.style.display = "flex"; // りくくんのまとめを表示
+      } else {
+        result2.textContent = "おしい！ 1mを「何等分」して、「何こ分」色がついているか確認しよう。";
+        result2.className = "result-message wrong";
+        summary2.style.display = "none";
+      }
+    });
+
+    // ====================================================
+    // タブ3：練習問題
+    // ====================================================
+
+    // タップ・クリックで色をぬる
+    document.querySelectorAll('.interactive .tape-part').forEach(part => {
+      part.addEventListener('click', function () {
+        this.classList.toggle('colored');
+      });
+    });
+
+    const btnCheck3 = document.getElementById('btn-check3');
+    const result3 = document.getElementById('result3');
+    const quizFeedback = document.getElementById('quiz-feedback');
+    const tool3Msg = document.getElementById('tool3-message');
+
+    btnCheck3.addEventListener('click', () => {
+      // 練習1の入力取得
+      const parts1 = document.getElementById('q3-1-parts').value;
+      const num1 = document.getElementById('q3-1-num').value;
+      const den1 = document.getElementById('q3-1-den').value;
+
+      const parts2 = document.getElementById('q3-2-parts').value;
+      const num2 = document.getElementById('q3-2-num').value;
+      const den2 = document.getElementById('q3-2-den').value;
+
+      // 練習2の色ぬり状態取得
+      const tape1Colored = document.querySelectorAll('#interactive-tape-1 .colored').length;
+      const tape2Colored = document.querySelectorAll('#interactive-tape-2 .colored').length;
+
+      let allCorrect = true;
+
+      // 判定① 4/9
+      if (!(parts1 === "4" && num1 === "4" && den1 === "9")) allCorrect = false;
+      // 判定② 9/10
+      if (!(parts2 === "9" && num2 === "9" && den2 === "10")) allCorrect = false;
+      // 判定③ 色ぬり 2/4（4等分中2こぬる）
+      if (tape1Colored !== 2) allCorrect = false;
+      // 判定④ 色ぬり 3/6（6等分中3こぬる）
+      if (tape2Colored !== 3) allCorrect = false;
+
+      if (allCorrect) {
+        result3.textContent = "ぜんぶ大せいかい！ すばらしい！";
+        result3.className = "result-message correct";
+        quizFeedback.style.display = 'flex';
+        tool3Msg.innerHTML = "<strong>【先生から】</strong><br>色をぬった <strong>2/4 m</strong> と <strong>3/6 m</strong> のテープを見くらべてみよう。<br>分母と分子の数はちがうけれど、どちらも「1mの半分」で <strong>同じ長さ</strong> になっていることに気づけたかな？";
+      } else {
+        result3.innerHTML = "おしい！ まちがっているところがあるよ。<br><span class='result-small'>※色ぬり問題は、左はしから分数の数だけタップして色をつけよう。</span>";
+        result3.className = "result-message wrong";
+        quizFeedback.style.display = 'none';
+      }
+    });
+
+  });
+  </script>
 </body>
 </html>
-    <script  src="./script.js"></script>
-
+    
   </body>
   
 </html>

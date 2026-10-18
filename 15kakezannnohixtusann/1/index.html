@@ -4,12 +4,385 @@
   <head>
     <meta charset="UTF-8">
     <title>3年　かけ算の筆算を考えよう　１時間目</title>
-    <link rel="stylesheet" href="./style.css">
+    
 
   </head>
     
   <body>
-  <div class="app-container">
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <title>何十をかける計算 ツールボックス</title>
+  <style>
+    /* ==================================================
+       基本設定
+       ================================================== */
+    :root {
+      --theme: #20c997; --theme-dark: #087f5b; --theme-light: #e6fcf5;
+      --bg: #f4f6f8;
+      --color-a: #4dabf7; --color-b: #ff922b;
+      --success: #40c057; --warning: #fcc419; --danger: #fa5252;
+      --text: #343a40; --border: #ced4da;
+      --pad: 20px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+      background-color: var(--bg); margin: 0; padding: 10px; color: var(--text);
+      line-height: 1.6; -webkit-tap-highlight-color: transparent;
+    }
+    .app-container {
+      background: #fff; max-width: 900px; margin: 0 auto; border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1); overflow: hidden;
+    }
+    .hidden { display: none !important; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { 0% { transform: scale(.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+    @keyframes talk { 0% { transform: scale(.97); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
+    .shake { animation: shake .4s; }
+
+    /* ==================================================
+       ヘッダー・きょうのもんだい
+       ================================================== */
+    header { background: var(--theme-light); padding: 15px; text-align: center; border-bottom: 3px solid var(--theme); }
+    h1 { margin: 0 0 10px; color: var(--theme-dark); font-size: clamp(1.2rem, 5vw, 1.5rem); line-height: 1.4; }
+    .notebook-prompt {
+      display: inline-block; background: #fff; border: 2px solid #63e6be; color: var(--theme-dark);
+      padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: clamp(.85rem, 3.6vw, 1rem);
+    }
+    .mission-bar {
+      background: #f8f9fa; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 8px 10px;
+      align-items: center; border-bottom: 1px solid var(--border);
+    }
+    .mission-label { font-weight: bold; }
+    .mission-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ==================================================
+       ボタン
+       ================================================== */
+    .btn {
+      font-family: inherit; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;
+      font-weight: bold; font-size: .95rem; line-height: 1.4; color: var(--text);
+      transition: transform .1s, background .2s, box-shadow .2s; touch-action: manipulation;
+    }
+    .btn:active:not(:disabled) { transform: translateY(2px); }
+    .btn:disabled { cursor: not-allowed; }
+    .btn-outline { background: #fff; border: 2px solid #adb5bd; }
+    .btn-outline.active-prob { border-color: var(--theme); background: var(--theme-light); color: var(--theme-dark); }
+    .btn-blue { background: var(--color-a); color: #fff; padding: 10px 20px; min-height: 44px; }
+    .btn-blue:disabled { background: #a5d8ff; }
+    .btn-orange { background: var(--color-b); color: #fff; padding: 10px 20px; min-height: 44px; }
+    .btn-orange:disabled { background: #ffd8a8; }
+    .btn-gray { background: #dee2e6; padding: 10px 18px; min-height: 44px; }
+    .btn-yellow { background: var(--warning); }
+    .btn-check { background: var(--theme); color: #fff; padding: 10px 18px; min-height: 44px; box-shadow: 0 3px 0 #0ca678; }
+    .btn-check:active:not(:disabled) { box-shadow: 0 0 0 #0ca678; }
+    .btn-check:disabled { background: #b2f2bb; box-shadow: none; }
+
+    /* ==================================================
+       数の入力
+       ================================================== */
+    .num-input {
+      height: 44px; padding: 0 4px; text-align: center; border: 2px solid #adb5bd; border-radius: 8px;
+      font-weight: bold; color: var(--text); font-family: inherit; font-size: 1.3rem; background: #fff;
+      -webkit-appearance: none; appearance: none; transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .num-input::placeholder { color: #ced4da; }
+    .num-input:focus { outline: none; border-color: var(--theme); box-shadow: 0 0 0 3px rgba(32,201,151,.25); }
+    .num-input.correct { border-color: var(--success); background: #ebfbee; color: #2b8a3e; }
+    .num-input:disabled { opacity: 1; -webkit-text-fill-color: currentColor; }
+
+    .feedback-msg { text-align: center; font-size: 1.1rem; font-weight: bold; min-height: 28px; margin-top: 12px; line-height: 1.6; }
+    .feedback-msg.ok { color: #2b8a3e; }
+    .feedback-msg.ng { color: #1971c2; }
+    .feedback-msg.info { color: #6c757d; }
+
+    /* ==================================================
+       文章題エリア
+       ================================================== */
+    .word-problem-area { background: #fff; padding: var(--pad); border-bottom: 3px dashed var(--border); }
+    .problem-text-box {
+      background: #f1f3f5; border-left: 6px solid var(--theme); padding: 15px;
+      font-size: clamp(1.05rem, 4.4vw, 1.3rem); font-weight: bold; margin-bottom: 15px; border-radius: 0 8px 8px 0;
+    }
+    .problem-text-box p { margin: 5px 0; }
+    .highlight-num { color: var(--danger); font-size: 1.15em; padding: 0 2px; }
+    .word-equation {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+      font-weight: bold; margin-bottom: 15px; font-size: clamp(.9rem, 3.6vw, 1.1rem);
+    }
+    .we-box { border: 2px solid #fcc419; background: #fff9db; padding: 5px 12px; border-radius: 6px; transition: box-shadow .2s, transform .2s, background .2s; }
+    .we-box.result { border-color: #ff922b; background: #fff4e6; }
+    .we-box.glow { box-shadow: 0 0 0 4px rgba(252,196,25,.5); transform: translateY(-2px); }
+    .we-box.lit { border-color: var(--success); background: #ebfbee; }
+    .eq-guide { text-align: center; font-size: .9rem; color: #6c757d; font-weight: bold; margin: 0 0 6px; }
+    .equation-display {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+      font-size: clamp(1.2rem, 5vw, 1.4rem); font-weight: bold; color: #d9480f;
+    }
+    .eq-input-wrap { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+    .eq-input { width: 64px; }
+    .math-equation { animation: popIn .35s; }
+
+    /* ==================================================
+       ツールのタブ
+       ================================================== */
+    .tool-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #e9ecef; }
+    .tool-tab {
+      position: relative; display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px 8px; border: none; background: transparent; font-family: inherit; font-size: 1.05rem;
+      font-weight: bold; color: #495057; cursor: pointer; border-bottom: 3px solid transparent;
+      line-height: 1.3; touch-action: manipulation;
+    }
+    .tool-tab.active { background: #fff; color: var(--theme-dark); border-bottom-color: var(--theme); }
+    .tt-done {
+      display: none; position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--success); color: #fff; font-size: .75rem; line-height: 20px; text-align: center;
+    }
+    .tool-tab.done .tt-done { display: block; animation: popIn .3s; }
+
+    .visual-container { padding: var(--pad); background: #fff; }
+    .visual-content { display: none; }
+    .visual-content.active { display: block; animation: fadeIn .3s; }
+    .vis-header {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: bold;
+      margin-bottom: 18px; color: #495057; padding: 10px 12px; background: #f8f9fa; border-radius: 8px;
+    }
+    .hint-btn { flex-shrink: 0; }
+
+    /* ==================================================
+       キャラクター
+       ================================================== */
+    .char-container { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; position: relative; }
+    .char-icon {
+      flex-shrink: 0; background: #e9ecef; border-radius: 50%; width: 50px; height: 50px;
+      display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: .7rem;
+    }
+    .char-icon img { width: 40px; height: 40px; }
+    .char-name { position: absolute; bottom: -20px; left: 8px; font-size: .8rem; font-weight: bold; color: #868e96; }
+    .speech-bubble {
+      position: relative; background: #e7f5ff; border: 2px solid #74c0fc; border-radius: 12px;
+      padding: 10px 15px; font-weight: bold; color: #1864ab; flex: 1; min-width: 0;
+    }
+    .speech-bubble.talk { animation: talk .35s; }
+    .speech-bubble::before { content: ''; position: absolute; top: 15px; left: -12px; border-width: 10px 12px 10px 0; border-style: solid; border-color: transparent #74c0fc transparent transparent; }
+    .speech-bubble::after { content: ''; position: absolute; top: 17px; left: -9px; border-width: 8px 10px 8px 0; border-style: solid; border-color: transparent #e7f5ff transparent transparent; }
+
+    /* ==================================================
+       ツール1：二重数直線
+       ================================================== */
+    .line-controls { display: flex; justify-content: center; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+    .btn-step {
+      position: relative; background: #fff; border: 2px solid #adb5bd; color: #495057; font-size: 1.05rem;
+      padding: 10px 18px; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,.05); min-height: 44px;
+    }
+    @media (hover: hover) { .btn-step:hover { background: #f1f3f5; } }
+    .btn-step.active-step,
+    .btn-step.active-step:hover { background: var(--color-b); border-color: var(--color-b); color: #fff; box-shadow: none; }
+    .btn-step.cleared::after {
+      content: '✓'; position: absolute; top: -8px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--success); color: #fff; font-size: .75rem; line-height: 20px; text-align: center;
+    }
+
+    .dnl-stage { padding: 0 56px 0 24px; margin: 6px 0; }
+    .dnl-container { position: relative; height: 124px; font-weight: bold; }
+    .dnl-row { position: absolute; left: 0; right: 0; height: 4px; }
+    .top-row { top: 42px; }
+    .bottom-row { top: 86px; }
+    .dnl-line { position: absolute; inset: 0; background: #dee2e6; border-radius: 2px; }
+    .dnl-fill {
+      position: absolute; left: 0; top: 0; height: 100%; width: 0; background: #ffa8a8; border-radius: 2px;
+      transition: width .6s cubic-bezier(.25,1,.5,1);
+    }
+    .top-fill.unknown { background: repeating-linear-gradient(90deg, #ffc9c9 0 6px, transparent 6px 11px); }
+    .dnl-tick { position: absolute; top: -8px; width: 2px; height: 20px; background: #495057; transform: translateX(-50%); }
+    .dnl-tick.current { background: var(--color-b); width: 4px; }
+    .dnl-label { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; line-height: 1.2; }
+    .label-top { bottom: 24px; color: var(--danger); font-size: 1.2rem; }
+    .label-top.pending { color: #adb5bd; font-size: 1rem; }
+    .label-bottom { top: 24px; color: #495057; font-size: 1.05rem; }
+    .dnl-tick.current .label-bottom { color: #d9480f; }
+    /* 0と1の目もりの数字が重ならないように、左右にふり分ける */
+    .tick-0 .dnl-label { transform: translateX(calc(-100% - 2px)); }
+    .tick-1 .dnl-label { transform: translateX(3px); }
+    .lbl-in { display: inline-block; }
+    .lbl-in.pop { animation: popIn .4s; }
+    .dnl-unit {
+      position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%);
+      font-size: .95rem; color: #868e96; white-space: nowrap;
+    }
+
+    .dnl-ask {
+      background: #fff9db; border: 2px solid #ffe066; border-radius: 12px; padding: 12px 14px;
+      margin-top: 6px; text-align: center; animation: slideIn .3s;
+    }
+    .dnl-ask[hidden] { display: none; }
+    .ask-text { margin: 0 0 8px; font-weight: bold; font-size: 1.1rem; }
+    .ask-input { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; font-weight: bold; font-size: 1.1rem; }
+    .ask-input .num-input { width: 90px; }
+
+    /* ==================================================
+       ツール2：アレイ図
+       ================================================== */
+    .array-controls { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .array-step { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; font-weight: bold; font-size: 1.1rem; }
+    .stepper { display: inline-flex; align-items: center; border: 2px solid var(--color-a); border-radius: 10px; overflow: hidden; background: #fff; }
+    .stepper button {
+      width: 44px; height: 44px; border: none; background: #e7f5ff; color: #1864ab; font-size: 1.4rem;
+      font-weight: bold; cursor: pointer; font-family: inherit; touch-action: manipulation;
+    }
+    .stepper button:disabled { color: #adb5bd; background: #f1f3f5; cursor: not-allowed; }
+    .w-val { min-width: 44px; text-align: center; font-size: 1.5rem; color: #1864ab; }
+
+    .array-info { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-weight: bold; font-size: .95rem; color: #495057; margin-bottom: 6px; }
+    .frame-tag { color: #868e96; }
+    .array-stage {
+      display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); column-gap: 2px; row-gap: 3px;
+      padding: 10px 8px; background: #f1f3f5; border-radius: 8px; border: 2px dashed #adb5bd;
+      transition: border-color .3s, background .3s;
+    }
+    .array-stage.over { border-color: var(--danger); border-style: solid; }
+    .array-stage.perfect { border-color: var(--success); border-style: solid; background: #ebfbee; }
+    .grp { border-radius: 4px; border: 2px solid #ffa94d; background: #fff4e6; margin: -4px 0; z-index: 0; }
+    .grp-b { border-color: #74c0fc; background: #e7f5ff; }
+    .grp-new { animation: popIn .25s; }
+    .dot { position: relative; z-index: 1; width: min(70%, 13px); aspect-ratio: 1 / 1; border-radius: 50%; background: #dee2e6; justify-self: center; align-self: center; }
+    .dot.on { background: var(--danger); }
+    .array-over { color: var(--danger); font-weight: bold; text-align: right; font-size: .95rem; margin-top: 4px; }
+    .trial-log-wrap { margin-top: 12px; text-align: center; }
+    .log-title { display: block; font-size: .9rem; font-weight: bold; color: #868e96; margin-bottom: 4px; }
+    .trial-log { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .trial-chip { font-size: .85rem; font-weight: bold; padding: 4px 10px; border-radius: 14px; background: #f1f3f5; border: 1px solid #dee2e6; animation: popIn .3s; }
+    .trial-chip.ok { background: #ebfbee; border-color: #8ce99a; color: #2b8a3e; }
+
+    /* ==================================================
+       ツール3：式と関係図
+       ================================================== */
+    .haruto-stage { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; align-items: start; }
+    .formula-area {
+      background: #fff; padding: 18px; border-radius: 12px; border: 2px solid var(--border);
+      font-size: clamp(1.15rem, 4.6vw, 1.45rem); font-weight: bold;
+    }
+    .f-grid { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr); column-gap: 10px; row-gap: 14px; align-items: center; }
+    .f-row { display: contents; }
+    .f-left { text-align: right; white-space: nowrap; }
+    .f-equal { color: #868e96; }
+    .f-part { white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+    .f-part .num-input { width: 82px; }
+    .f-row.reveal > * { animation: slideIn .45s; }
+    .paren { color: var(--color-b); display: inline-block; }
+    .f-row.reveal .paren { animation: popIn .8s; }
+    .f-move { grid-column: 1 / -1; text-align: center; }
+    .btn-move { background: #fff4e6; border: 2px dashed var(--color-b); color: #d9480f; padding: 10px 14px; font-size: 1rem; min-height: 44px; }
+    .f-check { text-align: center; margin-top: 16px; }
+
+    .diagram-area {
+      background: #f8f9fa; border-radius: 12px; border: 2px solid #e9ecef; padding: 10px;
+      display: flex; align-items: center; justify-content: center; min-height: 200px;
+    }
+    .rel-svg { width: 100%; max-width: 440px; height: auto; display: block; font-family: inherit; overflow: visible; }
+    .rel-arrow { stroke: var(--color-b); stroke-width: 3; fill: none; transition: stroke-width .2s; }
+    .rel-arrow-g.hl .rel-arrow { stroke: #f76707; stroke-width: 5; }
+    .rel-arrow-g.hl .rel-op { font-size: 20px; }
+    .rel-op { fill: #d9480f; font-weight: bold; font-size: 17px; text-anchor: middle; }
+    .rel-label-bg { fill: #f8f9fa; }
+    .rel-num { font-size: 28px; font-weight: bold; text-anchor: middle; fill: var(--text); }
+    .rel-val { fill: var(--danger); opacity: 0; }
+    .rel-q { fill: #adb5bd; font-size: 22px; font-weight: bold; text-anchor: middle; }
+    .rel-blank { stroke: #adb5bd; stroke-width: 2; stroke-dasharray: 4 3; }
+    .rel-node { cursor: pointer; }
+    .rel-node.revealed .rel-val { opacity: 1; animation: popIn .4s; transform-box: fill-box; transform-origin: center; }
+    .rel-node.revealed .rel-q, .rel-node.revealed .rel-blank { opacity: 0; }
+
+    .summary-box {
+      background: #fff; border: 3px solid #63e6be; border-radius: 12px; padding: 15px 20px; margin-top: 20px;
+      font-weight: bold; font-size: 1.1rem; line-height: 1.8; color: var(--theme-dark);
+      box-shadow: inset 0 0 0 3px var(--theme-light); display: none;
+    }
+    .summary-box p { margin: 0; }
+    .summary-box.visible { display: block; animation: fadeIn .5s; }
+
+    /* ==================================================
+       ノート・ヒント
+       ================================================== */
+    .notebook-guide { background: #fff9db; padding: 20px; border-top: 3px dashed #fcc419; text-align: center; }
+    .notebook-guide h3 { margin: 0 0 10px; color: #d4a017; }
+    .notebook-guide p { margin: 0 0 12px; }
+    .notebook-keywords { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .notebook-keywords span { background: #fff; padding: 8px 15px; border-radius: 20px; border: 2px solid #ffe066; font-weight: bold; }
+    .all-done {
+      background: #ebfbee; border: 2px solid #8ce99a; color: #2b8a3e; border-radius: 12px;
+      padding: 10px 14px; font-weight: bold; margin-bottom: 14px; animation: popIn .4s;
+    }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+    .modal-content {
+      background: #fff; padding: 26px 24px; border-radius: 12px; max-width: 450px; width: 100%;
+      text-align: center; border-top: 8px solid var(--warning); line-height: 1.7; font-weight: bold;
+      max-height: 90vh; overflow-y: auto; animation: popIn .25s;
+    }
+    .modal-content h3 { margin: 0 0 4px; }
+    .hint-level { display: inline-block; font-size: .8rem; background: #fff3bf; color: #946c00; border-radius: 10px; padding: 1px 10px; margin-bottom: 8px; }
+    .modal-btns { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+    /* ==================================================
+       タブレット（幅780px以下）：式と関係図をたてにならべる
+       ================================================== */
+    @media (max-width: 780px) {
+      .haruto-stage { grid-template-columns: 1fr; }
+    }
+
+    /* ==================================================
+       スマホ（幅640px以下）
+       ================================================== */
+    @media (max-width: 640px) {
+      :root { --pad: 12px; }
+      body { padding: 0; }
+      .app-container { border-radius: 0; box-shadow: none; }
+      .mission-bar { padding: 10px 12px; }
+      .mission-label { width: 100%; }
+      .mission-btns { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 8px; }
+      .mission-btns .btn { padding: 8px 6px; font-size: .85rem; }
+
+      .tool-tab { flex-direction: column; gap: 2px; font-size: .78rem; padding: 10px 4px; }
+      .tt-icon { font-size: 1.3rem; }
+
+      .vis-header { flex-direction: column; align-items: stretch; font-size: .95rem; }
+      .hint-btn { align-self: flex-end; }
+      .speech-bubble { font-size: .95rem; padding: 8px 12px; }
+
+      .line-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .btn-step { font-size: .95rem; padding: 8px 10px; }
+      .dnl-stage { padding: 0 46px 0 18px; }
+      .label-top { font-size: 1.05rem; }
+      .label-bottom { font-size: .95rem; }
+      .ask-text, .ask-input { font-size: 1rem; }
+
+      .array-step { font-size: 1rem; }
+      .array-stage { column-gap: 1px; row-gap: 2px; padding: 8px 5px; }
+      .grp { border-width: 1.5px; border-radius: 3px; margin: -3px 0; }
+
+      .formula-area { padding: 14px 12px; }
+      .f-grid { column-gap: 6px; }
+      .f-part .num-input { width: 70px; }
+      .btn-move { font-size: .95rem; }
+
+      .feedback-msg { font-size: 1rem; }
+      .summary-box { font-size: 1rem; padding: 12px 14px; }
+      .notebook-guide { padding: 16px 12px; }
+      .notebook-keywords span { font-size: .9rem; padding: 6px 12px; }
+      .modal-content { padding: 22px 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
   <header>
     <h1>何十をかける計算 ツールボックス</h1>
     <div class="notebook-prompt">
@@ -19,8 +392,10 @@
 
   <div class="mission-bar">
     <span class="mission-label">📖 きょうの もんだい：</span>
-    <button class="btn btn-outline active-prob" id="prob1-btn" onclick="setProblem(1)">① 長いすの問題 (5×30)</button>
-    <button class="btn btn-outline" id="prob2-btn" onclick="setProblem(2)">② 計算問題 (12×30)</button>
+    <div class="mission-btns">
+      <button class="btn btn-outline active-prob" id="prob1-btn" data-prob="1">① 長いすの問題 (5×30)</button>
+      <button class="btn btn-outline" id="prob2-btn" data-prob="2">② 計算問題 (12×30)</button>
+    </div>
   </div>
 
   <!-- 文章題エリア（問題1のときのみ表示） -->
@@ -30,148 +405,219 @@
       <p>全部で何人すわれますか。</p>
     </div>
     <div class="word-equation">
-      <span class="we-box">1つのいすにすわる人数</span> × <span class="we-box">いすの数</span> ＝ <span class="we-box result">全部の人数</span>
+      <span class="we-box" id="we-1">1つのいすにすわる人数</span> × <span class="we-box" id="we-2">いすの数</span> ＝ <span class="we-box result">全部の人数</span>
     </div>
+    <p class="eq-guide" id="eq-guide">✏️ 式を考えて、□に数を入れてみよう</p>
     <div class="equation-display">
-      式： <span id="math-equation">5 × 30</span>
+      <span>式：</span>
+      <span class="eq-input-wrap" id="eq-input-wrap">
+        <input type="text" id="eq-a" class="num-input eq-input" inputmode="numeric" autocomplete="off" maxlength="3" placeholder="？" aria-label="式の1つめの数" data-enter="eq-check">
+        <span>×</span>
+        <input type="text" id="eq-b" class="num-input eq-input" inputmode="numeric" autocomplete="off" maxlength="3" placeholder="？" aria-label="式の2つめの数" data-enter="eq-check">
+        <button class="btn btn-check" id="eq-check">たしかめる</button>
+      </span>
+      <span id="math-equation" class="math-equation hidden">5 × 30</span>
     </div>
+    <div id="eq-feedback" class="feedback-msg"></div>
   </div>
 
   <main class="visual-sandbox">
-    <div class="tool-tabs">
-      <button class="tool-tab active" onclick="switchVisual('line')">📏 数直線（おはなし）</button>
-      <button class="tool-tab" onclick="switchVisual('array')">🔴 アレイ図（あみさん）</button>
-      <button class="tool-tab" onclick="switchVisual('diagram')">🔄 式と関係図（はるとさん）</button>
+    <div class="tool-tabs" role="tablist">
+      <button class="tool-tab active" data-tool="line" role="tab" aria-selected="true">
+        <span class="tt-icon">📏</span><span>数直線（おはなし）</span><span class="tt-done" aria-label="できた">✓</span>
+      </button>
+      <button class="tool-tab" data-tool="array" role="tab" aria-selected="false">
+        <span class="tt-icon">🔴</span><span>アレイ図（あみさん）</span><span class="tt-done" aria-label="できた">✓</span>
+      </button>
+      <button class="tool-tab" data-tool="diagram" role="tab" aria-selected="false">
+        <span class="tt-icon">🔄</span><span>式と関係図（はるとさん）</span><span class="tt-done" aria-label="できた">✓</span>
+      </button>
     </div>
 
     <div class="visual-container">
-      
-      <!-- ツール1: 二重数直線（リニューアル版） -->
-      <div id="vis-line" class="visual-content active">
+
+      <!-- ================================================
+           ツール1：二重数直線
+           ================================================ -->
+      <div id="vis-line" class="visual-content active" role="tabpanel">
         <div class="vis-header">
-          いすが増えると、人数はどうなるかな？ ボタンをおして数直線をのばしてみよう。
-          <button class="btn btn-yellow hint-btn" onclick="showHint('line')">💡 ヒント</button>
+          <span>いすが増えると、人数はどうなるかな？ ボタンをおして数直線をのばしてみよう。</span>
+          <button class="btn btn-yellow hint-btn" data-hint="line">💡 ヒント</button>
         </div>
 
         <div class="char-container">
-          <div class="char-icon"><img src="https://api.iconify.design/noto:boy.svg" alt="はると" width="40"></div>
+          <div class="char-icon"><img src="https://api.iconify.design/noto:boy.svg" alt="はると" width="40" height="40"></div>
           <div class="speech-bubble" id="line-msg">まずは「1こ」のときの人数をたしかめよう。</div>
         </div>
 
-        <!-- わかりやすいステップボタン -->
         <div class="line-controls">
-          <button class="btn btn-step" id="btn-nl-1" onclick="extendTo(1)">▶ いす 1こ</button>
-          <button class="btn btn-step" id="btn-nl-10" onclick="extendTo(10)">▶ いす 10こ</button>
-          <button class="btn btn-step" id="btn-nl-20" onclick="extendTo(20)">▶ いす 20こ</button>
-          <button class="btn btn-step" id="btn-nl-30" onclick="extendTo(30)">▶ いす 30こ</button>
+          <button class="btn btn-step" data-step="1">▶ いす 1こ</button>
+          <button class="btn btn-step" data-step="10">▶ いす 10こ</button>
+          <button class="btn btn-step" data-step="20">▶ いす 20こ</button>
+          <button class="btn btn-step" data-step="30">▶ いす 30こ</button>
         </div>
 
-        <div class="double-number-line-stage">
+        <div class="dnl-stage">
           <div class="dnl-container">
             <!-- 人数（上） -->
             <div class="dnl-row top-row">
               <div class="dnl-line"></div>
               <div class="dnl-fill top-fill" id="dnl-fill-top"></div>
-              <div id="dnl-ticks-top"></div> <!-- JSで目盛りを自動生成 -->
+              <div id="dnl-ticks-top"></div>
               <span class="dnl-unit">(人)</span>
             </div>
-            
             <!-- いすの数（下） -->
             <div class="dnl-row bottom-row">
               <div class="dnl-line"></div>
               <div class="dnl-fill bottom-fill" id="dnl-fill-bottom"></div>
-              <div id="dnl-ticks-bottom"></div> <!-- JSで目盛りを自動生成 -->
+              <div id="dnl-ticks-bottom"></div>
               <span class="dnl-unit">(こ)</span>
             </div>
+          </div>
+        </div>
+
+        <div class="dnl-ask" id="dnl-ask" hidden>
+          <p class="ask-text">いすが <span id="ask-step">1</span>こ のとき、人数は何人かな？</p>
+          <div class="ask-input">
+            <input type="text" id="dnl-ans" class="num-input" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="？" aria-label="人数" data-enter="dnl-check">
+            <span>人</span>
+            <button class="btn btn-check" id="dnl-check">たしかめる</button>
           </div>
         </div>
         <div id="dnl-feedback" class="feedback-msg"></div>
       </div>
 
-      <!-- ツール2: アレイ図（あみさん） -->
-      <div id="vis-array" class="visual-content">
+      <!-- ================================================
+           ツール2：アレイ図（あみさん）
+           ================================================ -->
+      <div id="vis-array" class="visual-content" role="tabpanel">
         <div class="vis-header">
-          「×10」の計算にするために、まずは小さなまとまりを作ろう！
-          <button class="btn btn-yellow hint-btn" onclick="showHint('array')">💡 ヒント</button>
+          <span>「×10」の計算にするために、まずは小さなまとまりを作ろう！</span>
+          <button class="btn btn-yellow hint-btn" data-hint="array">💡 ヒント</button>
         </div>
-        
+
         <div class="char-container">
-          <div class="char-icon"><img src="https://api.iconify.design/noto:girl.svg" alt="あみ" width="40"></div>
-          <div class="speech-bubble" id="array-msg">どうすれば、今までに学習した計算を使えるかな。左のボタンをおしてみよう！</div>
+          <div class="char-icon"><img src="https://api.iconify.design/noto:girl.svg" alt="あみ" width="40" height="40"></div>
+          <div class="speech-bubble" id="array-msg">どうすれば、今までに学習した計算を使えるかな。下のボタンをおしてみよう！</div>
           <span class="char-name">あみ</span>
         </div>
 
         <div class="array-controls">
-          <button class="btn btn-blue" id="btn-step1" onclick="showArrayStep1()">1. 「<span id="array-base-num">5</span> × <span id="array-m1-num">3</span>」のまとまりを作る</button>
-          <button class="btn btn-orange" id="btn-step2" onclick="showArrayStep2()" disabled>2. それを「10こ分」にする</button>
+          <div class="array-step">
+            <span>1. 「<span id="array-base-num">5</span> ×</span>
+            <span class="stepper">
+              <button id="w-minus" aria-label="へらす">−</button>
+              <span class="w-val" id="w-val">1</span>
+              <button id="w-plus" aria-label="ふやす">＋</button>
+            </span>
+            <span>」のまとまりを作る</span>
+            <button class="btn btn-blue" id="btn-step1">これでつくる</button>
+          </div>
+          <div class="array-step">
+            <button class="btn btn-orange" id="btn-step2" disabled>2. それを「10こ分」にする</button>
+            <button class="btn btn-gray hidden" id="btn-retry">↺ まとまりを作りなおす</button>
+          </div>
         </div>
 
+        <div class="array-info">
+          <span id="array-count">「5 × 1」のまとまり 1こ分</span>
+          <span class="frame-tag">わく：<span id="frame-label">5 × 30</span></span>
+        </div>
         <div class="array-stage" id="array-stage"></div>
+        <div class="array-over hidden" id="array-over">▶ わくから はみ出し！</div>
+        <div id="array-feedback" class="feedback-msg"></div>
+        <div class="trial-log-wrap hidden" id="array-log-wrap">
+          <span class="log-title">📝 ためしたこと</span>
+          <div class="trial-log" id="array-log"></div>
+        </div>
       </div>
 
-      <!-- ツール3: 式と関係図（はるとさん） -->
-      <div id="vis-diagram" class="visual-content">
+      <!-- ================================================
+           ツール3：式と関係図（はるとさん）
+           ================================================ -->
+      <div id="vis-diagram" class="visual-content" role="tabpanel">
         <div class="vis-header">
-          かけ算のきまりを使って、計算のしかたをまとめよう！
-          <button class="btn btn-yellow hint-btn" onclick="showHint('diagram')">💡 ヒント</button>
+          <span>かけ算のきまりを使って、計算のしかたをまとめよう！</span>
+          <button class="btn btn-yellow hint-btn" data-hint="diagram">💡 ヒント</button>
         </div>
 
         <div class="char-container">
-          <div class="char-icon"><img src="https://api.iconify.design/noto:boy.svg" alt="はると" width="40"></div>
+          <div class="char-icon"><img src="https://api.iconify.design/noto:boy.svg" alt="はると" width="40" height="40"></div>
           <div class="speech-bubble">かけ算のきまりを使って、<span id="char-base-1">5</span>×3 と ×10 の計算にしているよ。<br>×10の計算はかんたん！</div>
           <span class="char-name">はると</span>
         </div>
 
         <div class="haruto-stage">
           <div class="formula-area">
-            <div class="f-row">
-              <span class="f-base-eq"><span id="f-base1">5</span> × <span id="f-total-m">30</span></span>
-              <span class="f-equal">＝</span>
-              <span class="f-part"><span id="f-base2">5</span> × (<span id="f-m1">3</span> × 10)</span>
+            <div class="f-grid">
+              <div class="f-row" id="f-row1">
+                <span class="f-left"><span id="f-base1">5</span> × <span id="f-total-m">30</span></span>
+                <span class="f-equal">＝</span>
+                <span class="f-part"><span id="f-base2">5</span> × (<span id="f-m1">3</span> × 10)</span>
+              </div>
+              <div class="f-move" id="f-move-wrap">
+                <button class="btn btn-move" id="btn-move">✋ かけ算のきまりで（ ）の場所をかえてみる</button>
+              </div>
+              <div class="f-row hidden" id="f-row2">
+                <span></span>
+                <span class="f-equal">＝</span>
+                <span class="f-part"><span><span class="paren">(</span><span id="f-base3">5</span> × <span id="f-m1-2">3</span><span class="paren">)</span> × 10</span></span>
+              </div>
+              <div class="f-row hidden" id="f-row3">
+                <span></span>
+                <span class="f-equal">＝</span>
+                <span class="f-part">
+                  <input type="text" id="f-ans1" class="num-input" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="？" aria-label="かっこの中の答え" data-enter="f-check"> × 10
+                </span>
+              </div>
+              <div class="f-row hidden" id="f-row4">
+                <span></span>
+                <span class="f-equal">＝</span>
+                <span class="f-part">
+                  <input type="text" id="f-ans2" class="num-input" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="？" aria-label="答え" data-enter="f-check">
+                </span>
+              </div>
             </div>
-            <div class="f-row">
-              <span class="f-base-eq hidden-text">5 × 30</span>
-              <span class="f-equal">＝</span>
-              <span class="f-part">(<span id="f-base3">5</span> × <span id="f-m1-2">3</span>) × 10</span>
-            </div>
-            <div class="f-row">
-              <span class="f-base-eq hidden-text">5 × 30</span>
-              <span class="f-equal">＝</span>
-              <span class="f-part">
-                <input type="text" id="f-ans1" class="num-input" placeholder="？" oninput="checkFormula()"> × 10
-              </span>
-            </div>
-            <div class="f-row">
-              <span class="f-base-eq hidden-text">5 × 30</span>
-              <span class="f-equal">＝</span>
-              <span class="f-part">
-                <input type="text" id="f-ans2" class="num-input" placeholder="？" oninput="checkFormula()">
-              </span>
+            <div class="f-check hidden" id="f-check-wrap">
+              <button class="btn btn-check" id="f-check">たしかめる</button>
             </div>
           </div>
 
           <div class="diagram-area">
-            <div class="relation-diagram">
-              <div class="node-box" style="left: 10%;"><span id="rel-base" class="fixed-num">5</span></div>
-              <div class="top-arrow" style="left: 20%; width: 25%;">
-                <div class="arrow-line"></div><div class="arrow-head"></div>
-                <div class="arrow-label" id="rel-m1-label">×3</div>
-              </div>
-              <div class="node-box" style="left: 45%;"><span id="rel-mid" class="fixed-num val-hidden">15</span></div>
-              <div class="top-arrow" style="left: 55%; width: 25%;">
-                <div class="arrow-line"></div><div class="arrow-head"></div>
-                <div class="arrow-label">×10</div>
-              </div>
-              <div class="node-box" style="left: 80%;"><span id="rel-final" class="fixed-num val-hidden">150</span></div>
-              <div class="bottom-jump">
-                <div class="bottom-jump-line"></div>
-                <div class="bottom-jump-head"></div>
-                <div class="bottom-jump-label" id="rel-total-label">×30</div>
-              </div>
-            </div>
+            <svg class="rel-svg" viewBox="0 0 340 150" role="img" aria-label="関係図">
+              <defs>
+                <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#ff922b"/>
+                </marker>
+              </defs>
+              <g id="arrow1" class="rel-arrow-g">
+                <line class="rel-arrow" x1="64" y1="52" x2="138" y2="52" marker-end="url(#ah)"/>
+                <text class="rel-op" x="101" y="38" id="rel-m1-label">×3</text>
+              </g>
+              <g id="arrow2" class="rel-arrow-g">
+                <line class="rel-arrow" x1="200" y1="52" x2="266" y2="52" marker-end="url(#ah)"/>
+                <text class="rel-op" x="233" y="38">×10</text>
+              </g>
+              <g id="arrow3" class="rel-arrow-g">
+                <path class="rel-arrow" d="M40,74 V112 Q40,124 52,124 H288 Q300,124 300,112 V82" marker-end="url(#ah)"/>
+                <rect class="rel-label-bg" x="144" y="112" width="52" height="24" rx="4"/>
+                <text class="rel-op" x="170" y="130" id="rel-total-label">×30</text>
+              </g>
+              <text class="rel-num" x="40" y="62" id="rel-base">5</text>
+              <g id="node-mid" class="rel-node">
+                <line class="rel-blank" x1="148" y1="68" x2="192" y2="68"/>
+                <text class="rel-q" x="170" y="60">？</text>
+                <text class="rel-num rel-val" x="170" y="62" id="rel-mid">15</text>
+              </g>
+              <g id="node-final" class="rel-node">
+                <line class="rel-blank" x1="276" y1="68" x2="324" y2="68"/>
+                <text class="rel-q" x="300" y="60">？</text>
+                <text class="rel-num rel-val" x="300" y="62" id="rel-final">150</text>
+              </g>
+            </svg>
           </div>
         </div>
-        
+
         <div id="formula-feedback" class="feedback-msg"></div>
 
         <div class="summary-box" id="summary-box">
@@ -183,6 +629,7 @@
     </div>
 
     <div class="notebook-guide">
+      <div class="all-done hidden" id="all-done">🎉 3つの考え方で たしかめられたね！ わかったことを ノートに書こう。</div>
       <h3>📓 ノートに自分の考えを書こう</h3>
       <p>アプリでたしかめたら、下の言葉をつかって、計算のしかたをノートにまとめよう！</p>
       <div class="notebook-keywords">
@@ -193,16 +640,628 @@
     </div>
   </main>
 
-  <div id="hint-modal" class="modal hidden">
+  <div id="hint-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="hint-title">
     <div class="modal-content">
-      <h3>💡 考え方のヒント</h3>
+      <h3 id="hint-title">💡 考え方のヒント</h3>
+      <span class="hint-level" id="hint-level">ヒント 1</span>
       <p id="hint-text"></p>
-      <button class="btn btn-gray mt-3" onclick="closeHint()">わかった！</button>
+      <div class="modal-btns">
+        <button class="btn btn-yellow" id="hint-more">もっとヒント</button>
+        <button class="btn btn-gray" id="hint-close">わかった！</button>
+      </div>
     </div>
   </div>
 </div>
-    <script  src="./script.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ====================================================
+  // 問題データ・状態
+  // ====================================================
+  const probData = {
+    1: { base: 5,  m1: 3, m2: 10, totalM: 30, hasStory: true },
+    2: { base: 12, m1: 3, m2: 10, totalM: 30, hasStory: false }
+  };
+  const STEPS = [0, 1, 10, 20, 30];
+  const BUTTON_STEPS = [1, 10, 20, 30];
+  const finePointer = window.matchMedia('(pointer: fine)').matches;
+
+  let currentId = 1;
+  let state = null;
+
+  function newState() {
+    return {
+      line:    { answered: { 0: true }, current: null, justAnswered: null },
+      array:   { w: 1, confirmed: false, filled: 1, animating: false, done: false, timer: null },
+      formula: { moved: false, ans1: false, ans2: false },
+      done:    { line: false, array: false, diagram: false },
+      hint:    { tool: null, level: 1 }
+    };
+  }
+
+  // ====================================================
+  // 小さな道具
+  // ====================================================
+  const $ = id => document.getElementById(id);
+  const data = () => probData[currentId];
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function setText(id, t) { $(id).textContent = t; }
+  function readNum(input) { const v = input.value.trim(); return v === '' ? NaN : parseInt(v, 10); }
+  function say(id, html) {
+    const b = $(id);
+    b.innerHTML = html;
+    b.classList.remove('talk'); void b.offsetWidth; b.classList.add('talk');
+  }
+  function feedback(id, html, type) {
+    const f = $(id);
+    f.innerHTML = html || '';
+    f.className = 'feedback-msg' + (type ? ' ' + type : '');
+  }
+  function shake(node) { node.classList.remove('shake'); void node.offsetWidth; node.classList.add('shake'); }
+  // パソコンでは次の入力欄へ自動で移動（スマホではキーボードが急に出ないようにしない）
+  function focusSoft(input) { if (finePointer) input.focus({ preventScroll: true }); }
+
+  // ----------------------------------------------------
+  // 数の入力：全角→半角、数字以外は消す（日本語入力の変換中は待つ）／Enterでたしかめる
+  // ----------------------------------------------------
+  function toHalf(str) { return str.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); }
+  function sanitize(input) {
+    const v = toHalf(input.value).replace(/[^0-9]/g, '');
+    if (v !== input.value) input.value = v;
+  }
+  document.querySelectorAll('.num-input').forEach(input => {
+    input.addEventListener('input', e => { if (!e.isComposing) sanitize(input); });
+    input.addEventListener('compositionend', () => { sanitize(input); input.dispatchEvent(new Event('input')); });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        const target = input.dataset.enter;
+        if (target && !$(target).disabled) $(target).click();
+      }
+    });
+  });
+
+  // ====================================================
+  // 問題の切りかえ
+  // ====================================================
+  document.querySelectorAll('[data-prob]').forEach(b => b.addEventListener('click', () => setProblem(+b.dataset.prob)));
+
+  function setProblem(id) {
+    if (state && state.array.timer) clearInterval(state.array.timer);
+    currentId = id;
+    state = newState();
+    const d = data();
+
+    $('prob1-btn').classList.toggle('active-prob', id === 1);
+    $('prob2-btn').classList.toggle('active-prob', id === 2);
+
+    // 文章題と式
+    $('word-problem-area').classList.toggle('hidden', !d.hasStory);
+    setText('wp-base', d.base);
+    setText('wp-total', d.totalM);
+    setText('math-equation', `${d.base} × ${d.totalM}`);
+    $('math-equation').classList.add('hidden');
+    $('eq-input-wrap').classList.remove('hidden');
+    $('eq-guide').classList.remove('hidden');
+    $('eq-a').value = ''; $('eq-b').value = '';
+    $('we-1').classList.remove('lit'); $('we-2').classList.remove('lit');
+    feedback('eq-feedback', '');
+
+    toolTabs.forEach(t => t.classList.remove('done'));
+    $('all-done').classList.add('hidden');
+
+    resetLine();
+    resetArray();
+    resetFormula();
+  }
+
+  // ----------------------------------------------------
+  // 式を自分で立てる
+  // ----------------------------------------------------
+  [['eq-a', 'we-1'], ['eq-b', 'we-2']].forEach(([inp, box]) => {
+    $(inp).addEventListener('focus', () => $(box).classList.add('glow'));
+    $(inp).addEventListener('blur', () => $(box).classList.remove('glow'));
+  });
+  $('eq-check').addEventListener('click', checkEquation);
+
+  function checkEquation() {
+    const d = data();
+    const a = readNum($('eq-a')), b = readNum($('eq-b'));
+    if (isNaN(a) || isNaN(b)) { feedback('eq-feedback', '2つの□に数を入れてみよう。', 'info'); return; }
+    if (a === d.base && b === d.totalM) {
+      $('eq-input-wrap').classList.add('hidden');
+      $('eq-guide').classList.add('hidden');
+      $('math-equation').classList.remove('hidden');
+      $('we-1').classList.add('lit'); $('we-2').classList.add('lit');
+      feedback('eq-feedback', '✨ そのとおり！ この式の計算のしかたを、下のツールで調べよう。', 'ok');
+    } else if (a === d.totalM && b === d.base) {
+      shake($('eq-input-wrap'));
+      feedback('eq-feedback', 'つかう数はあっているよ。<br>「1つのいすにすわる人数 × いすの数」のじゅんになっているかな？', 'ng');
+    } else {
+      shake($('eq-input-wrap'));
+      feedback('eq-feedback', 'もんだいの文の数と、上のことばの式を 見くらべてみよう。', 'ng');
+    }
+  }
+
+  // ====================================================
+  // ツールのタブ切りかえ
+  // ====================================================
+  const toolTabs = document.querySelectorAll('.tool-tab');
+  toolTabs.forEach(tab => tab.addEventListener('click', () => switchVisual(tab.dataset.tool)));
+
+  function switchVisual(tool) {
+    toolTabs.forEach(t => {
+      const on = t.dataset.tool === tool;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.visual-content').forEach(c => c.classList.toggle('active', c.id === 'vis-' + tool));
+    const tabsBox = document.querySelector('.tool-tabs');
+    if (tabsBox.getBoundingClientRect().top < 0) tabsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function markDone(tool) {
+    state.done[tool] = true;
+    document.querySelector(`.tool-tab[data-tool="${tool}"]`).classList.add('done');
+    if (state.done.line && state.done.array && state.done.diagram) $('all-done').classList.remove('hidden');
+  }
+
+  // ====================================================
+  // ツール1：二重数直線
+  //   いすの数をえらぶ → 人数を自分で入れる → 正しければ数直線に数が出る
+  // ====================================================
+  document.querySelectorAll('.btn-step').forEach(b => b.addEventListener('click', () => selectStep(+b.dataset.step)));
+  $('dnl-check').addEventListener('click', checkLine);
+
+  function resetLine() {
+    $('dnl-ask').hidden = true;
+    const inp = $('dnl-ans');
+    inp.value = ''; inp.disabled = false; inp.classList.remove('correct');
+    $('dnl-check').disabled = false;
+    say('line-msg', 'まずは「1こ」のときの人数をたしかめよう。');
+    feedback('dnl-feedback', '');
+    renderLine();
+  }
+
+  function renderLine() {
+    const d = data(), L = state.line;
+    const top = $('dnl-ticks-top'), bot = $('dnl-ticks-bottom');
+    top.innerHTML = ''; bot.innerHTML = '';
+
+    STEPS.forEach(step => {
+      const pct = step / 30 * 100;
+      const cur = L.current === step ? ' current' : '';
+
+      // 下の目もり（いすの数）
+      const bt = el('div', `dnl-tick tick-${step}${cur}`);
+      bt.style.left = pct + '%';
+      const bl = el('span', 'dnl-label label-bottom');
+      bl.appendChild(el('span', 'lbl-in', String(step)));
+      bt.appendChild(bl);
+      bot.appendChild(bt);
+
+      // 上の目もり（人数）… 答えるまでは「？」
+      const tt = el('div', `dnl-tick tick-${step}${cur}`);
+      tt.style.left = pct + '%';
+      const ok = !!L.answered[step];
+      const tl = el('span', 'dnl-label label-top' + (ok ? '' : ' pending'));
+      tl.appendChild(el('span', 'lbl-in' + (L.justAnswered === step ? ' pop' : ''), ok ? String(step * d.base) : '？'));
+      tt.appendChild(tl);
+      top.appendChild(tt);
+    });
+
+    const curStep = L.current || 0;
+    $('dnl-fill-bottom').style.width = (curStep / 30 * 100) + '%';
+    const topFill = $('dnl-fill-top');
+    topFill.style.width = (curStep / 30 * 100) + '%';
+    topFill.classList.toggle('unknown', !L.answered[curStep]);
+
+    document.querySelectorAll('.btn-step').forEach(b => {
+      const s = +b.dataset.step;
+      b.classList.toggle('active-step', s === L.current);
+      b.classList.toggle('cleared', !!L.answered[s]);
+    });
+  }
+
+  function lineBefore(s) {
+    if (s === 1) return 'いすが1こだと、何人すわれるかな？';
+    if (s === 30) return 'いすが30こ！ ぜんぶで何人になるかな？ 下の四角に入力してみよう！';
+    return `いすが${s}こだと、何人になるかな？`;
+  }
+  function lineAfter(s) {
+    const d = data();
+    if (s === 1) return `いすが1こで、${d.base}人すわれるね。`;
+    if (s === 10) return `いすが10こだと、${d.base * 10}人！「10倍」になったね。`;
+    if (s === 20) return `いすが20こだと、${d.base * 20}人！`;
+    return `いすが30こだと、${d.base * 30}人！`;
+  }
+
+  function selectStep(step) {
+    const L = state.line;
+    L.current = step;
+    L.justAnswered = null;
+    renderLine();
+
+    const d = data();
+    const ok = !!L.answered[step];
+    $('dnl-ask').hidden = false;
+    setText('ask-step', step);
+    const inp = $('dnl-ans');
+    inp.value = ok ? String(step * d.base) : '';
+    inp.disabled = ok;
+    inp.classList.toggle('correct', ok);
+    $('dnl-check').disabled = ok;
+
+    say('line-msg', ok ? lineAfter(step) : lineBefore(step));
+    if (ok && step === 30) feedback('dnl-feedback', '✨ 大正解！ いすの数が増えると、人数も同じように増えていくね！', 'ok');
+    else feedback('dnl-feedback', '');
+    if (!ok) focusSoft(inp);
+  }
+
+  function checkLine() {
+    const L = state.line, s = L.current;
+    if (s == null) return;
+    const d = data();
+    const inp = $('dnl-ans');
+    const v = readNum(inp);
+    if (isNaN(v)) { feedback('dnl-feedback', '四角に人数を入れてみよう。', 'info'); return; }
+
+    if (v === s * d.base) {
+      L.answered[s] = true;
+      L.justAnswered = s;
+      inp.classList.add('correct');
+      inp.disabled = true;
+      $('dnl-check').disabled = true;
+      renderLine();
+      say('line-msg', lineAfter(s));
+      if (s === 30) {
+        feedback('dnl-feedback', '✨ 大正解！ いすの数が増えると、人数も同じように増えていくね！', 'ok');
+        markDone('line');
+      } else {
+        const next = BUTTON_STEPS.find(n => !L.answered[n]);
+        feedback('dnl-feedback', next ? `⭕ せいかい！ つぎは「いす ${next}こ」をおしてみよう。` : '⭕ せいかい！', 'ok');
+      }
+    } else {
+      inp.classList.remove('correct');
+      shake(inp);
+      feedback('dnl-feedback', lineWrongMsg(s, v), 'ng');
+    }
+  }
+
+  function lineWrongMsg(s, v) {
+    const d = data(), L = state.line;
+    if (s > 1 && v === d.base + s) {
+      return `たし算になっていないかな？<br>いす1こに ${d.base}人ずつ すわるよ。`;
+    }
+    if (s >= 10 && v === d.base * (s / 10)) {
+      return `それは、いす${s / 10}こ分の人数だね。いすは${s}こだよ。`;
+    }
+    const smallerKnown = STEPS.filter(n => n > 0 && n < s && L.answered[n]);
+    if (smallerKnown.some(n => v <= n * d.base)) {
+      return 'いすがふえると、人数は ふえるかな？ へるかな？';
+    }
+    if (s === 1) return 'おしい！ いす1こに 何人すわれるか、もう一度考えてみよう。';
+    return 'おしい！ いすが1こ、10こ…とふえると、人数はどうふえたかな？<br>数直線を見て、もう一度考えてみよう。';
+  }
+
+  // ====================================================
+  // ツール2：アレイ図
+  //   まとまりの大きさを自分で決める → 10こ分にする → わくにぴったりか たしかめる
+  // ====================================================
+  $('w-minus').addEventListener('click', () => changeW(-1));
+  $('w-plus').addEventListener('click', () => changeW(1));
+  $('btn-step1').addEventListener('click', showArrayStep1);
+  $('btn-step2').addEventListener('click', showArrayStep2);
+  $('btn-retry').addEventListener('click', retryArray);
+
+  function resetArray() {
+    const d = data();
+    setText('array-base-num', d.base);
+    setText('frame-label', `${d.base} × ${d.totalM}`);
+    $('array-log').innerHTML = '';
+    $('array-log-wrap').classList.add('hidden');
+    say('array-msg', 'どうすれば、今までに学習した計算を使えるかな。下のボタンをおしてみよう！');
+    feedback('array-feedback', '');
+    updateArrayButtons();
+    renderArray();
+  }
+
+  function updateArrayButtons() {
+    const a = state.array;
+    $('w-minus').disabled = a.confirmed || a.w <= 1;
+    $('w-plus').disabled = a.confirmed || a.w >= 10;
+    $('btn-step1').disabled = a.confirmed;
+    $('btn-step2').disabled = !a.confirmed || a.animating || a.filled >= 10;
+    $('btn-retry').classList.toggle('hidden', !(a.confirmed && !a.animating && a.filled >= 10 && !a.done));
+  }
+
+  function renderArray() {
+    const d = data(), a = state.array, total = d.totalM;
+    const stage = $('array-stage');
+    stage.innerHTML = '';
+    const used = a.w * a.filled;
+    const covered = Math.min(used, total);
+
+    // まとまりのわく（色を交互にして数えやすく）
+    for (let g = 0; g < a.filled; g++) {
+      const start = g * a.w;
+      if (start >= total) break;
+      const span = Math.min(a.w, total - start);
+      const isNew = a.animating && g === a.filled - 1;
+      const box = el('div', 'grp' + (g % 2 ? ' grp-b' : '') + (isNew ? ' grp-new' : ''));
+      box.style.gridColumn = `${start + 1} / span ${span}`;
+      box.style.gridRow = `1 / span ${d.base}`;
+      stage.appendChild(box);
+    }
+    // ●（わく全体 = base × 30）
+    for (let r = 0; r < d.base; r++) {
+      for (let c = 0; c < total; c++) {
+        const dot = el('div', 'dot' + (c < covered ? ' on' : ''));
+        dot.style.gridArea = `${r + 1} / ${c + 1}`;
+        stage.appendChild(dot);
+      }
+    }
+    stage.classList.toggle('over', used > total);
+    stage.classList.toggle('perfect', a.done);
+    $('array-over').classList.toggle('hidden', !(used > total));
+    setText('w-val', a.w);
+    setText('array-count', `「${d.base} × ${a.w}」のまとまり ${a.filled}こ分`);
+  }
+
+  function changeW(delta) {
+    const a = state.array;
+    if (a.confirmed) return;
+    a.w = Math.min(10, Math.max(1, a.w + delta));
+    a.filled = 1;
+    renderArray();
+    updateArrayButtons();
+    say('array-msg', `「${data().base} × ${a.w}」のまとまりだね。これでよければ「これでつくる」をおそう。`);
+  }
+
+  function showArrayStep1() {
+    const a = state.array;
+    a.confirmed = true;
+    a.filled = 1;
+    renderArray();
+    updateArrayButtons();
+    say('array-msg', `「${data().base} × ${a.w}」のまとまりを作ったよ！これを10こ分にしよう。`);
+    feedback('array-feedback', '');
+  }
+
+  function showArrayStep2() {
+    const a = state.array;
+    if (!a.confirmed || a.animating) return;
+    a.animating = true;
+    updateArrayButtons();
+    a.timer = setInterval(() => {
+      a.filled++;
+      renderArray();
+      if (a.filled >= 10) {
+        clearInterval(a.timer);
+        a.timer = null;
+        a.animating = false;
+        finishArray();
+      }
+    }, 180);
+  }
+
+  function finishArray() {
+    const d = data(), a = state.array;
+    const cols = a.w * 10;
+    const chip = el('span', 'trial-chip', `${d.base}×${a.w} の10こ分 → ${d.base}×${cols}`);
+
+    if (cols === d.totalM) {
+      a.done = true;
+      chip.classList.add('ok');
+      chip.textContent += ' ぴったり！';
+      say('array-msg', `「${d.base} × ${a.w}」が 10こ分になったね！（×10の計算）`);
+      feedback('array-feedback', `✨ ぴったり！ わくが ちょうど うまったね。<br>${d.base} × ${a.w} のまとまりの 10こ分で、${d.base} × ${d.totalM} になったよ。`, 'ok');
+      markDone('array');
+    } else if (cols < d.totalM) {
+      chip.textContent += '（すきま）';
+      say('array-msg', `10こ分にしたら「${d.base} × ${cols}」になったよ。`);
+      feedback('array-feedback', 'わくの右に すきまがあるね。<br>まとまりの大きさをかえて、もう一度ためしてみよう！', 'ng');
+    } else {
+      chip.textContent += '（はみ出し）';
+      say('array-msg', `10こ分にしたら「${d.base} × ${cols}」になったよ。`);
+      feedback('array-feedback', 'わくから はみ出しちゃった！<br>まとまりを小さくして、もう一度ためしてみよう！', 'ng');
+    }
+    $('array-log').appendChild(chip);
+    $('array-log-wrap').classList.remove('hidden');
+    renderArray();
+    updateArrayButtons();
+  }
+
+  function retryArray() {
+    const a = state.array;
+    a.confirmed = false;
+    a.filled = 1;
+    a.done = false;
+    renderArray();
+    updateArrayButtons();
+    say('array-msg', 'まとまりの大きさを かえてみよう。「−」「＋」のボタンで かえられるよ。');
+    feedback('array-feedback', '');
+  }
+
+  // ====================================================
+  // ツール3：式と関係図
+  //   （ ）を自分でつけかえる → □を1つずつ計算 → 関係図に数が出る
+  // ====================================================
+  $('btn-move').addEventListener('click', moveParens);
+  $('f-check').addEventListener('click', () => checkFormula(false));
+  [['f-ans1', 1], ['f-ans2', 2]].forEach(([id, n]) => {
+    $(id).addEventListener('input', () => checkFormula(true));
+    $(id).addEventListener('focus', () => highlightArrow(n));
+    $(id).addEventListener('blur', () => highlightArrow(0));
+  });
+  $('node-mid').addEventListener('click', () => { if (!$('f-row3').classList.contains('hidden') && !state.formula.ans1) $('f-ans1').focus(); });
+  $('node-final').addEventListener('click', () => { if (!$('f-row4').classList.contains('hidden') && !state.formula.ans2) $('f-ans2').focus(); });
+
+  function highlightArrow(n) {
+    $('arrow1').classList.toggle('hl', n === 1);
+    $('arrow2').classList.toggle('hl', n === 2);
+  }
+
+  function resetFormula() {
+    const d = data();
+    const ans1 = d.base * d.m1, ans2 = d.base * d.totalM;
+
+    setText('char-base-1', d.base);
+    setText('f-base1', d.base); setText('f-total-m', d.totalM);
+    setText('f-base2', d.base); setText('f-m1', d.m1);
+    setText('f-base3', d.base); setText('f-m1-2', d.m1);
+
+    ['f-row2', 'f-row3', 'f-row4', 'f-check-wrap'].forEach(id => $(id).classList.add('hidden'));
+    ['f-row2', 'f-row3', 'f-row4'].forEach(id => $(id).classList.remove('reveal'));
+    $('f-move-wrap').classList.remove('hidden');
+    $('f-check').disabled = false;
+    ['f-ans1', 'f-ans2'].forEach(id => { const f = $(id); f.value = ''; f.disabled = false; f.classList.remove('correct'); });
+
+    setText('rel-base', d.base);
+    setText('rel-m1-label', `×${d.m1}`);
+    setText('rel-total-label', `×${d.totalM}`);
+    setText('rel-mid', ans1);
+    setText('rel-final', ans2);
+    $('node-mid').classList.remove('revealed');
+    $('node-final').classList.remove('revealed');
+    highlightArrow(0);
+
+    feedback('formula-feedback', '');
+    $('summary-box').classList.remove('visible');
+
+    // まとめ枠
+    setText('sum-b1', d.base); setText('sum-t1', d.totalM);
+    setText('sum-b2', d.base); setText('sum-m1', d.m1);
+    setText('sum-b3', d.base); setText('sum-m2', d.m1);
+    setText('sum-a1', ans1); setText('sum-a2', ans1); setText('sum-a3', ans2);
+    setText('sum-b4', d.base); setText('sum-m3', d.m1);
+  }
+
+  function reveal(id) {
+    const r = $(id);
+    r.classList.remove('hidden');
+    r.classList.remove('reveal'); void r.offsetWidth; r.classList.add('reveal');
+  }
+
+  function moveParens() {
+    const d = data();
+    state.formula.moved = true;
+    $('f-move-wrap').classList.add('hidden');
+    reveal('f-row2');
+    reveal('f-row3');
+    $('f-check-wrap').classList.remove('hidden');
+    feedback('formula-feedback', `（ ）の場所が かわったね。まず「${d.base} × ${d.m1}」を計算して、□に入れよう。`, 'info');
+    focusSoft($('f-ans1'));
+  }
+
+  // quiet = true のとき（入力中）は、正解のときだけ反応する
+  function checkFormula(quiet) {
+    const d = data(), F = state.formula;
+    const ans1 = d.base * d.m1, ans2 = ans1 * 10;
+    const f1 = $('f-ans1'), f2 = $('f-ans2');
+
+    if (!F.ans1) {
+      const v1 = readNum(f1);
+      if (v1 === ans1) {
+        F.ans1 = true;
+        f1.classList.add('correct');
+        f1.disabled = true;
+        $('node-mid').classList.add('revealed');
+        reveal('f-row4');
+        highlightArrow(2);
+        feedback('formula-feedback', `⭕ せいかい！ ${d.base}×${d.m1}＝${ans1} だね。つぎは ×10 をしよう。`, 'ok');
+        focusSoft(f2);
+      } else if (!quiet) {
+        shake(f1);
+        let msg;
+        if (isNaN(v1)) msg = '□に数を入れてみよう。';
+        else if (v1 === d.base + d.m1) msg = `たし算になっていないかな？ ${d.base}×${d.m1}は、${d.base}が${d.m1}こ分だよ。`;
+        else if (v1 === d.base * d.totalM) msg = `ここは（ ）の中の「${d.base} × ${d.m1}」の答えを入れよう。`;
+        else msg = `おしい！ 「${d.base} × ${d.m1}」を もう一度 計算してみよう。`;
+        feedback('formula-feedback', msg, 'ng');
+      }
+      return;
+    }
+
+    if (!F.ans2) {
+      const v2 = readNum(f2);
+      if (v2 === ans2) {
+        F.ans2 = true;
+        f2.classList.add('correct');
+        f2.disabled = true;
+        $('f-check').disabled = true;
+        highlightArrow(0);
+        $('node-final').classList.add('revealed');
+        feedback('formula-feedback', '✨ 大正解！ かけ算のきまりを使うと、かんたんに計算できるね。', 'ok');
+        $('summary-box').classList.add('visible');
+        markDone('diagram');
+      } else if (!quiet) {
+        shake(f2);
+        let msg;
+        if (isNaN(v2)) msg = '□に数を入れてみよう。';
+        else if (v2 === ans1) msg = 'まだ ×10 をしていないよ。';
+        else if (v2 === ans1 + 10) msg = `たし算になっていないかな？ ${ans1}の10こ分だよ。`;
+        else if (v2 === ans1 * 100) msg = '0が1こ多いかも。×10は、うしろに0を1こつけるよ。';
+        else msg = `×10は、${ans1}のうしろに 0を1こつけた数になるよ。`;
+        feedback('formula-feedback', msg, 'ng');
+      }
+    }
+  }
+
+  // ====================================================
+  // ヒント（2だんかい：まずは小さなヒント → もっとヒント）
+  // ====================================================
+  document.querySelectorAll('[data-hint]').forEach(b => b.addEventListener('click', () => openHint(b.dataset.hint)));
+  $('hint-more').addEventListener('click', () => { state.hint.level = 2; renderHint(); });
+  $('hint-close').addEventListener('click', closeHint);
+  $('hint-modal').addEventListener('click', e => { if (e.target.id === 'hint-modal') closeHint(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHint(); });
+
+  function hintText(tool, level) {
+    const d = data();
+    if (tool === 'line') {
+      return level === 1
+        ? 'いすが1こ ふえるごとに、人数は何人ずつ ふえるかな？<br>「いす 1こ」から じゅんばんに たしかめてみよう。'
+        : `上のボタンを順番におしてみよう。<br>「いす10こ」のボタンをおすと、人数は「${d.base * 10}人」になるね。<br>そのまま「いす30こ」まで伸ばすと、どうなるかな？`;
+    }
+    if (tool === 'array') {
+      return level === 1
+        ? `下のわくは「${d.base} × ${d.totalM}」の大きさだよ。<br>まとまりを 10こ ならべたとき、わくに ぴったり入るのは、「${d.base} × いくつ」のまとまりかな？`
+        : `まずは「${d.base} × ${d.m1}」のボタンをおして、1つ分のまとまりを作ろう。<br>（「＋」で ${d.m1} にして「これでつくる」）<br>そのあと、2のボタンでそれを10倍（10こ分）にしてみよう！`;
+    }
+    return level === 1
+      ? `「${d.base} × ${d.totalM}」の ${d.totalM} を「${d.m1} × 10」とみて、かけ算のきまりで（ ）の場所を かえてみよう。`
+      : `「${d.base} × ${d.totalM}」は、「${d.base} × ${d.m1} × 10」と同じことだよ。<br>上の四角には「${d.base} × ${d.m1}」の答えを入れよう。<br>下の四角には、それに「×10（うしろに0をつける）」をした答えを入れよう。`;
+  }
+  function renderHint() {
+    const h = state.hint;
+    $('hint-text').innerHTML = hintText(h.tool, h.level);
+    setText('hint-level', `ヒント ${h.level}`);
+    $('hint-more').classList.toggle('hidden', h.level >= 2);
+  }
+  function openHint(tool) {
+    state.hint = { tool, level: 1 };
+    renderHint();
+    $('hint-modal').classList.remove('hidden');
+    $('hint-close').focus();
+  }
+  function closeHint() { $('hint-modal').classList.add('hidden'); }
+
+  // ====================================================
+  // はじめる
+  // ====================================================
+  setProblem(1);
+});
+</script>
+</body>
+</html>
+    
   </body>
   
 </html>
