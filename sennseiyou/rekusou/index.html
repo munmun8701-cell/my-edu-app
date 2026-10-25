@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学年レク走 くじ引き＆レース編成システム v4</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warn: #d97706;
+      --dark: #0f172a;
+      --header-bg: #0f172a;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --soft: #f8fafc;
+      --soft2: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #334155;
+      --text-muted: #64748b;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    [data-theme="dark"] {
+      --dark: #e6edf7;
+      --header-bg: #070d1a;
+      --surface: #111a2e;
+      --background: #0b1220;
+      --soft: #0f172a;
+      --soft2: #17233b;
+      --border: #26334d;
+      --text: #d6deeb;
+      --text-muted: #8fa0bd;
+      --primary: #818cf8;
+      --primary-hover: #6366f1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    header h1 { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px; color: white; margin: 0; }
+    .ver { background: #3b82f6; font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; }
+
+    .nav-tabs { display: flex; gap: 6px; background: rgba(255,255,255,0.1); padding: 5px; border-radius: 10px; flex-wrap: wrap; }
+    .tab-btn { background: transparent; border: none; color: #cbd5e1; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .2s; font-size: .9rem; }
+    .tab-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+    .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+
+    .head-tools { display: flex; gap: 8px; align-items: center; }
+    .icon-btn { background: rgba(255,255,255,.12); border: none; color: white; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 1.1rem; }
+    .icon-btn:hover { background: rgba(255,255,255,.25); }
+
+    .global-progress { background: var(--header-bg); padding: 0 24px 10px; color: #cbd5e1; font-size: .8rem; display: flex; align-items: center; gap: 12px; }
+    .bar { flex: 1; height: 8px; background: rgba(148,163,184,.3); border-radius: 99px; overflow: hidden; }
+    .bar > div { height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); width: 0; transition: width .4s; }
+    .unsaved-badge { background: #f59e0b; color: #1f2937; font-weight: 700; padding: 2px 10px; border-radius: 99px; display: none; }
+
+    main { flex: 1; max-width: 1400px; width: 100%; margin: 24px auto; padding: 0 20px; }
+    .view-panel { display: none; animation: fadeIn .3s ease; }
+    .view-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: var(--surface); border-radius: var(--radius); padding: 28px; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 22px; }
+    h2 { font-size: 1.2rem; color: var(--dark); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    h3 { color: var(--dark); }
+
+    .form-section { margin-bottom: 22px; }
+    .form-label { display: block; font-weight: 600; color: var(--dark); margin-bottom: 6px; font-size: .95rem; }
+    .form-desc { font-size: .85rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    .tags-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--soft); min-height: 52px; align-items: center; }
+    .tags-container:focus-within { border-color: var(--primary); }
+    .tag { background: var(--surface); border: 1px solid var(--border); color: var(--primary); padding: 5px 12px; border-radius: 999px; font-size: .9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; animation: popIn .2s; }
+    @keyframes popIn { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .tag button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; line-height: 1; }
+    .tag button:hover { color: var(--danger); }
+    .tag-input { border: none; background: transparent; outline: none; font-size: .95rem; padding: 4px; min-width: 110px; flex: 1; color: var(--text); }
+
+    textarea { width: 100%; height: 190px; padding: 14px; border: 2px solid var(--border); border-radius: 8px; font-size: .95rem; font-family: monospace; resize: vertical; line-height: 1.5; background: var(--surface); color: var(--text); }
+    textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(79,70,229,.1); }
+    .smart-textarea-wrapper { position: relative; }
+    .live-stats { margin-top: 8px; background: var(--dark); color: var(--surface); padding: 6px 12px; border-radius: 6px; font-size: .82rem; font-weight: bold; display: inline-block; }
+
+    input[type="number"], input[type="text"], input[type="password"], input[type="date"], select.field {
+      padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; background: var(--surface); color: var(--text); transition: border-color .2s; max-width: 100%;
+    }
+    input[type="number"] { width: 120px; }
+    input[type="text"].wide, input[type="password"].wide { width: 100%; }
+    input:focus, select.field:focus { border-color: var(--primary); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 20px; border-radius: 8px; font-size: .95rem; font-weight: 600; border: none; cursor: pointer; transition: all .2s; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,.15); }
+    .btn:active { transform: translateY(1px); box-shadow: none; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 7px 12px; font-size: .82rem; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .notice { padding: 12px 16px; border-radius: 8px; font-size: .9rem; line-height: 1.6; margin-bottom: 16px; }
+    .notice.warn { background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; }
+    .notice.info { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .notice.ok { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    [data-theme="dark"] .notice.warn { background: #3b2a08; color: #fcd34d; border-color: #78350f; }
+    [data-theme="dark"] .notice.info { background: #08283b; color: #7dd3fc; border-color: #075985; }
+    [data-theme="dark"] .notice.ok { background: #062b22; color: #6ee7b7; border-color: #065f46; }
+
+    .table-container { overflow-x: auto; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; text-align: center; }
+    th, td { padding: 10px 12px; border: 1px solid var(--border); font-size: .95rem; }
+    th { background: var(--soft); font-weight: 700; color: var(--text); white-space: nowrap; }
+    .race-num-col { background: var(--soft2); font-weight: 700; width: 90px; color: var(--dark); }
+    td.ok { color: var(--success); font-weight: 700; }
+    td.bad { color: var(--danger); font-weight: 700; }
+    td.mid { color: var(--warn); font-weight: 700; }
+
+    select.slot-select { width: 100%; padding: 7px; border: 1px solid transparent; border-radius: 6px; background: transparent; font-size: .95rem; cursor: pointer; text-align: center; font-weight: 600; color: var(--primary); appearance: none; }
+    select.slot-select:hover:not(:disabled) { background: var(--soft2); border-color: var(--border); }
+    select.slot-select:focus { outline: none; background: var(--surface); border-color: var(--primary); }
+    select.slot-select:disabled { color: var(--success); cursor: not-allowed; opacity: 1; }
+    .slot-empty { color: #94a3b8 !important; font-weight: normal !important; }
+
+    .class-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+    .chip { background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2); color: white; border-radius: 12px; padding: 8px 14px; cursor: pointer; min-width: 110px; text-align: left; }
+    .chip.active { border-color: #38bdf8; background: rgba(56,189,248,.18); }
+    .chip small { display: block; color: #94a3b8; font-size: .75rem; }
+    .chip .mini { height: 5px; background: rgba(255,255,255,.2); border-radius: 99px; margin-top: 5px; overflow: hidden; }
+    .chip .mini > div { height: 100%; background: #10b981; }
+
+    .lottery-stage { background: radial-gradient(circle at center, #1e293b, #0f172a); border-radius: 20px; padding: 40px 20px; text-align: center; color: white; box-shadow: 0 25px 50px -12px rgba(0,0,0,.5); position: relative; overflow: hidden; }
+    .lottery-target { font-size: 2.3rem; font-weight: 900; margin-bottom: 26px; color: #38bdf8; text-shadow: 0 0 20px rgba(56,189,248,.6); }
+    .slot-machine { display: flex; justify-content: center; gap: 24px; margin-bottom: 34px; }
+    .slot-box { background: white; color: #0f172a; width: 190px; height: 150px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,.5), inset 0 -4px 0 rgba(0,0,0,.1); border: 4px solid #3b82f6; }
+    .slot-value { font-size: 3.8rem; font-weight: 900; color: #4f46e5; line-height: 1; margin-top: 6px; }
+    .lottery-btn { font-size: 1.6rem; padding: 18px 50px; border-radius: 999px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; border: none; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px rgba(239,68,68,.4); transition: all .2s; }
+    .lottery-btn:hover:not(:disabled) { transform: translateY(-4px) scale(1.02); }
+    .lottery-btn:disabled { background: #475569; cursor: not-allowed; box-shadow: none; opacity: .7; }
+    .stage-select { font-size: 1.2rem; padding: 14px 22px; border-radius: 999px; min-width: 280px; border: 2px solid white; background: #0f172a; color: white; text-align: center; }
+    .stage-sub { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .stage-sub .btn { background: rgba(255,255,255,.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,.2); }
+
+    #confettiCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.8); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-content { background: var(--surface); color: var(--text); border-radius: 24px; padding: 36px; width: 90%; max-width: 480px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,.5); transform: scale(.9); transition: transform .3s cubic-bezier(.175,.885,.32,1.275); }
+    .modal-overlay.active .modal-content { transform: scale(1); }
+
+    #toasts { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 11000; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .toast { background: #1e293b; color: white; padding: 12px 20px; border-radius: 10px; box-shadow: var(--shadow); font-size: .92rem; transition: all .4s; max-width: 90vw; }
+    .toast.error { background: #b91c1c; }
+    .toast.ok { background: #047857; }
+    .toast.out { opacity: 0; transform: translateY(10px); }
+
+    .view-switch { display: flex; gap: 6px; flex-wrap: wrap; }
+    .view-switch .btn.on { background: var(--primary); color: white; border-color: var(--primary); }
+
+    td.hit { background: #fef08a !important; outline: 2px solid #eab308; }
+    [data-theme="dark"] td.hit { background: #713f12 !important; }
+    td.swap-sel { background: #bfdbfe !important; outline: 3px solid #3b82f6; }
+    td.editable { cursor: pointer; }
+    td.editable:hover { background: var(--soft2); }
+    td.mismatch { box-shadow: inset 0 0 0 2px #f59e0b; }
+
+    .call-box { background: radial-gradient(circle at center, #1e293b, #0f172a); color: white; border-radius: 20px; padding: 30px; text-align: center; }
+    .call-title { font-size: 3rem; font-weight: 900; color: #38bdf8; margin-bottom: 24px; }
+    .call-lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+    .call-lane { background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2); border-radius: 16px; padding: 20px 10px; }
+    .call-lane .ln { font-size: 1.1rem; color: #94a3b8; font-weight: 700; }
+    .call-lane .nm { font-size: 2rem; font-weight: 900; margin-top: 8px; word-break: break-all; }
+    .call-lane .cl { font-size: 1rem; color: #cbd5e1; margin-top: 4px; }
+    .call-lane.none .nm { color: #64748b; font-size: 1.3rem; }
+
+    .size-s td, .size-s th { font-size: 9pt !important; }
+    .size-m td, .size-m th { font-size: 11pt !important; }
+    .size-l td, .size-l th { font-size: 14pt !important; }
+    .size-xl td, .size-xl th { font-size: 18pt !important; padding: 14px 10px; }
+
+    .kbd { background: var(--soft2); border: 1px solid var(--border); border-bottom-width: 3px; border-radius: 6px; padding: 1px 8px; font-family: monospace; font-weight: 700; }
+    .list-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 4px; border-bottom: 1px dashed var(--border); font-size: .92rem; }
+
+    @media (max-width: 800px) {
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+      .slot-machine { gap: 10px; }
+      .slot-box { width: 150px; height: 130px; }
+      .slot-value { font-size: 3rem; }
+      .lottery-target { font-size: 1.7rem; }
+      .card { padding: 18px; }
+      .call-title { font-size: 2rem; }
+    }
+
+    @media print {
+      body { background: white; color: black; }
+      header, .global-progress, .no-print, .nav-tabs, button, #toasts { display: none !important; }
+      main { margin: 0; padding: 0; max-width: 100%; }
+      .card { border: none; box-shadow: none; padding: 0; background: white; }
+      table { border: 2px solid #000; }
+      th, td { border: 1px solid #000 !important; color: #000 !important; padding: 6px 4px; background: white; }
+      th { background-color: #f2f2f2 !important; }
+      .race-num-col { background: #f2f2f2 !important; }
+      h1, h2, h3 { color: #000 !important; }
+      .page-break { page-break-before: always; }
+      .call-box { background: white; color: black; border: 2px solid #000; }
+      .call-title, .call-lane .nm, .call-lane .ln, .call-lane .cl { color: #000 !important; }
+      td.hit { background: white !important; outline: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="confettiCanvas"></canvas>
+  <div id="toasts"></div>
+
+  <header>
+    <h1>🏃 学年レク走 編成システム <span class="ver">v4</span></h1>
+    <div class="nav-tabs no-print">
+      <button class="tab-btn active" data-tab="configTab" onclick="switchTab('configTab')">⚙️ ① 設定・名簿</button>
+      <button class="tab-btn" data-tab="lotteryTab" onclick="switchTab('lotteryTab')">🎲 ② くじ引き</button>
+      <button class="tab-btn" data-tab="logTab" onclick="switchTab('logTab')">📜 ③ 履歴</button>
+      <button class="tab-btn" data-tab="relayTab" onclick="switchTab('relayTab')">💾 ④ 引き継ぎ</button>
+      <button class="tab-btn" data-tab="revealTab" onclick="switchTab('revealTab')">🔒 ⑤ 公開・印刷</button>
+      <button class="tab-btn" data-tab="settingsTab" onclick="switchTab('settingsTab')">🛠 環境設定</button>
+    </div>
+    <div class="head-tools no-print">
+      <button class="icon-btn" id="soundToggle" title="効果音 ON/OFF" onclick="toggleSetting('sound')">🔊</button>
+      <button class="icon-btn" id="themeToggle" title="ダークモード切替" onclick="toggleTheme()">🌙</button>
+    </div>
+  </header>
+  <div class="global-progress no-print">
+    <span id="gpText">抽選進行: 未設定</span>
+    <div class="bar"><div id="gpBar"></div></div>
+    <span class="unsaved-badge" id="unsavedBadge">⚠ 引き継ぎ未保存</span>
+  </div>
+
+  <main>
+    <!-- ① 設定・名簿 -->
+    <div id="configTab" class="view-panel active">
+      <div class="card">
+        <h2>📝 行事の基本情報</h2>
+        <div class="grid3">
+          <div><label class="form-label">行事名（印刷タイトル）</label><input type="text" class="wide" id="metaTitle" oninput="onMetaInput()" placeholder="例：学年レク走"></div>
+          <div><label class="form-label">学校名・学年</label><input type="text" class="wide" id="metaSchool" oninput="onMetaInput()" placeholder="例：○○小学校 5年"></div>
+          <div><label class="form-label">実施日</label><input type="date" id="metaDate" oninput="onMetaInput()"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📋 レース基本設定 ＆ 名簿入力</h2>
+        <div id="dirtyBanner" class="notice warn" style="display:none;">
+          ⚠ 設定や名簿が変更されています。「設定を反映してレース枠を生成」を押すまで枠には反映されません（押すと抽選結果はリセットされます）。
+        </div>
+        <div class="grid2" style="margin-bottom: 10px;">
+          <div class="form-section">
+            <label class="form-label">🏁 総レース数</label>
+            <div class="form-desc" id="recommendDesc">必要なレースの数を入力</div>
+            <input type="number" id="cfgNumRaces" value="20" min="1" max="60" oninput="onConfigInput()">
+          </div>
+          <div class="form-section">
+            <label class="form-label">🧩 クラス割り当てパターン</label>
+            <div class="form-desc">枠のクラス振り分け方法を選びます（あとから表で個別に変更可）</div>
+            <select class="field" id="cfgPattern" onchange="onConfigInput()">
+              <option value="rotate">ローテーション（各レースに全クラスが混ざる・おすすめ）</option>
+              <option value="block">レーン固定（各レーンを特定クラスが担当）</option>
+              <option value="perrace">レース単位（1レース＝1クラス）</option>
+              <option value="random">ランダム配置（クラス数は均等）</option>
+            </select>
+            <label style="display:block; margin-top:10px; font-size:.9rem;">
+              <input type="checkbox" id="cfgFit" checked onchange="onConfigInput()"> 児童数より多い枠を自動で「空き」にする
+            </label>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="form-section">
+            <label class="form-label">🏃‍♀️ 使用レーン</label>
+            <div class="form-desc">入力してEnter ／ ×で削除</div>
+            <div class="tags-container" id="laneTagsContainer"></div>
+          </div>
+          <div class="form-section">
+            <label class="form-label">🏫 学年クラス一覧</label>
+            <div class="form-desc">入力してEnter ／ ×で削除（名簿から自動取得も可）</div>
+            <div class="tags-container" id="classTagsContainer"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">📋 児童名簿（スマートペースト対応）</label>
+          <div class="form-desc">
+            Excelの表（名前・クラス・性別）を<b>そのままコピー＆ペースト</b>できます。タブ・カンマ・全角カンマを自動認識し、見出し行（名前／氏名）は自動で無視します。
+          </div>
+          <div class="smart-textarea-wrapper">
+            <textarea id="cfgStudentInput" placeholder="山田太郎&#9;1組&#9;男&#10;佐藤花子&#9;1組&#9;女..." oninput="onConfigInput()"></textarea>
+          </div>
+          <div class="live-stats" id="liveStatsDisplay">児童: 0名</div>
+          <div id="rosterWarn" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="initSetup()">✨ 設定を反映してレース枠を生成</button>
+          <button class="btn btn-secondary" onclick="importClassesFromRoster()">🏫 名簿からクラスを自動取得</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('rosterCsvInput').click()">📂 名簿CSVを読み込む</button>
+          <input type="file" id="rosterCsvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importRosterCsv(event)">
+          <button class="btn btn-secondary" onclick="generateSampleData()">📝 テスト用名簿を入力</button>
+        </div>
+      </div>
+
+      <div class="card" id="balanceCard" style="display:none;">
+        <h2>⚖️ 枠の過不足チェック</h2>
+        <div id="balanceArea"></div>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn btn-secondary btn-sm" onclick="trimExcessSlots()">✂️ 余り枠を自動で空きにする</button>
+        </div>
+      </div>
+
+      <div class="card" id="gridConfigCard" style="display:none;">
+        <h2>
+          🎯 レース別 クラス割り当て＆空き調整
+          <span class="btn-row" style="margin-left:auto;">
+            <button class="btn btn-secondary btn-sm" onclick="redistribute()">🔄 パターンを再適用</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearAllEmpty()">♻️ 空きを全解除</button>
+          </span>
+        </h2>
+        <p style="font-size:.92rem; color:var(--text-muted); margin-bottom:16px;">
+          セレクトで走るクラスを指定します。人数が合わない枠は「❌ 空き」に。抽選済みの枠（🔒）は変更できません。
+        </p>
+        <div class="table-container" id="gridConfigArea"></div>
+      </div>
+    </div>
+
+    <!-- ② くじ引き -->
+    <div id="lotteryTab" class="view-panel">
+      <div id="lotteryEmpty" class="notice info">先に「① 設定・名簿」でレース枠を生成するか、「④ 引き継ぎ」で前のクラスのファイルを読み込んでください。</div>
+      <div class="lottery-stage">
+        <div style="display:inline-block; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); padding:8px 24px; border-radius:999px; margin-bottom:20px;">🎉 ドキドキ！ レク走 レーン抽選会</div>
+
+        <div class="class-chips" id="classChips"></div>
+
+        <div class="lottery-target" id="currentRunnerDisplay">児童を選択してください</div>
+
+        <div class="slot-machine">
+          <div class="slot-box"><div style="font-size:1.1rem; font-weight:bold; color:#64748b;">レース</div><div class="slot-value" id="slotRaceVal">?</div></div>
+          <div class="slot-box"><div style="font-size:1.1rem; font-weight:bold; color:#64748b;">レーン</div><div class="slot-value" id="slotLaneVal">?</div></div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:16px; align-items:center; flex-wrap:wrap;">
+          <select id="lotteryStudentSelect" class="stage-select" onchange="onStudentSelectChange()"><option value="">児童を選択...</option></select>
+          <button class="lottery-btn" id="lotteryBtn" onclick="runLottery()">🎲 運命のくじを引く！</button>
+        </div>
+
+        <div class="stage-sub">
+          <button class="btn btn-sm" onclick="pickRandomStudent()">🎯 次の児童をランダムに選ぶ（N）</button>
+          <button class="btn btn-sm" onclick="undoLast()">↩ 直前の抽選を取り消す</button>
+          <button class="btn btn-sm" onclick="batchDraw()">⚡ このクラスの残りを一括抽選</button>
+        </div>
+        <div style="margin-top:14px; color:#94a3b8; font-size:.82rem;">
+          <span class="kbd" style="color:#0f172a">Space</span> くじを引く ／ <span class="kbd" style="color:#0f172a">N</span> ランダムに児童選択 ／ <span class="kbd" style="color:#0f172a">Esc</span> 結果を閉じる
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 履歴 -->
+    <div id="logTab" class="view-panel">
+      <div class="card">
+        <h2>📜 抽選履歴（監査ログ）</h2>
+        <div class="notice info">誰がいつ引いたかを記録します。レースとレーンは<b>結果公開（パスワード入力）後</b>のみ表示されます。</div>
+        <div class="btn-row" style="margin-bottom:12px;">
+          <select class="field" id="logFilterClass" onchange="renderLog()"></select>
+        </div>
+        <div id="logArea"></div>
+      </div>
+    </div>
+
+    <!-- ④ 引き継ぎ -->
+    <div id="relayTab" class="view-panel">
+      <div class="card">
+        <h2>🔒 クラス間 安全引き継ぎ（暗号化）</h2>
+        <p style="margin-bottom:20px; color:var(--text-muted); line-height:1.7;">
+          抽選データを<b>パスワードで暗号化</b>して保存します（AES-256）。ファイルを開いても子どもには結果が読めません。<br>
+          次のクラスの先生は読み込んで続きを引けます。<b>別々のクラスが同時に抽選して、あとで合体（マージ）</b>することもできます。
+        </p>
+        <div class="grid2">
+          <div style="border:2px dashed var(--border); padding:28px; border-radius:16px; text-align:center; background:var(--soft);">
+            <h3 style="margin-bottom:12px;">📤 現在の進行データを保存</h3>
+            <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:14px;" id="relayInfo"></p>
+            <button class="btn btn-primary" onclick="exportRelayFile()">💾 暗号化して保存</button>
+          </div>
+          <div style="border:2px dashed var(--border); padding:28px; border-radius:16px; text-align:center; background:var(--soft);">
+            <h3 style="margin-bottom:12px;">📥 前のクラスから引き継ぎ</h3>
+            <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:14px;">同じ行事のデータなら自動で合体、別データなら置き換えます。</p>
+            <input type="file" id="relayFileInput" accept=".json" style="display:none;" onchange="importRelayFile(event)">
+            <button class="btn btn-secondary" onclick="document.getElementById('relayFileInput').click()">📂 ファイルを読み込む</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ 公開・印刷 -->
+    <div id="revealTab" class="view-panel">
+      <div id="lockedArea" class="card" style="text-align:center; padding:56px 20px;">
+        <div style="font-size:4rem; margin-bottom:16px;">🔒</div>
+        <h2 style="justify-content:center;">結果はパスワードで保護されています</h2>
+        <p style="color:var(--text-muted); margin-bottom:26px;">全クラスの抽選終了後、先生用パスワードを入力して公開してください。</p>
+        <div style="display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+          <input type="password" id="unlockPass" placeholder="先生用パスワード" style="font-size:1.1rem; width:220px; text-align:center;" onkeydown="if(event.key==='Enter')unlockResults()">
+          <button class="btn btn-success" onclick="unlockResults()">🔓 公開する</button>
+        </div>
+      </div>
+
+      <div id="unlockedArea" style="display:none;">
+        <div class="card no-print">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+            <h2 style="margin:0;">🎉 確定対戦表</h2>
+            <div class="btn-row">
+              <button class="btn btn-secondary btn-sm" onclick="exportToCSV()">📊 対戦表CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportStudentCSV()">👥 児童別CSV</button>
+              <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ 印刷</button>
+              <button class="btn btn-secondary btn-sm" onclick="relock()">🔒 再ロック</button>
+            </div>
+          </div>
+          <div class="btn-row" style="justify-content:space-between;">
+            <div class="view-switch" id="viewSwitch">
+              <button class="btn btn-secondary btn-sm on" data-v="table" onclick="setView('table')">📋 全体表</button>
+              <button class="btn btn-secondary btn-sm" data-v="class" onclick="setView('class')">🏫 クラス別名簿</button>
+              <button class="btn btn-secondary btn-sm" data-v="call" onclick="setView('call')">📣 出走コール</button>
+            </div>
+            <div class="btn-row">
+              <input type="text" id="searchBox" placeholder="🔍 名前で検索" oninput="renderResults()" style="padding:8px 12px; font-size:.9rem;">
+              <select class="field" id="printSize" onchange="onPrintSize()" style="padding:8px; font-size:.9rem;">
+                <option value="s">文字：小</option><option value="m">文字：中</option><option value="l">文字：大</option><option value="xl">文字：特大</option>
+              </select>
+            </div>
+          </div>
+          <div id="editBar" class="btn-row" style="margin-top:12px;">
+            <label style="font-size:.9rem;"><input type="checkbox" id="editMode" onchange="onEditMode()"> ✏️ 手動入れ替えモード（2つのマスを順にクリックで入れ替え）</label>
+          </div>
+          <div id="searchResult" style="margin-top:10px;"></div>
+        </div>
+        <div class="card" id="printContent">
+          <h1 id="printTitle" style="text-align:center; margin-bottom:6px;"></h1>
+          <p id="printSub" style="text-align:center; color:var(--text-muted); margin-bottom:18px;"></p>
+          <div id="resultsArea"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 環境設定 -->
+    <div id="settingsTab" class="view-panel">
+      <div class="card">
+        <h2>🛠 演出・動作</h2>
+        <div class="grid2">
+          <div>
+            <label style="display:block; margin-bottom:10px;"><input type="checkbox" id="setSound" onchange="onSettingsChange()"> 🔊 効果音</label>
+            <label style="display:block; margin-bottom:10px;"><input type="checkbox" id="setConfetti" onchange="onSettingsChange()"> 🎊 紙吹雪</label>
+            <label style="display:block; margin-bottom:10px;"><input type="checkbox" id="setBlind" onchange="onSettingsChange()"> 🤫 伏せるモード（子どもの画面に結果を出さない）</label>
+            <label style="display:block; margin-bottom:10px;"><input type="checkbox" id="setAutoNext" onchange="onSettingsChange()"> ⏭ 抽選後に次の児童を自動選択</label>
+          </div>
+          <div>
+            <label class="form-label">🎰 ルーレット速度</label>
+            <select class="field" id="setSpeed" onchange="onSettingsChange()">
+              <option value="fast">速い</option><option value="normal">ふつう</option><option value="slow">ゆっくり（盛り上げ）</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔑 先生用パスワード</h2>
+        <div class="notice info">初期パスワードは <b>4321</b> です。変更したパスワードは引き継ぎファイルにも含まれ、次のクラスにも引き継がれます。</div>
+        <div class="btn-row">
+          <input type="password" id="oldPass" placeholder="現在のパスワード">
+          <input type="password" id="newPass" placeholder="新しいパスワード">
+          <button class="btn btn-primary" onclick="changePassword()">変更</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🧰 設定のバックアップ ＆ リセット</h2>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="exportConfig()">⬇ 設定のみ書き出し（抽選結果なし）</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('configFileInput').click()">⬆ 設定を読み込み</button>
+          <input type="file" id="configFileInput" accept=".json" style="display:none" onchange="importConfig(event)">
+          <button class="btn btn-danger" onclick="resetDraws()">🧹 抽選結果だけをリセット</button>
+          <button class="btn btn-danger" onclick="resetAll()">⚠ 全データ初期化</button>
+        </div>
+        <p style="margin-top:12px; font-size:.85rem; color:var(--text-muted);">※ このブラウザには進行状況が自動保存されます（誤って閉じても復元）。ただし共有PCでは終了後に「全データ初期化」を推奨します。</p>
+      </div>
+
+      <div class="card">
+        <h2>⌨️ ショートカット</h2>
+        <div class="list-row"><span><span class="kbd">Space</span></span><span>くじ引き画面で抽選</span></div>
+        <div class="list-row"><span><span class="kbd">N</span></span><span>次の児童をランダムに選択</span></div>
+        <div class="list-row"><span><span class="kbd">Enter</span> / <span class="kbd">Esc</span></span><span>結果ポップアップを閉じる</span></div>
+        <div class="list-row"><span><span class="kbd">←</span> <span class="kbd">→</span></span><span>出走コールでレース前後移動</span></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 結果モーダル -->
+  <div class="modal-overlay" id="resultModal">
+    <div class="modal-content">
+      <div style="font-size:4rem; margin-bottom:12px;" id="modalIcon">🎯</div>
+      <div style="font-size:1.8rem; font-weight:800; color:var(--dark); margin-bottom:8px;" id="modalStudentName"></div>
+      <p style="color:var(--text-muted); margin-bottom:20px;" id="modalSub">あなたの走る場所が決定しました！</p>
+      <div style="background:var(--soft); border-radius:16px; padding:22px; border:3px solid #3b82f6; margin-bottom:26px;">
+        <div style="font-size:2.3rem; font-weight:900; color:#3b82f6;" id="modalRaceLaneText"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%; font-size:1.15rem; padding:14px;" onclick="closeModal()">決定して次へ</button>
+    </div>
+  </div>
+
+  <!-- パスワードモーダル -->
+  <div class="modal-overlay" id="pwModal">
+    <div class="modal-content">
+      <div style="font-size:3rem; margin-bottom:10px;">🔑</div>
+      <p id="pwMsg" style="margin-bottom:16px; font-weight:700; color:var(--dark);"></p>
+      <input type="password" id="pwInput" class="wide" style="margin-bottom:10px;" placeholder="パスワード">
+      <input type="password" id="pwInput2" class="wide" style="margin-bottom:10px; display:none;" placeholder="確認のためもう一度">
+      <div class="btn-row" style="justify-content:center; margin-top:8px;">
+        <button class="btn btn-secondary" id="pwCancel">キャンセル</button>
+        <button class="btn btn-primary" id="pwOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= ユーティリティ =================
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const STORE_KEY = 'recRunV4';
+    const hasSubtle = !!(window.crypto && crypto.subtle);
+
+    // 偏りのない乱数
+    function rnd(n) {
+      const a = new Uint32Array(1);
+      const lim = Math.floor(4294967296 / n) * n;
+      do { crypto.getRandomValues(a); } while (a[0] >= lim);
+      return a[0] % n;
+    }
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) { const j = rnd(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+      return arr;
+    }
+    function toast(msg, type = 'info') {
+      const t = document.createElement('div');
+      t.className = 'toast ' + type; t.textContent = msg;
+      $('toasts').appendChild(t);
+      setTimeout(() => t.classList.add('out'), 3200);
+      setTimeout(() => t.remove(), 3700);
+    }
+    async function sha256(t) {
+      if (!hasSubtle) { let h = 5381; for (const c of t) h = ((h << 5) + h + c.charCodeAt(0)) | 0; return 'weak' + h; }
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+      return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    const b64 = buf => { let s = ''; new Uint8Array(buf).forEach(c => s += String.fromCharCode(c)); return btoa(s); };
+    const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+    async function deriveKey(pw, salt) {
+      const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    }
+    async function encryptJSON(obj, pw) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(pw, salt);
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(obj)));
+      return { salt: b64(salt), iv: b64(iv), data: b64(ct) };
+    }
+    async function decryptJSON(pkg, pw) {
+      const key = await deriveKey(pw, unb64(pkg.salt));
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(pkg.iv) }, key, unb64(pkg.data));
+      return JSON.parse(new TextDecoder().decode(pt));
+    }
+    function askPassword(msg, confirmTwice = false) {
+      return new Promise(res => {
+        $('pwMsg').textContent = msg; $('pwInput').value = ''; $('pwInput2').value = '';
+        $('pwInput2').style.display = confirmTwice ? 'block' : 'none';
+        $('pwModal').classList.add('active');
+        setTimeout(() => $('pwInput').focus(), 60);
+        const done = v => { $('pwModal').classList.remove('active'); res(v); };
+        $('pwOk').onclick = () => {
+          const a = $('pwInput').value;
+          if (!a) { toast('パスワードを入力してください', 'error'); return; }
+          if (confirmTwice && a !== $('pwInput2').value) { toast('確認用パスワードが一致しません', 'error'); return; }
+          done(a);
+        };
+        $('pwCancel').onclick = () => done(null);
+        $('pwInput').onkeydown = e => { if (e.key === 'Enter' && !confirmTwice) $('pwOk').click(); };
+        $('pwInput2').onkeydown = e => { if (e.key === 'Enter') $('pwOk').click(); };
+      });
+    }
+    function download(name, blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    const dateStamp = () => { const d = new Date(); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; };
+
+    // ================= 状態 =================
+    function defaultState() {
+      return {
+        setupId: null, seq: 0, lastExportSeq: 0,
+        meta: { title: '学年レク走', school: '', date: '' },
+        numRaces: 20, lanes: ['A', 'B', 'C', 'D', 'E', 'F'], classes: ['1組', '2組', '3組'],
+        rawText: '', pattern: 'rotate', fit: true,
+        students: [], slots: [], log: [], appliedSig: '',
+        settings: { sound: true, confetti: true, speed: 'normal', blind: false, autoNext: true, theme: 'light', passHash: null, printSize: 'm' }
+      };
+    }
+    let S = defaultState();
+    let ui = { view: 'table', callRace: 1, swapSel: null, revealed: false, rolling: false, selClass: '' };
+
+    function saveState() {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) { }
+      renderGlobalProgress();
+    }
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) {
+          const d = JSON.parse(raw), base = defaultState();
+          S = Object.assign(base, d);
+          S.meta = Object.assign(base.meta, d.meta || {});
+          S.settings = Object.assign(base.settings, d.settings || {});
+          return;
+        }
+        // v3の設定を引き継ぐ
+        const old = localStorage.getItem('recRunConfigV3');
+        if (old) {
+          const o = JSON.parse(old);
+          S.numRaces = o.races || 20; S.lanes = o.lanes || S.lanes; S.classes = o.classes || S.classes; S.rawText = o.rawText || '';
+        }
+      } catch (e) { }
+    }
+    const slotAt = (r, l) => S.slots.find(s => s.race === r && s.lane === l);
+    const stuById = id => S.students.find(s => s.id === id);
+    const drawnCount = () => S.students.filter(s => s.assigned).length;
+    const configSig = () => JSON.stringify([S.numRaces, S.lanes, S.classes, S.rawText.trim(), S.pattern, S.fit]);
+
+    // ================= タグUI =================
+    function renderTags(type) {
+      const container = $(type === 'lane' ? 'laneTagsContainer' : 'classTagsContainer');
+      const arr = type === 'lane' ? S.lanes : S.classes;
+      container.innerHTML = '';
+      arr.forEach((item, i) => {
+        const t = document.createElement('div'); t.className = 'tag';
+        t.innerHTML = `<span>${esc(item)}</span><button title="削除">×</button>`;
+        t.querySelector('button').onclick = () => { arr.splice(i, 1); onConfigChanged(); renderTags(type); };
+        container.appendChild(t);
+      });
+      const input = document.createElement('input');
+      input.type = 'text'; input.className = 'tag-input'; input.placeholder = '追加 + Enter';
+      input.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const v = e.target.value.trim().replace(/,/g, '');
+          if (v && !arr.includes(v)) { arr.push(v); onConfigChanged(); renderTags(type); container.querySelector('input').focus(); }
+        }
+      };
+      container.appendChild(input);
+    }
+
+    // ================= 名簿解析 =================
+    function parseStudentText(raw) {
+      const out = []; let n = 1;
+      raw.split(/\r?\n/).forEach((line, idx) => {
+        const parts = line.split(/[\t,，]+/).map(p => p.trim()).filter(Boolean);
+        if (!parts.length) return;
+        if (idx === 0 && /^(名前|氏名|児童名|name)$/i.test(parts[0])) return;
+        out.push({ id: 'stu_' + (n++), name: parts[0], cls: parts[1] || S.classes[0] || '不明', gender: parts[2] || '', assigned: null });
+      });
+      return out;
+    }
+    function updateRosterStats() {
+      const parsed = parseStudentText($('cfgStudentInput').value);
+      const st = $('liveStatsDisplay'), warn = $('rosterWarn');
+      if (!parsed.length) { st.textContent = '名簿データを入力してください'; warn.innerHTML = ''; return; }
+      const counts = {}; parsed.forEach(s => counts[s.cls] = (counts[s.cls] || 0) + 1);
+      st.textContent = `認識済: 計${parsed.length}名（` + Object.entries(counts).map(([c, n]) => `${c}: ${n}名`).join(' / ') + '）';
+      let html = '';
+      const unknown = Object.keys(counts).filter(c => !S.classes.includes(c));
+      if (unknown.length) html += `<div class="notice warn">⚠ クラス一覧にないクラスがあります: <b>${unknown.map(esc).join('、')}</b>（「名簿からクラスを自動取得」で追加できます）</div>`;
+      const seen = {}, dups = [];
+      parsed.forEach(s => { const k = s.cls + '|' + s.name; if (seen[k]) dups.push(`${s.name}(${s.cls})`); seen[k] = 1; });
+      if (dups.length) html += `<div class="notice warn">⚠ 同じクラスに同名の児童がいます: <b>${[...new Set(dups)].map(esc).join('、')}</b>（名字＋イニシャルなどで区別してください）</div>`;
+      warn.innerHTML = html;
+    }
+    function importClassesFromRoster() {
+      const parsed = parseStudentText($('cfgStudentInput').value);
+      const found = [...new Set(parsed.map(s => s.cls))].filter(Boolean);
+      if (!found.length) { toast('名簿が空です', 'error'); return; }
+      S.classes = found; onConfigChanged(); renderTags('class'); toast(`クラスを${found.length}件取得しました`, 'ok');
+    }
+    function generateSampleData() {
+      let s = '', n = 1;
+      S.classes.forEach(c => { for (let i = 1; i <= 35; i++) { s += `児童${n}\t${c}\t${i % 2 === 0 ? '男' : '女'}\n`; n++; } });
+      $('cfgStudentInput').value = s.trim(); onConfigInput();
+    }
+    function importRosterCsv(e) {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const buf = ev.target.result; let text;
+        try { text = new TextDecoder('utf-8', { fatal: true }).decode(buf); } catch (_) { text = new TextDecoder('shift_jis').decode(buf); }
+        $('cfgStudentInput').value = text.trim(); onConfigInput(); toast('名簿を読み込みました', 'ok');
+      };
+      r.readAsArrayBuffer(f); e.target.value = '';
+    }
+
+    // ================= 設定入力 =================
+    function readInputs() {
+      S.numRaces = Math.max(1, Math.min(60, parseInt($('cfgNumRaces').value) || 20));
+      S.rawText = $('cfgStudentInput').value;
+      S.pattern = $('cfgPattern').value;
+      S.fit = $('cfgFit').checked;
+    }
+    function onConfigInput() { readInputs(); onConfigChanged(); }
+    function onConfigChanged() {
+      S.lanes = S.lanes; updateRosterStats(); updateRecommend();
+      $('dirtyBanner').style.display = (S.slots.length && configSig() !== S.appliedSig) ? 'block' : 'none';
+      saveState();
+    }
+    function onMetaInput() {
+      S.meta.title = $('metaTitle').value; S.meta.school = $('metaSchool').value; S.meta.date = $('metaDate').value;
+      saveState(); renderPrintHeader();
+    }
+    function updateRecommend() {
+      const parsed = parseStudentText($('cfgStudentInput').value);
+      const L = S.lanes.length, n = S.classes.length;
+      if (!parsed.length || !L || !n) { $('recommendDesc').textContent = '必要なレースの数を入力'; return; }
+      const counts = {}; parsed.forEach(s => counts[s.cls] = (counts[s.cls] || 0) + 1);
+      const max = Math.max(...S.classes.map(c => counts[c] || 0));
+      const rec = Math.ceil(max * n / L);
+      $('recommendDesc').innerHTML = `最大クラス${max}名・${L}レーン・${n}クラスの場合、<b>推奨 ${rec} レース以上</b>`;
+    }
+
+    // ================= 枠生成 =================
+    function initSetup() {
+      readInputs();
+      const students = parseStudentText(S.rawText);
+      if (!S.lanes.length || !S.classes.length) { toast('レーンとクラスを最低1つ以上設定してください', 'error'); return; }
+      if (!students.length) { toast('児童名簿が空です', 'error'); return; }
+      if (drawnCount() > 0 && !confirm('すでに抽選結果があります。枠を再生成すると結果はすべて消えます。続けますか？')) return;
+      const unknown = [...new Set(students.map(s => s.cls))].filter(c => !S.classes.includes(c));
+      if (unknown.length) { unknown.forEach(c => S.classes.push(c)); renderTags('class'); toast(`クラス一覧にない ${unknown.join('、')} を追加しました`); }
+      S.students = students; S.setupId = uid(); S.seq = 0; S.lastExportSeq = 0; S.log = [];
+      S.slots = [];
+      for (let r = 1; r <= S.numRaces; r++) for (const l of S.lanes) S.slots.push({ race: r, lane: l, targetClass: S.classes[0], assignedStudentId: null, isEmpty: false });
+      applyPattern(); if (S.fit) trimExcessSlots(true);
+      S.appliedSig = configSig();
+      afterSlotsChange(); $('dirtyBanner').style.display = 'none';
+      toast(`${S.numRaces}レース×${S.lanes.length}レーンの枠を生成しました`, 'ok');
+      $('balanceCard').scrollIntoView({ behavior: 'smooth' });
+    }
+    function applyPattern() {
+      const n = S.classes.length, L = S.lanes.length, R = S.numRaces;
+      let cls = [];
+      if (S.pattern === 'rotate') { for (let r = 0; r < R; r++) for (let i = 0; i < L; i++) cls.push(S.classes[(i + r) % n]); }
+      else if (S.pattern === 'block') { for (let r = 0; r < R; r++) for (let i = 0; i < L; i++) cls.push(S.classes[Math.floor(i * n / L)]); }
+      else if (S.pattern === 'perrace') { for (let r = 0; r < R; r++) for (let i = 0; i < L; i++) cls.push(S.classes[r % n]); }
+      else { cls = shuffle(Array.from({ length: R * L }, (_, k) => S.classes[k % n])); }
+      S.slots.forEach((s, i) => { if (!s.assignedStudentId) { s.targetClass = cls[i]; s.isEmpty = false; } });
+    }
+    function redistribute() {
+      readInputs();
+      if (drawnCount() > 0 && !confirm('抽選済みの枠は変更されません（未抽選の枠のみ再配置します）。続けますか？')) return;
+      applyPattern(); if (S.fit) trimExcessSlots(true);
+      afterSlotsChange();
+    }
+    function clearAllEmpty() {
+      S.slots.forEach(s => { if (s.isEmpty) { s.isEmpty = false; s.targetClass = s.targetClass === '空き' ? S.classes[0] : s.targetClass; } });
+      afterSlotsChange();
+    }
+    function classStats() {
+      return S.classes.map(c => {
+        const need = S.students.filter(s => s.cls === c).length;
+        const have = S.slots.filter(s => !s.isEmpty && s.targetClass === c).length;
+        const drawn = S.students.filter(s => s.cls === c && s.assigned).length;
+        return { c, need, have, drawn };
+      });
+    }
+    function trimExcessSlots(silent) {
+      let trimmed = 0;
+      classStats().forEach(st => {
+        let excess = st.have - st.need;
+        for (let i = S.slots.length - 1; i >= 0 && excess > 0; i--) {
+          const s = S.slots[i];
+          if (!s.isEmpty && s.targetClass === st.c && !s.assignedStudentId) { s.isEmpty = true; s.targetClass = '空き'; excess--; trimmed++; }
+        }
+      });
+      if (!silent) { afterSlotsChange(); toast(trimmed ? `${trimmed}枠を空きにしました` : '余り枠はありません', trimmed ? 'ok' : 'info'); }
+    }
+    function afterSlotsChange() { renderBalance(); renderConfigGrid(); refreshLotterySelectors(); updateLotteryUI(); renderLog(); renderRelayInfo(); if (ui.revealed) renderResults(); saveState(); }
+
+    function renderBalance() {
+      const card = $('balanceCard');
+      if (!S.slots.length) { card.style.display = 'none'; return; }
+      card.style.display = 'block';
+      let html = `<div class="table-container"><table><thead><tr><th>クラス</th><th>児童数</th><th>走れる枠</th><th>差</th><th>判定</th><th>抽選済</th></tr></thead><tbody>`;
+      classStats().forEach(st => {
+        const d = st.have - st.need;
+        const cls = d === 0 ? 'ok' : d < 0 ? 'bad' : 'mid';
+        const msg = d === 0 ? '✅ ぴったり' : d < 0 ? `❌ あと${-d}枠不足` : `⚠ ${d}枠余り`;
+        html += `<tr><td><b>${esc(st.c)}</b></td><td>${st.need}</td><td>${st.have}</td><td>${d > 0 ? '+' : ''}${d}</td><td class="${cls}">${msg}</td><td>${st.drawn} / ${st.need}</td></tr>`;
+      });
+      html += `</tbody></table></div>`;
+      const bad = classStats().some(s => s.have < s.need);
+      html += bad ? `<div class="notice warn" style="margin-top:12px;">不足しているクラスは、下の表で空き枠を戻すか、レース数を増やして再生成してください。</div>` : '';
+      $('balanceArea').innerHTML = html;
+    }
+    function renderConfigGrid() {
+      const card = $('gridConfigCard');
+      if (!S.slots.length) { card.style.display = 'none'; return; }
+      card.style.display = 'block';
+      let html = `<table><thead><tr><th class="race-num-col">レース</th>`;
+      S.lanes.forEach(l => html += `<th>${esc(l)}</th>`);
+      html += `<th>走者数</th></tr></thead><tbody>`;
+      for (let r = 1; r <= S.numRaces; r++) {
+        html += `<tr><td class="race-num-col">第${r}</td>`;
+        let cnt = 0;
+        S.lanes.forEach(l => {
+          const slot = slotAt(r, l); if (!slot) { html += '<td>-</td>'; return; }
+          if (!slot.isEmpty) cnt++;
+          const locked = !!slot.assignedStudentId;
+          html += `<td><select class="slot-select ${slot.isEmpty ? 'slot-empty' : ''}" ${locked ? 'disabled' : ''} data-r="${r}" data-l="${esc(l)}" onchange="updateSlotConfig(this)">` +
+            S.classes.map(c => `<option value="${esc(c)}" ${slot.targetClass === c && !slot.isEmpty ? 'selected' : ''}>${locked && slot.targetClass === c ? '🔒 ' : ''}${esc(c)}</option>`).join('') +
+            `<option value="__EMPTY__" ${slot.isEmpty ? 'selected' : ''}>❌ 空き</option></select></td>`;
+        });
+        html += `<td>${cnt}</td></tr>`;
+      }
+      html += `</tbody></table>`;
+      $('gridConfigArea').innerHTML = html;
+    }
+    function updateSlotConfig(el) {
+      const slot = slotAt(parseInt(el.dataset.r), el.dataset.l); if (!slot) return;
+      if (el.value === '__EMPTY__') { slot.isEmpty = true; slot.targetClass = '空き'; }
+      else { slot.isEmpty = false; slot.targetClass = el.value; }
+      renderBalance(); renderConfigGrid(); updateLotteryUI(); saveState();
+    }
+
+    // ================= 音・紙吹雪 =================
+    let audioCtx = null;
+    function getAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
+    function playDrumRoll(dur) {
+      if (!S.settings.sound) return; const a = getAudio();
+      const size = a.sampleRate * dur, buf = a.createBuffer(1, size, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < size; i++) d[i] = Math.random() * 2 - 1;
+      const n = a.createBufferSource(); n.buffer = buf;
+      const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 300;
+      const g = a.createGain(); g.gain.setValueAtTime(0.3, a.currentTime); g.gain.exponentialRampToValueAtTime(0.01, a.currentTime + dur);
+      n.connect(f); f.connect(g); g.connect(a.destination); n.start();
+    }
+    function playFanfare() {
+      if (!S.settings.sound) return; const a = getAudio();
+      [523.25, 659.25, 783.99, 1046.5].forEach((fr, i) => {
+        const o = a.createOscillator(), g = a.createGain(); o.type = 'triangle';
+        const t0 = a.currentTime + i * 0.08;
+        o.frequency.setValueAtTime(fr, t0); g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.2, t0 + 0.05); g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 1.8);
+        o.connect(g); g.connect(a.destination); o.start(t0); o.stop(a.currentTime + 1.8);
+      });
+    }
+    const canvas = $('confettiCanvas'), cctx = canvas.getContext('2d');
+    let parts = [];
+    function sizeCanvas() { canvas.width = innerWidth; canvas.height = innerHeight; }
+    window.addEventListener('resize', sizeCanvas); sizeCanvas();
+    function triggerConfetti() {
+      if (!S.settings.confetti) return;
+      const colors = ['#f59e0b', '#ef4444', '#3b82f6', '#10b981', '#a855f7'];
+      parts = Array.from({ length: 160 }, () => ({ x: canvas.width / 2, y: canvas.height / 2, r: Math.random() * 6 + 4, dx: (Math.random() - .5) * 22, dy: (Math.random() - .75) * 22, color: colors[Math.floor(Math.random() * colors.length)] }));
+      requestAnimationFrame(renderConfetti);
+    }
+    function renderConfetti() {
+      cctx.clearRect(0, 0, canvas.width, canvas.height); let alive = false;
+      parts.forEach(p => { p.x += p.dx; p.y += p.dy; p.dy += .5; p.dx *= .98; if (p.y < canvas.height) alive = true; cctx.beginPath(); cctx.fillStyle = p.color; cctx.arc(p.x, p.y, p.r, 0, 7); cctx.fill(); });
+      if (alive) requestAnimationFrame(renderConfetti); else cctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // ================= くじ引き =================
+    function refreshLotterySelectors() {
+      if (!ui.selClass || !S.classes.includes(ui.selClass)) ui.selClass = S.classes[0] || '';
+      const opts = S.classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      $('logFilterClass').innerHTML = '<option value="">すべてのクラス</option>' + opts;
+    }
+    function renderChips() {
+      $('classChips').innerHTML = classStats().map(st => {
+        const pct = st.need ? Math.round(st.drawn / st.need * 100) : 0;
+        return `<div class="chip ${st.c === ui.selClass ? 'active' : ''}" onclick="selectClass('${esc(st.c).replace(/'/g, '&#39;')}')"><b>${esc(st.c)}</b><small>${st.drawn} / ${st.need} 人 完了</small><div class="mini"><div style="width:${pct}%"></div></div></div>`;
+      }).join('');
+    }
+    function selectClass(c) { ui.selClass = c; updateLotteryUI(); }
+    function unassignedOfClass() { return S.students.filter(s => s.cls === ui.selClass && !s.assigned); }
+    function updateLotteryUI() {
+      $('lotteryEmpty').style.display = S.slots.length ? 'none' : 'block';
+      renderChips();
+      const un = unassignedOfClass();
+      const sel = $('lotteryStudentSelect'); const prev = sel.value;
+      sel.innerHTML = '<option value="">児童を選択...</option>' + un.map(s => `<option value="${s.id}">${esc(s.name)}${s.gender ? ' (' + esc(s.gender) + ')' : ''}</option>`).join('');
+      if (prev && un.some(s => s.id === prev)) sel.value = prev;
+      else if (S.settings.autoNext && un.length) sel.value = un[0].id;
+      onStudentSelectChange(true);
+      $('slotRaceVal').textContent = '?'; $('slotLaneVal').textContent = '?';
+      $('lotteryBtn').disabled = !S.slots.length || !un.length || ui.rolling;
+    }
+    function onStudentSelectChange(keep) {
+      const stu = stuById($('lotteryStudentSelect').value);
+      const un = unassignedOfClass().length;
+      $('currentRunnerDisplay').textContent = stu ? `✨ ${stu.name} さんの番！（あと${un}人）` : (S.slots.length ? (un ? `${ui.selClass}：あと ${un} 人` : `🎉 ${ui.selClass} は全員完了！`) : '児童を選択してください');
+    }
+    function pickRandomStudent() {
+      const un = unassignedOfClass(); if (!un.length) { toast('このクラスは全員抽選済みです'); return; }
+      const stu = un[rnd(un.length)]; $('lotteryStudentSelect').value = stu.id; onStudentSelectChange();
+    }
+    const SPEED = { fast: [12, 40], normal: [20, 70], slow: [32, 100] };
+    function runLottery() {
+      if (ui.rolling) return;
+      if (!S.slots.length) { toast('先に枠を生成してください', 'error'); return; }
+      const stuId = $('lotteryStudentSelect').value;
+      if (!stuId) { toast('児童を選択してください', 'error'); return; }
+      const stu = stuById(stuId);
+      if (!S.slots.some(s => !s.isEmpty && s.targetClass === stu.cls && !s.assignedStudentId)) { toast(`「${stu.cls}」の空き枠がありません。設定を確認してください`, 'error'); return; }
+      ui.rolling = true; $('lotteryBtn').disabled = true;
+      const [cnt, ms] = SPEED[S.settings.speed] || SPEED.normal;
+      playDrumRoll(cnt * ms / 1000 + .2);
+      let c = 0;
+      const timer = setInterval(() => {
+        $('slotRaceVal').textContent = rnd(S.numRaces) + 1; $('slotLaneVal').textContent = S.lanes[rnd(S.lanes.length)];
+        if (++c > cnt) { clearInterval(timer); finalizeLottery(stuId); }
+      }, ms);
+    }
+    function addLog(e) { S.log.push(Object.assign({ id: uid(), t: Date.now() }, e)); S.seq++; }
+    function drawOne(stuId) {
+      const stu = stuById(stuId);
+      const av = S.slots.filter(s => !s.isEmpty && s.targetClass === stu.cls && !s.assignedStudentId);
+      if (!av.length) return null;
+      const slot = av[rnd(av.length)];
+      slot.assignedStudentId = stu.id; stu.assigned = { race: slot.race, lane: slot.lane };
+      addLog({ type: 'draw', stuId: stu.id, cls: stu.cls, race: slot.race, lane: slot.lane });
+      return slot;
+    }
+    function finalizeLottery(stuId) {
+      const slot = drawOne(stuId); const stu = stuById(stuId);
+      if (!slot) { ui.rolling = false; updateLotteryUI(); return; }
+      saveState(); renderBalance(); renderConfigGrid(); renderLog(); renderRelayInfo();
+      playFanfare(); triggerConfetti();
+      const blind = S.settings.blind;
+      $('slotRaceVal').textContent = blind ? '🤫' : slot.race; $('slotLaneVal').textContent = blind ? '🤫' : slot.lane;
+      setTimeout(() => {
+        $('modalStudentName').textContent = `${stu.name} さん`;
+        $('modalIcon').textContent = blind ? '🤫' : '🎯';
+        $('modalSub').textContent = blind ? '抽選が完了しました！結果は先生が公開するまでヒミツです' : 'あなたの走る場所が決定しました！';
+        $('modalRaceLaneText').textContent = blind ? '？？？' : `第 ${slot.race} レース / ${slot.lane} レーン`;
+        $('resultModal').classList.add('active'); ui.rolling = false;
+      }, 450);
+    }
+    function closeModal() {
+      $('resultModal').classList.remove('active');
+      $('lotteryStudentSelect').value = ''; updateLotteryUI();
+    }
+    function undoLast() {
+      const cand = [...S.log].reverse().find(e => e.type === 'draw' && e.cls === ui.selClass && stuById(e.stuId)?.assigned);
+      if (!cand) { toast('取り消せる抽選がありません'); return; }
+      const stu = stuById(cand.stuId);
+      if (!confirm(`${stu.name} さんの抽選結果を取り消して、もう一度引けるようにしますか？`)) return;
+      const slot = slotAt(stu.assigned.race, stu.assigned.lane);
+      if (slot) slot.assignedStudentId = null; stu.assigned = null;
+      addLog({ type: 'undo', stuId: stu.id, cls: stu.cls });
+      afterSlotsChange(); toast(`${stu.name} さんの抽選を取り消しました`, 'ok');
+    }
+    function batchDraw() {
+      const un = unassignedOfClass(); if (!un.length) { toast('このクラスは全員抽選済みです'); return; }
+      if (!confirm(`${ui.selClass} の残り ${un.length} 人を演出なしで一括抽選します。よろしいですか？`)) return;
+      let ok = 0; shuffle([...un]).forEach(s => { if (drawOne(s.id)) ok++; });
+      afterSlotsChange(); playFanfare(); triggerConfetti();
+      toast(ok < un.length ? `${ok}人を抽選（${un.length - ok}人は枠不足）` : `${ok}人の抽選が完了しました`, ok < un.length ? 'error' : 'ok');
+    }
+
+    // ================= 履歴 =================
+    function renderLog() {
+      const f = $('logFilterClass').value;
+      const items = S.log.filter(e => !f || e.cls === f).slice().reverse();
+      if (!items.length) { $('logArea').innerHTML = '<p style="color:var(--text-muted)">履歴はまだありません。</p>'; return; }
+      const label = { draw: '🎲 抽選', undo: '↩ 取り消し', swap: '🔁 入れ替え' };
+      $('logArea').innerHTML = items.map(e => {
+        const stu = stuById(e.stuId); const d = new Date(e.t);
+        const time = d.toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        let detail = '';
+        if (e.type === 'swap') detail = ui.revealed ? `${esc(e.aName)} ⇄ ${esc(e.bName)}` : '（公開後に表示）';
+        else detail = e.type === 'draw' ? (ui.revealed ? `第${e.race}レース / ${esc(e.lane)}レーン` : '🔒 非公開') : '';
+        return `<div class="list-row"><span>${time}　${label[e.type] || e.type}　<b>${esc(e.type === 'swap' ? (e.cls || '') : (stu ? stu.name : '?'))}</b> ${e.type !== 'swap' ? '(' + esc(e.cls) + ')' : ''}</span><span>${detail}</span></div>`;
+      }).join('');
+    }
+
+    // ================= 引き継ぎ =================
+    function renderRelayInfo() {
+      const total = S.students.length;
+      $('relayInfo').innerHTML = S.slots.length ? `抽選済み <b>${drawnCount()}</b> / ${total} 人　（保存回数カウンタ: ${S.seq}）` : 'まだ枠が生成されていません。';
+    }
+    async function exportRelayFile() {
+      if (!S.slots.length) { toast('保存するデータがありません', 'error'); return; }
+      const pw = await askPassword('引き継ぎ用パスワードを決めてください（次のクラスにも伝えます）', true);
+      if (!pw) return;
+      try {
+        const payload = { setupId: S.setupId, seq: S.seq, savedAt: Date.now(), drawn: drawnCount(), total: S.students.length };
+        let file;
+        if (hasSubtle) { file = Object.assign({ format: 'rec-run-relay', v: 4 }, payload, await encryptJSON({ state: S }, pw)); }
+        else { file = Object.assign({ format: 'rec-run-relay-plain', v: 4 }, payload, { state: S }); toast('この環境では暗号化できないため平文で保存しました', 'error'); }
+        download(`レク走_引き継ぎ_${dateStamp()}_${payload.drawn}人.json`, new Blob([JSON.stringify(file)], { type: 'application/json' }));
+        S.lastExportSeq = S.seq; saveState(); toast('引き継ぎファイルを保存しました', 'ok');
+      } catch (e) { toast('保存に失敗しました: ' + e.message, 'error'); }
+    }
+    async function importRelayFile(ev) {
+      const f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+      let file;
+      try { file = JSON.parse(await f.text()); } catch (e) { toast('ファイルを読み込めませんでした', 'error'); return; }
+      let st;
+      try {
+        if (file.format === 'rec-run-relay-plain') st = file.state;
+        else if (file.format === 'rec-run-relay') {
+          if (!hasSubtle) { toast('この環境では暗号化ファイルを開けません（https または localhost で開いてください）', 'error'); return; }
+          const pw = await askPassword('引き継ぎ用パスワードを入力してください'); if (!pw) return;
+          try { st = (await decryptJSON(file, pw)).state; } catch (e) { toast('パスワードが違うか、ファイルが壊れています', 'error'); return; }
+        } else if (file.state && file.version) { st = file.state; toast('旧形式(v3)のファイルです'); }
+        else { toast('対応していないファイルです', 'error'); return; }
+      } catch (e) { toast('読み込みエラー: ' + e.message, 'error'); return; }
+      applyImported(st);
+    }
+    function applyImported(st) {
+      const sameSetup = S.setupId && st.setupId === S.setupId && S.students.length;
+      if (sameSetup && S.slots.length) {
+        let applied = 0, conflict = 0, dup = 0;
+        const known = new Set(S.log.map(e => e.id));
+        st.slots.forEach(is => {
+          if (!is.assignedStudentId) return;
+          const ls = slotAt(is.race, is.lane); const stu = stuById(is.assignedStudentId);
+          if (!ls || !stu) { conflict++; return; }
+          if (ls.assignedStudentId === is.assignedStudentId) { dup++; return; }
+          if (!ls.assignedStudentId && !stu.assigned) { ls.assignedStudentId = stu.id; stu.assigned = { race: ls.race, lane: ls.lane }; applied++; }
+          else conflict++;
+        });
+        (st.log || []).forEach(e => { if (!known.has(e.id)) S.log.push(e); });
+        S.log.sort((a, b) => a.t - b.t); S.seq = Math.max(S.seq, st.seq || 0) + 1;
+        ui.revealed = false; showLocked();
+        afterSlotsChange();
+        toast(`合体しました：新規${applied}件 / 既存${dup}件 / 競合${conflict}件`, conflict ? 'error' : 'ok');
+      } else {
+        if (S.slots.length && drawnCount() > 0 && !confirm('現在の抽選データは別の行事のものです。読み込んだデータで置き換えますか？')) return;
+        const keep = S.settings;
+        S = Object.assign(defaultState(), st);
+        S.settings = Object.assign(defaultState().settings, st.settings || {}, { theme: keep.theme, sound: keep.sound, confetti: keep.confetti, speed: keep.speed });
+        S.lastExportSeq = S.seq; ui.revealed = false; showLocked();
+        fillInputs(); afterSlotsChange();
+        toast('✅ 引き継ぎデータを読み込みました。結果は保護されています', 'ok');
+      }
+      switchTab('lotteryTab');
+    }
+
+    // ================= 公開・結果 =================
+    async function unlockResults() {
+      const v = $('unlockPass').value; $('unlockPass').value = '';
+      if (!S.settings.passHash) S.settings.passHash = await sha256('4321');
+      if ((await sha256(v)) !== S.settings.passHash) { toast('パスワードが違います', 'error'); return; }
+      ui.revealed = true; $('lockedArea').style.display = 'none'; $('unlockedArea').style.display = 'block';
+      renderResults(); renderLog(); triggerConfetti(); playFanfare();
+    }
+    function showLocked() { ui.revealed = false; $('lockedArea').style.display = 'block'; $('unlockedArea').style.display = 'none'; ui.swapSel = null; }
+    function relock() { showLocked(); renderLog(); toast('ロックしました'); }
+    function setView(v) {
+      ui.view = v;
+      document.querySelectorAll('#viewSwitch .btn').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+      renderResults();
+    }
+    function onPrintSize() { S.settings.printSize = $('printSize').value; saveState(); renderResults(); }
+    function onEditMode() { ui.swapSel = null; renderResults(); }
+    function renderPrintHeader() {
+      $('printTitle').textContent = (S.meta.title || '学年レク走') + ' レース対戦表';
+      $('printSub').textContent = [S.meta.school, S.meta.date ? S.meta.date.replace(/-/g, '/') : ''].filter(Boolean).join('　');
+    }
+    function cellHtml(slot, q) {
+      if (slot.isEmpty) return { cls: '', html: '<span style="color:#94a3b8;font-style:italic;">空き</span>' };
+      if (slot.assignedStudentId) {
+        const stu = stuById(slot.assignedStudentId);
+        const hit = q && stu.name.toLowerCase().includes(q);
+        return { cls: (hit ? 'hit ' : '') + (stu.cls !== slot.targetClass ? 'mismatch' : ''), html: `<b style="color:var(--dark)">${esc(stu.name)}</b><br><small style="color:var(--text-muted)">(${esc(stu.cls)})</small>` };
+      }
+      return { cls: '', html: `<span style="color:var(--text-muted)">未抽選<br><small>(${esc(slot.targetClass)})</small></span>` };
+    }
+    function renderResults() {
+      if (!ui.revealed) return;
+      $('printSize').value = S.settings.printSize; renderPrintHeader();
+      const q = ($('searchBox').value || '').trim().toLowerCase();
+      const area = $('resultsArea'); area.className = 'size-' + S.settings.printSize;
+      $('editBar').style.display = ui.view === 'table' ? 'flex' : 'none';
+      renderSearchList(q);
+      if (ui.view === 'table') area.innerHTML = tableHtml(q);
+      else if (ui.view === 'class') area.innerHTML = classViewHtml(q);
+      else area.innerHTML = callViewHtml();
+    }
+    function tableHtml(q) {
+      const edit = $('editMode').checked;
+      let h = `<div class="table-container"><table><thead><tr><th class="race-num-col">レース</th>${S.lanes.map(l => `<th>${esc(l)}</th>`).join('')}</tr></thead><tbody>`;
+      for (let r = 1; r <= S.numRaces; r++) {
+        h += `<tr><td class="race-num-col">第${r}</td>`;
+        S.lanes.forEach(l => {
+          const slot = slotAt(r, l); const c = cellHtml(slot, q);
+          const canEdit = edit && !slot.isEmpty; const key = r + '|' + l;
+          h += `<td class="${c.cls} ${canEdit ? 'editable' : ''} ${ui.swapSel === key ? 'swap-sel' : ''}" ${canEdit ? `onclick="swapClick('${r}','${esc(l).replace(/'/g, '&#39;')}')"` : ''}>${c.html}</td>`;
+        });
+        h += `</tr>`;
+      }
+      return h + `</tbody></table></div>`;
+    }
+    function swapClick(r, l) {
+      const key = r + '|' + l;
+      if (!ui.swapSel) { ui.swapSel = key; renderResults(); return; }
+      if (ui.swapSel === key) { ui.swapSel = null; renderResults(); return; }
+      const [r1, l1] = ui.swapSel.split('|'); const a = slotAt(+r1, l1), b = slotAt(+r, l);
+      const an = a.assignedStudentId ? stuById(a.assignedStudentId).name : '(未抽選)', bn = b.assignedStudentId ? stuById(b.assignedStudentId).name : '(未抽選)';
+      [a.assignedStudentId, b.assignedStudentId] = [b.assignedStudentId, a.assignedStudentId];
+      [a, b].forEach(s => { if (s.assignedStudentId) stuById(s.assignedStudentId).assigned = { race: s.race, lane: s.lane }; });
+      addLog({ type: 'swap', cls: `第${r1}${l1} ⇄ 第${r}${l}`, aName: an, bName: bn });
+      ui.swapSel = null; saveState(); renderResults(); renderLog(); renderBalance(); toast('入れ替えました', 'ok');
+    }
+    function renderSearchList(q) {
+      const box = $('searchResult');
+      if (!q) { box.innerHTML = ''; return; }
+      const hits = S.students.filter(s => s.name.toLowerCase().includes(q));
+      box.innerHTML = hits.length ? hits.slice(0, 12).map(s => `<div class="list-row"><span><b>${esc(s.name)}</b> (${esc(s.cls)})</span><span>${s.assigned ? `第${s.assigned.race}レース / ${esc(s.assigned.lane)}レーン` : '未抽選'}</span></div>`).join('') : '<span style="color:var(--text-muted)">該当なし</span>';
+    }
+    function classViewHtml(q) {
+      return S.classes.map((c, i) => {
+        const list = S.students.filter(s => s.cls === c && (!q || s.name.toLowerCase().includes(q)))
+          .sort((a, b) => (a.assigned ? a.assigned.race * 100 + S.lanes.indexOf(a.assigned.lane) : 1e9) - (b.assigned ? b.assigned.race * 100 + S.lanes.indexOf(b.assigned.lane) : 1e9));
+        return `<div class="${i ? 'page-break' : ''}" style="margin-bottom:24px;"><h2>🏫 ${esc(c)}（${list.length}名）</h2><div class="table-container"><table><thead><tr><th>名前</th><th>性別</th><th>レース</th><th>レーン</th></tr></thead><tbody>` +
+          list.map(s => `<tr><td style="font-weight:700">${esc(s.name)}</td><td>${esc(s.gender)}</td><td>${s.assigned ? '第' + s.assigned.race : '-'}</td><td>${s.assigned ? esc(s.assigned.lane) : '-'}</td></tr>`).join('') + `</tbody></table></div></div>`;
+      }).join('');
+    }
+    function callViewHtml() {
+      ui.callRace = Math.max(1, Math.min(S.numRaces, ui.callRace));
+      const r = ui.callRace;
+      const lanes = S.lanes.map(l => {
+        const slot = slotAt(r, l); const stu = slot && slot.assignedStudentId ? stuById(slot.assignedStudentId) : null;
+        return stu ? `<div class="call-lane"><div class="ln">${esc(l)}レーン</div><div class="nm">${esc(stu.name)}</div><div class="cl">${esc(stu.cls)}</div></div>` : `<div class="call-lane none"><div class="ln">${esc(l)}レーン</div><div class="nm">${slot && slot.isEmpty ? '—' : '未抽選'}</div></div>`;
+      }).join('');
+      return `<div class="call-box" id="callBox"><div class="call-title">第 ${r} レース</div><div class="call-lanes">${lanes}</div>
+        <div class="btn-row no-print" style="justify-content:center; margin-top:24px;">
+          <button class="btn btn-secondary" onclick="callMove(-1)">◀ 前のレース</button>
+          <select class="field" onchange="ui.callRace=+this.value;renderResults()">${Array.from({ length: S.numRaces }, (_, i) => `<option value="${i + 1}" ${i + 1 === r ? 'selected' : ''}>第${i + 1}レース</option>`).join('')}</select>
+          <button class="btn btn-secondary" onclick="callMove(1)">次のレース ▶</button>
+          <button class="btn btn-primary" onclick="document.getElementById('callBox').requestFullscreen&&document.getElementById('callBox').requestFullscreen()">⛶ 全画面</button>
+        </div></div>`;
+    }
+    function callMove(d) { ui.callRace += d; renderResults(); }
+
+    function exportToCSV() {
+      let csv = '\uFEFFレース,' + S.lanes.join(',') + '\n';
+      for (let r = 1; r <= S.numRaces; r++) {
+        const row = [`第${r}`];
+        S.lanes.forEach(l => {
+          const s = slotAt(r, l);
+          row.push(s.isEmpty ? '空き' : s.assignedStudentId ? `${stuById(s.assignedStudentId).name}(${stuById(s.assignedStudentId).cls})` : `未抽選(${s.targetClass})`);
+        });
+        csv += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
+      }
+      download(`レク走_対戦表_${dateStamp()}.csv`, new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    }
+    function exportStudentCSV() {
+      let csv = '\uFEFF名前,クラス,性別,レース,レーン\n';
+      S.students.forEach(s => { csv += [s.name, s.cls, s.gender, s.assigned ? s.assigned.race : '', s.assigned ? s.assigned.lane : ''].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n'; });
+      download(`レク走_児童別_${dateStamp()}.csv`, new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    }
+
+    // ================= 環境設定 =================
+    function onSettingsChange() {
+      Object.assign(S.settings, { sound: $('setSound').checked, confetti: $('setConfetti').checked, blind: $('setBlind').checked, autoNext: $('setAutoNext').checked, speed: $('setSpeed').value });
+      saveState(); syncHeaderIcons();
+    }
+    function toggleSetting(k) { S.settings[k] = !S.settings[k]; fillSettings(); saveState(); syncHeaderIcons(); }
+    function toggleTheme() { S.settings.theme = S.settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(); saveState(); }
+    function applyTheme() { document.documentElement.setAttribute('data-theme', S.settings.theme); $('themeToggle').textContent = S.settings.theme === 'dark' ? '☀️' : '🌙'; }
+    function syncHeaderIcons() { $('soundToggle').textContent = S.settings.sound ? '🔊' : '🔇'; }
+    function fillSettings() {
+      $('setSound').checked = S.settings.sound; $('setConfetti').checked = S.settings.confetti; $('setBlind').checked = S.settings.blind;
+      $('setAutoNext').checked = S.settings.autoNext; $('setSpeed').value = S.settings.speed;
+    }
+    async function changePassword() {
+      if (!S.settings.passHash) S.settings.passHash = await sha256('4321');
+      if ((await sha256($('oldPass').value)) !== S.settings.passHash) { toast('現在のパスワードが違います', 'error'); return; }
+      const n = $('newPass').value; if (n.length < 4) { toast('新しいパスワードは4文字以上にしてください', 'error'); return; }
+      S.settings.passHash = await sha256(n); $('oldPass').value = ''; $('newPass').value = ''; saveState(); toast('パスワードを変更しました', 'ok');
+    }
+    function exportConfig() {
+      readInputs();
+      const cfg = { type: 'rec-run-config', meta: S.meta, numRaces: S.numRaces, lanes: S.lanes, classes: S.classes, rawText: S.rawText, pattern: S.pattern, fit: S.fit };
+      download(`レク走_設定_${dateStamp()}.json`, new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' }));
+    }
+    function importConfig(e) {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        try {
+          const c = JSON.parse(ev.target.result); if (c.type !== 'rec-run-config') throw 0;
+          Object.assign(S, { numRaces: c.numRaces, lanes: c.lanes, classes: c.classes, rawText: c.rawText || '', pattern: c.pattern || 'rotate', fit: c.fit !== false });
+          S.meta = Object.assign(S.meta, c.meta || {}); fillInputs(); onConfigChanged(); toast('設定を読み込みました', 'ok');
+        } catch (_) { toast('設定ファイルが正しくありません', 'error'); }
+      };
+      r.readAsText(f);
+    }
+    function resetDraws() {
+      if (!drawnCount()) { toast('抽選結果はありません'); return; }
+      if (!confirm('抽選結果をすべて消去します（名簿・枠設定は残ります）。よろしいですか？')) return;
+      S.slots.forEach(s => s.assignedStudentId = null); S.students.forEach(s => s.assigned = null); S.log = []; S.seq = 0; S.lastExportSeq = 0;
+      showLocked(); afterSlotsChange(); toast('抽選結果をリセットしました', 'ok');
+    }
+    function resetAll() {
+      if (!confirm('名簿・設定・抽選結果をすべて初期化します。よろしいですか？')) return;
+      if (!confirm('本当に初期化しますか？（元に戻せません）')) return;
+      localStorage.removeItem(STORE_KEY); location.reload();
+    }
+
+    // ================= 全体 =================
+    function renderGlobalProgress() {
+      const total = S.students.length, d = drawnCount();
+      $('gpText').textContent = total ? `抽選進行: ${d} / ${total} 人（${Math.round(d / total * 100)}%）` : '抽選進行: 未設定';
+      $('gpBar').style.width = total ? (d / total * 100) + '%' : '0';
+      $('unsavedBadge').style.display = (S.seq > S.lastExportSeq && d > 0) ? 'inline-block' : 'none';
+    }
+    function switchTab(id) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+      $(id).classList.add('active');
+      if (id === 'lotteryTab') updateLotteryUI();
+      if (id === 'logTab') renderLog();
+      if (id === 'relayTab') renderRelayInfo();
+    }
+    function fillInputs() {
+      $('cfgNumRaces').value = S.numRaces; $('cfgStudentInput').value = S.rawText; $('cfgPattern').value = S.pattern; $('cfgFit').checked = S.fit;
+      $('metaTitle').value = S.meta.title; $('metaSchool').value = S.meta.school; $('metaDate').value = S.meta.date;
+      renderTags('lane'); renderTags('class'); updateRosterStats(); updateRecommend(); fillSettings(); applyTheme(); syncHeaderIcons();
+    }
+    document.addEventListener('keydown', e => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      if ($('resultModal').classList.contains('active')) { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); closeModal(); } return; }
+      if ($('pwModal').classList.contains('active')) return;
+      if (['input', 'textarea', 'select'].includes(tag)) return;
+      if ($('lotteryTab').classList.contains('active')) {
+        if (e.code === 'Space') { e.preventDefault(); runLottery(); }
+        else if (e.key.toLowerCase() === 'n') pickRandomStudent();
+      }
+      if (ui.revealed && ui.view === 'call' && $('revealTab').classList.contains('active')) {
+        if (e.key === 'ArrowRight') callMove(1); else if (e.key === 'ArrowLeft') callMove(-1);
+      }
+    });
+    window.addEventListener('beforeunload', e => { if (S.seq > S.lastExportSeq && drawnCount() > 0) { e.preventDefault(); e.returnValue = ''; } });
+
+    window.onload = async () => {
+      loadState();
+      if (!S.settings.passHash) S.settings.passHash = await sha256('4321');
+      fillInputs(); refreshLotterySelectors();
+      if (S.slots.length) { afterSlotsChange(); $('dirtyBanner').style.display = configSig() !== S.appliedSig ? 'block' : 'none'; }
+      renderGlobalProgress(); renderRelayInfo(); renderLog();
+      if (S.slots.length && drawnCount() > 0) toast('前回の進行状況を復元しました', 'ok');
+    };
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>わり算 じぶんで えらぶ 学習 - 算数</title>
+  <style>
+    :root {
+      --theme: #0c8599;
+      --theme-sub: #f08c00;
+      --bg-theme: #e3fafc;
+      --border: #ced4da;
+      --bg: #f8f9fa;
+      --danger: #e64980;
+      --text-main: #343a40;
+      --green-talk: #40c057;
+      --yellow-hl: #fff3bf;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'Meiryo', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+    }
+
+    .app-container {
+      background: white;
+      max-width: 1050px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-theme);
+      padding: 15px 20px;
+      border-bottom: 3px solid var(--theme);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--theme);
+      font-size: 1.4rem;
+    }
+
+    .goal-badge {
+      background: white;
+      border: 2px solid var(--theme);
+      color: var(--theme);
+      padding: 5px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    /* --- コントロール(単元・レベル) --- */
+    .ctrl {
+      padding: 12px 20px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 24px;
+      align-items: center;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-label {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #868e96;
+    }
+
+    .pill {
+      border: 2px solid var(--border);
+      background: white;
+      color: #495057;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.92rem;
+      transition: .2s;
+    }
+
+    .pill.on {
+      background: var(--theme);
+      border-color: var(--theme);
+      color: white;
+    }
+
+    .pill.lv1.on {
+      background: #40c057;
+      border-color: #40c057;
+    }
+
+    .pill.lv2.on {
+      background: var(--theme-sub);
+      border-color: var(--theme-sub);
+    }
+
+    .pill.lv3.on {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .rec-badge {
+      background: #fff9db;
+      border: 2px dashed var(--theme-sub);
+      color: #d9480f;
+      font-weight: bold;
+      font-size: 0.88rem;
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
+
+    .rec-badge button {
+      margin-left: 6px;
+    }
+
+    .name-input {
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-weight: bold;
+      width: 130px;
+    }
+
+    /* --- タブメニュー --- */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 5px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: bold;
+      cursor: pointer;
+      color: #495057;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--theme);
+      color: var(--theme);
+      background: white;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .step-box {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 18px;
+      transition: 0.3s;
+    }
+
+    .step-box.active-step {
+      border-color: var(--theme);
+      box-shadow: 0 0 0 3px rgba(12, 133, 153, 0.2);
+    }
+
+    .step-title {
+      font-weight: bold;
+      color: var(--theme-sub);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .step-title span.q-num {
+      background: #fff4e6;
+      color: var(--theme-sub);
+      border: 2px solid var(--theme-sub);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 0.95rem;
+      display: inline-block;
+    }
+
+    .calc-input {
+      width: 64px;
+      padding: 6px;
+      font-size: 1.1rem;
+      text-align: center;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      font-weight: bold;
+      color: var(--theme);
+    }
+
+    .calc-input.large {
+      width: 90px;
+    }
+
+    .calc-input.correct {
+      background-color: #ebfbee;
+      border-color: #40c057;
+      color: #2b8a3e;
+    }
+
+    .calc-input.error {
+      background-color: #ffe3e3;
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-check {
+      background: var(--theme);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+
+    .btn-check:hover {
+      background: #0b7285;
+    }
+
+    .btn-check.sub {
+      background: #868e96;
+    }
+
+    .btn-check.pink {
+      background: var(--danger);
+    }
+
+    .btn-hint {
+      background: #fff4e6;
+      color: var(--theme-sub);
+      border: 2px solid var(--theme-sub);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+
+    .btn-hint:hover {
+      background: #ffe8cc;
+    }
+
+    .hint-box {
+      display: none;
+      background: #fff4e6;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-weight: bold;
+      color: #d9480f;
+      text-align: center;
+    }
+
+    .char-talk {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #dee2e6;
+    }
+
+    .char-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .feedback {
+      font-size: 1.05rem;
+      font-weight: bold;
+      min-height: 22px;
+      color: var(--danger);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 10px 0;
+    }
+
+    .summary-box {
+      background: white;
+      color: black;
+      padding: 10px;
+      border-radius: 8px;
+      border: 3px solid #a9e34b;
+      font-weight: bold;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* --- おはじき・皿 --- */
+    .dot {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffa94d, #f08c00);
+      margin: 2px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+    }
+
+    .dot.blue {
+      background: radial-gradient(circle at 30% 30%, #74c0fc, #1c7ed6);
+    }
+
+    .pool {
+      min-height: 50px;
+      background: #fff9db;
+      border: 2px dashed var(--theme-sub);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    .plates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .plate {
+      min-width: 92px;
+      min-height: 96px;
+      background: #e3fafc;
+      border: 3px solid var(--theme);
+      border-radius: 14px;
+      padding: 6px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+      position: relative;
+      user-select: none;
+    }
+
+    .plate:active {
+      transform: scale(.96);
+    }
+
+    .plate-lbl {
+      width: 100%;
+      font-size: .78rem;
+      color: var(--theme);
+      font-weight: bold;
+    }
+
+    .plate .cnt {
+      width: 100%;
+      font-weight: bold;
+      font-size: .9rem;
+      color: #495057;
+    }
+
+    .stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stepper button {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--theme);
+      background: white;
+      color: var(--theme);
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .stepper b {
+      display: inline-block;
+      min-width: 34px;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+
+    .col-array {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      min-height: 60px;
+    }
+
+    .col-array .c {
+      background: #e3fafc;
+      border: 2px solid var(--theme);
+      border-radius: 8px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .num-card {
+      display: inline-block;
+      background: white;
+      border: 3px solid var(--theme);
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--theme);
+    }
+
+    .num-card.same {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* --- 方眼ノート風筆算 --- */
+    .hscroll {
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .hissan-wrapper {
+      position: relative;
+      background-color: #fff;
+      background-image:
+        linear-gradient(to right, #dee2e6 1px, transparent 1px),
+        linear-gradient(to bottom, #dee2e6 1px, transparent 1px);
+      background-size: 40px 40px;
+      border-top: 1px solid #dee2e6;
+      border-left: 1px solid #dee2e6;
+      margin: 10px auto;
+      border-radius: 2px;
+    }
+
+    .hgrid {
+      display: grid;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #343a40;
+      position: relative;
+    }
+
+    .cell.tapz {
+      cursor: pointer;
+      background: rgba(255, 243, 191, .85);
+      border-radius: 6px;
+    }
+
+    .cell.crossed {
+      color: #adb5bd;
+    }
+
+    .cell.crossed::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 50%;
+      border-top: 3px solid var(--danger);
+      transform: rotate(-45deg);
+    }
+
+    .input-box {
+      width: 34px;
+      height: 34px;
+      font-size: 22px;
+      font-weight: bold;
+      text-align: center;
+      outline: none;
+      padding: 0;
+      border-radius: 4px;
+      background-color: transparent;
+      border: 2px solid transparent;
+      color: var(--theme);
+    }
+
+    .prac-input {
+      border: 1px solid #ced4da;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .prac-input:focus {
+      border: 2px solid var(--theme);
+      background-color: white;
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-4px);
+      }
+
+      50% {
+        transform: translateX(4px);
+      }
+
+      75% {
+        transform: translateX(-4px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    .shake {
+      animation: shake .4s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* --- 練習 --- */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .qtext {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin: 10px 0 14px;
+      line-height: 1.7;
+    }
+
+    .choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .choice {
+      border: 3px solid var(--border);
+      background: white;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .choice.sel {
+      border-color: var(--theme);
+      background: var(--bg-theme);
+      color: var(--theme);
+    }
+
+    .progress {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .pg {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: white;
+    }
+
+    .pg.ok {
+      background: #40c057;
+      border-color: #40c057;
+    }
+
+    .pg.half {
+      background: #fcc419;
+      border-color: #fcc419;
+    }
+
+    .pg.ng {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .pg.now {
+      border-color: var(--theme);
+      box-shadow: 0 0 0 3px rgba(12, 133, 153, .25);
+    }
+
+    .skilltag {
+      display: inline-block;
+      background: #fff4e6;
+      color: var(--theme-sub);
+      border: 1px solid var(--theme-sub);
+      border-radius: 12px;
+      padding: 1px 10px;
+      font-size: .8rem;
+      font-weight: bold;
+    }
+
+    /* --- きろく --- */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 130px 1fr 52px;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      font-size: .92rem;
+      font-weight: bold;
+    }
+
+    .bar-bg {
+      height: 18px;
+      background: #e9ecef;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 9px;
+      transition: width .6s;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: .75rem;
+      color: white;
+      margin-left: 4px;
+    }
+
+    .tag.good {
+      background: #40c057;
+    }
+
+    .tag.mid {
+      background: #fab005;
+    }
+
+    .tag.bad {
+      background: var(--danger);
+    }
+
+    .tag.none {
+      background: #adb5bd;
+    }
+
+    /* --- 板書 --- */
+    .blackboard {
+      background: #2b8a3e;
+      border: 10px solid #8b4513;
+      border-radius: 8px;
+      padding: 20px;
+      color: white;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .bb-col {
+      flex: 1;
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-right: 1px dashed rgba(255, 255, 255, 0.3);
+      padding-right: 15px;
+    }
+
+    .bb-col:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .bb-title {
+      border: 2px solid white;
+      padding: 3px 8px;
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1rem;
+      background: white;
+      color: black;
+      width: fit-content;
+    }
+
+    .bb-q {
+      background: #2b8a3e;
+      color: white;
+      border: 2px solid white;
+      border-radius: 50%;
+      padding: 0 6px;
+    }
+
+    .bb-mono {
+      font-family: monospace;
+      font-size: 1.1rem;
+      white-space: pre;
+      line-height: 1.4;
+    }
+
+    .bb-note {
+      background: #ffe8cc;
+      color: black;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: .95rem;
+      font-weight: bold;
+    }
+
+    .bb-sum {
+      background: white;
+      color: black;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: bold;
+      border: 2px solid #a9e34b;
+    }
+
+    .zz {
+      text-decoration: line-through 3px #e64980;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <header>
+      <h1 id="ttl">わり算 じぶんで えらぶ 学習</h1>
+      <div class="goal-badge" id="goal"></div>
+    </header>
+
+    <div class="ctrl">
+      <div class="ctrl-group"><span class="ctrl-label">なまえ</span><input class="name-input" id="nameIn" placeholder="なまえ" oninput="setName(this.value)"></div>
+      <div class="ctrl-group"><span class="ctrl-label">たんげん</span><span id="unitSel"></span></div>
+      <div class="ctrl-group"><span class="ctrl-label">じぶんで えらぶ コース</span><span id="levelSel"></span></div>
+      <div id="recBadge"></div>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div id="sec1" class="section active"></div>
+    <div id="sec2" class="section"></div>
+    <div id="sec3" class="section"></div>
+    <div id="sec4" class="section"></div>
+    <div id="sec5" class="section"></div>
+  </div>
+
+  <script>
+    /* ================= 共通ユーティリティ ================= */
+    const $ = id => document.getElementById(id);
+    const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+    const pick = a => a[rnd(0, a.length - 1)];
+    const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i);[a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const toHalf = s => String(s == null ? '' : s).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).trim();
+    const pw = n => Math.pow(10, n);
+    const dots = (n, cls) => '<span class="dot ' + (cls || '') + '"></span>'.repeat(0) + Array(n).fill('<span class="dot ' + (cls || '') + '"></span>').join('');
+    function setFb(id, msg, ok) { const e = $(id); if (!e) return; e.style.color = ok ? 'var(--theme)' : 'var(--danger)'; e.innerText = msg; }
+    function toggleHint(id, flagFn) { const h = $(id); const open = h.style.display !== 'block'; h.style.display = open ? 'block' : 'none'; if (open && flagFn) flagFn(); }
+
+    /* ================= 単元・スキル定義 ================= */
+    const UNITS = {
+      u3: {
+        name: '3年 わり算', goal: 'めあて：同じ数ずつ分けるときの計算を考えよう。',
+        tabs: ['① 分けてみよう', '② 九九でたしかめ', '③ 練習', '④ 黒板(まとめ)', '⑤ 学習きろく'],
+        skills: {
+          eq: { n: '等分除（1人分はいくつ）', s: '1人分' },
+          inc: { n: '包含除（何人に分けられる）', s: '何人に' },
+          kuku: { n: '九九で答えを出す', s: '九九' },
+          zero: { n: '0のわり算', s: '0÷' },
+          one: { n: '1でわる・同じ数でわる', s: '÷1・÷同数' }
+        }
+      },
+      u4: {
+        name: '4年 わり算のくふう', goal: 'めあて：筆算のしかたをくふうしよう。',
+        tabs: ['① わり算の性質', '② あまりの考え方', '③ 練習', '④ 黒板(まとめ)', '⑤ 学習きろく'],
+        skills: {
+          prop: { n: 'わり算の性質', s: '性質' },
+          cut: { n: '0を消す筆算', s: '0を消す' },
+          rem: { n: 'あまりに0をつける', s: 'あまり' },
+          chk: { n: 'けん算', s: 'けん算' }
+        }
+      }
+    };
+    const LEVELS = {
+      1: { n: '★ ゆっくりコース', d: 'ちいさい数。おはじきや ヒントを つかって じっくり' },
+      2: { n: '★★ ふつうコース', d: '教科書の問題と おなじくらい' },
+      3: { n: '★★★ チャレンジ', d: '大きい数・まぜこぜ・文章' }
+    };
+
+    /* ================= 記録(localStorage) ================= */
+    let store = { name: '', log: [] };
+    const KEY = 'warizan_kurufu_v1';
+    function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && Array.isArray(s.log)) store = s; } catch (e) { } }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { } }
+    function setName(v) { store.name = v; save(); }
+    function logAttempt(unit, skill, level, score) { store.log.push({ t: Date.now(), unit, skill, level, score }); save(); renderRecBadge(); }
+
+    function stats(unit) {
+      const o = {}; Object.keys(UNITS[unit].skills).forEach(k => o[k] = { arr: [], all: 0 });
+      store.log.filter(l => l.unit === unit).forEach(l => { const s = o[l.skill]; if (!s) return; s.arr.push(l.score); s.all++; });
+      Object.values(o).forEach(s => {
+        const r = s.arr.slice(-10); s.n = r.length;
+        s.pct = r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length * 100) : null;
+        s.hint = r.filter(x => x === 0.5).length;
+        s.miss = r.filter(x => x === 0).length;
+      });
+      return o;
+    }
+    function weakest(unit) {
+      const st = stats(unit); let best = null;
+      Object.keys(st).forEach(k => { if (st[k].n >= 1 && (best === null || st[k].pct < st[best].pct)) best = k; });
+      return best;
+    }
+    function autoSkill() {
+      const st = stats(S.unit); const ks = Object.keys(st);
+      const w = ks.map(k => st[k].pct === null ? 1.2 : (1.05 - st[k].pct / 100) + 0.1);
+      let r = Math.random() * w.reduce((a, b) => a + b, 0);
+      for (let i = 0; i < ks.length; i++) { r -= w[i]; if (r <= 0) return ks[i]; }
+      return ks[0];
+    }
+
+    /* ================= 画面状態 ================= */
+    const S = { unit: 'u4', level: 2, tab: 1 };
+
+    function setUnit(u) { S.unit = u; S.tab = 1; resetAll(); render(); }
+    function setLevel(l) { S.level = l; resetAll(); render(); }
+    function resetAll() { M3 = null; K3 = null; M4 = null; M4b = null; P.res = []; P.item = null; P.skill = 'auto'; }
+    function switchTab(t) { S.tab = t; render(); }
+
+    function render() {
+      const U = UNITS[S.unit];
+      $('goal').innerText = U.goal;
+      $('nameIn').value = store.name || '';
+      $('unitSel').innerHTML = Object.keys(UNITS).map(k => `<button class="pill ${S.unit === k ? 'on' : ''}" onclick="setUnit('${k}')">${UNITS[k].name}</button>`).join(' ');
+      $('levelSel').innerHTML = [1, 2, 3].map(l => `<button class="pill lv${l} ${S.level === l ? 'on' : ''}" title="${LEVELS[l].d}" onclick="setLevel(${l})">${LEVELS[l].n}</button>`).join(' ');
+      renderRecBadge();
+      $('tabs').innerHTML = U.tabs.map((t, i) => `<button class="tab-btn ${S.tab === i + 1 ? 'active' : ''}" onclick="switchTab(${i + 1})">${t}</button>`).join('');
+      for (let i = 1; i <= 5; i++) $('sec' + i).classList.toggle('active', i === S.tab);
+      const sec = $('sec' + S.tab);
+      if (S.unit === 'u3') {
+        if (S.tab === 1) renderTab1u3(sec); else if (S.tab === 2) renderTab2u3(sec);
+        else if (S.tab === 3) renderPrac(sec); else if (S.tab === 4) sec.innerHTML = boardU3(); else renderRecord(sec);
+      } else {
+        if (S.tab === 1) renderTab1u4(sec); else if (S.tab === 2) renderTab2u4(sec);
+        else if (S.tab === 3) renderPrac(sec); else if (S.tab === 4) sec.innerHTML = boardU4(); else renderRecord(sec);
+      }
+    }
+
+    function renderRecBadge() {
+      const l = store.log.filter(x => x.unit === S.unit && x.level === S.level).slice(-5);
+      let h = '';
+      if (l.length >= 5) {
+        const a = l.reduce((s, x) => s + x.score, 0) / 5;
+        if (a >= 0.8 && S.level < 3) h = `💡 ぜんぶ よくできているよ。<b>${LEVELS[S.level + 1].n}</b>も ためせるよ <button class="btn-hint" onclick="setLevel(${S.level + 1})">いってみる</button>`;
+        else if (a <= 0.4 && S.level > 1) h = `💡 むずかしいかな？ <b>${LEVELS[S.level - 1].n}</b>で じっくり やるのも いいよ <button class="btn-hint" onclick="setLevel(${S.level - 1})">もどる</button>`;
+      }
+      $('recBadge').innerHTML = h ? `<div class="rec-badge">${h}<br><span style="font-size:.75rem;color:#868e96">コースは じぶんで きめていいよ</span></div>` : '';
+    }
+
+    /* ================= ★ 筆算グリッド ================= */
+    function hissan(div, dvd, id, tap) {
+      const dl = div.length, vl = dvd.length, cols = 2 + dl + vl, rows = 5;
+      const arcX = (1 + dl) * 40 - 8, endX = cols * 40 - 5;
+      let svg = `<svg width="${cols * 40}" height="${rows * 40}" style="position:absolute;top:0;left:0;pointer-events:none;z-index:2;">
+        <path d="M ${arcX},74 Q ${arcX + 12},60 ${arcX + 8},43 L ${endX},43" fill="none" stroke="#343a40" stroke-width="2" stroke-linecap="round"/></svg>`;
+      let g = `<div class="hgrid" style="grid-template-columns:repeat(${cols},40px);grid-template-rows:repeat(${rows},40px)">`;
+      const inp = () => `<div class="cell"><input type="text" class="input-box prac-input" maxlength="1"></div>`;
+      for (let i = 0; i < cols; i++) g += inp();
+      g += '<div class="cell"></div>';
+      [...div].forEach((ch, i) => { const z = ch === '0' && tap; g += `<div class="cell ${z ? 'tapz' : ''}" data-g="${id}" data-r="d" data-i="${i}" ${z ? 'onclick="tapZ(this)"' : ''}>${ch}</div>`; });
+      [...dvd].forEach((ch, i) => { const z = ch === '0' && tap; g += `<div class="cell ${z ? 'tapz' : ''}" data-g="${id}" data-r="v" data-i="${i}" ${z ? 'onclick="tapZ(this)"' : ''}>${ch}</div>`; });
+      g += '<div class="cell"></div>';
+      for (let r = 0; r < 3; r++) for (let i = 0; i < cols; i++) g += inp();
+      g += '</div>';
+      return `<div class="hscroll"><div class="hissan-wrapper" style="width:${cols * 40 + 1}px;height:${rows * 40 + 1}px">${svg}${g}</div></div>`;
+    }
+    function tapZ(el) {
+      const cells = [...document.querySelectorAll(`[data-g="${el.dataset.g}"][data-r="${el.dataset.r}"]`)];
+      const i = +el.dataset.i;
+      if (el.classList.contains('crossed')) {
+        const left = cells[i - 1]; if (left && left.classList.contains('crossed')) { el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 400); return; }
+        el.classList.remove('crossed');
+      } else {
+        const right = cells[i + 1]; if (right && !right.classList.contains('crossed')) { el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 400); return; }
+        el.classList.add('crossed');
+      }
+    }
+    const crossed = (id, r) => document.querySelectorAll(`[data-g="${id}"][data-r="${r}"].crossed`).length;
+
+    /* =====================================================
+       3年 わり算
+       ===================================================== */
+    let M3 = null;
+    function newM3() {
+      const L = S.level; let N, P, q, kind = null; const mode = pick(['eq', 'inc']);
+      if (L === 3 && Math.random() < 0.45) {
+        const t = pick(['zero', 'one', 'same']);
+        if (t === 'zero') { P = rnd(2, 6); N = 0; q = 0; kind = 'zero'; }
+        else if (t === 'one') { P = 1; q = rnd(3, 10); N = q; kind = 'one'; }
+        else { P = rnd(3, 9); q = 1; N = P; kind = 'one'; }
+      } else { P = L === 1 ? rnd(2, 4) : rnd(2, 9); q = L === 1 ? rnd(2, 5) : L === 2 ? rnd(3, 8) : rnd(5, 9); N = P * q; }
+      M3 = { N, P, q, mode, skill: kind || mode, pool: N, plates: Array(P).fill(0), groups: 0, tries: 0, hint: false, logged: false, done: false };
+    }
+    function m3Text(m) {
+      return m.mode === 'eq' ? `${m.N}こを ${m.P}人に 同じ数ずつ わけます。1人分は 何こ？` : `${m.N}こを 1人に ${m.P}こずつ わけます。何人に わけられる？`;
+    }
+    let E3 = { N: 12, P: 3, mode: 'eq' };
+
+    function renderTab1u3(sec) {
+      if (!M3) newM3(); const m = M3;
+      const talk = S.level === 1 ? 'おはじきを じっさいに わけてみよう！ お皿をタップすると 1こずつ のるよ。' : S.level === 2 ? 'わけてから 答えを 入れてね。' : 'さきに 答えを よそうしてから ためしてもいいよ。0や1が出ることもあるよ！';
+      sec.innerHTML = `
+      <div class="step-box active-step">
+        <div class="step-title"><span class="q-num">ミッション</span><span>${m3Text(m)}</span></div>
+        <div class="char-talk"><div class="char-icon" style="background:#4dabf7">みさき</div><div style="font-weight:bold">${talk}</div></div>
+        <div id="m3work"></div>
+        <div class="row">${m.mode === 'eq' ? '1人分は' : ''} <input type="text" class="calc-input" id="m3ans" inputmode="numeric"> ${m.mode === 'eq' ? 'こ' : '人に わけられる'}
+          <button class="btn-check" onclick="checkM3()">たしかめる</button>
+          <button class="btn-hint" onclick="toggleHint('m3hint',()=>{M3.hint=true})">💡 ヒント</button></div>
+        <div class="hint-box" id="m3hint">${m.P === 1 ? '1こずつ わけるよ。1でわると どうなるかな？' : m.N === 0 ? '0こを わけると、1人分は どうなるかな？' : m.N === m.P ? 'おなじ数ずつ わけると、1人に 何こ（何人）かな？' : `${m.P} × □ ＝ ${m.N} の □ を さがそう。(${m.P}のだん)`}</div>
+        <div class="feedback" id="m3fb"></div>
+        <div id="m3next" style="text-align:center"></div>
+      </div>
+      <div class="step-box">
+        <div class="step-title">🔍 じゆうけんきゅう（きろくには のらないよ）</div>
+        <div style="font-weight:bold;margin-bottom:8px">数をかえて、どうなるか たしかめよう。<span style="color:var(--danger)">0や1のときは どうなるかな？</span></div>
+        <div class="row">
+          <button class="pill ${E3.mode === 'eq' ? 'on' : ''}" onclick="E3.mode='eq';drawE3()">人数で わける</button>
+          <button class="pill ${E3.mode === 'inc' ? 'on' : ''}" onclick="E3.mode='inc';drawE3()">○こずつ わける</button>
+        </div>
+        <div class="row">
+          こ数 <span class="stepper"><button onclick="stepE3('N',-1)">−</button><b id="eN"></b><button onclick="stepE3('N',1)">＋</button></span>
+          <span id="ePlbl"></span> <span class="stepper"><button onclick="stepE3('P',-1)">−</button><b id="eP"></b><button onclick="stepE3('P',1)">＋</button></span>
+        </div>
+        <div id="e3view"></div>
+      </div>`;
+      drawM3(); drawE3();
+    }
+    function drawM3() {
+      const m = M3; let h = `<div class="pool">${m.pool ? dots(m.pool) : '<span style="color:#adb5bd;font-weight:bold">おはじきは ありません（のこり 0こ）</span>'}</div><div style="font-weight:bold;margin:4px 0">のこり <span style="color:var(--theme-sub);font-size:1.2rem">${m.pool}</span> こ</div>`;
+      if (m.mode === 'eq') {
+        h += `<div class="plates">${m.plates.map((c, i) => `<div class="plate" onclick="giveOne(${i})"><div class="plate-lbl">${i + 1}人め</div>${dots(c, 'blue')}<div class="cnt">${c}こ</div></div>`).join('')}</div>
+        <button class="btn-check" onclick="giveRound()">1しゅう くばる</button> <button class="btn-check sub" onclick="resetM3()">やりなおす</button>`;
+      } else {
+        h += `<div class="plates">${Array(m.groups).fill(0).map((_, i) => `<div class="plate" style="cursor:default"><div class="plate-lbl">${i + 1}人め</div>${dots(m.P, 'blue')}<div class="cnt">${m.P}こ</div></div>`).join('') || '<span style="color:#adb5bd;font-weight:bold">まだ だれにも わたしていないよ</span>'}</div>
+        <div style="font-weight:bold;margin-bottom:6px">いま <span style="color:var(--theme);font-size:1.2rem">${m.groups}</span> 人に わたした</div>
+        <button class="btn-check" onclick="takeGroup()">${m.P}こずつ わたす</button> <button class="btn-check sub" onclick="resetM3()">やりなおす</button>`;
+      }
+      $('m3work').innerHTML = h;
+    }
+    function giveOne(i) { const m = M3; if (m.pool > 0) { m.pool--; m.plates[i]++; drawM3(); } }
+    function giveRound() { const m = M3; for (let i = 0; i < m.P; i++) if (m.pool > 0) { m.pool--; m.plates[i]++; } drawM3(); }
+    function takeGroup() { const m = M3; if (m.pool >= m.P) { m.pool -= m.P; m.groups++; drawM3(); } }
+    function resetM3() { const m = M3; m.pool = m.N; m.plates = Array(m.P).fill(0); m.groups = 0; drawM3(); }
+    function checkM3() {
+      const m = M3; const v = toHalf($('m3ans').value);
+      if (v === '') { setFb('m3fb', '答えを 入れてね', false); return; }
+      if (S.level === 1 && m.pool > 0) { setFb('m3fb', 'まず おはじきを ぜんぶ わけてみよう！', false); return; }
+      if (v === String(m.q)) {
+        if (!m.logged) { m.logged = true; logAttempt('u3', m.skill, S.level, m.tries === 0 ? (m.hint ? 0.5 : 1) : 0); }
+        const why = m.mode === 'eq' ? `${m.N} ÷ ${m.P} ＝ ${m.q}（${m.P} × ${m.q} ＝ ${m.N}）` : `${m.N} ÷ ${m.P} ＝ ${m.q}（${m.P} × ${m.q} ＝ ${m.N}）`;
+        let extra = '';
+        if (m.N === 0) extra = '<br>🟢 0を どんな数でわっても 答えは 0。';
+        else if (m.P === 1) extra = '<br>🟢 どんな数も 1でわると そのままの数。';
+        else if (m.N === m.P) extra = '<br>🟢 同じ数どうしの わり算の答えは 1。';
+        setFb('m3fb', '大正解！ ' + why, true);
+        $('m3fb').innerHTML += extra;
+        $('m3next').innerHTML = '<button class="btn-check" style="margin-top:10px" onclick="M3=null;render()">つぎの ミッション ▶</button>';
+      } else {
+        m.tries++;
+        if (!m.logged) { m.logged = true; logAttempt('u3', m.skill, S.level, 0); }
+        setFb('m3fb', 'おしい！ おはじきを もういちど 見てみよう。', false);
+      }
+    }
+    function stepE3(k, d) { const lim = k === 'N' ? [0, 30] : [1, 9]; E3[k] = Math.max(lim[0], Math.min(lim[1], E3[k] + d)); drawE3(); }
+    function drawE3() {
+      if (!$('eN')) return;
+      $('eN').innerText = E3.N; $('eP').innerText = E3.P; $('ePlbl').innerText = E3.mode === 'eq' ? '人数' : '1人に ○こ';
+      const { N, P, mode } = E3; const q = Math.floor(N / P), r = N % P; let h = '<div class="plates">';
+      if (mode === 'eq') { for (let i = 0; i < P; i++) h += `<div class="plate" style="cursor:default"><div class="plate-lbl">${i + 1}人め</div>${dots(q, 'blue')}<div class="cnt">${q}こ</div></div>`; }
+      else { for (let i = 0; i < q; i++) h += `<div class="plate" style="cursor:default"><div class="plate-lbl">${i + 1}人め</div>${dots(P, 'blue')}<div class="cnt">${P}こ</div></div>`; if (q === 0) h += '<span style="color:#adb5bd;font-weight:bold">ひとりも わたせない…</span>'; }
+      h += '</div>';
+      h += `<div style="font-weight:bold;font-size:1.2rem;text-align:center">${N} ÷ ${P} ＝ <span class="num-card ${(N === 0 || P === 1 || N === P) ? 'same' : ''}">${q}</span>${r ? ` あまり ${r}` : ''}</div>`;
+      let note = ''; if (N === 0) note = '0を どんな数でわっても 0 になるよ。'; else if (P === 1) note = '1でわると、もとの数のままだね。'; else if (N === P) note = '同じ数でわると 1 になるね。'; else if (r) note = 'わりきれない ときは「あまり」が でるよ。（あまりは わる数より 小さい）';
+      h += `<div style="text-align:center;color:var(--danger);font-weight:bold;margin-top:6px;min-height:22px">${note}</div>`;
+      $('e3view').innerHTML = h;
+    }
+
+    /* ---- 3年 タブ2: 九九でたしかめ ---- */
+    let K3 = null;
+    function newK3() {
+      const L = S.level; const P = L === 1 ? rnd(2, 5) : rnd(2, 9); const q = L === 1 ? rnd(2, 5) : L === 2 ? rnd(3, 9) : rnd(6, 9);
+      K3 = { P, q, N: P * q, cols: 0, tries: 0, hint: false, logged: false };
+    }
+    function renderTab2u3(sec) {
+      if (!K3) newK3(); const k = K3;
+      sec.innerHTML = `<div class="step-box active-step">
+        <div class="step-title"><span class="q-num">たしかめ</span><span>${k.N} ÷ ${k.P} の答えを、かけ算九九で みつけよう。</span></div>
+        <div class="char-talk"><div class="char-icon" style="background:#e64980">しほ</div><div style="font-weight:bold">${k.P}このおはじきの たてのれつを ふやして、${k.N}こに ぴったり なるまで ならべてみよう。れつの数が 答えだよ。</div></div>
+        <div id="k3work"></div>
+        <div class="row">${k.N} ÷ ${k.P} ＝ <input type="text" class="calc-input" id="k3ans" inputmode="numeric">
+          <button class="btn-check" onclick="checkK3()">たしかめる</button>
+          <button class="btn-hint" onclick="toggleHint('k3hint',()=>{K3.hint=true})">💡 ヒント</button></div>
+        <div class="hint-box" id="k3hint">${k.P} × □ ＝ ${k.N} の □ が 答えだよ。${k.P}のだんを となえてみよう。</div>
+        <div class="feedback" id="k3fb"></div><div id="k3next" style="text-align:center"></div></div>`;
+      drawK3();
+    }
+    function drawK3() {
+      const k = K3, tot = k.P * k.cols;
+      const msg = tot === k.N ? '<span style="color:#2b8a3e">ぴったり！ 🎉</span>' : tot > k.N ? '<span style="color:var(--danger)">ふえすぎ！ 1つ もどそう</span>' : `あと ${k.N - tot}こ`;
+      $('k3work').innerHTML = `<div class="col-array">${Array(k.cols).fill(0).map(() => `<div class="c">${dots(k.P, 'blue')}</div>`).join('') || '<span style="color:#adb5bd;font-weight:bold">れつを ふやしてみよう</span>'}</div>
+      <div style="font-weight:bold;font-size:1.2rem;margin-bottom:8px">${k.P} × ${k.cols} ＝ <span class="num-card ${tot === k.N ? 'same' : ''}">${tot}</span> ／ もくひょう ${k.N} ／ ${msg}</div>
+      <button class="btn-check" onclick="K3.cols++;drawK3()">＋ 1れつ</button> <button class="btn-check sub" onclick="if(K3.cols>0){K3.cols--;drawK3()}">− もどす</button>`;
+    }
+    function checkK3() {
+      const k = K3, v = toHalf($('k3ans').value); if (!v) { setFb('k3fb', '答えを 入れてね', false); return; }
+      if (S.level === 1 && k.P * k.cols !== k.N) { setFb('k3fb', 'まず れつを ならべて、ぴったり にしてみよう！', false); return; }
+      if (v === String(k.q)) {
+        if (!k.logged) { k.logged = true; logAttempt('u3', 'kuku', S.level, k.tries === 0 ? (k.hint ? 0.5 : 1) : 0); }
+        setFb('k3fb', `大正解！ ${k.P} × ${k.q} ＝ ${k.N} だから ${k.N} ÷ ${k.P} ＝ ${k.q}`, true);
+        $('k3next').innerHTML = '<button class="btn-check" style="margin-top:10px" onclick="K3=null;render()">つぎの 問題 ▶</button>';
+      } else { k.tries++; if (!k.logged) { k.logged = true; logAttempt('u3', 'kuku', S.level, 0); } setFb('k3fb', 'ちがうみたい。れつの数を 数えなおそう。', false); }
+    }
+
+    /* =====================================================
+       4年 わり算のくふう（むん先生のコードの順序）
+       ===================================================== */
+    let M4 = null;
+    function newM4(first) {
+      const L = S.level; let d, q, c, e;
+      if (first && L === 2) { d = 5; q = 48; c = 2; e = 0; }
+      else if (L === 1) { d = rnd(2, 5); q = rnd(2, 9); c = 1; e = 0; }
+      else if (L === 2) { c = pick([1, 2]); e = pick([0, 0, 1]); d = rnd(2, 9); q = e ? rnd(2, 9) : rnd(11, 60); }
+      else { c = pick([1, 2]); e = pick([0, 1]); d = rnd(2, 9); q = e ? rnd(3, 9) : rnd(12, 99); }
+      const b = d * pw(c), a = d * q * pw(c + e);
+      M4 = { d, q, c, e, a, b, ans: q * pw(e), k: 0, t1: 0, t2: 0, h1: false, h2: false, l1: false, l2: false };
+    }
+    function renderTab1u4(sec) {
+      if (!M4) newM4(true); const m = M4;
+      sec.innerHTML = `
+      <div class="step-box active-step">
+        <div class="step-title"><span class="q-num">2</span>${m.a} ÷ ${m.b} を筆算でしましょう。</div>
+        <div class="char-talk"><div class="char-icon" style="background:#e64980">しほ</div><div style="font-weight:bold">わり算の性質を使えないかな？</div></div>
+
+        <div style="background:#fff9db;border:2px dashed var(--theme-sub);border-radius:8px;padding:12px;margin-bottom:14px">
+          <div style="font-weight:bold;color:var(--theme-sub);margin-bottom:6px">🔍 まず ためしてみよう（ボタンをおして しらべる）</div>
+          <div id="m4explore" style="text-align:center"></div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:10px"><button class="btn-hint" onclick="toggleHint('m4h1',()=>{M4.h1=true})">💡 ヒントをみる</button></div>
+        <div class="hint-box" id="m4h1">わられる数とわる数を「同じ数」でわっても、商は変わらないよ！<br>${m.b}は、何でわると計算しやすくなるかな？</div>
+
+        <div style="background:#f8f9fa;padding:16px;border-radius:8px;border:1px solid #ced4da;text-align:center;font-size:1.2rem;font-weight:bold;margin-bottom:14px">
+          ${m.a} ÷ ${m.b}<br>
+          <span style="color:#868e96;font-size:1rem">りょうほうを ÷ <input type="text" class="calc-input" id="t1-div1" inputmode="numeric"> して</span><br>
+          <input type="text" class="calc-input large" id="t1-div2" inputmode="numeric"> ÷ <input type="text" class="calc-input" id="t1-div3" inputmode="numeric">
+        </div>
+        <div style="text-align:center"><button class="btn-check" style="padding:10px 40px;font-size:1.1rem" onclick="m4Step1()">たしかめる</button></div>
+        <div class="feedback" id="t1-fb1"></div>
+      </div>
+
+      <div class="step-box" id="m4s2" style="display:none">
+        <div class="step-title" style="color:var(--theme)"><span class="q-num">✏️</span> 筆算でも 0を消して 計算できるよ</div>
+        <div style="font-weight:bold;margin-bottom:6px">① <span style="color:var(--danger)">0をタップして 消そう。</span>（右から じゅんに。わる数とわられる数で 同じ数ずつ）　② 方眼を つかって 計算して 答えを入れよう。</div>
+        ${hissan(String(m.b), String(m.a), 'm4', true)}
+        <div class="row">答え <input type="text" class="calc-input large" id="m4ans" inputmode="numeric"> <button class="btn-check" onclick="m4Step2()">答え合わせ</button>
+          <button class="btn-hint" onclick="toggleHint('m4h2',()=>{M4.h2=true})">💡 ヒント</button></div>
+        <div class="hint-box" id="m4h2">${m.b} の 0は ${m.c}こ。${m.a} からも 0を ${m.c}こ 消して、${m.a / pw(m.c)} ÷ ${m.d} を 計算しよう。</div>
+        <div class="feedback" id="t1-fb2"></div>
+        <div class="summary-box" id="t1-summary" style="display:none">🟢 終わりに0のある数のわり算は、わり算の性質を使うと、<br>0を同じ数ずつ消してから計算できる。
+          <div style="margin-top:10px"><button class="btn-check" onclick="M4=null;render()">つぎの 問題 ▶</button></div></div>
+      </div>`;
+      drawExplore();
+    }
+    function drawExplore() {
+      const m = M4, X = m.a / pw(m.k), Y = m.b / pw(m.k);
+      $('m4explore').innerHTML = `<div style="font-size:1.5rem;font-weight:bold"><span class="num-card">${X}</span> ÷ <span class="num-card">${Y}</span> ＝ <span class="num-card same">${m.ans}</span></div>
+      <div style="margin:10px"><button class="btn-check" ${m.k >= m.c ? 'disabled style="opacity:.4"' : ''} onclick="M4.k++;drawExplore()">りょうほうを ÷10 する</button>
+      <button class="btn-check sub" ${m.k <= 0 ? 'disabled style="opacity:.4"' : ''} onclick="M4.k--;drawExplore()">もとに もどす</button></div>
+      <div style="font-weight:bold;color:var(--danger)">${m.k === 0 ? '÷10を おしてみよう。商（赤い数）は どうなるかな？' : '商は かわっていないね！ 同じ数でわっても 商は かわらない。'}</div>`;
+    }
+    function m4Step1() {
+      const m = M4, v1 = toHalf($('t1-div1').value), v2 = toHalf($('t1-div2').value), v3 = toHalf($('t1-div3').value);
+      let k = 0; if (/^10*$/.test(v1) && v1.length >= 2) k = v1.length - 1;
+      const ok = k >= 1 && k <= m.c && v2 === String(m.a / pw(k)) && v3 === String(m.b / pw(k));
+      if (ok) {
+        if (!m.l1) { m.l1 = true; logAttempt('u4', 'prop', S.level, m.t1 === 0 ? (m.h1 ? 0.5 : 1) : 0); }
+        ['t1-div1', 't1-div2', 't1-div3'].forEach(i => { $(i).classList.remove('error'); $(i).classList.add('correct'); });
+        setFb('t1-fb1', k < m.c ? '正解！ でも まだ 消せる0が あるよ。つぎで 0を ぜんぶ 消してみよう。' : '大正解！ 両方を ' + v1 + 'でわると、かんたんな式になるね。', true);
+        $('m4s2').style.display = 'block';
+      } else {
+        m.t1++; if (!m.l1) { m.l1 = true; logAttempt('u4', 'prop', S.level, 0); }
+        setFb('t1-fb1', 'おしい！ ヒントを見て、りょうほうを 同じ数でわってみよう。', false);
+      }
+    }
+    function m4Step2() {
+      const m = M4, cd = crossed('m4', 'd'), cv = crossed('m4', 'v'), v = toHalf($('m4ans').value);
+      let msg = null;
+      if (cd !== cv) msg = 'わる数と わられる数で、消す0の数を そろえよう。';
+      else if (cd < m.c) msg = 'まだ 消せる0が あるよ。わる数の 0を ぜんぶ 消そう。';
+      else if (v === '') msg = '答えを 入れてね。';
+      if (msg) { setFb('t1-fb2', msg, false); return; }
+      if (v === String(m.ans)) {
+        if (!m.l2) { m.l2 = true; logAttempt('u4', 'cut', S.level, m.t2 === 0 ? (m.h2 ? 0.5 : 1) : 0); }
+        setFb('t1-fb2', `大正解！ ${m.a / pw(m.c)} ÷ ${m.d} ＝ ${m.a / pw(m.c) / m.d}${m.e ? '、もとの 0も わすれずに →  ' + m.ans : ''}`, true);
+        $('t1-summary').style.display = 'block';
+      } else {
+        m.t2++; if (!m.l2) { m.l2 = true; logAttempt('u4', 'cut', S.level, 0); }
+        setFb('t1-fb2', `答えが ちがうみたい。${m.a / pw(m.c)} ÷ ${m.d} は いくつかな？（のこった 0にも ちゅうい）`, false);
+      }
+    }
+
+    /* ---- 4年 タブ2: あまりの考え方 ---- */
+    let M4b = null;
+    function newM4b(first) {
+      const L = S.level; let d, q, r, c;
+      if (first && L === 2) { d = 4; q = 6; r = 3; c = 2; }
+      else if (L === 1) { d = rnd(2, 5); q = rnd(2, 9); r = rnd(1, d - 1); c = 1; }
+      else if (L === 2) { d = rnd(3, 9); q = rnd(2, 9); r = rnd(1, d - 1); c = pick([1, 2]); }
+      else { d = rnd(3, 9); q = rnd(11, 40); r = rnd(1, d - 1); c = pick([2, 3]); }
+      M4b = { d, q, r, c, a: (d * q + r) * pw(c), b: d * pw(c), R: r * pw(c), tk: 0, tu: 0, hk: false, lk: false, lu: false, ok1: false };
+    }
+    function renderTab2u4(sec) {
+      if (!M4b) newM4b(true); const m = M4b, z = '0'.repeat(m.c);
+      const card = (who, color, bg, ans, mark) => `<div style="background:${bg};padding:15px;border-radius:8px;text-align:center;min-width:200px">
+        <div class="char-icon" style="background:${color};margin:0 auto 10px">${who}</div>
+        <div style="font-family:monospace;font-size:1.15rem;font-weight:bold;line-height:1.5;margin-bottom:10px;white-space:pre">${' '.repeat(String(m.b).length + 1)}${m.q}\n${m.d}<span class="zz">${z}</span>)${m.d * m.q + m.r}<span class="zz">${z}</span>\n${' '.repeat(String(m.b).length + 1)}${m.d * m.q}\n${'-'.repeat(String(m.d * m.q + m.r).length + 1)}\n${' '.repeat(String(m.b).length + 1)}${ans}</div>
+        <div style="font-weight:bold;color:#495057">${m.q} あまり ${ans}</div></div>`;
+      sec.innerHTML = `<div class="step-box active-step">
+        <div class="step-title"><span class="q-num">3</span> ${m.a} ÷ ${m.b} を筆算でしましょう。</div>
+        <div style="font-weight:bold;margin-bottom:15px">筆算のしかたを考えよう。あまりはどうなるかな？</div>
+        <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap">${card('こうた', 'var(--theme-sub)', '#fff4e6', m.r)}${card('みさき', '#4dabf7', '#e6fcf5', m.R)}</div>
+
+        <div style="margin-top:25px;border-top:2px dashed #ced4da;padding-top:20px">
+          <div class="step-title" style="color:var(--theme)">けん算をして、どちらが正しいか調べましょう。</div>
+          <div style="text-align:center;margin-bottom:10px"><button class="btn-hint" onclick="toggleHint('hint-t2',()=>{M4b.hk=true})">💡 ヒントをみる</button></div>
+          <div class="hint-box" id="hint-t2">けん算の式は「わる数 × 商 ＋ あまり ＝ わられる数」だよ。<br>計算の答えが「${m.a}」になる方が正解だね！</div>
+          <div style="display:flex;flex-direction:column;gap:12px;font-weight:bold;font-size:1.1rem;align-items:center">
+            <div>[こうた] <input type="text" class="calc-input large" id="kouta-1" placeholder="わる数" inputmode="numeric"> × ${m.q} ＋ <input type="text" class="calc-input" id="kouta-2" placeholder="あまり" inputmode="numeric"> ＝ <input type="text" class="calc-input large" id="kouta-ans" placeholder="答え" inputmode="numeric"></div>
+            <div>[みさき] <input type="text" class="calc-input large" id="misaki-1" placeholder="わる数" inputmode="numeric"> × ${m.q} ＋ <input type="text" class="calc-input large" id="misaki-2" placeholder="あまり" inputmode="numeric"> ＝ <input type="text" class="calc-input large" id="misaki-ans" placeholder="答え" inputmode="numeric"></div>
+          </div>
+          <div style="text-align:center;margin-top:16px"><button class="btn-check" style="padding:10px 40px;font-size:1.1rem" onclick="checkM4b()">けん算をたしかめる</button></div>
+          <div class="feedback" id="t2-fb"></div>
+        </div>
+
+        <div id="m4bs3" style="display:none;margin-top:16px;border-top:2px dashed #ced4da;padding-top:16px">
+          <div style="color:var(--danger);text-align:center;margin-bottom:10px;font-size:1.2rem;font-weight:bold">みさきさんが正しい！</div>
+          <div style="text-align:center;font-weight:bold;margin-bottom:10px">🔍 ${m.d}÷… のあまり <b>${m.r}</b> は、<b>なにが ${m.r}こ</b> ある ということかな？</div>
+          <div class="choices" id="m4bch">${[10, 100, 1000].map(u => `<button class="choice" onclick="pickUnit(${u})">${u}が ${m.r}こ</button>`).join('')}</div>
+          <div class="feedback" id="t2-fb2"></div>
+        </div>
+
+        <div class="summary-box" id="t2-summary" style="display:none">
+          <div style="text-align:center;margin-bottom:10px">🔍 あまりの ${m.r} は、<strong>${pw(m.c)} が ${m.r}こ ある</strong>ということだね。</div>
+          <div style="background:#e3fafc;padding:10px;border-radius:6px;border:2px solid var(--theme)">🟢 0を消したわり算で、あまりを求めるときは、<br><strong>消した0の数だけ あまりに0をつける。</strong></div>
+          <div style="margin-top:10px"><button class="btn-check" onclick="M4b=null;render()">つぎの 問題 ▶</button></div>
+        </div>
+      </div>`;
+    }
+    function checkM4b() {
+      const m = M4b, g = id => toHalf($(id).value); let ok = true;
+      const t = (ids, exp) => { const good = ids.every((id, i) => g(id) === String(exp[i])); ids.forEach(id => { $(id).classList.toggle('correct', good); $(id).classList.toggle('error', !good); }); if (!good) ok = false; };
+      t(['kouta-1', 'kouta-2', 'kouta-ans'], [m.b, m.r, m.b * m.q + m.r]);
+      t(['misaki-1', 'misaki-2', 'misaki-ans'], [m.b, m.R, m.a]);
+      if (ok) {
+        if (!m.lk) { m.lk = true; logAttempt('u4', 'chk', S.level, m.tk === 0 ? (m.hk ? 0.5 : 1) : 0); }
+        setFb('t2-fb', 'けん算ばっちり！ こうたさんは 答えが合わないね。', true); $('m4bs3').style.display = 'block';
+      } else {
+        m.tk++; if (!m.lk) { m.lk = true; logAttempt('u4', 'chk', S.level, 0); }
+        setFb('t2-fb', '式や計算の答えがちがうみたい。もう一度たしかめよう。', false);
+      }
+    }
+    function pickUnit(u) {
+      const m = M4b;
+      if (u === pw(m.c)) {
+        if (!m.lu) { m.lu = true; logAttempt('u4', 'rem', S.level, m.tu === 0 ? (m.hk ? 0.5 : 1) : 0); }
+        setFb('t2-fb2', `その通り！ だから あまりは ${m.r}ではなく ${m.R}。`, true); $('t2-summary').style.display = 'block';
+      } else {
+        m.tu++; if (!m.lu) { m.lu = true; logAttempt('u4', 'rem', S.level, 0); }
+        setFb('t2-fb2', `${m.a} と ${m.d * m.q}（けん算の ${m.b}×${m.q}）の ちがいは いくつかな？ 消した0の数に ちゅうもく！`, false);
+      }
+    }
+
+    /* =====================================================
+       練習（スキル別・自動出題）
+       ===================================================== */
+    const P = { skill: 'auto', item: null, tries: 0, hint: false, logged: false, res: [], sel: null, cur: null };
+
+    function qParams(L) { const p = L === 1 ? rnd(2, 4) : rnd(2, 9); const q = L === 1 ? rnd(2, 5) : L === 2 ? rnd(3, 8) : rnd(5, 9); return { P: p, q, N: p * q }; }
+    function genItem(unit, skill, L) {
+      if (unit === 'u3') {
+        const { P: p, q, N } = qParams(L); const thing = pick(['あめ', 'シール', 'おはじき', 'クッキー', 'みかん']);
+        if (skill === 'eq' || skill === 'inc') {
+          const eq = skill === 'eq';
+          const html = eq ? `${thing}が ${N}こ あります。${p}人に 同じ数ずつ わけると、1人分は 何こ？` : `${thing}が ${N}こ あります。1人に ${p}こずつ わけると、何人に わけられる？`;
+          if (L >= 2 && Math.random() < 0.4) {
+            const ans = `${N} ÷ ${p}`; return { skill, type: 'choice', html: html + '<br>わり算の式は どれ？', choices: shuffle([ans, `${p} ÷ ${N}`, `${N} × ${p}`, `${N} － ${p}`]), ans, hint: '「わける」ときは わり算。わられる数は ぜんぶの数だよ。', explain: `式は ${ans} ＝ ${q}` };
+          }
+          return { skill, type: 'num', html, ans: q, hint: `${p} × □ ＝ ${N} の □ を さがそう。`, explain: `${N} ÷ ${p} ＝ ${q}` };
+        }
+        if (skill === 'kuku') return { skill, type: 'num', html: `${N} ÷ ${p} ＝ □`, ans: q, hint: `${p} × □ ＝ ${N}。${p}のだんを となえよう。`, explain: `${p} × ${q} ＝ ${N} だから ${N} ÷ ${p} ＝ ${q}` };
+        if (skill === 'zero') {
+          if (L === 1) return { skill, type: 'num', html: `0 ÷ ${p} ＝ □`, ans: 0, hint: '0こを わけても 0こ。', explain: '0を どんな数でわっても 答えは 0。' };
+          if (L === 2) return { skill, type: 'num', html: `${thing}が 0こ。${p}人に 同じ数ずつ わけると 1人分は 何こ？`, ans: 0, hint: 'もともと 0こだよ。', explain: '0 ÷ ' + p + ' ＝ 0' };
+          const x = rnd(2, 9); return { skill, type: 'num', html: `0 ÷ ${p} ＋ ${x} ＝ □`, ans: x, hint: '先に 0 ÷ ' + p + ' を 計算しよう。', explain: `0 ÷ ${p} ＝ 0 だから 0 ＋ ${x} ＝ ${x}` };
+        }
+        if (skill === 'one') {
+          const n = rnd(3, 12); const t = L === 1 ? pick(['a', 'b']) : L === 2 ? pick(['a', 'b', 'c']) : 'd';
+          if (t === 'a') return { skill, type: 'num', html: `${n} ÷ 1 ＝ □`, ans: n, hint: '1こずつ わけると 人数は？', explain: `どんな数も 1でわると そのまま。${n} ÷ 1 ＝ ${n}` };
+          if (t === 'b') return { skill, type: 'num', html: `${n} ÷ ${n} ＝ □`, ans: 1, hint: `${n} × □ ＝ ${n} の □ は？`, explain: '同じ数どうしの わり算は 1。' };
+          if (t === 'c') return { skill, type: 'num', html: `${thing}が ${n}こ あります。${n}人に 同じ数ずつ わけると 1人分は 何こ？`, ans: 1, hint: '人数と こ数が 同じだよ。', explain: `${n} ÷ ${n} ＝ 1` };
+          return { skill, type: 'num', html: `${n} ÷ 1 － ${n} ÷ ${n} ＝ □`, ans: n - 1, hint: '左から 1つずつ 計算しよう。', explain: `${n} － 1 ＝ ${n - 1}` };
+        }
+      }
+      /* u4 */
+      let d, q, c, e;
+      const par = () => {
+        if (L === 1) { d = rnd(2, 5); q = rnd(2, 9); c = 1; e = 0; }
+        else if (L === 2) { c = pick([1, 2]); e = pick([0, 0, 1]); d = rnd(2, 9); q = e ? rnd(2, 9) : rnd(11, 60); }
+        else { c = pick([1, 2]); e = pick([0, 1]); d = rnd(2, 9); q = e ? rnd(3, 9) : rnd(12, 99); }
+      }; par();
+      const b = d * pw(c), a = d * q * pw(c + e);
+      if (skill === 'prop') {
+        const m = L === 1 ? 1 : rnd(1, c); const a2 = a / pw(m), b2 = b / pw(m);
+        const t = L === 1 ? pick(['t0', 't1']) : L === 2 ? pick(['t0', 't1', 't2']) : pick(['t1', 't2']);
+        if (t === 't0') return { skill, type: 'num', html: `${a} ÷ ${b} の りょうほうを ${pw(m)}で わると、${a2} ÷ □`, ans: b2, hint: `${b} ÷ ${pw(m)} を 計算しよう。`, explain: `${b} ÷ ${pw(m)} ＝ ${b2}` };
+        if (t === 't1') return { skill, type: 'num', html: `${a} ÷ ${b} ＝ □ ÷ ${b2}`, ans: a2, hint: `${b} が ${b2} に なったよ。${a} も 同じ数で わろう。`, explain: `りょうほうを ${pw(m)}で わって ${a2} ÷ ${b2}` };
+        const good = Math.random() < 0.5; const right = good ? '同じ' : 'ちがう';
+        return { skill, type: 'choice', html: `${a} ÷ ${b} と ${a2} ÷ ${good ? b2 : b} の 商は 同じ？`, choices: ['同じ', 'ちがう'], ans: right, hint: 'わる数と わられる数を 「りょうほう」 同じ数で わっているかな？', explain: good ? 'りょうほうを同じ数でわったから 商は同じ。' : 'わられる数だけ わっても 商は かわってしまう。' };
+      }
+      if (skill === 'cut') return { skill, type: 'num', html: `${a} ÷ ${b} ＝ □`, ans: q * pw(e), scratch: { div: String(b), dvd: String(a) }, hint: `0を ${c}こ ずつ 消して ${a / pw(c)} ÷ ${d}。`, explain: `${a / pw(c)} ÷ ${d} ＝ ${a / pw(c) / d}${e ? ' → のこった 0も つけて ' + q * pw(e) : ''}` };
+      let r;
+      if (skill === 'rem' || skill === 'chk') {
+        if (L === 1) { d = rnd(2, 5); q = rnd(2, 9); c = 1; }
+        else if (L === 2) { d = rnd(3, 9); q = rnd(2, 9); c = pick([1, 2]); }
+        else { d = rnd(3, 9); q = rnd(11, 40); c = pick([2, 3]); }
+        r = rnd(1, d - 1);
+      }
+      const B = d * pw(c), A = (d * q + r) * pw(c), R = r * pw(c);
+      if (skill === 'rem') return { skill, type: 'rem', html: `${A} ÷ ${B} ＝ □ あまり □`, ans: q, rem: R, scratch: { div: String(B), dvd: String(A) }, hint: `0を ${c}こ 消して ${A / pw(c)} ÷ ${d}。あまりは ${r}だけど… 消した0は？`, explain: `${A / pw(c)} ÷ ${d} ＝ ${q} あまり ${r}。あまりに 0を ${c}こ つけて ${R}。` };
+      if (skill === 'chk') {
+        if (L === 1) return { skill, type: 'num', html: `けん算：${B} × ${q} ＋ ${R} ＝ □`, ans: A, hint: '「わる数 × 商 ＋ あまり ＝ わられる数」', explain: `${B} × ${q} ＝ ${B * q}、${B * q} ＋ ${R} ＝ ${A}` };
+        if (L === 2) { const ans = `${q} あまり ${R}`; return { skill, type: 'choice', html: `${A} ÷ ${B} の 答えは どちら？（けん算で しらべよう）`, choices: shuffle([ans, `${q} あまり ${r}`]), ans, hint: `${B} × ${q} ＋ あまり ＝ ${A} に なる方が 正しいよ。`, explain: `${B} × ${q} ＋ ${R} ＝ ${A} だから ${ans}` }; }
+        return { skill, type: 'num', html: `${A} ÷ ${B} ＝ ${q} あまり □。けん算の式 ${B} × ${q} ＋ □ ＝ ${A}`, ans: R, hint: `${A} － ${B * q} を 計算しよう。`, explain: `${A} － ${B * q} ＝ ${R}` };
+      }
+    }
+
+    function renderPrac(sec) {
+      const sk = UNITS[S.unit].skills;
+      sec.innerHTML = `<div class="step-box active-step"><div class="step-title" style="color:var(--theme)">練習問題（5問 1セット）</div>
+        <div style="font-weight:bold;color:#495057;margin-bottom:10px">れんしゅうする スキルは じぶんで えらべるよ。「おまかせ」は にが手を おおめに 出すよ。<br><span style="color:var(--danger);font-size:.95rem">ヒントを 見ても OK。でも 見ないで 正解すると 点が たかいよ。</span></div>
+        <div class="chips"><button class="pill ${P.skill === 'auto' ? 'on' : ''}" onclick="setPracSkill('auto')">🎯 おまかせ（にが手から）</button>
+        ${Object.keys(sk).map(k => `<button class="pill ${P.skill === k ? 'on' : ''}" onclick="setPracSkill('${k}')">${sk[k].n}</button>`).join('')}</div>
+        <div id="pracBody"></div></div>`;
+      if (!P.item && P.res.length < 5) pracNext(); else drawPrac();
+    }
+    function setPracSkill(k) { P.skill = k; P.res = []; P.item = null; render(); }
+    function pracNext() {
+      if (P.res.length >= 5) { P.item = null; return drawPrac(); }
+      const sk = P.skill === 'auto' ? autoSkill() : P.skill;
+      P.item = genItem(S.unit, sk, S.level); P.tries = 0; P.hint = false; P.logged = false; P.sel = null; P.shown = false;
+      drawPrac();
+    }
+    function drawPrac() {
+      const body = $('pracBody'); if (!body) return;
+      const pg = Array(5).fill(0).map((_, i) => { const v = P.res[i]; return `<div class="pg ${v === 1 ? 'ok' : v === 0.5 ? 'half' : v === 0 ? 'ng' : ''} ${i === P.res.length && P.item ? 'now' : ''}"></div>`; }).join('');
+      if (!P.item) {
+        const tot = P.res.reduce((a, b) => a + b, 0);
+        body.innerHTML = `<div class="progress">${pg}</div><div class="summary-box" style="font-size:1.1rem">🎉 5問 おわり！ <br>スコア <span style="color:var(--danger);font-size:1.6rem">${tot}</span> / 5　<span style="font-size:.85rem;color:#868e96">（ヒントなし正解=1、ヒントあり正解=0.5）</span>
+        <div style="margin-top:10px"><button class="btn-check" onclick="P.res=[];pracNext()">もう1セット</button> <button class="btn-check sub" onclick="switchTab(5)">📊 きろくを見る</button></div></div>`;
+        return;
+      }
+      const it = P.item, sk = UNITS[S.unit].skills[it.skill];
+      let inp = '';
+      if (it.type === 'num') inp = `<div class="row">答え <input type="text" class="calc-input large" id="pAns" inputmode="numeric" onkeydown="if(event.key==='Enter')pracCheck()"></div>`;
+      else if (it.type === 'rem') inp = `<div class="row">答え <input type="text" class="calc-input large" id="pAns" inputmode="numeric"> あまり <input type="text" class="calc-input large" id="pRem" inputmode="numeric"></div>`;
+      else inp = `<div class="choices">${it.choices.map((c, i) => `<button class="choice ${P.sel === i ? 'sel' : ''}" onclick="P.sel=${i};drawPracKeep()">${c}</button>`).join('')}</div>`;
+      body.innerHTML = `<div class="progress">${pg}<span class="skilltag">${sk.n}</span></div>
+        <div class="qtext">${it.html}</div>
+        ${it.scratch ? `<div style="text-align:center"><button class="btn-check sub" onclick="const s=$('scr');s.style.display=s.style.display==='none'?'block':'none'">📝 マス目を ひらく／とじる（0をタップで 消せるよ）</button></div><div id="scr" style="display:none">${hissan(it.scratch.div, it.scratch.dvd, 'pr', true)}</div>` : ''}
+        ${inp}
+        <div class="row"><button class="btn-check" onclick="pracCheck()">こたえあわせ</button> <button class="btn-hint" onclick="pracHint()">💡 ヒント</button></div>
+        <div class="hint-box" id="pHint" style="display:${P.hint ? 'block' : 'none'}">${it.hint}</div>
+        <div class="feedback" id="pFb" style="font-size:1.15rem"></div><div id="pNext" style="text-align:center"></div>`;
+    }
+    function drawPracKeep() { const a = $('pAns') && $('pAns').value; const r = $('pRem') && $('pRem').value; drawPrac(); if (a !== null && $('pAns')) $('pAns').value = a; if (r && $('pRem')) $('pRem').value = r; }
+    function pracHint() { P.hint = true; $('pHint').style.display = 'block'; }
+    function pracLog(sc) { if (P.logged) return; P.logged = true; logAttempt(S.unit, P.item.skill, S.level, sc); P.res.push(sc); }
+    function pracCheck() {
+      const it = P.item; if (!it || P.done) return; let ok = false, empty = false;
+      if (it.type === 'num') { const v = toHalf($('pAns').value); empty = !v; ok = v === String(it.ans); }
+      else if (it.type === 'rem') { const v = toHalf($('pAns').value), r = toHalf($('pRem').value); empty = !v || !r; ok = v === String(it.ans) && r === String(it.rem); }
+      else { empty = P.sel === null; ok = !empty && it.choices[P.sel] === it.ans; }
+      if (empty) { setFb('pFb', 'こたえを 入れてね', false); return; }
+      if (ok) {
+        pracLog(P.tries === 0 ? (P.hint ? 0.5 : 1) : 0);
+        setFb('pFb', (P.tries === 0 ? (P.hint ? '正解！（ヒントを使ったよ）' : '大正解！✨') : '正解！ 次は 1回で きめよう') + '　' + it.explain, true);
+        $('pNext').innerHTML = `<button class="btn-check" style="margin-top:10px" onclick="pracNext()">${P.res.length >= 5 ? '結果を見る ▶' : 'つぎの問題 ▶'}</button>`;
+      } else {
+        P.tries++; pracLog(0);
+        setFb('pFb', 'おしい！ もういちど かんがえてみよう。', false);
+        $('pNext').innerHTML = `<button class="btn-check sub" style="margin-top:10px" onclick="pracShow()">答えを見て つぎへ</button>`;
+      }
+    }
+    function pracShow() {
+      pracLog(0); const it = P.item;
+      const a = it.type === 'rem' ? `${it.ans} あまり ${it.rem}` : it.ans;
+      setFb('pFb', `答え：${a}　${it.explain}`, true);
+      $('pNext').innerHTML = `<button class="btn-check" style="margin-top:10px" onclick="pracNext()">${P.res.length >= 5 ? '結果を見る ▶' : 'つぎの問題 ▶'}</button>`;
+    }
+
+    /* =====================================================
+       学習きろく（数値・グラフ）
+       ===================================================== */
+    function radarSVG(keys, vals, labels) {
+      const cx = 150, cy = 140, R = 85, n = keys.length;
+      const pt = (i, r) => { const a = -Math.PI / 2 + 2 * Math.PI * i / n; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+      let s = `<svg viewBox="0 0 300 285" width="100%" style="max-width:340px;display:block;margin:0 auto">`;
+      [25, 50, 75, 100].forEach(p => { s += `<polygon points="${keys.map((_, i) => pt(i, R * p / 100).join(',')).join(' ')}" fill="none" stroke="#ced4da"/>`; });
+      s += `<text x="${cx + 3}" y="${cy - R * 0.5 + 3}" font-size="9" fill="#adb5bd">50%</text>`;
+      keys.forEach((_, i) => { const [x, y] = pt(i, R); s += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#dee2e6"/>`; const [lx, ly] = pt(i, R + 24); s += `<text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="12" font-weight="bold" fill="#343a40">${labels[i]}</text>`; });
+      const poly = keys.map((_, i) => pt(i, R * (vals[i] === null ? 0 : vals[i]) / 100).join(',')).join(' ');
+      s += `<polygon points="${poly}" fill="rgba(12,133,153,.3)" stroke="#0c8599" stroke-width="2.5"/>`;
+      keys.forEach((_, i) => { const [x, y] = pt(i, R * (vals[i] === null ? 0 : vals[i]) / 100); s += `<circle cx="${x}" cy="${y}" r="4" fill="${vals[i] === null ? '#adb5bd' : '#0c8599'}"/>`; });
+      return s + '</svg>';
+    }
+    function trendSVG(unit) {
+      const l = store.log.filter(x => x.unit === unit).slice(-40);
+      if (l.length < 3) return '<div style="color:#adb5bd;font-weight:bold;text-align:center;padding:20px">3もん いじょう とくと グラフが でるよ</div>';
+      const W = 320, H = 150, pl = 30, pb = 20, pts = l.map((_, i) => { const w = l.slice(Math.max(0, i - 4), i + 1); const v = w.reduce((a, b) => a + b.score, 0) / w.length * 100; return [pl + (W - pl - 10) * i / (l.length - 1), 10 + (H - pb - 10) * (1 - v / 100), v]; });
+      let s = `<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+      [0, 50, 100].forEach(v => { const y = 10 + (H - pb - 10) * (1 - v / 100); s += `<line x1="${pl}" x2="${W - 10}" y1="${y}" y2="${y}" stroke="#e9ecef"/><text x="2" y="${y + 4}" font-size="10" fill="#868e96">${v}%</text>`; });
+      s += `<polyline points="${pts.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="#f08c00" stroke-width="3" stroke-linejoin="round"/>`;
+      pts.forEach((p, i) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${l[i].score === 1 ? '#40c057' : l[i].score === 0.5 ? '#fcc419' : '#e64980'}"/>`; });
+      s += `<text x="${pl}" y="${H - 4}" font-size="10" fill="#868e96">← むかし　　　　　　さいきん →　（5問ごとの へいきん）</text></svg>`;
+      return s;
+    }
+    function tagOf(s) { if (s.n < 3) return ['まだ たりない', 'none']; if (s.pct >= 85) return ['とくい ⭐', 'good']; if (s.pct < 60) return ['にが手 ⚠', 'bad']; return ['もう少し', 'mid']; }
+    function colorOf(p) { return p === null ? '#ced4da' : p >= 85 ? '#40c057' : p >= 60 ? '#fab005' : '#e64980'; }
+
+    function renderRecord(sec) {
+      const unitsOrder = [S.unit, ...Object.keys(UNITS).filter(k => k !== S.unit)];
+      let h = `<div style="font-weight:bold;margin-bottom:12px;font-size:1.05rem">📊 ${store.name ? store.name + 'さんの ' : ''}学習きろく <span style="font-size:.85rem;color:#868e96">（たんげん ごとに、さいきん10もんの せいせきで けいさん）</span></div><div class="rec-grid">`;
+      unitsOrder.forEach(u => {
+        const U = UNITS[u], st = stats(u), keys = Object.keys(U.skills), total = store.log.filter(x => x.unit === u).length;
+        const w = weakest(u);
+        h += `<div class="step-box ${u === S.unit ? 'active-step' : ''}" style="margin:0"><div class="step-title" style="color:var(--theme)">${U.name}　<span style="font-size:.85rem;color:#868e96">（${total}もん やった）</span></div>`;
+        if (!total) h += `<div style="color:#adb5bd;font-weight:bold;padding:10px">まだ きろくが ないよ。「操作」や「練習」で もんだいを といてみよう！</div>`;
+        else {
+          h += radarSVG(keys, keys.map(k => st[k].pct), keys.map(k => U.skills[k].s));
+          h += '<div style="margin-top:8px">' + keys.map(k => { const s = st[k], t = tagOf(s); return `<div class="bar-row"><div>${U.skills[k].n}</div><div class="bar-bg"><div class="bar-fill" style="width:${s.pct === null ? 0 : s.pct}%;background:${colorOf(s.pct)}"></div></div><div>${s.pct === null ? '—' : s.pct + '%'}</div></div><div style="text-align:right;margin:-4px 0 6px;font-size:.78rem;color:#868e96">${s.n}もん（ヒント${s.hint}・まちがい${s.miss}）<span class="tag ${t[1]}">${t[0]}</span></div>`; }).join('') + '</div>';
+          h += `<div style="font-weight:bold;margin:8px 0 2px;color:#495057">📈 すすみぐあい</div>${trendSVG(u)}`;
+          if (w !== null && st[w].pct < 85) h += `<div class="summary-box" style="border-color:var(--theme-sub);text-align:left">🎯 いま いちばん れんしゅうすると よいのは<br><span style="color:var(--danger)">「${U.skills[w].n}」（${st[w].pct}%）</span><div style="margin-top:8px;text-align:center"><button class="btn-check" onclick="goWeak('${u}','${w}')">この スキルを れんしゅう ▶</button></div></div>`;
+          else if (w !== null) h += `<div class="summary-box" style="text-align:left">🌟 どの スキルも とくいだよ！ つぎの コースにも ちょうせんしてみよう。</div>`;
+        }
+        h += '</div>';
+      });
+      h += `</div><div style="margin-top:18px;text-align:center"><button class="btn-check sub" onclick="copyRec()">📋 きろくを コピー（先生・おうちの人に見せる用）</button> <button class="btn-check pink" onclick="resetRec()">きろくを ぜんぶ けす</button><div class="feedback" id="recfb" style="color:var(--theme)"></div>
+        <div style="font-size:.8rem;color:#868e96;margin-top:6px">※ きろくは このたんまつ（ブラウザ）の中に ほぞんされます。</div></div>`;
+      sec.innerHTML = h;
+    }
+    function goWeak(u, k) { S.unit = u; S.tab = 3; P.skill = k; P.res = []; P.item = null; M3 = M4 = K3 = M4b = null; render(); }
+    function copyRec() {
+      let t = `【わり算 学習きろく】${store.name || ''}（${new Date().toLocaleDateString('ja-JP')}）\n`;
+      Object.keys(UNITS).forEach(u => { const st = stats(u); t += `\n■${UNITS[u].name}\n`; Object.keys(st).forEach(k => { const s = st[k]; t += `・${UNITS[u].skills[k].n}：${s.pct === null ? '未学習' : s.pct + '%'}（${s.n}問／${tagOf(s)[0]}）\n`; }); });
+      const done = () => setFb('recfb', 'コピーしました！', true);
+      try { navigator.clipboard.writeText(t).then(done, () => { prompt('コピーしてね', t); }); } catch (e) { prompt('コピーしてね', t); }
+    }
+    function resetRec() { if (confirm('きろくを ぜんぶ けします。いいですか？')) { store.log = []; save(); render(); } }
+
+    /* =====================================================
+       黒板（まとめ）
+       ===================================================== */
+    function dateStr() { const d = new Date(); return `${d.getMonth() + 1}月${d.getDate()}日`; }
+    function boardU3() {
+      const dz = (n) => dots(n, 'blue');
+      return `<div class="blackboard">
+        <div class="bb-col"><div style="font-weight:bold">板書例 <span style="margin-left:10px">${dateStr()}</span></div>
+          <div class="bb-title">12こを 3人に 同じ数ずつ わけましょう。</div>
+          <div><span class="bb-q">?</span> 1人分は 何こ？（等分除）</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${[0, 1, 2].map(() => `<div style="background:#e3fafc;border-radius:10px;padding:4px;width:84px">${dz(4)}</div>`).join('')}</div>
+          <div class="bb-note">12 ÷ 3 ＝ 4　答え 4こ<br>3 × 4 ＝ 12 を つかって 求める。</div></div>
+        <div class="bb-col"><div class="bb-title">12こを 1人に 3こずつ わけましょう。</div>
+          <div><span class="bb-q">?</span> 何人に わけられる？（包含除）</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${[0, 1, 2, 3].map(() => `<div style="background:#e3fafc;border-radius:10px;padding:4px;width:62px">${dz(3)}</div>`).join('')}</div>
+          <div class="bb-note">12 ÷ 3 ＝ 4　答え 4人</div>
+          <div class="bb-sum">✏️ 等分除も 包含除も、同じ わり算の式で あらわせる。答えは かけ算九九で 求められる。</div></div>
+        <div class="bb-col"><div class="bb-title">0や1の わり算</div>
+          <div class="bb-mono">0 ÷ 3 ＝ 0
+8 ÷ 1 ＝ 8
+5 ÷ 5 ＝ 1</div>
+          <div class="bb-sum">✏️ 0を どんな数でわっても 答えは 0。<br>どんな数も 1でわると もとの数。<br>同じ数どうしの わり算の答えは 1。</div></div></div>`;
+    }
+    function boardU4() {
+      const lm = (c) => ` style="text-decoration:line-through ${c}px #e64980"`;
+      return `<div class="blackboard">
+        <div class="bb-col">
+          <div style="font-weight:bold;margin-bottom:6px">第12時の板書例 <span style="margin-left:10px">${dateStr()}</span></div>
+          <div class="bb-title">24000÷500の筆算をしましょう。</div>
+          <div><span class="bb-q">?</span> 筆算のしかたをくふうしよう。</div>
+          <div style="display:flex;gap:15px;align-items:flex-end;margin-top:10px;font-size:.95rem;flex-wrap:wrap">
+            <div>24000 ÷ 500<br><span style="font-size:.85rem">↓÷100 &nbsp;&nbsp; ↓÷100</span><br>&nbsp;&nbsp;240 ÷ 5</div>
+            <div class="bb-mono">     48
+5<span${lm(2)}>00</span>)240<span${lm(2)}>00</span>
+     20
+    ----
+      40
+      40
+    ----
+       0</div></div>
+          <div class="bb-note">わり算のせいしつを使った。</div>
+          <div class="bb-sum">✏️ 終わりに0のある数のわり算は、わり算のせいしつを使うと、0を同じ数ずつ消してから計算できる。</div>
+        </div>
+        <div class="bb-col" style="flex:1.2">
+          <div class="bb-title">2700÷400の筆算をしましょう。</div>
+          <div><span class="bb-q">?</span> 筆算のしかたを考えよう。</div>
+          <div style="display:flex;justify-content:space-around;margin-top:10px;font-size:.95rem;flex-wrap:wrap;gap:10px">
+            <div style="text-align:center"><div style="border:1px solid white;display:inline-block;padding:2px 8px;margin-bottom:5px">こうた</div>
+              <div class="bb-mono" style="text-align:left">     6
+4<span${lm(2)}>00</span>)27<span${lm(2)}>00</span>
+    24
+    --
+     3</div><div style="margin-top:8px">2700÷400＝6あまり<span style="color:#ff8787">3❌</span></div></div>
+            <div style="text-align:center"><div style="border:1px solid white;display:inline-block;padding:2px 8px;margin-bottom:5px">みさき</div>
+              <div class="bb-mono" style="text-align:left">     6
+4<span${lm(2)}>00</span>)27<span${lm(2)}>00</span>
+    24
+    --
+   300</div><div style="margin-top:8px">2700÷400＝6あまり<span style="color:#a9e34b">300⭕️</span></div></div>
+          </div>
+          <div class="bb-note" style="margin-top:12px">あまりの3は、100が3こあるということだから、2700÷400の正しい答えは、6あまり300。<br><br>みさきさんの考えのほうが正しい。</div>
+        </div>
+        <div class="bb-col">
+          <div style="font-weight:bold">けん算しよう。<br>わる数×商＋あまり＝わられる数</div>
+          <div style="margin-top:10px;font-size:.95rem"><div style="border:1px solid white;display:inline-block;padding:2px 8px;margin-bottom:5px">こうた</div><br>400 × 6 ＋ 3 ＝ <span style="text-decoration:line-through 2px #ff8787">2403</span></div>
+          <div style="margin-top:10px;font-size:.95rem"><div style="border:1px solid white;display:inline-block;padding:2px 8px;margin-bottom:5px">みさき</div><br>400 × 6 ＋ <span style="border:2px solid #e64980;border-radius:50%;padding:0 4px">300</span> ＝ <span style="border:2px solid #e64980;border-radius:50%;padding:0 4px">2700</span></div>
+          <div class="bb-sum" style="border-color:#343a40;margin-top:14px">✏️ 0を消したわり算で、あまりを求めるときは、消した0の数だけあまりに0をつける。</div>
+        </div></div>`;
+    }
+
+    /* ================= 起動 ================= */
+    load();
+    window.onload = () => { render(); };
+    if (document.readyState !== 'loading') render();
+  </script>
+</body>
+
+</html>

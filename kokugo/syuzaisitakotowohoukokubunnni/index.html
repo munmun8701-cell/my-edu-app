@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>取材したことを報告文に</title>
+    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3年生 インタビュー取材メモ＆報告文システム</title>
+  <style>
+    :root {
+      --primary: #2b7a78;
+      --secondary: #3aafa9;
+      --bg: #def2f1;
+      --text: #17252a;
+    }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .app-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    h1.app-title {
+      text-align: center;
+      color: var(--primary);
+      font-size: 24px;
+      border-bottom: 2px dashed var(--secondary);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .tab.active {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .tab:hover:not(.active) {
+      background-color: #d0d0d0;
+    }
+
+    /* Print Area (Worksheet Reproduction) */
+    .print-area {
+      font-family: 'Yu Mincho', 'MS Mincho', serif;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #fff;
+    }
+
+    .memo-header {
+      font-size: 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .memo-header input[type="text"] {
+      border: none;
+      border-bottom: 1px solid #333;
+      text-align: center;
+      font-family: inherit;
+      font-size: 18px;
+    }
+
+    .memo-header input.short {
+      width: 30px;
+    }
+
+    .memo-header input.medium {
+      width: 60px;
+    }
+
+    table.worksheet {
+      width: 100%;
+      border-collapse: collapse;
+      border: 2px solid #000;
+      font-size: 16px;
+      table-layout: fixed;
+    }
+
+    table.worksheet th,
+    table.worksheet td {
+      border: 1px solid #000;
+      padding: 10px;
+      vertical-align: top;
+    }
+
+    table.worksheet th {
+      width: 25%;
+      font-weight: normal;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    table.worksheet td {
+      width: 75%;
+    }
+
+    table.worksheet input[type="text"] {
+      border: none;
+      border-bottom: 1px solid #666;
+      font-family: inherit;
+      font-size: 16px;
+      padding: 2px 5px;
+      background: transparent;
+      width: 80%;
+    }
+
+    table.worksheet input.name-input {
+      width: 150px;
+    }
+
+    table.worksheet input.teacher-input {
+      width: 200px;
+      text-align: center;
+    }
+
+    .role-list {
+      line-height: 2;
+    }
+
+    .instructions {
+      line-height: 1.6;
+      padding: 5px;
+    }
+
+    .instructions u {
+      font-weight: bold;
+      text-decoration-thickness: 2px;
+    }
+
+    .instructions p {
+      margin: 4px 0;
+      padding-left: 1em;
+      text-indent: -1em;
+    }
+
+    /* 入力連動テキストの装飾（画面上のみ） - ズレ解消のためinline-blockを削除 */
+    @media screen {
+      .dyn-text {
+        color: #d35400;
+        /* オレンジ色で目立たせる */
+        font-weight: bold;
+        border-bottom: 1px dashed #d35400;
+        padding: 0 2px;
+      }
+    }
+
+    .questions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .question-item {
+      display: flex;
+      align-items: center;
+    }
+
+    .question-item span {
+      margin-right: 5px;
+    }
+
+    .question-item input {
+      flex-grow: 1;
+    }
+
+    /* Generator Area */
+    .generator-area {
+      background: #f9f9f9;
+      border: 2px solid var(--secondary);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .generator-area h2 {
+      color: var(--primary);
+      font-size: 20px;
+      margin-top: 0;
+    }
+
+    .generated-box {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .generated-box textarea {
+      width: 100%;
+      height: 180px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+      line-height: 1.8;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    button.btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      transition: 0.2s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    button.btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-save {
+      background-color: #f39c12;
+    }
+
+    .btn-save:hover {
+      background-color: #e67e22;
+    }
+
+    .btn-print {
+      background-color: #8e44ad;
+    }
+
+    .btn-print:hover {
+      background-color: #9b59b6;
+    }
+
+    .btn-generate {
+      background-color: var(--primary);
+      width: 100%;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .btn-generate:hover {
+      background-color: var(--secondary);
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      .app-container {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .print-area {
+        padding: 0;
+        margin: 0;
+      }
+
+      table.worksheet {
+        border: 2px solid #000;
+      }
+
+      table.worksheet input[type="text"] {
+        border-bottom: none;
+      }
+
+      .memo-header input[type="text"] {
+        border-bottom: none;
+      }
+
+      /* 印刷時は普通のテキストとして出力 */
+      .dyn-text {
+        color: #000;
+        font-weight: normal;
+        border: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <h1 class="app-title no-print">🎤 3年生 取材メモ＆インタビュー報告文システム</h1>
+
+    <!-- Tabs -->
+    <div class="tabs no-print" id="tabs">
+      <!-- Generated by JS -->
+    </div>
+
+    <!-- Print / Form Area -->
+    <div class="print-area" id="worksheet-form">
+      <div class="memo-header">
+        取材メモ　
+        <input type="text" id="date_m" class="short"> 月　
+        <input type="text" id="date_d" class="short"> 日(
+        <input type="text" id="date_w" class="short"> )
+        【 <label><input type="radio" name="time" value="業間" id="time_1"> 業間</label> ・
+        <label><input type="radio" name="time" value="昼休み" id="time_2"> 昼休み</label> 】
+      </div>
+
+      <table class="worksheet">
+        <tr>
+          <th>インタビューする相手</th>
+          <td>
+            <div style="text-align: center;"><input type="text" id="teacher" class="teacher-input" oninput="updateInstructions()"> 先生</div>
+          </td>
+        </tr>
+        <tr>
+          <th>場所</th>
+          <td><input type="text" id="location" style="width: 100%;"></td>
+        </tr>
+        <tr>
+          <th>やくわり分たん</th>
+          <td>
+            <div class="role-list">
+              インタビュー・・・( <input type="text" id="role_int" class="name-input" oninput="updateInstructions()"> )<br>
+              メモ・・・・・・・( <input type="text" id="role_memo" class="name-input" oninput="updateInstructions()"> )<br>
+              写真・・・・・・・( <input type="text" id="role_photo" class="name-input" oninput="updateInstructions()"> )<br>
+              録音・・・・・・・( <input type="text" id="role_rec" class="name-input" oninput="updateInstructions()"> )
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <th>聞きたいこと</th>
+          <td>
+            <div class="questions-list">
+              <div class="question-item"><span>①</span> <input type="text" id="q1" oninput="updateInstructions()" value="教えるときに一番好きな教科は何ですか？"></div>
+              <div class="question-item"><span>②</span> <input type="text" id="q2" oninput="updateInstructions()" value="北小学校で一番好きな場所はどこですか？"></div>
+              <div class="question-item"><span>③</span> <input type="text" id="q3" oninput="updateInstructions()" value="6年生の授業をする時に、とくに工夫をしていることは何ですか？"></div>
+              <div class="question-item"><span>④</span> <input type="text" id="q4" oninput="updateInstructions()" value="教えるときに一番苦手な授業は何ですか？"></div>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="2" class="instructions">
+            【インタビューの進め方】<br>
+            <u>①あいさつをする。</u>
+            <p>「しつれいします。3年◯組の<span id="inst_name1" class="dyn-text">◯◯</span>と、<span id="inst_name2" class="dyn-text">◯◯</span>と、<span id="inst_name3" class="dyn-text">◯◯</span>と、<span id="inst_name4" class="dyn-text">◯◯</span>です。」</p>
+            <p>「<span id="inst_teacher" class="dyn-text">◯◯</span>先生にインタビューをしに来ました。今、お時間よろしいですか。」</p>
+            <p>「今日は、インタビューの時間をとってくださり、ありがとうございます。」</p>
+            <p>「よろしくお願いします。(よろしくお願いします)」</p>
+            <br>
+            <u>②インタビューやしつもんをする。</u>
+            <p>(1)用意していた　しつもん　をする。</p>
+            <!-- レイアウト崩れを防ぐため、シンプルな構成に変更 -->
+            <div style="margin-left: 1em; margin-bottom: 10px;">
+              <p style="margin: 4px 0;">「１つ目の質問です。<span id="inst_q1" class="dyn-text"></span>」</p>
+              <p style="margin: 4px 0;">「２つ目の質問です。<span id="inst_q2" class="dyn-text"></span>」</p>
+              <p style="margin: 4px 0;">「３つ目の質問です。<span id="inst_q3" class="dyn-text"></span>」</p>
+              <p style="margin: 4px 0;">「最後の質問です。<span id="inst_q4" class="dyn-text"></span>」</p>
+            </div>
+            <p>(2)もっと聞きたいことがあったら　しつもん　する。</p>
+            <p>※もう1度聞きたいとき「すみません。もう一度教えていただけますか。」</p>
+            <br>
+            <u>③お礼の言葉を言う。</u>
+            <p>「インタビューはいじょうです。今日はお時間をいただきありがとうございました。(ありがとうございました。)しつれいしました。」</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls no-print">
+      <button class="btn btn-save" onclick="saveData()">💾 データを保存する</button>
+      <button class="btn btn-print" onclick="window.print()">🖨️ 取材メモを印刷する</button>
+    </div>
+
+    <!-- Generator Area -->
+    <div class="generator-area no-print">
+      <button class="btn btn-generate" onclick="generateTexts()">✨ 質問事項から報告文を自動作成</button>
+
+      <div class="generated-box">
+        <div>
+          <h2>📝 報告文（下書き）</h2>
+          <textarea id="gen_report" placeholder="ボタンを押すと、報告文のひな型ができます。メモを見ながら、先生の答えを書き足して完成させましょう。"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const NUM_GROUPS = 8;
+    let currentGroupId = 1;
+    let groupData = {};
+
+    function initData() {
+      for (let i = 1; i <= NUM_GROUPS; i++) {
+        groupData[i] = {
+          date_m: "",
+          date_d: "",
+          date_w: "",
+          time: "",
+          teacher: "",
+          location: "",
+          role_int: "",
+          role_memo: "",
+          role_photo: "",
+          role_rec: "",
+          q1: "教えるときに一番好きな教科は何ですか？",
+          q2: "北小学校で一番好きな場所はどこですか？",
+          q3: "6年生の授業をする時に、とくに工夫をしていることは何ですか？",
+          q4: "教えるときに一番苦手な授業は何ですか？",
+          gen_report: ""
+        };
+      }
+    }
+    window.onload = function() {
+      initData();
+      const saved = localStorage.getItem('interviewSystemData3rd_v4');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.assign(groupData, parsed);
+      }
+      createTabs();
+      loadGroup(1);
+    };
+
+    function createTabs() {
+      const tabsDiv = document.getElementById('tabs');
+      tabsDiv.innerHTML = '';
+      for (let i = 1; i <= NUM_GROUPS; i++) {
+        const btn = document.createElement('button');
+        btn.className = `tab ${i === currentGroupId ? 'active' : ''}`;
+        btn.innerText = i + '班';
+        btn.onclick = () => switchGroup(i);
+        tabsDiv.appendChild(btn);
+      }
+    }
+
+    function switchGroup(id) {
+      saveCurrentGroup();
+      currentGroupId = id;
+      createTabs();
+      loadGroup(id);
+    }
+
+    function loadGroup(id) {
+      const d = groupData[id];
+      document.getElementById('date_m').value = d.date_m;
+      document.getElementById('date_d').value = d.date_d;
+      document.getElementById('date_w').value = d.date_w;
+      if (d.time === '業間') document.getElementById('time_1').checked = true;
+      else if (d.time === '昼休み') document.getElementById('time_2').checked = true;
+      else {
+        document.getElementById('time_1').checked = false;
+        document.getElementById('time_2').checked = false;
+      }
+      document.getElementById('teacher').value = d.teacher;
+      document.getElementById('location').value = d.location;
+      document.getElementById('role_int').value = d.role_int;
+      document.getElementById('role_memo').value = d.role_memo;
+      document.getElementById('role_photo').value = d.role_photo;
+      document.getElementById('role_rec').value = d.role_rec;
+      document.getElementById('q1').value = d.q1;
+      document.getElementById('q2').value = d.q2;
+      document.getElementById('q3').value = d.q3;
+      document.getElementById('q4').value = d.q4;
+      document.getElementById('gen_report').value = d.gen_report;
+      updateInstructions();
+    }
+
+    function updateInstructions() {
+      const teacher = document.getElementById('teacher').value || '◯◯';
+      const intName = document.getElementById('role_int').value || '◯◯';
+      const memoName = document.getElementById('role_memo').value || '◯◯';
+      const photoName = document.getElementById('role_photo').value || '◯◯';
+      const recName = document.getElementById('role_rec').value || '◯◯';
+      document.getElementById('inst_teacher').innerText = teacher;
+      document.getElementById('inst_name1').innerText = intName;
+      document.getElementById('inst_name2').innerText = memoName;
+      document.getElementById('inst_name3').innerText = photoName;
+      document.getElementById('inst_name4').innerText = recName;
+      const q1 = document.getElementById('q1').value || '（質問を入力してください）';
+      const q2 = document.getElementById('q2').value || '（質問を入力してください）';
+      const q3 = document.getElementById('q3').value || '（質問を入力してください）';
+      const q4 = document.getElementById('q4').value || '（質問を入力してください）';
+      document.getElementById('inst_q1').innerText = q1;
+      document.getElementById('inst_q2').innerText = q2;
+      document.getElementById('inst_q3').innerText = q3;
+      document.getElementById('inst_q4').innerText = q4;
+    }
+
+    function saveCurrentGroup() {
+      const d = groupData[currentGroupId];
+      d.date_m = document.getElementById('date_m').value;
+      d.date_d = document.getElementById('date_d').value;
+      d.date_w = document.getElementById('date_w').value;
+      d.time = document.querySelector('input[name="time"]:checked') ? document.querySelector('input[name="time"]:checked').value : "";
+      d.teacher = document.getElementById('teacher').value;
+      d.location = document.getElementById('location').value;
+      d.role_int = document.getElementById('role_int').value;
+      d.role_memo = document.getElementById('role_memo').value;
+      d.role_photo = document.getElementById('role_photo').value;
+      d.role_rec = document.getElementById('role_rec').value;
+      d.q1 = document.getElementById('q1').value;
+      d.q2 = document.getElementById('q2').value;
+      d.q3 = document.getElementById('q3').value;
+      d.q4 = document.getElementById('q4').value;
+      d.gen_report = document.getElementById('gen_report').value;
+    }
+
+    function saveData() {
+      saveCurrentGroup();
+      localStorage.setItem('interviewSystemData3rd_v4', JSON.stringify(groupData));
+      alert('全8班のデータを保存しました！\n（ブラウザを閉じても次回開いた時に復元されます）');
+    }
+
+    function generateTexts() {
+      saveCurrentGroup();
+      const d = groupData[currentGroupId];
+      const teacher = d.teacher || '◯◯';
+      const intName = d.role_int || '◯◯';
+      const memoName = d.role_memo || '◯◯';
+      const photoName = d.role_photo || '◯◯';
+      const recName = d.role_rec || '◯◯';
+      let report = `わたしたち${currentGroupId}班は、${teacher}先生にインタビューをしました。\n`;
+      report += `役割分担は、インタビュー係が${intName}さん、メモ係が${memoName}さん、写真係が${photoName}さん、録音係が${recName}さんでした。\n\n`;
+      report += `${teacher}先生には、次のことを質問しました。\n\n`;
+      if (d.q1) report += `1つ目は、「${d.q1}」についてです。\n先生は、＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿と教えてくれました。\n\n`;
+      if (d.q2) report += `2つ目は、「${d.q2}」と質問しました。\n先生は、＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿と答えてくれました。\n\n`;
+      if (d.q3) report += `3つ目は、「${d.q3}」について聞きました。\n先生は、＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿と言っていました。\n\n`;
+      if (d.q4) report += `最後に、「${d.q4}」について質問しました。\n先生は、＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿と教えてくれました。\n\n`;
+      report += `インタビューをして、${teacher}先生のことがよくわかりました。`;
+      document.getElementById('gen_report').value = report;
+      d.gen_report = report;
+    }
+  </script>
+</body>
+
+</html>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  </body>
+  
+</html>
