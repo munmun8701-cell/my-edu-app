@@ -1,24 +1,28 @@
 /* =====================================================================
-   むんクエスト連携キット（mun-link.js）  2026.10
+   むんクエスト連携キット（mun-link.js）  v1.1  2026.10
    ---------------------------------------------------------------------
-   単元アプリやゲームの <body> の最後に、次の1行を入れるだけで使えます。
+   単元アプリやゲームの </body> の直前に、次の1行を入れるだけで使えます。
      <script src="/mun-link.js"></script>
 
-   ■ できること
+   ■ 自動でできること（1行入れるだけ）
+   ・画面の左下に「もどる」ボタンが出て、トップページのその学年のコーナーへ戻れます。
+       3nennseisannsuu → 3年算数 / 4nennseisannsuu → 4年算数 / 5nenseisannsuu → 5年算数
+       6nennseisannsuu → 6年算数（ほかのフォルダはトップページへ）
+     ボタンの場所を変えたいとき： <script src="/mun-link.js" data-back="top-left"></script>
+       （bottom-left ＝左下〔ふつう〕 / bottom-right / top-left / top-right / off ＝出さない）
+   ・保護者が設定した「休けいのお知らせ」が、アプリの中でも出ます。
+
+   ■ プログラムから使えること
    1) 授業（1時間目など）をクリアしたら、トップページのワールドマップに★が光り、
       EXP とコインがたまります。
-        MunQuest.complete('app-math-5', 3, 2);   // 単元ID, 何時間目, ★の数(0〜3)
-      ・単元ID はトップページのカードの data-id（例：app-math-5 ＝ 3年「表とグラフ」）
+        MunQuest.complete('app-math6-2', 3, 2);   // 単元ID, 何時間目, ★の数(0〜3)
+      ・単元ID はトップページのカードの data-id（例：app-math6-2 ＝ 6年「文字と式」）
       ・同じ授業でごほうびがもらえるのは「はじめてクリア」と「★がふえたとき」だけ
-      ・ごほうびは 1日 30回まで（トップページのごほうび上限と同じしくみ）
+      ・ごほうびは 1日 30回まで
    2) 単元の授業の数を教えると、ワールドマップに「何時間中いくつクリアしたか」が出ます。
-        MunQuest.setTotal('app-math-5', 6);
-   3) 画面のすみに「トップへ」ボタンを出せます。
-        MunQuest.backButton();               // 右下に表示
-        MunQuest.backButton({ cat: 'math3' }); // トップの「3年算数」に戻る
-   4) 保護者が設定した「休けいのお知らせ」が、アプリの中でも出るようになります（自動）。
+        MunQuest.setTotal('app-math6-2', 6);
 
-   ■ 保存の場所（トップページと共通）
+   ■ 保存の場所（トップページと共通・この端末の中だけ）
      mun_exp / mun_coins / mun_daily_exp … EXP・コイン（トップページと同じ）
      mun_progress … 単元ごとのクリア記録
      mun_reward_day … 1日のごほうび回数
@@ -56,6 +60,9 @@
       '.mq-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483000;padding:12px 20px;border-radius:14px;background:rgba(10,15,30,.95);color:#fff;font:800 15px/1.5 "M PLUS Rounded 1c","Hiragino Maru Gothic ProN",Meiryo,sans-serif;border:1px solid #fbbf24;box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 16px rgba(251,191,36,.3);animation:mqUp .35s ease}' +
       '@keyframes mqUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}' +
       '.mq-back{position:fixed;right:16px;bottom:16px;z-index:2147482000;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;background:linear-gradient(135deg,#00e5ff,#a855f7);color:#04121a;font:900 14px/1 "M PLUS Rounded 1c",Meiryo,sans-serif;text-decoration:none;box-shadow:0 6px 20px rgba(0,229,255,.35)}' +
+      '.mq-back-auto{right:auto;bottom:auto;padding:8px 14px;font-size:13px;opacity:.92}.mq-back-auto:hover{opacity:1}' +
+      '.mq-bottom-left{left:12px;bottom:calc(12px + env(safe-area-inset-bottom))}.mq-bottom-right{right:12px;bottom:calc(12px + env(safe-area-inset-bottom))}.mq-top-left{left:12px;top:12px}.mq-top-right{right:12px;top:12px}' +
+      '@media print{.mq-back{display:none}}' +
       '.mq-break{position:fixed;inset:0;z-index:2147483600;display:grid;place-items:center;padding:20px;background:rgba(3,7,18,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",Meiryo,sans-serif}' +
       '.mq-break-box{max-width:440px;width:100%;text-align:center;padding:30px 26px;border-radius:24px;background:#0b1222;color:#e2e8f0;border:1px solid rgba(16,185,129,.5);box-shadow:0 0 40px rgba(16,185,129,.25)}' +
       '.mq-break-box .ic{font-size:56px;line-height:1}.mq-break-box h2{margin:12px 0 8px;font-size:22px;color:#fff}.mq-break-box p{margin:0 0 6px;font-size:15px;line-height:1.8;color:#cbd5e1}' +
@@ -109,6 +116,27 @@
     return a;
   }
 
+  /* ---------- 自動の「もどる」ボタン ---------- */
+  var ME = document.currentScript;
+  var CAT = { '3nennseisannsuu': 'math3', '4nennseisannsuu': 'math4', '4nenn': 'math4', '5nenseisannsuu': 'math5', '5nennseisannsuu': 'math5',
+              '6nennseisannsuu': 'math6', 'kokugo': 'kokugo', 'syakai': 'social', 'tanosikugakusyuusiyou': 'game', 'kurasuyou': 'class',
+              '1nennseiyougakusyuugame': 'grade1', 'sienngaxtukyuu': 'support', 'kakari': 'duty' };
+  function autoBack() {
+    var pos = (ME && ME.getAttribute('data-back')) || 'bottom-left';
+    if (pos === 'off' || window.top !== window.self) return;
+    var seg = location.pathname.split('/').filter(Boolean);
+    if (seg.length < 2) return;                       // トップページ（/index.html）では出さない
+    var cat = CAT[decodeURIComponent(seg[0])] || '';
+    var a = document.createElement('a');
+    a.className = 'mq-back mq-back-auto mq-' + pos;
+    a.href = location.origin + '/index.html' + (cat ? '?cat=' + cat : '');
+    a.setAttribute('aria-label', 'トップページにもどる');
+    a.innerHTML = '<span aria-hidden="true">◀</span> もどる';
+    ensureStyle();
+    var put = function () { if (!document.body.contains(a)) document.body.appendChild(a); };
+    put(); setInterval(put, 2000);                     // アプリが画面を書きかえても、ボタンが消えないように
+  }
+
   /* ---------- 休けいのお知らせ（保護者が設定したときだけ） ---------- */
   var IDLE = 20 * 60 * 1000;   // 20分さわらなければ「休けいした」とみなす
   function sessionTick() {
@@ -132,7 +160,8 @@
     document.body.appendChild(o);
   }
   function startSession() { sessionTick(); setInterval(sessionTick, 30000); document.addEventListener('visibilitychange', function () { if (!document.hidden) sessionTick(); }); }
-  if (document.body) startSession(); else document.addEventListener('DOMContentLoaded', startSession);
+  function boot() { startSession(); autoBack(); }
+  if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);
 
-  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.0' };
+  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.1' };
 })();
