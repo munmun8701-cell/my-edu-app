@@ -1,5 +1,5 @@
 /* =====================================================================
-   むんクエスト連携キット（mun-link.js）  v1.1  2026.10
+   むんクエスト連携キット（mun-link.js）  v1.2  2026.10
    ---------------------------------------------------------------------
    単元アプリやゲームの </body> の直前に、次の1行を入れるだけで使えます。
      <script src="/mun-link.js"></script>
@@ -11,14 +11,17 @@
      ボタンの場所を変えたいとき： <script src="/mun-link.js" data-back="top-left"></script>
        （bottom-left ＝左下〔ふつう〕 / bottom-right / top-left / top-right / off ＝出さない）
    ・保護者が設定した「休けいのお知らせ」が、アプリの中でも出ます。
+   ・学習した時間でコインがもらえます：5分ごとに +100 C / +10 EXP
+       （画面を見ながら操作している時間だけ数えます。ひらいたままの放置や、別のタブにいる間は数えません）
+   ・学習でもらえるコインは 1日 3000 C まで（時間・クリアのごほうびを合わせて）
 
    ■ プログラムから使えること
    1) 授業（1時間目など）をクリアしたら、トップページのワールドマップに★が光り、
-      EXP とコインがたまります。
+      EXP とコインがたまります（はじめてクリア +10 EXP / +100 C、★がふえたら ★1つ +5 EXP / +30 C）。
         MunQuest.complete('app-math6-2', 3, 2);   // 単元ID, 何時間目, ★の数(0〜3)
       ・単元ID はトップページのカードの data-id（例：app-math6-2 ＝ 6年「文字と式」）
       ・同じ授業でごほうびがもらえるのは「はじめてクリア」と「★がふえたとき」だけ
-      ・ごほうびは 1日 30回まで
+      ・EXP のごほうびは 1日 30回まで、コインは学習コインの上限（1日 3000 C）まで
    2) 単元の授業の数を教えると、ワールドマップに「何時間中いくつクリアしたか」が出ます。
         MunQuest.setTotal('app-math6-2', 6);
 
@@ -26,6 +29,8 @@
      mun_exp / mun_coins / mun_daily_exp … EXP・コイン（トップページと同じ）
      mun_progress … 単元ごとのクリア記録
      mun_reward_day … 1日のごほうび回数
+     mun_learn_coin … 今日の学習コイン（上限 3000 C）
+     mun_study_day / mun_study_tick … 今日の学習時間
      mun_break / mun_session … 休けいのお知らせ
    ===================================================================== */
 (function () {
@@ -46,10 +51,20 @@
     if ((r.app || 0) >= APP_CAP) return false;
     r.app = (r.app || 0) + 1; save('mun_reward_day', r); return true;
   }
-  function give(exp, coins) {
-    var e = (parseInt(LS.get('mun_exp')) || 0) + exp, c = (parseInt(LS.get('mun_coins')) || 0) + coins;
-    LS.set('mun_exp', e); LS.set('mun_coins', c);
-    var log = load('mun_daily_exp', {}); log[today()] = (log[today()] || 0) + exp; save('mun_daily_exp', log);
+  /* ---------- 学習コイン（1日 3000 C まで）---------- */
+  var LEARN_CAP = 3000;                // ← 1日にもらえる学習コインの上限
+  var STUDY_STEP = 5 * 60;             // ← 何秒ごとにごほうびか（5分）
+  var STUDY_COIN = 100, STUDY_EXP = 10; // ← 5分ごとのコイン・EXP
+  function learnLog() { var r = load('mun_learn_coin', null); if (!r || r.date !== today()) r = { date: today(), c: 0 }; return r; }
+  function learnCoins(n) {
+    var r = learnLog(), g = Math.max(0, Math.min(n, LEARN_CAP - r.c));
+    if (g > 0) { r.c += g; save('mun_learn_coin', r); var c = (parseInt(LS.get('mun_coins')) || 0) + g; LS.set('mun_coins', c); }
+    return g;
+  }
+  function addExp(e) {
+    if (!(e > 0)) return;
+    LS.set('mun_exp', (parseInt(LS.get('mun_exp')) || 0) + e);
+    var log = load('mun_daily_exp', {}); log[today()] = (log[today()] || 0) + e; save('mun_daily_exp', log);
   }
 
   /* ---------- 小さなお知らせ表示 ---------- */
@@ -83,14 +98,16 @@
     var all = load('mun_progress', {}), u = all[unitId] || { lessons: {} };
     if (!u.lessons) u.lessons = {};
     var key = String(lesson == null ? 1 : lesson), prev = u.lessons[key], exp = 0, coins = 0;
-    if (!prev) { exp = 10; coins = 5; }
-    else if (stars > (prev.stars || 0)) { exp = 5 * (stars - (prev.stars || 0)); }
+    if (!prev) { exp = 10; coins = 100; }
+    else if (stars > (prev.stars || 0)) { exp = 5 * (stars - (prev.stars || 0)); coins = 30 * (stars - (prev.stars || 0)); }
     u.lessons[key] = { stars: Math.max(stars, prev ? prev.stars || 0 : 0), date: new Date().toISOString().slice(0, 10) };
     u.last = Date.now(); all[unitId] = u; save('mun_progress', all);
-    if ((exp || coins) && useAppReward()) {
-      give(exp, coins);
-      toast(prev ? '★がふえた！ +' + exp + ' EXP' : 'クリア！ +' + exp + ' EXP / +' + coins + ' コイン');
-      return { exp: exp, coins: coins };
+    if (!exp && !coins) return { exp: 0, coins: 0 };
+    var e = useAppReward() ? exp : 0, c = learnCoins(coins);
+    addExp(e);
+    if (e || c) {
+      toast((prev ? '★がふえた！' : 'クリア！') + (e ? ' +' + e + ' EXP' : '') + (c ? ' / +' + c + ' C' : '') + coinNote());
+      return { exp: e, coins: c };
     }
     return { exp: 0, coins: 0 };
   }
@@ -114,6 +131,26 @@
     var put = function () { document.body.appendChild(a); };
     if (document.body) put(); else document.addEventListener('DOMContentLoaded', put);
     return a;
+  }
+
+  /* ---------- 学習時間をはかって、5分ごとにごほうび ---------- */
+  function coinNote() { var r = learnLog(); return r.c >= LEARN_CAP ? '（今日の学習コインは上限です）' : '（今日 ' + r.c + ' / ' + LEARN_CAP + ' C）'; }
+  var lastAct = 0;
+  ['pointerdown', 'keydown', 'touchstart', 'wheel', 'input'].forEach(function (ev) { addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true, capture: true }); });
+  function studyTick() {
+    var now = Date.now();
+    if (document.hidden || now - lastAct > 60000) return;            // 1分以上さわっていないときは数えない
+    var last = parseInt(LS.get('mun_study_tick')) || 0;
+    if (now - last < 14000) return;                                   // 2つのタブで同時に数えないように
+    LS.set('mun_study_tick', now);
+    var d = load('mun_study_day', null); if (!d || d.date !== today()) d = { date: today(), sec: 0, paid: 0 };
+    d.sec += 15;
+    var steps = Math.floor(d.sec / STUDY_STEP);
+    if (steps > d.paid) {
+      d.paid = steps; save('mun_study_day', d);
+      var e = STUDY_EXP, c = learnCoins(STUDY_COIN); addExp(e);
+      toast('学習' + steps * 5 + '分！ +' + e + ' EXP' + (c ? ' / +' + c + ' C' : '') + coinNote());
+    } else save('mun_study_day', d);
   }
 
   /* ---------- 自動の「もどる」ボタン ---------- */
@@ -160,8 +197,8 @@
     document.body.appendChild(o);
   }
   function startSession() { sessionTick(); setInterval(sessionTick, 30000); document.addEventListener('visibilitychange', function () { if (!document.hidden) sessionTick(); }); }
-  function boot() { startSession(); autoBack(); }
+  function boot() { startSession(); autoBack(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
   if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);
 
-  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.1' };
+  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.2', learnCoins: function () { return learnLog().c; } };
 })();
