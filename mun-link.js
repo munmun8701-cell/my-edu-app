@@ -6,7 +6,7 @@
 
    ■ 自動でできること（1行入れるだけ）
    ・画面の左下に「もどる」ボタンが出て、トップページのその学年のコーナーへ戻れます。
-       3nennseisannsuu → 3年算数 / 4nennseisannsuu → 4年算数 / 5nenseisannsuu → 5年算数
+       1nennseisannsuu → 1年算数 / 3nennseisannsuu → 3年算数 / 4nennseisannsuu → 4年算数 / 5nenseisannsuu → 5年算数
        6nennseisannsuu → 6年算数（ほかのフォルダはトップページへ）
      ボタンの場所を変えたいとき： <script src="/mun-link.js" data-back="top-left"></script>
        （bottom-left ＝左下〔ふつう〕 / bottom-right / top-left / top-right / off ＝出さない）
@@ -155,7 +155,7 @@
 
   /* ---------- 自動の「もどる」ボタン ---------- */
   var ME = document.currentScript;
-  var CAT = { '3nennseisannsuu': 'math3', '4nennseisannsuu': 'math4', '4nenn': 'math4', '5nenseisannsuu': 'math5', '5nennseisannsuu': 'math5',
+  var CAT = { '1nennseisannsuu': 'math1', '3nennseisannsuu': 'math3', '4nennseisannsuu': 'math4', '4nenn': 'math4', '5nenseisannsuu': 'math5', '5nennseisannsuu': 'math5',
               '6nennseisannsuu': 'math6', 'kokugo': 'kokugo', 'syakai': 'social', 'tanosikugakusyuusiyou': 'game', 'kurasuyou': 'class',
               '1nennseiyougakusyuugame': 'grade1', 'sienngaxtukyuu': 'support', 'kakari': 'duty' };
   function autoBack() {

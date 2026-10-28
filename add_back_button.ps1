@@ -1,11 +1,11 @@
 ﻿# もどるボタン一括追加ツール（むん先生の学習クエスト）
-# 3〜6年算数の各単元フォルダの index.html に、次の1行を </body> の直前に入れます。
+# 1・3〜6年算数の各単元フォルダの index.html に、次の1行を </body> の直前に入れます。
 #   <script src="/mun-link.js"></script>
 # ・すでに入っているファイルは、そのままにします（何回実行しても大丈夫）
 # ・文字コード（UTF-8）や改行はそのまま。1行を足すだけで、ほかは変えません
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$folders = @('3nennseisannsuu', '4nennseisannsuu', '5nenseisannsuu', '6nennseisannsuu')
+$folders = @('1nennseisannsuu', '3nennseisannsuu', '4nennseisannsuu', '5nenseisannsuu', '6nennseisannsuu')
 $tag = '<script src="/mun-link.js"></script>'
 $strict = New-Object System.Text.UTF8Encoding($false, $true)
 $added = 0; $skipped = 0; $errors = 0
