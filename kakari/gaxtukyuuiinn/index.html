@@ -1,26 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>Simple Responsive Form</title>
-    <meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
-
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
 <html lang="ja">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>学級委員マスターコンソール v3</title>
+  <title>学級委員マスターコンソール v4</title>
   <style>
     :root {
       --bg-dark: #0a0510;
-      --card-bg: rgba(20, 10, 35, 0.75);
+      --card-bg: rgba(20, 10, 35, 0.8);
       --card-border: rgba(255, 170, 0, 0.3);
       --gold: #ffaa00;
       --gold-glow: rgba(255, 170, 0, 0.5);
@@ -29,1319 +17,1587 @@
       --red: #ff0055;
       --red-glow: rgba(255, 0, 85, 0.5);
       --green: #00ff88;
+      --pink: #ff7ad9;
       --text-main: #f0f0f5;
       --text-sub: #aa99bb;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
 
     body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', Meiryo, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 15px;
+      padding: 12px;
       overflow-x: hidden;
-    }
-
-    /* === フリガナ（ルビ）の制御 === */
-    rt {
-      opacity: 0;
-      font-size: 0;
-      transition: all 0.3s ease;
-      line-height: 0;
-      display: block;
-      text-align: center;
-    }
-
-    ruby {
-      ruby-align: center;
-    }
-
-    body.furigana-mode rt {
-      opacity: 1;
-      font-size: 0.65em;
-      line-height: 1;
-      color: var(--gold);
-      margin-bottom: 2px;
-    }
-
-    body.furigana-mode ruby {
-      margin: 0 2px;
-    }
-
-    /* 背景キャンバス＆アラート */
-    #bg-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      pointer-events: none;
-      background: radial-gradient(circle at center, #150a20 0%, #05020a 100%);
-    }
-
-    #alert-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(255, 0, 85, 0.3);
-      z-index: 999;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.1s;
-      display: none;
-    }
-
-    .flash-anim {
-      animation: flashRed 0.5s infinite;
-      display: block !important;
-    }
-
-    @keyframes flashRed {
-
-      0%,
-      100% {
-        opacity: 0;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
-    /* === トップバー === */
-    .top-bar {
-      width: 100%;
-      max-width: 1500px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(10, 5, 20, 0.8);
-      border: 1px solid var(--gold);
-      border-radius: 12px;
-      padding: 15px 25px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 20px var(--gold-glow);
-      backdrop-filter: blur(10px);
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    .title-area h1 {
-      font-size: 1.8rem;
-      color: var(--gold);
-      text-shadow: 0 0 10px var(--gold-glow);
-      margin-bottom: 5px;
-    }
-
-    .exp-bar-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      color: var(--cyan);
-    }
-
-    .exp-bar-bg {
-      width: 150px;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
-      overflow: hidden;
-    }
-
-    .exp-bar-fill {
-      height: 100%;
-      background: var(--cyan);
-      width: 0%;
-      transition: width 0.5s;
-      box-shadow: 0 0 10px var(--cyan-glow);
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      background: rgba(255, 170, 0, 0.15);
-      color: var(--gold);
-      border: 1px solid var(--gold);
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s;
-      font-size: 0.9rem;
-    }
-
-    .btn:hover {
-      background: rgba(255, 170, 0, 0.3);
-      box-shadow: 0 0 10px var(--gold-glow);
-    }
-
-    .btn-cyan {
-      background: rgba(0, 243, 255, 0.15);
-      color: var(--cyan);
-      border-color: var(--cyan);
-    }
-
-    .btn-cyan:hover {
-      background: rgba(0, 243, 255, 0.3);
-      box-shadow: 0 0 10px var(--cyan-glow);
-    }
-
-    .btn-red {
-      background: rgba(255, 0, 85, 0.15);
-      color: var(--red);
-      border-color: var(--red);
-    }
-
-    .btn-red:hover {
-      background: rgba(255, 0, 85, 0.3);
-      box-shadow: 0 0 10px var(--red-glow);
-    }
-
-    /* === メイングリッド === */
-    .dashboard-grid {
-      width: 100%;
-      max-width: 1500px;
-      display: grid;
-      grid-template-columns: 1fr 1.6fr 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    @media (max-width: 1100px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-
-    .panel-header {
-      font-size: 1.15rem;
-      color: var(--cyan);
-      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-      padding-bottom: 10px;
-      margin-bottom: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 8px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--text-sub);
-      color: var(--text-main);
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.95rem;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: var(--gold);
-      box-shadow: 0 0 10px var(--gold-glow);
-    }
-
-    /* === 左：タスク＆データ === */
-    .task-input-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .priority-sel {
-      width: 70px;
-    }
-
-    .task-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .task-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px;
-      background: rgba(0, 0, 0, 0.4);
-      border-left: 4px solid var(--text-sub);
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-
-    .task-item.pri-high {
-      border-left-color: var(--red);
-    }
-
-    .task-item.pri-med {
-      border-left-color: var(--gold);
-    }
-
-    .task-item.pri-low {
-      border-left-color: var(--cyan);
-    }
-
-    .task-item.done {
-      opacity: 0.5;
-      text-decoration: line-through;
-      border-left-color: var(--green);
-    }
-
-    .db-item {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px dashed var(--text-sub);
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-
-    .db-item input,
-    .db-item textarea {
-      margin-top: 5px;
-      font-size: 0.85rem;
-    }
-
-    .db-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 5px;
-      margin-top: 5px;
-    }
-
-    /* === 中央：学級会＆投票 === */
-    .script-box {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px dashed var(--cyan);
-      font-size: 1rem;
-      line-height: 1.7;
-    }
-
-    .script-step {
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .script-step:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    .script-speaker {
-      color: var(--gold);
-      font-weight: bold;
-      margin-bottom: 5px;
-      font-size: 1.1rem;
-    }
-
-    .script-guide {
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      margin-top: 5px;
-      display: block;
-    }
-
-    /* ダイナミック投票 */
-    .vote-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-    }
-
-    .vote-card {
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--cyan);
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* 案のタイトル用テキストエリア（長文対応） */
-    .vote-title-input {
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 5px;
-      background: rgba(0, 0, 0, 0.6);
-      color: var(--gold);
-      border: 1px solid transparent;
-      border-radius: 4px;
-      resize: vertical;
-      min-height: 44px;
-    }
-
-    .vote-title-input:focus {
-      border-color: var(--gold);
-      background: rgba(0, 0, 0, 0.8);
-    }
-
-    .vote-card textarea.vote-memo {
-      font-size: 0.8rem;
-      min-height: 60px;
-      margin-bottom: 5px;
-      background: rgba(255, 255, 255, 0.05);
-      border: none;
-      padding: 5px;
-      flex-grow: 1;
-    }
-
-    .vote-count {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: var(--cyan);
-      margin: 5px 0;
-    }
-
-    .vote-controls {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .del-vote-btn {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: var(--red);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      cursor: pointer;
-      font-size: 14px;
-      line-height: 1;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    }
-
-    /* 投票履歴 */
-    .history-box {
-      margin-top: 10px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      max-height: 150px;
-      overflow-y: auto;
-      border: 1px dashed var(--text-sub);
-    }
-
-    .history-item {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 5px;
-      margin-bottom: 5px;
-    }
-
-    .history-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    /* ブレインストーミング（意見箱） */
-    #brainstorm-board {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 10px;
-    }
-
-    .bs-chip {
-      background: var(--cyan);
-      color: #000;
-      padding: 3px 10px;
-      border-radius: 15px;
-      font-size: 0.85rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    /* === 右：ツール群 === */
-    .tool-box {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      margin-bottom: 15px;
-    }
-
-    .timer-display {
-      font-size: 3rem;
-      font-family: monospace;
-      color: var(--gold);
-      text-shadow: 0 0 10px var(--gold-glow);
-      margin: 0 0 10px 0;
-      line-height: 1;
-    }
-
-    .timer-inputs {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      margin-bottom: 15px;
-    }
-
-    .timer-inputs input {
-      width: 60px;
-      text-align: center;
-      font-size: 1.2rem;
-      background: rgba(255, 170, 0, 0.1);
-      border: 1px solid var(--gold);
-      color: var(--gold);
-    }
-
-    .setting-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 0.9rem;
-    }
-
-    .setting-row input,
-    .setting-row select {
-      width: 90px;
-      text-align: right;
-    }
-
-    .headcount-select {
-      background: rgba(0, 243, 255, 0.1);
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-      font-size: 1.5rem;
-      padding: 5px;
-      border-radius: 8px;
-      font-weight: bold;
-      text-align: center;
-      width: 100px;
-      cursor: pointer;
-    }
-
-    .group-result {
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px dashed var(--cyan);
-      padding: 10px;
-      text-align: left;
-      font-size: 0.9rem;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-    /* フルスクリーンモード */
-    .fullscreen-mode {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 1000;
-      background: var(--bg-dark);
-      padding: 40px;
-      overflow-y: auto;
-      max-height: none;
-    }
-
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.3);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--cyan);
-      border-radius: 3px;
+      line-height: 1.5;
+    }
+
+    /* ===== ふりがな ===== */
+    rt { display: none; }
+    body.furigana-mode rt { display: ruby-text; font-size: 0.55em; color: var(--gold); font-weight: normal; }
+    body.furigana-mode .step-text, body.furigana-mode .pr-text { line-height: 2; }
+
+    #bg-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; background: radial-gradient(circle at center, #150a20 0%, #05020a 100%); }
+    #alert-overlay { position: fixed; inset: 0; background: rgba(255, 0, 85, 0.3); z-index: 3000; pointer-events: none; opacity: 0; display: none; }
+    .flash-anim { animation: flashRed 0.5s infinite; display: block !important; }
+    @keyframes flashRed { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+    #cue-overlay { position: fixed; inset: 0; z-index: 3500; display: none; align-items: center; justify-content: center; font-size: clamp(3rem, 14vw, 10rem); font-weight: 900; color: #fff; background: rgba(10, 5, 20, 0.88); text-shadow: 0 0 30px var(--gold); pointer-events: none; text-align: center; }
+    #cue-overlay.show { display: flex; animation: pop 0.25s ease; }
+    @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    #toast-root { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+    .toast { background: rgba(0, 0, 0, 0.9); border: 1px solid var(--cyan); color: var(--cyan); padding: 8px 18px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; animation: pop 0.2s ease; box-shadow: 0 0 12px var(--cyan-glow); }
+    .toast.warn { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px var(--gold-glow); }
+
+    /* ===== トップバー ===== */
+    .top-bar { width: 100%; max-width: 1560px; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 5, 20, 0.85); border: 1px solid var(--gold); border-radius: 12px; padding: 12px 20px; margin-bottom: 14px; box-shadow: 0 0 18px var(--gold-glow); backdrop-filter: blur(10px); flex-wrap: wrap; gap: 12px; }
+    .title-area h1 { font-size: 1.5rem; color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
+    .exp-bar-container { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--cyan); }
+    .exp-bar-bg { width: 130px; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 5px; overflow: hidden; }
+    .exp-bar-fill { height: 100%; background: var(--cyan); width: 0%; transition: width 0.5s; box-shadow: 0 0 10px var(--cyan-glow); }
+    .goal-box { flex: 1; min-width: 260px; max-width: 520px; background: rgba(0, 243, 255, 0.07); border: 1px solid var(--cyan); border-radius: 10px; padding: 6px 12px; }
+    .goal-box label { font-size: 0.8rem; color: var(--cyan); font-weight: bold; }
+    .goal-box input { border-color: transparent; background: rgba(0, 0, 0, 0.4); color: var(--cyan); font-weight: bold; font-size: 1.05rem; }
+    #prev-goal { font-size: 0.78rem; color: var(--text-sub); min-height: 1em; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    /* ===== ボタン ===== */
+    .btn { background: rgba(255, 170, 0, 0.15); color: var(--gold); border: 1px solid var(--gold); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 0.9rem; font-family: inherit; }
+    .btn:hover { background: rgba(255, 170, 0, 0.32); box-shadow: 0 0 10px var(--gold-glow); }
+    .btn:active { transform: scale(0.96); }
+    .btn-cyan { background: rgba(0, 243, 255, 0.13); color: var(--cyan); border-color: var(--cyan); }
+    .btn-cyan:hover { background: rgba(0, 243, 255, 0.3); box-shadow: 0 0 10px var(--cyan-glow); }
+    .btn-red { background: rgba(255, 0, 85, 0.13); color: var(--red); border-color: var(--red); }
+    .btn-red:hover { background: rgba(255, 0, 85, 0.3); box-shadow: 0 0 10px var(--red-glow); }
+    .btn-green { background: rgba(0, 255, 136, 0.13); color: var(--green); border-color: var(--green); }
+    .btn-green:hover { background: rgba(0, 255, 136, 0.3); }
+    .btn.sm { padding: 3px 9px; font-size: 0.78rem; }
+    .btn.big { padding: 11px 20px; font-size: 1.05rem; }
+    .btn.wide { width: 100%; }
+    .mini { background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 5px; padding: 1px 7px; cursor: pointer; font-size: 0.75rem; font-family: inherit; }
+    .mini:hover { background: rgba(255, 255, 255, 0.2); }
+    .mini.red { color: var(--red); border-color: var(--red); }
+    .mini.on { background: var(--gold); color: #000; }
+
+    /* ===== レイアウト ===== */
+    .dashboard-grid { width: 100%; max-width: 1560px; display: grid; grid-template-columns: 1fr 1.9fr 1fr; gap: 14px; align-items: start; }
+    .column { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    @media (max-width: 1150px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } .col-center { grid-column: 1 / -1; order: -1; } }
+    @media (max-width: 700px) { .dashboard-grid { grid-template-columns: 1fr; } body { padding: 8px; } }
+
+    .panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 10px; }
+    .panel-header { font-size: 1.05rem; color: var(--cyan); border-bottom: 1px solid rgba(0, 243, 255, 0.3); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .hdr-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hint { font-size: 0.78rem; color: var(--text-sub); font-weight: normal; }
+    .empty { font-size: 0.85rem; color: var(--text-sub); text-align: center; padding: 10px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 8px; }
+    .row { display: flex; gap: 6px; align-items: center; }
+    .row.wrap { flex-wrap: wrap; }
+    .grow { flex: 1; min-width: 0; }
+
+    input[type="text"], input[type="number"], input[type="date"], textarea, select {
+      width: 100%; padding: 7px 8px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--text-sub); color: var(--text-main); border-radius: 6px; font-family: inherit; font-size: 0.95rem;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
+    textarea { resize: vertical; min-height: 54px; }
+    select { cursor: pointer; }
+    input[type="checkbox"] { width: auto; accent-color: var(--gold); cursor: pointer; }
+    input.num { width: 64px; text-align: center; }
+    label { font-size: 0.85rem; color: var(--text-sub); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+    ::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 3px; }
+
+    /* ===== 議題リスト ===== */
+    #agenda-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+    .ag-item { display: flex; align-items: center; gap: 6px; padding: 7px 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid transparent; border-left: 4px solid var(--text-sub); border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    .ag-item:hover { background: rgba(255, 255, 255, 0.08); }
+    .ag-item.cur { border-color: var(--gold); box-shadow: 0 0 10px var(--gold-glow); }
+    .ag-item.st-done { opacity: 0.6; border-left-color: var(--green); }
+    .ag-item.st-doing { border-left-color: var(--gold); }
+    .ag-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ag-st { color: var(--gold); }
+    .ag-btns { display: flex; gap: 3px; }
+
+    /* ===== タスク ===== */
+    .task-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+    .task-item { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 7px; background: rgba(0, 0, 0, 0.4); border-left: 4px solid var(--text-sub); border-radius: 6px; font-size: 0.9rem; }
+    .task-item.pri-high { border-left-color: var(--red); }
+    .task-item.pri-med { border-left-color: var(--gold); }
+    .task-item.pri-low { border-left-color: var(--cyan); }
+    .task-item.done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
+
+    /* ===== DB ===== */
+    .db-item { background: rgba(0, 0, 0, 0.4); border: 1px dashed var(--text-sub); padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 5px; }
+    .db-item textarea { font-size: 0.85rem; min-height: 50px; }
+    #db-container { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+
+    /* ===== 中央：議題ヘッダー ===== */
+    .start-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+    .start-card { background: rgba(0, 0, 0, 0.45); border: 2px solid var(--c, var(--cyan)); border-radius: 14px; padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text-main); font-family: inherit; }
+    .start-card:hover { transform: translateY(-3px); box-shadow: 0 0 18px var(--c); background: rgba(255, 255, 255, 0.07); }
+    .start-card .ico { font-size: 2.4rem; display: block; }
+    .start-card .nm { font-size: 1.15rem; font-weight: bold; color: var(--c); display: block; margin: 4px 0; }
+    .start-card .ds { font-size: 0.8rem; color: var(--text-sub); }
+
+    .ag-head { display: flex; flex-direction: column; gap: 6px; }
+    .ag-head label { display: flex; align-items: center; gap: 6px; }
+    .ag-head select { width: auto; }
+    .ag-head .row { flex-wrap: wrap; }
+    #m-title { min-width: 200px; }
+    .ag-head label { white-space: nowrap; }
+    #m-title { font-size: 1.15rem; font-weight: bold; color: var(--gold); }
+
+    .stepper { display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 8px; }
+    .pill { flex: 0 0 auto; background: rgba(0, 0, 0, 0.5); color: var(--text-sub); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 20px; padding: 5px 12px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; font-family: inherit; }
+    .pill.past { color: var(--green); border-color: rgba(0, 255, 136, 0.5); }
+    .pill.on { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; box-shadow: 0 0 12px var(--gold-glow); }
+    .pill.on rt { color: #000; }
+
+    .step-card { background: rgba(0, 0, 0, 0.4); border: 2px solid var(--tc, var(--cyan)); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .step-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .step-no { background: var(--gold); color: #000; font-weight: bold; border-radius: 12px; padding: 1px 10px; font-size: 0.85rem; }
+    .script-speaker { color: var(--gold); font-weight: bold; font-size: 1.2rem; flex: 1; }
+    .step-text { font-size: 1.25rem; line-height: 1.8; }
+    .script-guide { font-size: 0.88rem; color: var(--text-sub); background: rgba(255, 255, 255, 0.05); border-radius: 6px; padding: 6px 10px; }
+    .step-nav { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+    .ph { color: var(--cyan); border-bottom: 2px solid var(--cyan); font-weight: bold; padding: 0 2px; }
+    .ph.empty { color: var(--text-sub); border-bottom-style: dashed; border-color: var(--text-sub); }
+    .say-box { background: rgba(255, 170, 0, 0.12); border: 2px dashed var(--gold); border-radius: 10px; padding: 10px 12px; font-size: 1.3rem; font-weight: bold; color: #fff; display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+    .say-box .lbl { font-size: 0.75rem; color: var(--gold); display: block; }
+
+    /* ===== 手順エディタ ===== */
+    .editor { background: rgba(255, 170, 0, 0.06); border: 1px dashed var(--gold); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .ed-step { background: rgba(0, 0, 0, 0.4); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 5px; border-left: 4px solid var(--text-sub); }
+    .ed-step.cur { border-left-color: var(--gold); }
+    .ed-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .ed-row select { width: auto; }
+    .ed-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ===== ことばバンク ===== */
+    .phrase-bank { border: 1px solid rgba(0, 243, 255, 0.35); border-radius: 10px; padding: 8px 10px; background: rgba(0, 243, 255, 0.04); }
+    .phrase-bank summary { cursor: pointer; color: var(--cyan); font-weight: bold; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip { background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 16px; padding: 4px 11px; font-size: 0.85rem; cursor: pointer; font-family: inherit; }
+    .chip:hover { background: rgba(255, 255, 255, 0.2); }
+    .chip.on { background: var(--cyan); color: #000; border-color: var(--cyan); font-weight: bold; }
+    .chip.say { border-color: var(--gold); color: var(--gold); }
+
+    /* ===== 作業タブ ===== */
+    .work-tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 6px; }
+    .wtab { background: rgba(0, 0, 0, 0.4); color: var(--text-sub); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 8px 8px 0 0; padding: 7px 14px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.92rem; }
+    .wtab.on { background: var(--cyan); color: #000; border-color: var(--cyan); }
+    .wtab .bd { background: var(--red); color: #fff; border-radius: 10px; padding: 0 6px; font-size: 0.72rem; margin-left: 4px; }
+    .work-pane { display: none; flex-direction: column; gap: 10px; }
+    .work-pane.on { display: flex; }
+
+    /* 意見 */
+    .op-input { display: grid; grid-template-columns: auto 1fr 90px auto; gap: 6px; }
+    .op-input select { width: auto; }
+    @media (max-width: 600px) { .op-input { grid-template-columns: 1fr 1fr; } .op-input #op-text { grid-column: 1 / -1; } }
+    #op-list { display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+    .op-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.45); border-left: 5px solid var(--tg, var(--cyan)); }
+    .op-item.star { background: rgba(255, 170, 0, 0.18); }
+    .op-text { flex: 1; font-size: 1rem; word-break: break-word; }
+    .op-who { font-size: 0.78rem; color: var(--text-sub); }
+    .op-btns { display: flex; gap: 3px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    .tag-idea { --tg: var(--cyan); } .tag-agree { --tg: var(--green); } .tag-disagree { --tg: var(--red); } .tag-question { --tg: var(--gold); } .tag-worry { --tg: var(--pink); }
+
+    /* 投票 */
+    .vote-top { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .vote-summary { font-size: 0.9rem; color: var(--text-sub); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .warn { color: var(--gold); font-weight: bold; }
+    .vote-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .vote-card { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--cyan); border-radius: 10px; padding: 10px; position: relative; display: flex; flex-direction: column; gap: 6px; }
+    .vote-card.lead { border-color: var(--gold); box-shadow: 0 0 14px var(--gold-glow); }
+    .vote-card.spot { border-color: var(--green); box-shadow: 0 0 22px var(--green); }
+    .vote-title-input { font-weight: bold; color: var(--gold); text-align: center; min-height: 44px; padding-right: 22px; }
+    .vote-memo { font-size: 0.82rem; min-height: 46px; }
+    .rank { position: absolute; top: -9px; left: -6px; background: var(--gold); color: #000; font-weight: bold; border-radius: 10px; padding: 0 8px; font-size: 0.8rem; }
+    .del-vote-btn { position: absolute; top: -8px; right: -8px; background: var(--red); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+    .vote-count-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .vote-count-row input { width: 70px; text-align: center; font-size: 1.6rem; font-weight: bold; color: var(--cyan); }
+    .vote-count-row .btn { font-size: 1.2rem; padding: 2px 14px; }
+    .bar-bg { height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--cyan); transition: width 0.3s; }
+    .lead .bar-fill { background: var(--gold); }
+    .crit { display: flex; flex-wrap: wrap; gap: 4px; }
+    .crit .chip { font-size: 0.75rem; padding: 2px 8px; }
+    .banner { border-radius: 8px; padding: 8px 12px; font-weight: bold; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .banner.win { background: rgba(255, 170, 0, 0.15); border: 1px solid var(--gold); color: var(--gold); }
+    .banner.tie { background: rgba(255, 0, 85, 0.12); border: 1px solid var(--red); color: var(--red); }
+
+    /* ===== 右カラム ===== */
+    .timer-display { font-size: 3.4rem; font-family: monospace; color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); line-height: 1; text-align: center; }
+    .timer-display.low { color: var(--red); text-shadow: 0 0 14px var(--red-glow); }
+    .timer-bar { height: 6px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; overflow: hidden; }
+    #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: width 0.3s linear; }
+    #timer-label { text-align: center; font-size: 0.85rem; color: var(--cyan); min-height: 1.2em; }
+    .btn-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.88rem; }
+    .setting-row input, .setting-row select { width: 100px; text-align: right; }
+    .setting-row .wide-in { width: 140px; text-align: left; }
+    #rng-result { font-size: 3rem; color: var(--gold); text-align: center; font-weight: bold; min-height: 1.2em; }
+    .group-result { background: rgba(0, 0, 0, 0.6); border: 1px dashed var(--cyan); padding: 8px; font-size: 0.9rem; max-height: 220px; overflow-y: auto; border-radius: 6px; }
+
+    /* ===== モーダル ===== */
+    .modal-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 2500; display: flex; align-items: center; justify-content: center; padding: 14px; }
+    .modal { background: #160c26; border: 1px solid var(--gold); border-radius: 14px; padding: 18px; width: min(460px, 100%); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 30px var(--gold-glow); }
+    .modal.large { width: min(920px, 100%); height: 90vh; }
+    .modal h3 { color: var(--gold); }
+    .m-msg { line-height: 1.6; }
+    .m-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+    .note-item { background: rgba(0, 0, 0, 0.45); border-left: 4px solid var(--gold); border-radius: 8px; padding: 9px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .note-item .ni-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .note-item .ni-sub { font-size: 0.8rem; color: var(--text-sub); }
+    .note-item pre { white-space: pre-wrap; font-family: inherit; font-size: 0.88rem; color: var(--text-main); }
+    .note-item.done { opacity: 0.6; }
+    .notes-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
+    .stars span { cursor: pointer; font-size: 1.4rem; color: var(--gold); }
+    kbd { background: #333; border: 1px solid #666; border-radius: 4px; padding: 0 6px; font-family: monospace; font-size: 0.85em; }
+
+    /* ===== 発表モード ===== */
+    #presenter { position: fixed; inset: 0; z-index: 2000; background: radial-gradient(circle at center, #1a0d2c 0%, #05020a 100%); padding: 22px 30px; overflow-y: auto; display: none; flex-direction: column; gap: 18px; }
+    #presenter.open { display: flex; }
+    .pr-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .pr-agenda { font-size: clamp(1.2rem, 3vw, 2rem); font-weight: bold; color: var(--gold); }
+    .pr-timer { font-size: clamp(2.2rem, 6vw, 4rem); font-family: monospace; color: var(--gold); }
+    .pr-timer.low { color: var(--red); }
+    .pr-step { border: 3px solid var(--tc, var(--cyan)); border-radius: 18px; padding: 22px 28px; background: rgba(0, 0, 0, 0.4); }
+    .pr-title { color: var(--gold); font-size: clamp(1.4rem, 3.4vw, 2.4rem); font-weight: bold; margin-bottom: 10px; }
+    .pr-text { font-size: clamp(1.5rem, 3.6vw, 2.8rem); line-height: 1.7; }
+    .pr-say { font-size: clamp(1.6rem, 4vw, 3rem); font-weight: bold; color: var(--gold); border: 3px dashed var(--gold); border-radius: 14px; padding: 14px 20px; text-align: center; }
+    .pr-work { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pr-chip { font-size: clamp(1.1rem, 2.4vw, 1.8rem); background: rgba(0, 0, 0, 0.5); border-left: 6px solid var(--tg, var(--cyan)); padding: 8px 16px; border-radius: 10px; }
+    .pr-bars { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .pr-bar-row { display: grid; grid-template-columns: minmax(120px, 28%) 1fr 90px; gap: 12px; align-items: center; font-size: clamp(1.1rem, 2.6vw, 2rem); }
+    .pr-bar-row .bar-bg { height: 28px; border-radius: 14px; }
+    .pr-bar-row .bar-fill { background: var(--cyan); }
+    .pr-bar-row.lead .bar-fill { background: var(--gold); }
+    .pr-bar-row b { text-align: right; color: var(--gold); }
+    .pr-decision { font-size: clamp(1.8rem, 4.4vw, 3.4rem); font-weight: bold; color: var(--green); }
+    .pr-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: auto; }
+    .pr-nav .btn { font-size: 1.2rem; padding: 12px 28px; }
+
+    /* ===== 印刷 ===== */
+    @media print {
+      body.printing { background: #fff !important; color: #000 !important; display: block; padding: 0; }
+      body.printing > *:not(#modal-root) { display: none !important; }
+      body.printing .modal-back { position: static; background: none; padding: 0; }
+      body.printing .modal { border: none; box-shadow: none; background: #fff; color: #000; width: 100%; height: auto; max-height: none; overflow: visible; }
+      body.printing .modal h3, body.printing .note-item b { color: #000; }
+      body.printing .note-item { background: #fff; border: 1px solid #999; color: #000; break-inside: avoid; }
+      body.printing .note-item pre, body.printing .note-item .ni-sub { color: #222; }
+      body.printing .no-print { display: none !important; }
+      body.printing .notes-list { overflow: visible; }
     }
   </style>
 </head>
 
 <body>
-
   <canvas id="bg-canvas"></canvas>
   <div id="alert-overlay"></div>
+  <div id="cue-overlay"></div>
+  <div id="toast-root"></div>
+  <div id="modal-root"></div>
 
   <!-- ================= トップバー ================= -->
-  <div class="top-bar">
+  <header class="top-bar">
     <div class="title-area">
-      <h1><ruby>学級委員<rt>がっきゅういいん</rt></ruby>マスターコンソール v3</h1>
-      <div id="date-display" style="color:var(--text-sub); font-size: 0.9rem;"></div>
+      <h1><span data-rb="学級委員"></span>マスターコンソール v4</h1>
+      <div id="date-display" style="color:var(--text-sub); font-size: 0.85rem;"></div>
       <div class="exp-bar-container">
         <span>LV.<span id="lvl-display">1</span></span>
-        <div class="exp-bar-bg">
-          <div class="exp-bar-fill" id="exp-fill"></div>
-        </div>
+        <div class="exp-bar-bg"><div class="exp-bar-fill" id="exp-fill"></div></div>
         <span id="exp-text">0 / 100 EXP</span>
       </div>
     </div>
 
-    <div class="controls">
-      <input type="text" id="class-goal" placeholder="今週のクラス目標..." style="width: 200px; border-color: var(--cyan); color: var(--cyan);">
-      <button class="btn btn-cyan" onclick="toggleFurigana()">🔤 <ruby>漢字<rt>かんじ</rt></ruby>/ルビ切替</button>
-      <button class="btn btn-red" onclick="resetDay()">🔄 <ruby>終礼<rt>しゅうれい</rt></ruby>リセット</button>
+    <div class="goal-box">
+      <label id="goal-label" for="class-goal">🎯 今月のめあて</label>
+      <input type="text" id="class-goal" placeholder="今月のクラスのめあて（学級会で決めたら自動で入ります）" oninput="onGoalInput(this.value)">
+      <div id="prev-goal"></div>
     </div>
-  </div>
 
-  <!-- ================= メインダッシュボード ================= -->
-  <div class="dashboard-grid">
+    <div class="controls">
+      <button class="btn btn-green" onclick="openNotes('rule')">📒 <span data-rb="決定"></span>ノート</button>
+      <button class="btn btn-cyan" onclick="toggleFurigana()">🔤 ふりがな</button>
+      <button class="btn btn-cyan sm" onclick="fontStep(-0.1)" title="文字を小さく">A−</button>
+      <button class="btn btn-cyan sm" onclick="fontStep(0.1)" title="文字を大きく">A＋</button>
+      <button class="btn" onclick="openSettings()">⚙ せってい</button>
+      <button class="btn btn-red" onclick="resetDay()">🔄 <span data-rb="終礼"></span>リセット</button>
+    </div>
+  </header>
 
-    <!-- ================= 左カラム：タスク＆カスタムDB ================= -->
-    <div class="column">
+  <!-- ================= メイン ================= -->
+  <main class="dashboard-grid">
 
-      <!-- 1. タスク管理 -->
-      <div class="panel">
-        <div class="panel-header">✅ <ruby>臨機応変<rt>りんきおうへん</rt></ruby>タスク</div>
-        <div class="task-input-group">
-          <select class="priority-sel" id="task-pri">
-            <option value="pri-high">高</option>
-            <option value="pri-med" selected>中</option>
-            <option value="pri-low">低</option>
-          </select>
-          <input type="text" id="task-input" placeholder="新しい任務...">
+    <!-- ===== 左カラム ===== -->
+    <section class="column col-left">
+      <div class="panel" id="p-agenda">
+        <div class="panel-header"><span>📋 <span data-rb="議題"></span>リスト</span></div>
+        <div class="row">
+          <select id="ag-type" style="width:auto"></select>
+          <input type="text" id="ag-title" placeholder="議題（例：給食のならび方）" onkeydown="if(event.key==='Enter')addAgenda()">
+          <button class="btn" onclick="addAgenda()">追加</button>
+        </div>
+        <div id="agenda-list"></div>
+      </div>
+
+      <div class="panel" id="p-roles">
+        <div class="panel-header"><span>👤 <span data-rb="役割"></span>（<span data-rb="司会"></span>など）</span></div>
+        <div class="setting-row"><span>第 <input type="number" id="meeting-no" min="1" style="width:64px;text-align:center" oninput="onMeetingNo(this.value)"> <span data-rb="回"></span> <span data-rb="学級会"></span></span></div>
+        <div class="setting-row"><span data-rb="司会"></span><input type="text" class="wide-in" id="role-chair" oninput="onRole('chair',this.value)"></div>
+        <div class="setting-row"><span>副<span data-rb="司会"></span></span><input type="text" class="wide-in" id="role-vice" oninput="onRole('vice',this.value)"></div>
+        <div class="setting-row"><span data-rb="書記"></span><input type="text" class="wide-in" id="role-scribe" oninput="onRole('scribe',this.value)"></div>
+        <div class="setting-row"><span>タイムキーパー</span><input type="text" class="wide-in" id="role-timekeeper" oninput="onRole('timekeeper',this.value)"></div>
+        <div class="hint">入力した名前は、手順の中の {{司会}} などに自動で入ります。</div>
+      </div>
+
+      <div class="panel" id="p-tasks">
+        <div class="panel-header"><span>✅ <span data-rb="臨機応変"></span>タスク</span><button class="btn sm" onclick="clearDoneTasks()">完了を消す</button></div>
+        <div class="row">
+          <select id="task-pri" style="width:60px"><option value="pri-high">高</option><option value="pri-med" selected>中</option><option value="pri-low">低</option></select>
+          <input type="text" id="task-input" placeholder="新しい任務..." onkeydown="if(event.key==='Enter')addTask()">
           <button class="btn" onclick="addTask()">追加</button>
         </div>
         <div class="task-list" id="task-list-container"></div>
       </div>
 
-      <!-- 2. 日常メモ -->
-      <div class="panel">
-        <div class="panel-header">
-          📝 先生への<ruby>報告<rt>ほうこく</rt></ruby>
-          <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="copyToClip('daily-memo')">コピー</button>
-        </div>
-        <textarea id="daily-memo" placeholder="先生に伝えること、今日の気づき..."></textarea>
+      <div class="panel" id="p-report">
+        <div class="panel-header"><span>📝 先生への<span data-rb="報告"></span></span><button class="btn btn-cyan sm" onclick="copyText($('daily-memo').value)">コピー</button></div>
+        <textarea id="daily-memo" placeholder="先生に伝えること、今日の気づき..." oninput="S.daily=this.value;save()"></textarea>
       </div>
 
-      <!-- 3. カスタム・データベース -->
-      <div class="panel">
-        <div class="panel-header">
-          💡 お<ruby>役立<rt>やくだ</rt></ruby>ちデータベース
-          <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addDbItem()">+ 新規</button>
-        </div>
-        <span style="font-size: 0.8rem; color: var(--text-sub);">※ レクの案や、係の仕事などを自由に作成・自動保存できます。</span>
-        <div id="db-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-          <!-- JSで生成 -->
-        </div>
+      <div class="panel" id="p-db">
+        <div class="panel-header"><span>💡 お<span data-rb="役立"></span>ちデータベース</span><button class="btn sm" onclick="addDbItem()">+ 新規</button></div>
+        <div class="hint">レクの案・きまりの例・係の仕事などをためておくと、「案にする」で投票にすぐ出せます。</div>
+        <div class="row"><input type="text" id="db-search" placeholder="🔍 さがす" oninput="renderDb()"><select id="db-cat-filter" style="width:auto" onchange="renderDb()"></select></div>
+        <div id="db-container"></div>
       </div>
-    </div>
+    </section>
 
-    <!-- ================= 中央カラム：学級会コントロール ================= -->
-    <div class="column">
-      <div class="panel" id="meeting-core-panel">
-        <div class="panel-header">
-          🎙️ <ruby>学級会<rt>がっきゅうかい</rt></ruby>コア
-          <div>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="toggleFocus()">全画面</button>
-          </div>
-        </div>
+    <!-- ===== 中央カラム ===== -->
+    <section class="column col-center" id="meeting-root"></section>
 
-        <!-- ミーティング進行状況 -->
-        <div style="display: flex; gap: 10px; margin-bottom: 10px; border-bottom: 1px dashed var(--text-sub); padding-bottom: 10px; flex-wrap: wrap;">
-          <label><input type="radio" name="m-status" checked> 準備</label>
-          <label><input type="radio" name="m-status"> 提案</label>
-          <label><input type="radio" name="m-status"> 質問・意見</label>
-          <label><input type="radio" name="m-status"> まとめる</label>
-          <label><input type="radio" name="m-status"> 多数決</label>
-        </div>
-
-        <!-- 4. 詳細版・学級会台本 -->
-        <div class="script-box">
-          <div class="script-step">
-            <div class="script-speaker">１．はじめの<ruby>言葉<rt>ことば</rt></ruby></div>
-            「これから、<ruby>第<rt>だい</rt></ruby>〇<ruby>回<rt>かい</rt></ruby> <ruby>学級会<rt>がっきゅうかい</rt></ruby>を<ruby>始<rt>はじ</rt></ruby>めます。<ruby>今日<rt>きょう</rt></ruby>の<ruby>議題<rt>ぎだい</rt></ruby>は『<input type="text" id="meeting-topic" placeholder="例：お楽しみ会について" style="width:200px; padding:2px; display:inline;">』です。」
-          </div>
-          <div class="script-step">
-            <div class="script-speaker">２．<ruby>提案<rt>ていあん</rt></ruby><ruby>理由<rt>りゆう</rt></ruby>の<ruby>発表<rt>はっぴょう</rt></ruby></div>
-            「これを<ruby>話<rt>はな</rt></ruby>し<ruby>合<rt>あ</rt></ruby>う<ruby>理由<rt>りゆう</rt></ruby>を、<ruby>提案者<rt>ていあんしゃ</rt></ruby>の〇〇さん、お<ruby>願<rt>ねが</rt></ruby>いします。」
-          </div>
-          <div class="script-step">
-            <div class="script-speaker">３．<ruby>質問<rt>しつもん</rt></ruby>タイム</div>
-            「いまの<ruby>提案<rt>ていあん</rt></ruby>について、わからないことや、くわしく<ruby>聞<rt>き</rt></ruby>きたいことはありますか？」
-          </div>
-          <div class="script-step">
-            <div class="script-speaker">４．<ruby>意見<rt>いけん</rt></ruby>の<ruby>発表<rt>はっぴょう</rt></ruby></div>
-            「では、みんなの<ruby>意見<rt>いけん</rt></ruby>を<ruby>聞<rt>き</rt></ruby>きます。<ruby>賛成<rt>さんせい</rt></ruby>・<ruby>反対<rt>はんたい</rt></ruby>や、<ruby>新<rt>あたら</rt></ruby>しいアイデアがある<ruby>人<rt>ひと</rt></ruby>は<ruby>手<rt>て</rt></ruby>をあげてください。」
-            <span class="script-guide">※ 司会は「〇〇さん、どうぞ」「同じ意見の人はいますか？」と回そう。</span>
-
-            <!-- 意見出しボード -->
-            <div style="margin-top: 10px;">
-              <input type="text" id="bs-input" placeholder="出た意見をサッと入力してEnter..." onkeypress="addBrainstorm(event)">
-              <div id="brainstorm-board"></div>
-            </div>
-          </div>
-          <div class="script-step">
-            <div class="script-speaker">５．<ruby>意見<rt>いけん</rt></ruby>をまとめる</div>
-            「いろいろな<ruby>意見<rt>いけん</rt></ruby>が<ruby>出<rt>で</rt></ruby>ました。<ruby>合体<rt>がったい</rt></ruby>できる<ruby>意見<rt>いけん</rt></ruby>や、ゆずり<ruby>合<rt>あ</rt></ruby>える<ruby>方法<rt>ほうほう</rt></ruby>はありませんか？」
-          </div>
-          <div class="script-step">
-            <div class="script-speaker">６．<ruby>多数決<rt>たすうけつ</rt></ruby>（きめるとき）</div>
-            「それでは、<ruby>決<rt>き</rt></ruby>を<ruby>採<rt>と</rt></ruby>ります。みなさん、<ruby>机<rt>つくえ</rt></ruby>に<ruby>伏<rt>ふ</rt></ruby>せてください。」<br>
-            「〇〇の<ruby>案<rt>あん</rt></ruby>によいと<ruby>思<rt>おも</rt></ruby>う<ruby>人<rt>ひと</rt></ruby>は、<ruby>手<rt>て</rt></ruby>をあげてください。」
-            <span class="script-guide">※ 下の「ダイナミック投票」でカウント！</span>
-          </div>
-          <div class="script-step" style="border:none;">
-            <div class="script-speaker">７．ふりかえり・おわりの<ruby>言葉<rt>ことば</rt></ruby></div>
-            「<ruby>多数決<rt>たすうけつ</rt></ruby>の<ruby>結果<rt>けっか</rt></ruby>、〇〇に<ruby>決<rt>き</rt></ruby>まりました。」<br>
-            「<ruby>今日<rt>きょう</rt></ruby>の<ruby>話<rt>はな</rt></ruby>し<ruby>合<rt>あ</rt></ruby>いで、よかったことや<ruby>次<rt>つぎ</rt></ruby>にがんばることはありますか？」<br>
-            「これで、<ruby>学級会<rt>がっきゅうかい</rt></ruby>を<ruby>終<rt>お</rt></ruby>わります。」
-          </div>
-        </div>
-
-        <!-- 5. ダイナミック投票システム（初期状態は空欄・履歴保存付き） -->
-        <div style="margin-top: 15px; border-top: 1px dashed var(--cyan); padding-top: 15px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="color: var(--gold); font-weight: bold;">📊 ダイナミック<ruby>投票<rt>とうひょう</rt></ruby></span>
-            <div style="display:flex; gap:5px;">
-              <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="saveVoteToHistory()">💾 履歴に保存</button>
-              <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addVoteOption()">+ 案を追加</button>
-            </div>
-          </div>
-          <div class="vote-container" id="vote-container">
-            <!-- JSで動的生成 -->
-          </div>
-
-          <!-- 投票履歴エリア -->
-          <div style="margin-top: 15px;">
-            <span style="font-size: 0.85rem; color: var(--cyan);">📁 過去の投票結果</span>
-            <div class="history-box" id="vote-history-box"></div>
-          </div>
-        </div>
-
-        <!-- 6. 議事録メモ -->
-        <div style="margin-top: 15px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span style="color: var(--cyan); font-weight: bold;">📝 <ruby>議事録<rt>ぎじろく</rt></ruby></span>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 0.75rem;" onclick="copyToClip('meeting-memo')">コピー</button>
-          </div>
-          <textarea id="meeting-memo" placeholder="決定事項や細かいルールをしっかり記録しよう..."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= 右カラム：戦術ツール ================= -->
-    <div class="column">
-
-      <!-- 7. カスタム・タイマー -->
+    <!-- ===== 右カラム ===== -->
+    <section class="column col-right">
       <div class="panel">
-        <div class="panel-header">⏱️ カスタム・タイマー</div>
-        <div class="tool-box">
-          <div class="timer-display" id="timer-display">05:00</div>
-          <div class="timer-inputs">
-            <input type="number" id="t-min" value="5" min="0" onchange="applyCustomTimer()"> <span>分</span>
-            <input type="number" id="t-sec" value="0" min="0" max="59" onchange="applyCustomTimer()"> <span>秒</span>
-          </div>
-          <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 10px;">
-            <button class="btn btn-cyan" onclick="startTimer()">▶ START</button>
-            <button class="btn btn-red" onclick="stopTimer()">⏸ STOP</button>
-          </div>
-
-          <div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px;">
-            <span style="font-size:0.8rem; color:var(--text-sub);">ショートタイマー（意見発表など）</span>
-            <div style="display: flex; gap: 5px; justify-content: center; margin-top: 5px;">
-              <button class="btn" style="font-size:0.8rem; padding:4px 8px;" onclick="quickTimer(1, 0)">1分</button>
-              <button class="btn" style="font-size:0.8rem; padding:4px 8px;" onclick="quickTimer(0, 30)">30秒</button>
-            </div>
-          </div>
+        <div class="panel-header"><span>⏱️ タイマー</span></div>
+        <div class="timer-display timer-text" id="timer-main">05:00</div>
+        <div class="timer-bar"><div id="timer-bar"></div></div>
+        <div id="timer-label"></div>
+        <div class="btn-row">
+          <button class="btn btn-cyan" id="btn-timer-toggle" onclick="toggleTimer()">▶ スタート</button>
+          <button class="btn btn-red" onclick="resetTimer()">↺ もどす</button>
+        </div>
+        <div class="btn-row" style="align-items:center">
+          <input type="number" class="num" id="t-min" value="5" min="0" onchange="applyCustomTimer()"> 分
+          <input type="number" class="num" id="t-sec" value="0" min="0" max="59" onchange="applyCustomTimer()"> 秒
+        </div>
+        <div class="btn-row">
+          <button class="btn sm" onclick="quickTimer(30)">30秒</button>
+          <button class="btn sm" onclick="quickTimer(60)">1分</button>
+          <button class="btn sm" onclick="quickTimer(120)">2分</button>
+          <button class="btn sm" onclick="quickTimer(180)">3分</button>
+          <button class="btn sm" onclick="quickTimer(300)">5分</button>
+          <button class="btn sm" onclick="quickTimer(600)">10分</button>
         </div>
       </div>
 
-      <!-- 8. 変動対応：点呼ドロップダウン ＆ ルーレット -->
       <div class="panel">
-        <div class="panel-header">👥 メンバー<ruby>管理<rt>かんり</rt></ruby></div>
+        <div class="panel-header"><span>👥 メンバー<span data-rb="管理"></span></span></div>
+        <div class="setting-row"><span>クラスの最大人数</span><input type="number" id="max-students" min="1" onchange="saveMembers()"></div>
+        <div class="setting-row"><span><span data-rb="欠席"></span>の番号</span><input type="text" class="wide-in" id="absent-input" placeholder="例 3,12,20-22" oninput="saveMembers(true)"></div>
+        <div class="setting-row"><span id="present-info"></span><button class="btn sm" onclick="autoHeadcount()">人数を自動</button></div>
+        <div class="setting-row" style="background:rgba(0,0,0,.3);padding:8px;border-radius:8px"><span><span data-rb="点呼"></span>カウンター</span><select id="headcount-select" onchange="changeHeadcount(this.value)"></select></div>
 
+        <div style="border-top:1px dashed rgba(255,255,255,.2);padding-top:10px">
+          <span class="hint">🎲 出席番号ガチャ</span>
+          <div id="rng-result">--</div>
+          <label class="row" style="justify-content:center"><input type="checkbox" id="no-repeat" onchange="S.noRepeat=this.checked;save()"> 当たった人はのぞく</label>
+          <button class="btn btn-cyan wide" onclick="spinRoulette()">🎯 抽選スタート</button>
+          <div class="row" style="margin-top:6px"><span class="hint grow" id="used-info"></span><button class="mini" onclick="resetUsed()">リセット</button></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span>🧩 ランダム<span data-rb="班"></span>分け</span></div>
         <div class="setting-row">
-          <span>クラスの最大人数:</span>
-          <input type="number" id="max-students" value="35" min="1" onchange="saveSettings()">
+          <select id="group-mode" style="width:auto;text-align:left"><option value="count">班の数</option><option value="size">1班の人数</option></select>
+          <input type="number" id="group-count" value="6" min="1">
         </div>
-
-        <!-- ドロップダウン式の点呼カウンター -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
-          <span>点呼カウンター:</span>
-          <select id="headcount-select" class="headcount-select" onchange="changeHeadcount(this.value)">
-            <!-- JSで生成 -->
-          </select>
-        </div>
-
-        <div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px;">
-          <span style="font-size:0.8rem; color:var(--text-sub);">🎲 出席番号ガチャ</span>
-          <div style="font-size: 2.5rem; color: var(--gold); margin: 5px 0; text-align: center;" id="rng-result">--</div>
-          <button class="btn btn-cyan" style="width: 100%;" onclick="spinRoulette()">🎯 抽選スタート</button>
-        </div>
+        <div class="row"><label class="row"><input type="checkbox" id="group-leader"> 班長も決める</label></div>
+        <button class="btn wide" onclick="generateGroups()">実行</button>
+        <div class="group-result" id="group-result">※ 欠席の番号を除いて、ランダムに班を作ります。</div>
+        <button class="btn btn-cyan sm" onclick="copyText(lastGroupsText)">結果をコピー</button>
       </div>
 
-      <!-- 9. ランダムグループ作成 -->
       <div class="panel">
-        <div class="panel-header">🧩 ランダム班分け</div>
-        <div class="setting-row">
-          <span>グループの数:</span>
-          <input type="number" id="group-count" value="4" min="2" max="10">
+        <div class="panel-header"><span>⚠️ アテンション（<span data-rb="注目"></span>）</span></div>
+        <div class="btn-row">
+          <button class="btn btn-cyan" onclick="playChime()">🔔 チャイム</button>
+          <button class="btn btn-red" onclick="triggerFlare()">🚨 フラッシュ</button>
         </div>
-        <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="generateGroups()">実行</button>
-        <div class="group-result" id="group-result">
-          ※ 最大人数の設定を使ってランダムに班を作ります。
-        </div>
-      </div>
-
-      <!-- 10. アテンションツール -->
-      <div class="panel">
-        <div class="panel-header">⚠️ アテンション（<ruby>注目<rt>ちゅうもく</rt></ruby>）</div>
-        <div style="display: flex; gap: 10px;">
-          <button class="btn btn-cyan" style="flex: 1;" onclick="playChime()">🔔 チャイム</button>
-          <button class="btn btn-red" style="flex: 1;" onclick="triggerFlare()">🚨 フラッシュ</button>
+        <div class="btn-row">
+          <button class="btn" onclick="showCue('しずかに','chime')">🤫 しずかに</button>
+          <button class="btn" onclick="showCue('注目！','chime')">👀 注目</button>
+          <button class="btn" onclick="showCue('ストップ','chime')">✋ ストップ</button>
+          <button class="btn" onclick="showCue('はい、どうぞ','beep')">🎤 どうぞ</button>
         </div>
       </div>
+    </section>
+  </main>
 
-    </div>
-  </div>
+  <div id="presenter"></div>
 
   <script>
-    // ==========================================
-    // 1. システム初期化 & データ管理 (localStorage)
-    // ==========================================
-    let exp = parseInt(localStorage.getItem('cmdV3Exp')) || 0;
-    let isFurigana = localStorage.getItem('cmdV3Furigana') === 'true';
-    let classGoal = localStorage.getItem('cmdV3Goal') || '';
-    let dailyMemo = localStorage.getItem('cmdV3Daily') || '';
-    let meetingMemo = localStorage.getItem('cmdV3Meeting') || '';
-    let maxStudents = parseInt(localStorage.getItem('cmdV3MaxNum')) || 35;
-    let headcount = parseInt(localStorage.getItem('cmdV3Headcount')) || 0;
-    let tasks = JSON.parse(localStorage.getItem('cmdV3Tasks')) || [];
-    // カスタムデータベース初期値
-    let dbItems = JSON.parse(localStorage.getItem('cmdV3DB')) || [{
-      id: 1,
-      title: '爆弾ゲームのルール',
-      detail: 'タイマーをセットし、しりとりをしながら物を回す。鳴った時に持っていた人が負け。'
-    }];
-    // 投票関連（初期値は「空」にする）
-    let voteOptions = JSON.parse(localStorage.getItem('cmdV3Votes')) || [];
-    let voteHistory = JSON.parse(localStorage.getItem('cmdV3VoteHistory')) || [];
-    // ブレインストーミング
-    let brainstorms = JSON.parse(localStorage.getItem('cmdV3Brainstorm')) || [];
-    // UI反映
-    const dateOpts = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short'
+    'use strict';
+    // =====================================================
+    // 0. ユーティリティ
+    // =====================================================
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const uid = () => Math.random().toString(36).slice(2, 9);
+    const todayStr = () => new Date().toLocaleDateString('ja-JP');
+    const monthKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const prevMonthKey = () => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return monthKey(d); };
+    const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const clone = o => JSON.parse(JSON.stringify(o));
+
+    const KEY = 'gakkyuV4';
+    const memStore = {};
+    const store = {
+      get(k) { try { return localStorage.getItem(k); } catch (e) { return memStore[k] == null ? null : memStore[k]; } },
+      set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } }
     };
-    document.getElementById('date-display').innerText = new Date().toLocaleDateString('ja-JP', dateOpts);
-    document.getElementById('class-goal').value = classGoal;
-    document.getElementById('daily-memo').value = dailyMemo;
-    document.getElementById('meeting-memo').value = meetingMemo;
-    document.getElementById('max-students').value = maxStudents;
-    if (isFurigana) document.body.classList.add('furigana-mode');
-    const saveToLocal = (id, key) => document.getElementById(id).addEventListener('input', (e) => localStorage.setItem(key, e.target.value));
-    saveToLocal('class-goal', 'cmdV3Goal');
-    saveToLocal('daily-memo', 'cmdV3Daily');
-    saveToLocal('meeting-memo', 'cmdV3Meeting');
-    // 最大人数の設定変更時
-    function saveSettings() {
-      maxStudents = parseInt(document.getElementById('max-students').value) || 35;
-      localStorage.setItem('cmdV3MaxNum', maxStudents);
-      renderHeadcountSelect(); // ドロップダウンも更新
+
+    function toast(msg, kind) {
+      const el = document.createElement('div');
+      el.className = 'toast ' + (kind || '');
+      el.textContent = msg;
+      $('toast-root').appendChild(el);
+      setTimeout(() => el.remove(), 2600);
     }
 
-    function updateExp(amount) {
-      exp += amount;
-      let level = Math.floor(exp / 100) + 1;
-      let currentExp = exp % 100;
-      document.getElementById('lvl-display').innerText = level;
-      document.getElementById('exp-text').innerText = `${currentExp} / 100 EXP`;
-      document.getElementById('exp-fill').style.width = `${currentExp}%`;
-      localStorage.setItem('cmdV3Exp', exp);
+    async function copyText(t) {
+      t = String(t == null ? '' : t);
+      try { await navigator.clipboard.writeText(t); }
+      catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (_) { }
+        ta.remove();
+      }
+      toast('📋 コピーしました');
     }
-    updateExp(0);
 
-    function toggleFurigana() {
-      isFurigana = !isFurigana;
-      localStorage.setItem('cmdV3Furigana', isFurigana);
-      document.body.classList.toggle('furigana-mode', isFurigana);
+    function download(name, text, mime) {
+      const b = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
     }
-    // ==========================================
-    // 2. タスク管理
-    // ==========================================
-    function renderTasks() {
-      const container = document.getElementById('task-list-container');
-      container.innerHTML = '';
-      tasks.forEach((task, index) => {
-        const item = document.createElement('div');
-        item.className = `task-item ${task.priority} ${task.done ? 'done' : ''}`;
-        item.innerHTML = `
-          <span>${task.text}</span>
-          <div style="display:flex; gap:5px;">
-            <button class="btn btn-cyan" style="padding: 2px 8px;" onclick="toggleTask(${index})">✔</button>
-            <button class="btn btn-red" style="padding: 2px 8px;" onclick="deleteTask(${index})">✖</button>
-          </div>
-        `;
-        container.appendChild(item);
+
+    // ---- モーダル（prompt/confirm の代わり：埋め込み環境でも動く）
+    function openModal(html, cls, onClose) {
+      const back = document.createElement('div');
+      back.className = 'modal-back';
+      back.innerHTML = `<div class="modal ${cls || ''}" role="dialog">${html}</div>`;
+      back._onClose = onClose || null;
+      back.addEventListener('mousedown', e => { if (e.target === back) closeModal(back); });
+      $('modal-root').appendChild(back);
+      return back;
+    }
+    function closeModal(back) { if (!back || !back.parentNode) return; back.remove(); if (back._onClose) back._onClose(); }
+    function topModal() { const m = $('modal-root').querySelectorAll('.modal-back'); return m.length ? m[m.length - 1] : null; }
+
+    function askChoice(title, msg, buttons) {
+      return new Promise(res => {
+        let done = false;
+        const fin = v => { if (done) return; done = true; res(v); };
+        const b = openModal(`<h3>${esc(title)}</h3><p class="m-msg">${esc(msg).replace(/\n/g, '<br>')}</p><div class="m-btns">${buttons.map((l, i) => `<button class="btn ${i === 0 ? '' : 'btn-cyan'}" data-i="${i}">${esc(l)}</button>`).join('')}</div>`, '', () => fin(-1));
+        b.querySelectorAll('[data-i]').forEach(btn => btn.onclick = () => { fin(+btn.dataset.i); b.remove(); });
       });
-      localStorage.setItem('cmdV3Tasks', JSON.stringify(tasks));
+    }
+    async function askConfirm(msg, ok) { return (await askChoice('かくにん', msg, [ok || 'はい', 'キャンセル'])) === 0; }
+
+    function askText(title, def, multi) {
+      return new Promise(res => {
+        let done = false;
+        const fin = v => { if (done) return; done = true; res(v); };
+        const b = openModal(`<h3>${esc(title)}</h3>${multi ? `<textarea id="ask-in" rows="6">${esc(def || '')}</textarea>` : `<input type="text" id="ask-in" value="${esc(def || '')}">`}<div class="m-btns"><button class="btn" id="ask-ok">OK</button><button class="btn btn-cyan" id="ask-cancel">キャンセル</button></div>`, '', () => fin(null));
+        const inp = b.querySelector('#ask-in');
+        setTimeout(() => { inp.focus(); if (inp.select) inp.select(); }, 30);
+        b.querySelector('#ask-ok').onclick = () => { fin(inp.value); b.remove(); };
+        b.querySelector('#ask-cancel').onclick = () => { fin(null); b.remove(); };
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter' && (!multi || e.ctrlKey)) { e.preventDefault(); fin(inp.value); b.remove(); } });
+      });
     }
 
-    function addTask() {
-      const input = document.getElementById('task-input');
-      const pri = document.getElementById('task-pri').value;
-      if (input.value.trim() === '') return;
-      tasks.push({
-        text: input.value,
-        priority: pri,
-        done: false
+    // ---- 音
+    let actx;
+    function ac() {
+      if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C(); }
+      if (actx.state === 'suspended') actx.resume();
+      return actx;
+    }
+    function tone(freq, dur, vol, delay) {
+      const c = ac(); if (!c) return;
+      const t = c.currentTime + (delay || 0);
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.15, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + (dur || 0.15));
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + (dur || 0.15));
+    }
+    const playBeep = () => tone(880, 0.12, 0.1);
+    const playChime = () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.9, 0.18, i * 0.28));
+    const playFanfare = () => [523.25, 659.25, 783.99, 659.25, 1046.5].forEach((f, i) => tone(f, 0.35, 0.16, i * 0.14));
+
+    let cueT;
+    function showCue(text, sound) {
+      const el = $('cue-overlay');
+      el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+      clearTimeout(cueT); cueT = setTimeout(() => el.classList.remove('show'), 2200);
+      if (sound === 'chime') playChime(); else if (sound === 'beep') playBeep(); else if (sound === 'fanfare') playFanfare();
+    }
+    function triggerFlare() {
+      const o = $('alert-overlay'); o.classList.add('flash-anim'); playBeep();
+      setTimeout(() => o.classList.remove('flash-anim'), 2000);
+    }
+
+    // =====================================================
+    // 1. 定数：議題の種類・手順テンプレート・ことば
+    // =====================================================
+    const TYPES = {
+      rule: { label: 'クラスのきまり', icon: '📏', color: 'var(--cyan)', desc: '生活のきまり・ルールを決める', criteria: ['守れる', '具体的', 'みんなのため', '続けられる'] },
+      goal: { label: '今月のめあて', icon: '🎯', color: 'var(--gold)', desc: '月のめあてを決める・ふりかえる', criteria: ['具体的', '毎日できる', 'みんなでできる', '成長につながる'] },
+      rec: { label: '学級レク', icon: '🎉', color: 'var(--pink)', desc: 'レクの内容・ルール・役割を決める', criteria: ['安全', '全員参加', '時間内', '道具がある', 'ルールがわかる'] },
+      free: { label: '自由な話し合い', icon: '💬', color: 'var(--green)', desc: 'そのほか、なんでも話し合う', criteria: [] }
+    };
+    const TAGS = {
+      idea: { icon: '💡', label: 'アイデア' }, agree: { icon: '👍', label: '賛成' }, disagree: { icon: '👎', label: '反対' },
+      question: { icon: '❓', label: '質問' }, worry: { icon: '😟', label: '心配' }
+    };
+    const TOOLS = { none: '（なし）', opinions: '意見ボード', vote: '案と投票', decision: '決定', minutes: '議事録・ふりかえり' };
+    const TOOL_TAB = { opinions: 'opinions', vote: 'vote', decision: 'decision', minutes: 'minutes' };
+
+    const S1 = { title: 'はじめの言葉', tool: 'none', min: 0, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』です。」', guide: '司会は{{司会}}さん、副司会は{{副司会}}さん、書記は{{書記}}さんです。' };
+    const SQ = { title: '質問タイム', tool: 'none', min: 2, text: '「今の提案について、わからないことや、くわしく聞きたいことはありますか？」', guide: '質問は「意見」ではなく、わからないことを聞く時間だよ。' };
+    const SV = { title: '多数決', tool: 'vote', min: 0, text: '「それでは、決を採ります。みなさん、机に伏せてください。」\n「〇〇の案によいと思う人は、手をあげてください。」', guide: '「案と投票」タブでカウント！ 同数のときは決選投票かくじ。' };
+    const SE = { title: 'ふりかえり・終わり', tool: 'minutes', min: 0, text: '「今日の話し合いで、よかったことや、次にがんばることはありますか？」\n「これで、第{{回}}[回|かい] 学級会を終わります。」', guide: 'ふりかえりは「議事録」タブに書いておくと、あとで見返せるよ。' };
+
+    const TPL = {
+      free: [
+        S1,
+        { title: '提案理由', tool: 'none', min: 2, text: '「これを話し合う理由を、提案者の{{提案者}}さん、お願いします。」', guide: '' },
+        SQ,
+        { title: '意見の発表', tool: 'opinions', min: 5, text: '「みんなの意見を聞きます。賛成・反対や、新しいアイデアがある人は手をあげてください。」', guide: '「〇〇さん、どうぞ」「同じ意見の人はいますか？」と回そう。出た意見は意見ボードへ。' },
+        { title: '意見をまとめる', tool: 'vote', min: 3, text: '「いろいろな意見が出ました。合体できる意見や、ゆずり合える方法はありませんか？」', guide: '意見ボードの「→案」で投票の案にできるよ。' },
+        SV,
+        { title: '決まったこと', tool: 'decision', min: 0, text: '「多数決の結果、{{決定}}に決まりました。反対だった人も、決まったことには協力しましょう。」', guide: '決まったことを書いて「決定ノートに登録」を押そう。' },
+        SE
+      ],
+      rule: [
+        { ...S1, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』、クラスのきまりについてです。」' },
+        { title: '困っていること', tool: 'none', min: 3, text: '「このきまりを話し合う理由を、提案者の{{提案者}}さん、お願いします。今のようすや、困っていることも教えてください。」', guide: '「だれかを責める話」ではなく「どうしたらよくなるか」の話にしよう。' },
+        SQ,
+        { title: 'きまりの案出し', tool: 'opinions', min: 5, text: '「どんなきまりにしたらよいか、案を出し合いましょう。『〜する』と、やることがわかる言い方で考えましょう。」', guide: '「〜しない」だけでなく「どうすればよいか」も考えよう。' },
+        { title: '観点で確かめる', tool: 'vote', min: 3, text: '「出た案を、『守れるか』『具体的か』『みんなのためになるか』の観点で確かめましょう。」', guide: '「案と投票」タブの観点チェックを使おう。' },
+        SV,
+        { title: 'きまりを決める', tool: 'decision', min: 0, text: '「きまりは『{{決定}}』です。いつから始めますか？ 守れなかったときは、どうしますか？」', guide: '期間（例：1か月）と見直す日を決めておくと◎' },
+        SE
+      ],
+      goal: [
+        { ...S1, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』、今月のめあてについてです。」' },
+        { title: '先月のふりかえり', tool: 'minutes', min: 3, text: '「先月のめあては『{{先月のめあて}}』でした。できたこと、できなかったことを発表してください。」', guide: '決定ノート →「めあて」で、☆の評価と一言を書いておけるよ。' },
+        { title: 'がんばりたいこと', tool: 'opinions', min: 5, text: '「今月、クラスでがんばりたいことを出しましょう。『〜できるクラス』のように、言葉にしてみましょう。」', guide: '一人ひとりの「やってみたい」を大切に出させよう。' },
+        { title: '質問・意見', tool: 'opinions', min: 3, text: '「出た意見について、質問や付け足しはありますか？」', guide: '' },
+        { title: 'めあてをしぼる', tool: 'vote', min: 3, text: '「似ている意見は合体して、めあての案をしぼりましょう。」', guide: '観点：具体的？ 毎日できる？ みんなでできる？' },
+        SV,
+        { title: '行動目標を決める', tool: 'decision', min: 0, text: '「今月のめあては『{{決定}}』に決まりました。めあてのために、毎日できる行動を決めましょう。」', guide: '「いつ・だれが・どうやってふりかえるか」も決めよう。' },
+        SE
+      ],
+      rec: [
+        { ...S1, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』、学級レクについてです。」' },
+        { title: 'ねらいの確認', tool: 'none', min: 2, text: '「レクのねらいを確かめます。みんなが楽しめて、なかよくなれる内容にしましょう。」', guide: '日時・時間（何分）・場所を先に確認すると進めやすい。' },
+        { title: 'レクの案出し', tool: 'opinions', min: 5, text: '「やりたいレクの案を出してください。ルールが短く言えるものだと、説明しやすいです。」', guide: 'お役立ちデータベースから「案にする」もできるよ。' },
+        { title: '質問・心配ごと', tool: 'opinions', min: 3, text: '「案についてわからないことや、心配なことはありますか？（安全・道具・場所・時間）」', guide: '心配ごとは意見ボードで「😟心配」にして残そう。' },
+        { title: '観点で確かめる', tool: 'vote', min: 3, text: '「安全か、全員が参加できるか、時間内にできるか、道具があるかを確かめましょう。」', guide: '「案と投票」タブの観点チェックを使おう。' },
+        SV,
+        { title: '役割・準備を決める', tool: 'decision', min: 0, text: '「レクは『{{決定}}』に決まりました。係や準備するもの、ルールを決めましょう。」', guide: '「くわしい内容」に、係・持ち物・ルールを書いて登録しよう。' },
+        SE
+      ]
+    };
+
+    const PHRASES_BASE = [
+      { name: '進める', list: ['では、次に進みます。', 'ほかにありませんか？', '意見は出つくしましたか？', '時間になりました。次に進みます。', '発言は、1人30秒くらいでお願いします。', '今は「{{議題}}」について話し合っています。'] },
+      { name: '意見をひきだす', list: ['〇〇さんは、どう思いますか？', '反対の意見はありますか？', '付け足しの意見はありますか？', '理由も、いっしょに言ってください。', '同じ意見の人は、手をあげてください。', 'まだ発言していない人はいませんか？'] },
+      { name: '意見が出ないとき', list: ['となりの人と1分間、相談してみましょう。', '賛成か反対かだけでも、手をあげてください。', 'ひと言でもいいので、思いついたことを言ってみましょう。', '少し考える時間をとります。'] },
+      { name: '意見が分かれたとき', list: ['どちらの意見にも、よいところがあります。', '合体できる意見はありませんか？', 'ゆずり合える方法はありませんか？', '反対の人は、どうなったら賛成できますか？', '少数の意見も、大切にしましょう。'] },
+      { name: '話がそれたとき', list: ['今の議題は「{{議題}}」です。話をもどしましょう。', 'それは別の話なので、あとで話し合いましょう。', '今、話し合っていることを、もう一度確かめます。'] },
+      { name: '決めるとき', list: ['多数決をとってもよいですか？', '反対の人はいませんか？ では、これに決定します。', '同数なので、決選投票をします。', '決まったことには、みんなで協力しましょう。', '反対だった人も、決まったことを守りましょう。'] },
+      { name: '声かけ・注意', list: ['しずかにしましょう。', '人の意見は、最後まで聞きましょう。', '人を悪く言うのはやめましょう。', '「〇〇さんの意見に付け足しで…」のように言いましょう。'] }
+    ];
+    const PHRASES_TYPE = {
+      rule: ['そのきまりは、みんなが守れそうですか？', '「〜しない」だけでなく、「〜する」の言い方にできますか？', '守れなかったとき、どうしたらよいでしょう？', 'いつまで続けて、いつ見直しますか？'],
+      goal: ['先月のめあては、どのくらいできましたか？', 'めあてのために、毎日できることは何ですか？', '「いつ・だれが・何を」するか、具体的に言えますか？', 'できたかどうか、だれが見てもわかるめあてですか？'],
+      rec: ['安全にできますか？ けがの心配はありませんか？', '全員が参加できますか？', '時間は何分かかりますか？', '必要な道具は、そろいますか？', 'ルールを短く説明できますか？']
+    };
+
+    function seedDb() {
+      return [
+        { id: uid(), cat: 'rec', title: '爆弾ゲームのルール', detail: 'タイマーをセットし、しりとりをしながら物を回す。鳴った時に持っていた人が負け。' },
+        { id: uid(), cat: 'rec', title: '伝言ゲーム', detail: '班で一列になり、お題を耳打ちで伝える。最後の人が答えて正解なら得点。（5〜10分）' },
+        { id: uid(), cat: 'rec', title: 'ジェスチャーゲーム', detail: '班の代表が言葉を使わずにお題を表現。班のみんなが1分以内に当てる。（10分）' },
+        { id: uid(), cat: 'rule', title: 'きまりの書き方の例', detail: '「〜しない」ではなく「〜する」で書くと、やることがわかりやすい。例：「ろうかは右がわを歩く」' }
+      ];
+    }
+    const DB_CATS = { rec: 'レク案', rule: 'きまりの例', goal: 'めあての例', etc: 'その他' };
+
+    // ---- ふりがな辞書（自動でルビを付ける）  書式：漢字{よみ}おくりがな
+    const RUBY_DICT = [
+      '学級会{がっきゅうかい}', '学級{がっきゅう}', '学期{がっき}', '委員{いいん}', '司会{しかい}', '副{ふく}', '書記{しょき}', '議事録{ぎじろく}', '議題{ぎだい}', '提案者{ていあんしゃ}', '提案{ていあん}',
+      '理由{りゆう}', '発表{はっぴょう}', '質問{しつもん}', '意見{いけん}', '賛成{さんせい}', '反対{はんたい}', '多数決{たすうけつ}', '決選投票{けっせんとうひょう}', '投票{とうひょう}', '同数{どうすう}',
+      '合体{がったい}', '結果{けっか}', '今日{きょう}', '今月{こんげつ}', '先月{せんげつ}', '来月{らいげつ}', '今週{こんしゅう}', '毎日{まいにち}', '目当{めあ}て', '目標{もくひょう}', '全員{ぜんいん}', '参加{さんか}',
+      '安全{あんぜん}', '時間内{じかんない}', '時間{じかん}', '道具{どうぐ}', '準備{じゅんび}', '係{かかり}', '役割{やくわり}', '決定{けってい}', '決{き}まりました', '決{き}まり', '決{き}まっ', '決{き}める', '決{き}め', '決{けつ}を', '採{と}ります', '採{と}り',
+      '守{まも}れる', '守{まも}り', '守{まも}る', '守{まも}れ', '約束{やくそく}', '大切{たいせつ}', '楽{たの}しい', '楽{たの}しめる', '楽{たの}しみ', '友達{ともだち}', '仲{なか}', '一緒{いっしょ}', '協力{きょうりょく}', '反省{はんせい}',
+      '振{ふ}り返{かえ}り', '次{つぎ}', '始{はじ}めます', '始{はじ}める', '始{はじ}め', '終{お}わります', '終{お}わり', '言葉{ことば}', '手{て}を', '机{つくえ}', '伏{ふ}せて', '思{おも}う', '思{おも}い', '人{ひと}は', '人{ひと}が', '人{ひと}の', '人{ひと}も',
+      '出席番号{しゅっせきばんごう}', '出席{しゅっせき}', '欠席{けっせき}', '出{で}ました', '出{だ}し合{あ}い', '出{だ}し', '出{だ}して', '出{だ}さ', '新{あたら}しい', '聞{き}きます', '聞{き}きたい', '聞{き}いて', '聞{き}く', '聞{き}き', '話{はな}し合{あ}い', '話{はな}し合{あ}う', '話{はな}し合{あ}', '話{はな}し', '話{はな}す',
+      '考{かんが}え', '考{かんが}える', '方法{ほうほう}', '困{こま}って', '困{こま}る', '様子{ようす}', '確{たし}かめ', '活動{かつどう}', '内容{ないよう}', '場所{ばしょ}', '持{も}ち物{もの}', '遊{あそ}び', '遊{あそ}ぶ', '運動{うんどう}', '自由{じゆう}', '順番{じゅんばん}',
+      '点呼{てんこ}', '人数{にんずう}', '班{はん}', '当番{とうばん}', '規則{きそく}', '注意{ちゅうい}', '静{しず}かに', '注目{ちゅうもく}', '終礼{しゅうれい}', '給食{きゅうしょく}', '掃除{そうじ}', '宿題{しゅくだい}', '授業{じゅぎょう}', '休{やす}み時間{じかん}', '放課後{ほうかご}',
+      '第{だい}', '多{おお}く', '少数{しょうすう}', '少{すこ}し', '別{べつ}', '同{おな}じ', '最後{さいご}', '悪{わる}く', '言{い}って', '言{い}う', '言{い}い方{かた}', '言{い}ってみ', '付{つ}け足{た}し', '付{つ}け足{た}', '足{た}し', '相談{そうだん}', '分間{ふんかん}', '小{ちい}さな', '合{あ}う', '合{あ}わせ', '合{あ}い', '細{こま}かい',
+      '評価{ひょうか}', '達成{たっせい}', '行動{こうどう}', '期間{きかん}', '見直{みなお}す', '見直{みなお}し', '日{にち}', '実施{じっし}', '期限{きげん}', '案{あん}', '観点{かんてん}', '確認{かくにん}', '登録{とうろく}', '記録{きろく}', '案出{あんだ}し',
+      '生活{せいかつ}', '心配{しんぱい}', '勉強{べんきょう}', '成長{せいちょう}', '自分{じぶん}', '感想{かんそう}', '得点{とくてん}', '代表{だいひょう}', '正解{せいかい}', '表現{ひょうげん}', '制限{せいげん}', '勝{か}ち', '負{ま}け', '楽{たの}しく', '作{つく}る', '作{つく}り', '使{つか}う', '使{つか}い', '重{おも}い', '大事{だいじ}', '全体{ぜんたい}', '編集{へんしゅう}', '時間{じかん}になりました', '今{いま}', '今{いま}の', '合図{あいず}', '先生{せんせい}',
+      '願{ねが}い', '書{か}い', '書{か}き', '書{か}く', '書{か}', '押{お}し', '押{お}す', '見返{みかえ}', '教{おし}え', '責{せ}め', '具体的{ぐたいてき}', '使{つか}い', '使{つか}って', '使{つか}え', '例{れい}', '一言{ひとこと}', '一人{ひとり}', '似{に}て', '何分{なんぷん}', '進{すす}み', '進{すす}め', '進{すす}', '短{みじか}く', '説明{せつめい}', '役立{やくだ}ち', '役立{やくだ}', '残{のこ}し', '発言{はつげん}', '秒{びょう}', '一度{いちど}', '続{つづ}け', '必要{ひつよう}', '臨機応変{りんきおうへん}', '報告{ほうこく}', '管理{かんり}', '何{なに}', '何{なん}', '見{み}', '時{とき}', '先{さき}に', '先{さき}', '楽{たの}', '話{はな}', '言{い}', '出{だ}', '合{あ}', '人{ひと}', '続{つづ}', '月{がつ}'
+    ];
+    let DICT_RE, DICT_MAP;
+    function buildDict() {
+      DICT_MAP = {}; const keys = [];
+      RUBY_DICT.forEach(e => {
+        const key = e.replace(/\{[^}]*\}/g, '');
+        DICT_MAP[key] = e.replace(/([一-龠々〆]+)\{([^}]*)\}/g, (m, k, r) => `<ruby>${k}<rt>${r}</rt></ruby>`);
+        keys.push(key);
       });
-      input.value = '';
-      renderTasks();
+      keys.sort((a, b) => b.length - a.length);
+      DICT_RE = new RegExp(keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+    }
+    function dictRb(t) { return t ? esc(t).replace(DICT_RE, m => DICT_MAP[m]) : ''; }
+    function rbPlain(t) {
+      let out = '', last = 0, m; const re = /\[([^\[\]|]+)\|([^\[\]]+)\]/g;
+      while ((m = re.exec(t))) { out += dictRb(t.slice(last, m.index)) + `<ruby>${esc(m[1])}<rt>${esc(m[2])}</rt></ruby>`; last = m.index + m[0].length; }
+      return out + dictRb(t.slice(last));
+    }
+    // {{議題}} などを差し込み、ふりがなを付けたHTMLを返す
+    function rb(text, a) {
+      if (text == null) return '';
+      const c = ctx(a === undefined ? cur() : a);
+      const phs = [];
+      const t = String(text).replace(/\{\{([^}]+)\}\}/g, (m, k) => {
+        const v = String(c[k.trim()] == null ? '' : c[k.trim()]).trim();
+        phs.push({ v, empty: !v });
+        return '\u0001' + (phs.length - 1) + '\u0002';
+      });
+      return rbPlain(t)
+        .replace(/\u0001(\d+)\u0002/g, (m, i) => { const p = phs[+i]; return `<span class="ph${p.empty ? ' empty' : ''}">${p.empty ? '〇〇' : rbPlain(p.v)}</span>`; })
+        .replace(/\n/g, '<br>');
+    }
+    function plain(text, a) { // 文章としてのテキスト（議事録用）
+      const c = ctx(a === undefined ? cur() : a);
+      return String(text || '').replace(/\{\{([^}]+)\}\}/g, (m, k) => c[k.trim()] || '〇〇').replace(/\[([^\[\]|]+)\|([^\[\]]+)\]/g, '$1');
+    }
+    function ctx(a) {
+      const g = getGoal(monthKey()), pg = getGoal(prevMonthKey());
+      return {
+        '議題': a && a.title, '提案者': a && a.proposer, '司会': S.roles.chair, '副司会': S.roles.vice, '書記': S.roles.scribe,
+        '回': String(S.meetingNo || 1), '決定': a && a.decision, '今月のめあて': g && g.text, '先月のめあて': pg && pg.text,
+        '案': a ? (leaders(a)[0] || {}).name : ''
+      };
+    }
+
+    // =====================================================
+    // 2. 状態の読み込み・保存
+    // =====================================================
+    let S;
+    function defaultState() {
+      return {
+        v: 4, exp: 0, furigana: false, fontScale: 1, daily: '', maxStudents: 35, headcount: 0, absent: '', meetingNo: 1,
+        roles: { chair: '', vice: '', scribe: '', timekeeper: '' },
+        tasks: [], db: seedDb(), agendas: [], curId: null, goals: [], decisions: [], voteHistory: [], minutes: [],
+        customPhrases: [], customTemplates: {}, usedNums: [], noRepeat: true, workTab: 'opinions', lastTag: 'idea'
+      };
+    }
+    function loadState() {
+      S = defaultState();
+      const raw = store.get(KEY);
+      if (raw) {
+        try { const p = JSON.parse(raw); S = Object.assign(S, p); S.roles = Object.assign(defaultState().roles, p.roles || {}); return; } catch (e) { }
+      }
+      // v3 からの引き継ぎ
+      try {
+        const g = k => store.get(k);
+        const j = (k, d) => { try { return JSON.parse(g(k)) || d; } catch (e) { return d; } };
+        if (g('cmdV3Exp') != null || g('cmdV3DB') != null) {
+          S.exp = parseInt(g('cmdV3Exp')) || 0;
+          S.furigana = g('cmdV3Furigana') === 'true';
+          S.daily = g('cmdV3Daily') || '';
+          S.maxStudents = parseInt(g('cmdV3MaxNum')) || 35;
+          S.tasks = j('cmdV3Tasks', []);
+          const db = j('cmdV3DB', null);
+          if (db) S.db = db.map(d => ({ id: uid(), cat: 'etc', title: d.title || '', detail: d.detail || '' }));
+          S.voteHistory = j('cmdV3VoteHistory', []).map(h => ({ id: uid(), date: h.date, title: h.title, agendaTitle: '', data: (h.data || []).map(d => ({ name: d.name, count: d.count })) }));
+          const goal = g('cmdV3Goal'); if (goal) S.goals.push({ id: uid(), month: monthKey(), text: goal, rating: 0, note: '' });
+        }
+      } catch (e) { }
+    }
+    let saveT;
+    function save() { clearTimeout(saveT); saveT = setTimeout(flush, 200); }
+    function flush() { clearTimeout(saveT); store.set(KEY, JSON.stringify(S)); }
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+
+    const cur = () => S.agendas.find(a => a.id === S.curId) || null;
+    function touch() { save(); renderWorkTabs(); if (presenterOpen) renderPresenter(); }
+
+    function updateExp(n) {
+      S.exp += n;
+      const level = Math.floor(S.exp / 100) + 1, ce = S.exp % 100;
+      $('lvl-display').textContent = level;
+      $('exp-text').textContent = `${ce} / 100 EXP`;
+      $('exp-fill').style.width = ce + '%';
+      save();
+    }
+
+    // =====================================================
+    // 3. めあて（月ごと）
+    // =====================================================
+    const getGoal = mk => S.goals.find(g => g.month === mk);
+    function setGoal(mk, text) {
+      let g = getGoal(mk);
+      if (!g) { if (!text) return; g = { id: uid(), month: mk, text: '', rating: 0, note: '' }; S.goals.push(g); }
+      g.text = text;
+      if (!g.text && !g.note && !g.rating) S.goals = S.goals.filter(x => x !== g);
+    }
+    function onGoalInput(v) { setGoal(monthKey(), v); save(); if (cur()) renderStep(); }
+    function renderGoalBar() {
+      $('goal-label').textContent = `🎯 ${new Date().getMonth() + 1}月のめあて`;
+      const inp = $('class-goal'); if (document.activeElement !== inp) { const g = getGoal(monthKey()); inp.value = g ? g.text : ''; }
+      const pg = getGoal(prevMonthKey());
+      $('prev-goal').innerHTML = pg && pg.text ? `先月：${esc(pg.text)} <span style="color:var(--gold)">${'★'.repeat(pg.rating || 0)}${'☆'.repeat(5 - (pg.rating || 0))}</span>` : '';
+    }
+
+    // =====================================================
+    // 4. 議題（アジェンダ）
+    // =====================================================
+    function cloneSteps(type) { return (S.customTemplates[type] || TPL[type]).map(s => ({ ...s, id: uid() })); }
+    function newAgenda(type, title) {
+      return {
+        id: uid(), type, title: title || '', proposer: '', reason: '', status: 'todo', stepIdx: 0, steps: cloneSteps(type),
+        opinions: [], options: [], criteria: TYPES[type].criteria.slice(), oneVote: true, round: 1,
+        decision: '', detail: '', when: '', setGoal: true, memo: '', reflect: '', minutesText: '', regId: null, created: Date.now()
+      };
+    }
+    function addAgenda() {
+      const title = $('ag-title').value.trim();
+      const a = newAgenda($('ag-type').value, title);
+      S.agendas.push(a); $('ag-title').value = '';
       updateExp(5);
+      selectAgenda(a.id);
+    }
+    function quickStart(type) {
+      const a = newAgenda(type, ''); S.agendas.push(a); selectAgenda(a.id);
+      setTimeout(() => { const t = $('m-title'); if (t) t.focus(); }, 50);
+    }
+    function selectAgenda(id) {
+      S.curId = id; const a = cur();
+      if (a && a.status === 'todo') a.status = 'doing';
+      renderAgendaList(); buildMeeting(); touch();
+    }
+    function moveAgenda(i, d) {
+      const j = i + d; if (j < 0 || j >= S.agendas.length) return;
+      [S.agendas[i], S.agendas[j]] = [S.agendas[j], S.agendas[i]]; renderAgendaList(); save();
+    }
+    async function deleteAgenda(id) {
+      const a = S.agendas.find(x => x.id === id); if (!a) return;
+      if (!(await askConfirm(`議題「${a.title || '（未入力）'}」を消しますか？\n（出た意見や投票もいっしょに消えます）`, '消す'))) return;
+      S.agendas = S.agendas.filter(x => x.id !== id);
+      if (S.curId === id) S.curId = S.agendas.length ? S.agendas[0].id : null;
+      renderAgendaList(); buildMeeting(); touch();
+    }
+    function renderAgendaList() {
+      const box = $('agenda-list');
+      if (!S.agendas.length) { box.innerHTML = '<div class="empty">議題がありません。上から追加するか、中央の「はじめる」から種類を選んでね。</div>'; return; }
+      box.innerHTML = S.agendas.map((a, i) => `<div class="ag-item ${a.id === S.curId ? 'cur' : ''} st-${a.status}" onclick="selectAgenda('${a.id}')" style="border-left-color:${a.status === 'done' ? 'var(--green)' : TYPES[a.type].color}">
+        <span>${TYPES[a.type].icon}</span><span class="ag-title">${esc(a.title || '（議題未入力）')}</span>
+        <span class="ag-st">${{ todo: '○', doing: '▶', done: '✔' }[a.status]}</span>
+        <span class="ag-btns"><button class="mini" onclick="event.stopPropagation();moveAgenda(${i},-1)">▲</button><button class="mini" onclick="event.stopPropagation();moveAgenda(${i},1)">▼</button><button class="mini red" onclick="event.stopPropagation();deleteAgenda('${a.id}')">✖</button></span></div>`).join('');
     }
 
-    function toggleTask(i) {
-      tasks[i].done = !tasks[i].done;
-      if (tasks[i].done) updateExp(10);
-      renderTasks();
+    // =====================================================
+    // 5. 学級会コア（中央）
+    // =====================================================
+    let editMode = false, workTab = 'opinions', opFilter = 'all', phraseCat = 0, sayText = '';
+
+    function startHtml() {
+      return `<div class="panel" id="meeting-core-panel">
+        <div class="panel-header"><span>🎙️ <span data-rb="学級会"></span>コア</span></div>
+        <div class="hint">話し合う内容をえらぶと、それに合った進め方（手順）が出ます。手順は、いつでも自由に書きかえ・入れかえできます。</div>
+        <div class="start-grid">${Object.entries(TYPES).map(([k, t]) => `<button class="start-card" style="--c:${t.color}" onclick="quickStart('${k}')"><span class="ico">${t.icon}</span><span class="nm">${rb(t.label, null)}</span><span class="ds">${rb(t.desc, null)}</span></button>`).join('')}</div>
+        <div class="hint">※ 議題の名前は、はじめてから入力してもOKです。左の「議題リスト」に先に並べておくこともできます。</div>
+      </div>`;
     }
 
-    function deleteTask(i) {
-      tasks.splice(i, 1);
-      renderTasks();
-    }
-    renderTasks();
-    // ==========================================
-    // 3. お役立ちデータベース
-    // ==========================================
-    function renderDatabase() {
-      const container = document.getElementById('db-container');
-      container.innerHTML = '';
-      dbItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'db-item';
-        div.innerHTML = `
-          <input type="text" value="${item.title}" onchange="updateDb(${item.id}, 'title', this.value)" placeholder="タイトル">
-          <textarea onchange="updateDb(${item.id}, 'detail', this.value)" placeholder="詳しい内容をメモ...">${item.detail}</textarea>
-          <div class="db-actions">
-            <button class="btn btn-red" style="padding: 2px 8px; font-size: 0.75rem;" onclick="deleteDbItem(${item.id})">削除</button>
+    function buildMeeting() {
+      const a = cur(), root = $('meeting-root');
+      if (!a) { root.innerHTML = startHtml(); applyStaticRuby(); return; }
+      workTab = S.workTab || 'opinions';
+      root.innerHTML = `<div class="panel" id="meeting-core-panel">
+        <div class="panel-header"><span>🎙️ <span data-rb="学級会"></span>コア</span>
+          <div class="hdr-btns"><button class="btn btn-cyan sm" onclick="togglePresenter()">📺 発表モード</button><button class="btn sm" id="btn-edit" onclick="toggleEdit()">✏️ 手順を編集</button><button class="btn btn-green sm" onclick="openNotes('rule')">📒 ノート</button></div></div>
+        <div class="ag-head">
+          <div class="row">
+            <select id="m-type" onchange="changeType(this.value)">${Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.icon} ${t.label}</option>`).join('')}</select>
+            <input type="text" id="m-title" class="grow" placeholder="議題を入力（例：給食のならび方について）" oninput="onTitle(this.value)">
+            <select id="m-status" onchange="onStatus(this.value)"><option value="todo">まだ</option><option value="doing">話し合い中</option><option value="done">おわり</option></select>
           </div>
-        `;
-        container.appendChild(div);
-      });
-      localStorage.setItem('cmdV3DB', JSON.stringify(dbItems));
+          <div class="row wrap">
+            <label class="row">提案者 <input type="text" id="m-proposer" style="width:120px" oninput="onProposer(this.value)"></label>
+            <label class="row grow">提案理由 <input type="text" id="m-reason" oninput="cur().reason=this.value;save()" placeholder="なぜ話し合いたいか"></label>
+          </div>
+        </div>
+        <div class="stepper" id="m-stepper"></div>
+        <div class="step-card" id="m-step"></div>
+        <div id="m-editor"></div>
+        <details class="phrase-bank" id="m-phrase" open></details>
+        <div class="work-tabs" id="w-tabs"></div>
+
+        <div class="work-pane" id="w-opinions">
+          <div class="op-input">
+            <select id="op-tag">${Object.entries(TAGS).map(([k, t]) => `<option value="${k}">${t.icon} ${t.label}</option>`).join('')}</select>
+            <input type="text" id="op-text" placeholder="出た意見をサッと入力して Enter" onkeydown="if(event.key==='Enter')addOpinion()">
+            <input type="text" id="op-who" placeholder="だれ（番号/名前）" onkeydown="if(event.key==='Enter')addOpinion()">
+            <button class="btn" onclick="addOpinion()">追加</button>
+          </div>
+          <div class="chips" id="op-filter" style="margin-top:0"></div>
+          <div id="op-list"></div>
+        </div>
+
+        <div class="work-pane" id="w-vote">
+          <div class="vote-top">
+            <button class="btn" onclick="addOption()">+ 案を追加</button>
+            <button class="btn btn-cyan sm" onclick="resetAllVotes()">票を0にもどす</button>
+            <button class="btn btn-cyan sm" onclick="saveVoteToHistory()">💾 履歴に保存</button>
+            <label class="row"><input type="checkbox" id="v-onevote" onchange="cur().oneVote=this.checked;save();renderVotes()"> 1人1票</label>
+          </div>
+          <div class="vote-summary" id="v-summary"></div>
+          <div class="crit-edit row wrap" id="v-crit"></div>
+          <div id="v-banner"></div>
+          <div class="vote-container" id="v-cards"></div>
+        </div>
+
+        <div class="work-pane" id="w-decision">
+          <label>📌 決まったこと（ひと言で）</label>
+          <textarea id="m-decision" rows="2" placeholder="例：給食は、時間までに静かに並ぶ。" oninput="onDecision(this.value)"></textarea>
+          <label>くわしい内容（役割・ルール・持ち物・期限など）</label>
+          <textarea id="m-detail" rows="3" placeholder="例：係は〇〇さんと△△さん。持ち物：ボール。ルール：…" oninput="cur().detail=this.value;save()"></textarea>
+          <div class="row wrap">
+            <label class="row">実施日・期限 <input type="date" id="m-when" style="width:auto" onchange="cur().when=this.value;save()"></label>
+            <label class="row" id="m-setgoal-wrap"><input type="checkbox" id="m-setgoal" onchange="cur().setGoal=this.checked;save()"> 今月のめあてにも設定する</label>
+          </div>
+          <div class="row wrap"><button class="btn btn-green big" onclick="registerDecision()">✅ 決定ノートに登録する</button><span class="hint" id="reg-state"></span></div>
+        </div>
+
+        <div class="work-pane" id="w-minutes">
+          <label>🗣️ ふりかえり（よかったこと・次にがんばること）</label>
+          <textarea id="m-reflect" rows="3" oninput="cur().reflect=this.value;save()"></textarea>
+          <label>✍️ 書記メモ（決定事項・細かいルールなど）</label>
+          <textarea id="m-memo" rows="3" placeholder="決定事項や細かいルールをしっかり記録しよう..." oninput="cur().memo=this.value;save()"></textarea>
+          <div class="row wrap"><button class="btn btn-cyan" onclick="makeMinutes()">📄 議事録を自動作成</button><button class="btn sm" onclick="copyText($('m-minutes').value)">コピー</button><button class="btn sm" onclick="downloadMinutes()">⬇ 保存(.txt)</button><button class="btn btn-green sm" onclick="storeMinutes(true)">📥 ノートに保存</button></div>
+          <textarea id="m-minutes" rows="12" placeholder="「議事録を自動作成」を押すと、ここに今日の話し合いがまとまります。自由に直せます。" oninput="cur().minutesText=this.value;save()"></textarea>
+        </div>
+      </div>`;
+      $('m-type').value = a.type; $('m-title').value = a.title; $('m-status').value = a.status;
+      $('m-proposer').value = a.proposer; $('m-reason').value = a.reason;
+      $('v-onevote').checked = a.oneVote;
+      $('m-decision').value = a.decision; $('m-detail').value = a.detail; $('m-when').value = a.when || '';
+      $('m-setgoal').checked = a.setGoal; $('m-setgoal-wrap').style.display = a.type === 'goal' ? '' : 'none';
+      $('m-reflect').value = a.reflect; $('m-memo').value = a.memo; $('m-minutes').value = a.minutesText;
+      editMode = false; sayText = '';
+      applyStaticRuby();
+      renderStepper(); renderStep(); renderEditor(); renderPhrases(); renderOpinions(); renderVotes(); renderRegState(); showTab(workTab);
     }
 
-    function addDbItem() {
-      const newId = dbItems.length > 0 ? Math.max(...dbItems.map(d => d.id)) + 1 : 1;
-      dbItems.push({
-        id: newId,
-        title: '',
-        detail: ''
-      });
-      renderDatabase();
+    // ---- ヘッダー入力
+    function onTitle(v) { const a = cur(); a.title = v; renderAgendaList(); renderStep(); touch(); }
+    function onProposer(v) { cur().proposer = v; renderStep(); touch(); }
+    function onStatus(v) { cur().status = v; renderAgendaList(); save(); }
+    function onDecision(v) { cur().decision = v; renderStep(); touch(); }
+    async function changeType(t) {
+      const a = cur(); if (t === a.type) return;
+      const c = await askChoice('種類をかえる', `「${TYPES[t].label}」に変えます。\n進め方（手順）も入れかえますか？`, ['手順も入れかえる', '種類だけ変える', 'やめる']);
+      if (c === 0 || c === 1) {
+        const oldDef = TYPES[a.type].criteria;
+        if (JSON.stringify(a.criteria) === JSON.stringify(oldDef)) a.criteria = TYPES[t].criteria.slice();
+        a.type = t;
+        if (c === 0) { a.steps = cloneSteps(t); a.stepIdx = 0; }
+        renderAgendaList(); buildMeeting(); touch();
+      } else $('m-type').value = a.type;
     }
 
-    function updateDb(id, field, value) {
-      const item = dbItems.find(d => d.id === id);
-      if (item) {
-        item[field] = value;
-        localStorage.setItem('cmdV3DB', JSON.stringify(dbItems));
-      }
+    // ---- ステップ
+    function renderStepper() {
+      const a = cur(); if (!a) return; const box = $('m-stepper');
+      box.innerHTML = a.steps.map((s, i) => `<button class="pill ${i === a.stepIdx ? 'on' : ''} ${i < a.stepIdx ? 'past' : ''}" onclick="goStep(${i})">${i < a.stepIdx ? '✔' : i + 1}. ${rb(s.title, a)}</button>`).join('');
+      const on = box.querySelector('.pill.on');
+      if (on) box.scrollLeft = on.offsetLeft - box.clientWidth / 2 + on.clientWidth / 2;
+    }
+    function renderStep() {
+      const a = cur(); if (!a) return; const s = a.steps[a.stepIdx]; const box = $('m-step');
+      if (!s) { box.innerHTML = '<div class="empty">手順がありません。「手順を編集」から追加できます。</div>'; return; }
+      const last = a.stepIdx >= a.steps.length - 1;
+      box.style.setProperty('--tc', TYPES[a.type].color);
+      box.innerHTML = `<div class="step-top"><span class="step-no">${a.stepIdx + 1} / ${a.steps.length}</span><div class="script-speaker">${rb(s.title, a)}</div>
+          ${s.min ? `<button class="btn btn-cyan sm" onclick="startStepTimer()">⏱ ${s.min}分タイマー</button>` : ''}
+          ${s.tool && s.tool !== 'none' ? `<button class="btn sm" onclick="showTab('${TOOL_TAB[s.tool]}')">→ ${TOOLS[s.tool]}</button>` : ''}</div>
+        <div class="step-text">${rb(s.text, a)}</div>
+        ${s.guide ? `<div class="script-guide">💡 ${rb(s.guide, a)}</div>` : ''}
+        ${sayText ? `<div class="say-box"><div><span class="lbl">📢 いま言うこと</span>${rb(sayText, a)}</div><div class="row"><button class="mini" onclick="copyText(plain(sayText))">コピー</button><button class="mini red" onclick="saySelect('')">✖</button></div></div>` : ''}
+        <div class="step-nav"><button class="btn" onclick="prevStep()" ${a.stepIdx === 0 ? 'disabled style="opacity:.4"' : ''}>◀ 前へ</button>
+          <button class="btn btn-green big" onclick="nextStep()">${last ? '✅ 話し合いをおわる' : '次へ ▶'}</button></div>`;
+    }
+    function goStep(i) {
+      const a = cur(); if (!a || i < 0 || i >= a.steps.length) return;
+      const fwd = i > a.stepIdx; a.stepIdx = i;
+      const s = a.steps[i];
+      if (TOOL_TAB[s.tool]) showTab(TOOL_TAB[s.tool]);
+      if (s.min && !T.running) setTimer(s.min * 60, s.title);
+      if (fwd) updateExp(2);
+      renderStepper(); renderStep(); if (editMode) renderEditor(); touch();
+    }
+    const prevStep = () => goStep(cur().stepIdx - 1);
+    function nextStep() {
+      const a = cur(); if (!a) return;
+      if (a.stepIdx < a.steps.length - 1) return goStep(a.stepIdx + 1);
+      finishAgenda();
+    }
+    function finishAgenda() {
+      const a = cur(); a.status = 'done'; storeMinutes(false); updateExp(10); playFanfare();
+      const next = S.agendas.find(x => x.status !== 'done');
+      toast('🎉 おつかれさま！ 話し合いが終わりました');
+      renderAgendaList(); $('m-status').value = 'done'; touch();
+      if (next) toast('次の議題：' + (next.title || '（未入力）') + '（左のリストから選べます）', 'warn');
+    }
+    function startStepTimer() {
+      const a = cur(), s = a.steps[a.stepIdx]; if (!s || !s.min) return;
+      setTimer(s.min * 60, s.title); startTimer();
     }
 
-    function deleteDbItem(id) {
-      dbItems = dbItems.filter(d => d.id !== id);
-      renderDatabase();
+    // ---- 手順の編集
+    function toggleEdit() { editMode = !editMode; $('btn-edit').textContent = editMode ? '✏️ 編集をとじる' : '✏️ 手順を編集'; renderEditor(); }
+    function renderEditor() {
+      const box = $('m-editor'); if (!box) return;
+      if (!editMode) { box.innerHTML = ''; return; }
+      const a = cur();
+      box.innerHTML = `<div class="editor">
+        <div class="hint">✏️ 進める手順を自由に書きかえできます。<b>{{議題}} {{提案者}} {{司会}} {{副司会}} {{書記}} {{決定}} {{今月のめあて}} {{先月のめあて}}</b> は自動で入ります。ふりがなは <b>[漢字|かんじ]</b> と書くと付きます。</div>
+        ${a.steps.map((s, i) => `<div class="ed-step ${i === a.stepIdx ? 'cur' : ''}">
+          <div class="ed-row"><b>${i + 1}</b>
+            <input type="text" class="grow" value="${esc(s.title)}" oninput="edStep(${i},'title',this.value)" placeholder="手順の名前">
+            <select onchange="edStep(${i},'tool',this.value)">${Object.entries(TOOLS).map(([k, v]) => `<option value="${k}" ${s.tool === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+            <label class="row">⏱<input type="number" class="num" min="0" value="${s.min || 0}" onchange="edStep(${i},'min',+this.value)">分</label>
+            <button class="mini" onclick="moveStep(${i},-1)">▲</button><button class="mini" onclick="moveStep(${i},1)">▼</button><button class="mini" onclick="goStep(${i})">ここへ</button><button class="mini red" onclick="delStep(${i})">✖</button></div>
+          <textarea rows="2" oninput="edStep(${i},'text',this.value)" placeholder="司会が読む言葉">${esc(s.text)}</textarea>
+          <input type="text" value="${esc(s.guide || '')}" placeholder="💡 司会へのメモ（任意）" oninput="edStep(${i},'guide',this.value)">
+        </div>`).join('')}
+        <div class="ed-actions"><button class="btn sm" onclick="addStep()">＋ 手順を追加</button>
+          <button class="btn btn-cyan sm" onclick="saveTemplate()">💾 この手順を「${esc(TYPES[a.type].label)}」の基本にする</button>
+          <button class="btn btn-red sm" onclick="resetSteps()">↩ はじめの手順にもどす</button></div></div>`;
     }
-    renderDatabase();
-    // ==========================================
-    // 4. ダイナミック投票 ＆ 履歴保存機能
-    // ==========================================
+    function edStep(i, f, v) {
+      const a = cur(); a.steps[i][f] = v;
+      if (f === 'title') renderStepper();
+      if (f === 'tool' || f === 'min' || f === 'text' || f === 'guide' || f === 'title') { if (i === a.stepIdx) renderStep(); }
+      touch();
+    }
+    function moveStep(i, d) {
+      const a = cur(), j = i + d; if (j < 0 || j >= a.steps.length) return;
+      [a.steps[i], a.steps[j]] = [a.steps[j], a.steps[i]];
+      if (a.stepIdx === i) a.stepIdx = j; else if (a.stepIdx === j) a.stepIdx = i;
+      renderStepper(); renderStep(); renderEditor(); touch();
+    }
+    async function delStep(i) {
+      const a = cur(); if (a.steps.length <= 1) return toast('手順は1つ以上必要です', 'warn');
+      if (!(await askConfirm(`手順「${a.steps[i].title}」を消しますか？`, '消す'))) return;
+      a.steps.splice(i, 1); if (a.stepIdx >= a.steps.length) a.stepIdx = a.steps.length - 1;
+      renderStepper(); renderStep(); renderEditor(); touch();
+    }
+    function addStep() {
+      const a = cur(); const at = a.stepIdx + 1;
+      a.steps.splice(at, 0, { id: uid(), title: '新しい手順', text: '', guide: '', tool: 'none', min: 0 });
+      a.stepIdx = at; renderStepper(); renderStep(); renderEditor(); touch();
+    }
+    function saveTemplate() {
+      const a = cur(); S.customTemplates[a.type] = a.steps.map(s => { const c = { ...s }; delete c.id; return c; });
+      save(); toast(`✅ 次から「${TYPES[a.type].label}」はこの手順で始まります`);
+    }
+    async function resetSteps() {
+      const a = cur();
+      if (!(await askConfirm('この議題の手順を、はじめの手順にもどしますか？', 'もどす'))) return;
+      a.steps = TPL[a.type].map(s => ({ ...s, id: uid() })); a.stepIdx = 0;
+      renderStepper(); renderStep(); renderEditor(); touch();
+    }
+
+    // ---- ことばバンク
+    function phraseCats(a) {
+      const cats = PHRASES_BASE.map(c => ({ name: c.name, list: c.list }));
+      if (PHRASES_TYPE[a.type]) cats.unshift({ name: TYPES[a.type].label + '向け', list: PHRASES_TYPE[a.type] });
+      cats.push({ name: '自分の言葉', list: S.customPhrases, custom: true });
+      return cats;
+    }
+    function renderPhrases() {
+      const a = cur(); const box = $('m-phrase'); if (!a || !box) return;
+      const cats = phraseCats(a); if (phraseCat >= cats.length) phraseCat = 0;
+      const c = cats[phraseCat];
+      box.innerHTML = `<summary>💬 司会のことばバンク <span class="hint">（タップすると「いま言うこと」に大きく出ます）</span></summary>
+        <div class="chips">${cats.map((x, i) => `<button class="chip ${i === phraseCat ? 'on' : ''}" onclick="setPhraseCat(${i})">${esc(x.name)}</button>`).join('')}</div>
+        <div class="chips">${c.list.map((p, i) => `<button class="chip say" onclick="saySelect(phraseCats(cur())[${phraseCat}].list[${i}])">${rb(p, a)}</button>${c.custom ? `<button class="mini red" onclick="delPhrase(${i})">✖</button>` : ''}`).join('')}
+          ${c.custom ? `<button class="chip" onclick="addPhrase()">＋ 言葉を追加</button>` : ''}</div>
+        ${c.custom && !c.list.length ? '<div class="hint">よく使う言葉を登録しておけます。</div>' : ''}`;
+    }
+    function setPhraseCat(i) { phraseCat = i; renderPhrases(); }
+    function saySelect(t) { sayText = t; renderStep(); if (presenterOpen) renderPresenter(); }
+    async function addPhrase() {
+      const t = await askText('登録する言葉（{{議題}} なども使えます）', ''); if (!t || !t.trim()) return;
+      S.customPhrases.push(t.trim()); save(); renderPhrases();
+    }
+    function delPhrase(i) { S.customPhrases.splice(i, 1); save(); renderPhrases(); }
+
+    // ---- 作業タブ
+    function renderWorkTabs() {
+      const a = cur(); const box = $('w-tabs'); if (!a || !box) return;
+      const tabs = [['opinions', '💭 意見', a.opinions.length], ['vote', '📊 案と投票', a.options.length], ['decision', '✅ 決定', a.regId ? '✔' : 0], ['minutes', '📝 議事録', 0]];
+      box.innerHTML = tabs.map(([k, l, n]) => `<button class="wtab ${workTab === k ? 'on' : ''}" onclick="showTab('${k}')">${l}${n ? `<span class="bd">${n}</span>` : ''}</button>`).join('');
+    }
+    function showTab(k) {
+      workTab = k; S.workTab = k;
+      ['opinions', 'vote', 'decision', 'minutes'].forEach(t => { const e = $('w-' + t); if (e) e.classList.toggle('on', t === k); });
+      renderWorkTabs(); save();
+    }
+
+    // ---- 意見ボード
+    function addOpinion() {
+      const a = cur(), t = $('op-text'), text = t.value.trim(); if (!text) return;
+      const tag = $('op-tag').value; S.lastTag = tag;
+      a.opinions.push({ id: uid(), text, who: $('op-who').value.trim(), tag, star: false, plus: 0 });
+      t.value = ''; $('op-who').value = ''; t.focus();
+      renderOpinions(); touch(); updateExp(1);
+    }
+    function setOpFilter(k) { opFilter = k; renderOpinions(); }
+    function renderOpinions() {
+      const a = cur(); if (!a || !$('op-list')) return;
+      if ($('op-tag').dataset.init !== a.id) { $('op-tag').value = S.lastTag || 'idea'; $('op-tag').dataset.init = a.id; }
+      const cnt = {}; a.opinions.forEach(o => cnt[o.tag] = (cnt[o.tag] || 0) + 1);
+      $('op-filter').innerHTML = [['all', 'すべて', a.opinions.length], ...Object.entries(TAGS).map(([k, t]) => [k, t.icon + t.label, cnt[k] || 0])]
+        .map(([k, l, n]) => `<button class="chip ${opFilter === k ? 'on' : ''}" onclick="setOpFilter('${k}')">${l} ${n}</button>`).join('');
+      const list = a.opinions.filter(o => opFilter === 'all' || o.tag === opFilter).slice().reverse();
+      $('op-list').innerHTML = list.length ? list.map(o => `<div class="op-item tag-${o.tag} ${o.star ? 'star' : ''}">
+        <span>${TAGS[o.tag].icon}</span>
+        <div class="op-text">${esc(o.text)} ${o.who ? `<span class="op-who">（${esc(o.who)}）</span>` : ''} ${o.plus ? `<span class="op-who">👥+${o.plus}</span>` : ''}</div>
+        <div class="op-btns"><button class="mini ${o.star ? 'on' : ''}" onclick="opAct('${o.id}','star')" title="注目">★</button><button class="mini" onclick="opAct('${o.id}','plus')" title="同じ意見">👥+1</button><button class="mini" onclick="opAct('${o.id}','toOpt')" title="投票の案にする">→案</button><button class="mini" onclick="opAct('${o.id}','edit')">✎</button><button class="mini red" onclick="opAct('${o.id}','del')">✖</button></div></div>`).join('')
+        : '<div class="empty">まだ意見がありません。上の入力欄に、出た意見をどんどん入れよう。</div>';
+    }
+    async function opAct(id, act) {
+      const a = cur(), o = a.opinions.find(x => x.id === id); if (!o) return;
+      if (act === 'star') o.star = !o.star;
+      else if (act === 'plus') o.plus = (o.plus || 0) + 1;
+      else if (act === 'del') a.opinions = a.opinions.filter(x => x !== o);
+      else if (act === 'toOpt') { addOption(o.text, '', true); toast('📊 「案と投票」に追加しました'); }
+      else if (act === 'edit') { const t = await askText('意見をなおす', o.text); if (t && t.trim()) o.text = t.trim(); }
+      renderOpinions(); touch();
+    }
+
+    // ---- 案と投票
+    function leaders(a) {
+      if (!a || !a.options.length) return [];
+      const mx = Math.max(...a.options.map(o => o.count));
+      return mx > 0 ? a.options.filter(o => o.count === mx) : [];
+    }
+    function addOption(name, memo, silent) {
+      const a = cur(); if (!a) return;
+      a.options.push({ id: uid(), name: name || `案${a.options.length + 1}`, memo: memo || '', count: 0, checks: [] });
+      renderVotes(); touch();
+      if (!silent) setTimeout(() => { const els = document.querySelectorAll('.vote-title-input'); if (els.length) els[els.length - 1].focus(); }, 30);
+    }
+    function removeOption(id) { const a = cur(); a.options = a.options.filter(o => o.id !== id); renderVotes(); touch(); }
+    function updateOpt(id, f, v) { const o = cur().options.find(x => x.id === id); if (o) { o[f] = v; save(); if (presenterOpen) renderPresenter(); } }
+    function changeVote(id, d) { const o = cur().options.find(x => x.id === id); if (o) { o.count = Math.max(0, o.count + d); renderVotes(); touch(); } }
+    function setVote(id, v) { const o = cur().options.find(x => x.id === id); if (o) { o.count = Math.max(0, parseInt(v) || 0); renderVotes(); touch(); } }
+    function toggleCheck(id, c) {
+      const o = cur().options.find(x => x.id === id); if (!o) return;
+      const i = o.checks.indexOf(c); if (i >= 0) o.checks.splice(i, 1); else o.checks.push(c);
+      renderVotes(); touch();
+    }
+    async function resetAllVotes() {
+      const a = cur(); if (!a.options.length) return;
+      if (await askConfirm('すべての票を0にもどしますか？', 'もどす')) { a.options.forEach(o => o.count = 0); renderVotes(); touch(); }
+    }
+    function addCrit() { const i = $('crit-in'); const v = i.value.trim(); if (!v) return; const a = cur(); if (!a.criteria.includes(v)) a.criteria.push(v); renderVotes(); touch(); setTimeout(() => $('crit-in') && $('crit-in').focus(), 20); }
+    function delCrit(i) { const a = cur(); const c = a.criteria[i]; a.criteria.splice(i, 1); a.options.forEach(o => o.checks = o.checks.filter(x => x !== c)); renderVotes(); touch(); }
+
     function renderVotes() {
-      const container = document.getElementById('vote-container');
-      container.innerHTML = '';
-      if (voteOptions.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-sub); font-size:0.9rem;">「+ 案を追加」ボタンから案を作成してください。</div>';
+      const a = cur(); if (!a || !$('v-cards')) return;
+      const total = a.options.reduce((s, o) => s + o.count, 0), head = S.headcount;
+      let note = '';
+      if (a.oneVote && head > 0 && total > head) note = `<span class="warn">⚠ 合計が点呼人数(${head}人)より多いです</span>`;
+      else if (a.oneVote && head > 0 && total > 0 && total < head) note = `<span>あと${head - total}人分（白票・保留？）</span>`;
+      $('v-summary').innerHTML = `<span>投票の合計：<b style="color:var(--gold)">${total}</b>票</span><span>点呼：${head}人</span><span>${a.round > 1 ? `🔁 ${a.round}回目の投票` : ''}</span>${note}`;
+      $('v-crit').innerHTML = `<span class="hint">確かめる観点：</span>${a.criteria.map((c, i) => `<span class="chip">${esc(c)} <b style="cursor:pointer;color:var(--red)" onclick="delCrit(${i})">×</b></span>`).join('')}<input type="text" id="crit-in" placeholder="観点を追加" style="width:130px" onkeydown="if(event.key==='Enter')addCrit()"><button class="mini" onclick="addCrit()">＋</button>`;
+      const ld = leaders(a), ids = new Set(ld.map(o => o.id));
+      let banner = '';
+      if (ld.length > 1) banner = `<div class="banner tie">⚖ 同数です！（${ld.map(o => esc(o.name)).join(' / ')}）<button class="btn btn-red sm" onclick="runoff()">🔁 決選投票</button><button class="btn btn-cyan sm" onclick="drawLots()">🎲 くじで決める</button></div>`;
+      else if (ld.length === 1) banner = `<div class="banner win">👑 いちばん多い案：${esc(ld[0].name)}（${ld[0].count}票）<button class="btn btn-green sm" onclick="decideOption('${ld[0].id}')">この案に決定</button></div>`;
+      $('v-banner').innerHTML = banner;
+      const sorted = a.options.slice().sort((x, y) => y.count - x.count);
+      $('v-cards').innerHTML = a.options.length ? a.options.map(o => {
+        const pct = total ? Math.round(o.count / total * 100) : 0;
+        const rank = total ? sorted.findIndex(x => x.count === o.count) + 1 : 0;
+        return `<div class="vote-card ${ids.has(o.id) ? 'lead' : ''}" id="vc-${o.id}">
+          ${rank ? `<span class="rank">${rank}位</span>` : ''}<button class="del-vote-btn" onclick="removeOption('${o.id}')">×</button>
+          <textarea class="vote-title-input" onchange="updateOpt('${o.id}','name',this.value)" oninput="updateOpt('${o.id}','name',this.value)" placeholder="案の名前">${esc(o.name)}</textarea>
+          <textarea class="vote-memo" oninput="updateOpt('${o.id}','memo',this.value)" placeholder="内容メモ（ルール・理由など）">${esc(o.memo)}</textarea>
+          ${a.criteria.length ? `<div class="crit">${a.criteria.map(c => `<button class="chip ${o.checks.includes(c) ? 'on' : ''}" onclick="toggleCheck('${o.id}',${JSON.stringify(c).replace(/"/g, '&quot;')})">${o.checks.includes(c) ? '✔' : '○'} ${esc(c)}</button>`).join('')}</div>` : ''}
+          <div class="vote-count-row"><button class="btn" onclick="changeVote('${o.id}',-1)">－</button><input type="number" min="0" value="${o.count}" onchange="setVote('${o.id}',this.value)"><button class="btn" onclick="changeVote('${o.id}',1)">＋</button></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><div class="hint" style="text-align:center">${pct}%${a.criteria.length ? `　観点 ${o.checks.length}/${a.criteria.length}` : ''}</div>
+          <button class="btn btn-green sm" onclick="decideOption('${o.id}')">👑 この案に決定</button></div>`;
+      }).join('') : '<div class="empty" style="grid-column:1/-1">「+ 案を追加」を押すか、意見ボードの「→案」、お役立ちデータベースの「案にする」で案を作ろう。</div>';
+    }
+    function decideOption(id) {
+      const a = cur(), o = a.options.find(x => x.id === id); if (!o) return;
+      a.decision = o.name; if (o.memo && !a.detail) a.detail = o.memo;
+      $('m-decision').value = a.decision; $('m-detail').value = a.detail;
+      const di = a.steps.findIndex(s => s.tool === 'decision');
+      if (di >= 0 && a.stepIdx < di) goStep(di);
+      showTab('decision'); renderStep(); touch(); toast('📌 「決まったこと」に入れました。内容を整えて登録しよう');
+    }
+    async function runoff() {
+      const a = cur(), ld = leaders(a); if (ld.length < 2) return;
+      pushHistory(`${a.title || '多数決'}（${a.round}回目）`, a);
+      a.options = ld.map(o => ({ ...o, count: 0 })); a.round++;
+      renderVotes(); touch(); toast('🔁 同数の案だけ残しました。もう一度投票しよう', 'warn');
+    }
+    function drawLots() {
+      const a = cur(), ld = leaders(a); if (ld.length < 2) return;
+      let n = 0; const pick = ld[Math.floor(Math.random() * ld.length)];
+      const iv = setInterval(() => {
+        document.querySelectorAll('.vote-card').forEach(c => c.classList.remove('spot'));
+        const o = n >= 14 ? pick : ld[n % ld.length];
+        const el = $('vc-' + o.id); if (el) el.classList.add('spot'); tone(600 + (n % 5) * 80, 0.08, 0.08);
+        if (++n > 14) { clearInterval(iv); playFanfare(); toast('🎲 くじの結果：' + pick.name); }
+      }, 130);
+    }
+    function pushHistory(title, a) {
+      S.voteHistory.push({ id: uid(), date: todayStr(), title, agendaTitle: a.title || '', data: a.options.map(o => ({ name: o.name, count: o.count })) });
+    }
+    async function saveVoteToHistory() {
+      const a = cur(); if (!a.options.length) return toast('保存する案がありません', 'warn');
+      const t = await askText('この投票結果の名前', `${a.title || '多数決'}（${a.round}回目）`); if (!t) return;
+      pushHistory(t, a); save(); toast('💾 履歴に保存しました（ノート →「投票」で見られます）');
+    }
+
+    // ---- 決定・議事録
+    function renderRegState() { const a = cur(); if (a && $('reg-state')) $('reg-state').textContent = a.regId ? '✔ 登録ずみ（もう一度押すと内容を更新します）' : ''; }
+    function registerDecision() {
+      const a = cur(), text = a.decision.trim();
+      if (!text) { toast('「決まったこと」を書いてください', 'warn'); $('m-decision').focus(); return; }
+      const rec = { type: a.type, title: a.title, text, detail: a.detail.trim(), when: a.when || '', date: todayStr() };
+      let d = S.decisions.find(x => x.id === a.regId);
+      if (d) Object.assign(d, rec); else { d = { id: uid(), done: false, ...rec }; S.decisions.push(d); a.regId = d.id; updateExp(20); }
+      if (a.type === 'goal' && a.setGoal) { setGoal(monthKey(), text); renderGoalBar(); }
+      a.status = 'done'; $('m-status').value = 'done';
+      if (!a.minutesText.trim()) { a.minutesText = buildMinutesText(a); $('m-minutes').value = a.minutesText; }
+      storeMinutes(false); renderRegState(); renderAgendaList(); touch();
+      showCue('🎉 決定！', 'fanfare');
+    }
+    const TAG_JA = { idea: 'アイデア', agree: '賛成', disagree: '反対', question: '質問', worry: '心配' };
+    function buildMinutesText(a) {
+      const R = S.roles, L = [];
+      L.push('【学級会 議事録】');
+      L.push(`日時：${new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}`);
+      L.push(`第${S.meetingNo || 1}回　議題：${a.title || '（未入力）'}（${TYPES[a.type].label}）`);
+      L.push(`司会：${R.chair || '　'}　副司会：${R.vice || '　'}　書記：${R.scribe || '　'}　提案者：${a.proposer || '　'}`);
+      if (a.reason) L.push('', '■ 提案理由', a.reason);
+      if (a.opinions.length) {
+        L.push('', '■ 出た意見');
+        a.opinions.forEach(o => L.push(`・[${TAG_JA[o.tag]}] ${o.text}${o.who ? `（${o.who}）` : ''}${o.plus ? ` 同じ意見+${o.plus}` : ''}${o.star ? ' ★' : ''}`));
       }
-      voteOptions.forEach(opt => {
-        const card = document.createElement('div');
-        card.className = 'vote-card';
-        // タイトルはtextareaを使用して長文を折り返し表示可能に
-        card.innerHTML = `
-          <button class="del-vote-btn" onclick="removeVoteOption(${opt.id})">×</button>
-          <textarea class="vote-title-input" onchange="updateVote(${opt.id}, 'name', this.value)" placeholder="案の名前">${opt.name}</textarea>
-          <textarea class="vote-memo" onchange="updateVote(${opt.id}, 'memo', this.value)" placeholder="内容メモ...">${opt.memo}</textarea>
-          <div class="vote-count">${opt.count}</div>
-          <div class="vote-controls">
-            <button class="btn" onclick="changeVote(${opt.id}, 1)">＋</button>
-            <button class="btn" onclick="changeVote(${opt.id}, -1)">－</button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-      localStorage.setItem('cmdV3Votes', JSON.stringify(voteOptions));
+      if (a.options.length) {
+        const tot = a.options.reduce((s, o) => s + o.count, 0);
+        L.push('', `■ 案と投票結果（${a.round}回目・合計${tot}票）`);
+        a.options.forEach(o => L.push(`・${o.name}　${o.count}票${o.checks.length ? `　観点：${o.checks.join('・')}` : ''}${o.memo ? `\n　　${o.memo.replace(/\n/g, ' ')}` : ''}`));
+      }
+      L.push('', '■ 決まったこと', a.decision || '（まだ決まっていません）');
+      if (a.detail) L.push('', '■ くわしい内容', a.detail);
+      if (a.when) L.push(`実施日・期限：${a.when}`);
+      if (a.memo) L.push('', '■ 書記メモ', a.memo);
+      if (a.reflect) L.push('', '■ ふりかえり', a.reflect);
+      return L.join('\n');
+    }
+    function makeMinutes() { const a = cur(); a.minutesText = buildMinutesText(a); $('m-minutes').value = a.minutesText; save(); toast('📄 議事録を作りました。自由に直せます'); }
+    function downloadMinutes() { const a = cur(); download(`議事録_${a.title || '学級会'}.txt`, $('m-minutes').value || buildMinutesText(a)); }
+    function storeMinutes(msg) {
+      const a = cur(); if (!a) return;
+      const text = a.minutesText.trim() ? a.minutesText : buildMinutesText(a);
+      let m = S.minutes.find(x => x.agendaId === a.id);
+      if (m) { m.text = text; m.title = a.title; } else S.minutes.push({ id: uid(), agendaId: a.id, date: todayStr(), title: a.title || '（議題未入力）', type: a.type, text });
+      save(); if (msg) toast('📥 議事録をノートに保存しました');
     }
 
-    function addVoteOption() {
-      const newId = voteOptions.length > 0 ? Math.max(...voteOptions.map(v => v.id)) + 1 : 1;
-      voteOptions.push({
-        id: newId,
-        name: `新しい案 ${newId}`,
-        memo: '',
-        count: 0
-      });
-      renderVotes();
+    // =====================================================
+    // 6. 決定ノート（きまり・めあて・レク・議事録・投票）
+    // =====================================================
+    let notesTab = 'rule', notesBack = null;
+    function openNotes(tab) {
+      notesTab = tab || notesTab;
+      if (!notesBack || !notesBack.parentNode) notesBack = openModal(`<div id="notes-inner" style="display:flex;flex-direction:column;gap:10px;height:100%"></div>`, 'large');
+      renderNotes();
     }
-
-    function removeVoteOption(id) {
-      voteOptions = voteOptions.filter(v => v.id !== id);
-      renderVotes();
-    }
-
-    function updateVote(id, field, value) {
-      const opt = voteOptions.find(v => v.id === id);
-      if (opt) {
-        opt[field] = value;
-        localStorage.setItem('cmdV3Votes', JSON.stringify(voteOptions));
+    function renderNotes() {
+      const root = document.getElementById('notes-inner'); if (!root) return;
+      const tabs = [['rule', '📏 きまり'], ['goal', '🎯 めあて'], ['rec', '🎉 レク'], ['free', '💬 その他'], ['minutes', '📄 議事録'], ['votes', '📊 投票']];
+      root.innerHTML = `<div class="row" style="justify-content:space-between"><h3>📒 学級会ノート</h3><div class="row no-print"><button class="btn btn-cyan sm" onclick="copyNotes()">コピー</button><button class="btn sm" onclick="printNotes()">🖨 印刷</button><button class="btn btn-red sm" onclick="closeModal(notesBack)">閉じる</button></div></div>
+        <div class="work-tabs no-print">${tabs.map(([k, l]) => `<button class="wtab ${notesTab === k ? 'on' : ''}" onclick="notesTab='${k}';renderNotes()">${l}</button>`).join('')}</div>
+        <div class="notes-list" id="notes-list"></div>`;
+      const L = $('notes-list');
+      if (['rule', 'rec', 'free'].includes(notesTab)) {
+        const items = S.decisions.filter(d => d.type === notesTab);
+        L.innerHTML = `<div class="no-print"><button class="btn sm" onclick="addManualDecision('${notesTab}')">＋ 手入力で追加</button></div>` + (items.length ? items.slice().reverse().map(d => `<div class="note-item ${d.done ? 'done' : ''}">
+          <div class="ni-head"><b style="font-size:1.05rem">${esc(d.text)}</b><span class="ni-sub">${esc(d.date)}</span></div>
+          <div class="ni-sub">議題：${esc(d.title || '—')}${d.when ? `　／　実施日・期限：${esc(d.when)}` : ''}${d.done ? '　✔済' : ''}</div>
+          ${d.detail ? `<pre>${esc(d.detail)}</pre>` : ''}
+          <div class="row no-print">${notesTab === 'rec' ? `<button class="mini" onclick="toggleDecDone('${d.id}')">${d.done ? '↩ 未実施にする' : '✔ 実施した'}</button>` : ''}<button class="mini" onclick="editDecision('${d.id}')">✎ なおす</button><button class="mini red" onclick="delDecision('${d.id}')">✖ 消す</button></div></div>`).join('') : '<div class="empty">まだありません。学級会で決めて「決定ノートに登録」すると、ここに並びます。</div>');
+      } else if (notesTab === 'goal') {
+        const gs = S.goals.slice().sort((a, b) => b.month.localeCompare(a.month));
+        L.innerHTML = gs.length ? gs.map(g => `<div class="note-item"><div class="ni-head"><b style="font-size:1.05rem">${g.month.replace('-', '年')}月</b><span class="stars no-print">${[1, 2, 3, 4, 5].map(n => `<span onclick="rateGoal('${g.id}',${n})">${n <= (g.rating || 0) ? '★' : '☆'}</span>`).join('')}</span></div>
+          <input type="text" value="${esc(g.text)}" oninput="editGoal('${g.id}','text',this.value)" placeholder="めあて">
+          <input type="text" value="${esc(g.note || '')}" oninput="editGoal('${g.id}','note',this.value)" placeholder="ふりかえり（どうだった？ 次にどうする？）"></div>`).join('') : '<div class="empty">今月のめあてを、画面上の入力欄に書くか、「今月のめあて」の学級会で決めよう。月ごとに★で自己評価できます。</div>';
+      } else if (notesTab === 'minutes') {
+        L.innerHTML = S.minutes.length ? S.minutes.slice().reverse().map(m => `<div class="note-item"><div class="ni-head"><b>${TYPES[m.type] ? TYPES[m.type].icon : ''} ${esc(m.title)}</b><span class="ni-sub">${esc(m.date)}</span></div>
+          <details><summary class="ni-sub" style="cursor:pointer">議事録を見る</summary><pre>${esc(m.text)}</pre></details>
+          <div class="row no-print"><button class="mini" onclick="copyMinutes('${m.id}')">コピー</button><button class="mini" onclick="dlMinutes('${m.id}')">保存</button><button class="mini red" onclick="delMinutes('${m.id}')">✖</button></div></div>`).join('') : '<div class="empty">議事録はまだありません。話し合いを終えたり決定を登録すると、自動で保存されます。</div>';
+      } else {
+        L.innerHTML = S.voteHistory.length ? S.voteHistory.slice().reverse().map(h => `<div class="note-item"><div class="ni-head"><b>${esc(h.title)}</b><span class="ni-sub">${esc(h.date)}</span></div>
+          <pre>${h.data.map(d => `${d.name}：${d.count}票`).join('\n')}</pre><div class="row no-print"><button class="mini red" onclick="delVoteHist('${h.id}')">✖</button></div></div>`).join('') : '<div class="empty">投票の履歴はありません。</div>';
       }
     }
-
-    function changeVote(id, delta) {
-      const opt = voteOptions.find(v => v.id === id);
-      if (opt) {
-        opt.count = Math.max(0, opt.count + delta);
-        renderVotes();
+    async function addManualDecision(type) {
+      const t = await askText('決まったこと', ''); if (!t || !t.trim()) return;
+      S.decisions.push({ id: uid(), type, title: '手入力', text: t.trim(), detail: '', when: '', date: todayStr(), done: false }); save(); renderNotes();
+    }
+    async function editDecision(id) {
+      const d = S.decisions.find(x => x.id === id); if (!d) return;
+      const t = await askText('決まったこと', d.text); if (t == null) return;
+      const dt = await askText('くわしい内容', d.detail, true); if (dt == null) return;
+      d.text = t.trim() || d.text; d.detail = dt; save(); renderNotes();
+    }
+    async function delDecision(id) { if (!(await askConfirm('このきまりを消しますか？', '消す'))) return; S.decisions = S.decisions.filter(x => x.id !== id); S.agendas.forEach(a => { if (a.regId === id) a.regId = null; }); save(); renderNotes(); renderRegState(); renderWorkTabs(); }
+    function toggleDecDone(id) { const d = S.decisions.find(x => x.id === id); if (d) { d.done = !d.done; save(); renderNotes(); } }
+    function rateGoal(id, n) { const g = S.goals.find(x => x.id === id); if (g) { g.rating = g.rating === n ? 0 : n; save(); renderNotes(); renderGoalBar(); } }
+    function editGoal(id, f, v) { const g = S.goals.find(x => x.id === id); if (g) { g[f] = v; save(); if (f === 'text') renderGoalBar(); } }
+    function copyMinutes(id) { const m = S.minutes.find(x => x.id === id); if (m) copyText(m.text); }
+    function dlMinutes(id) { const m = S.minutes.find(x => x.id === id); if (m) download(`議事録_${m.title}.txt`, m.text); }
+    async function delMinutes(id) { if (await askConfirm('この議事録を消しますか？', '消す')) { S.minutes = S.minutes.filter(x => x.id !== id); save(); renderNotes(); } }
+    function delVoteHist(id) { S.voteHistory = S.voteHistory.filter(x => x.id !== id); save(); renderNotes(); }
+    function notesText() {
+      if (['rule', 'rec', 'free'].includes(notesTab)) {
+        const head = { rule: '【クラスのきまり】', rec: '【学級レク】', free: '【決まったこと】' }[notesTab];
+        return head + '\n' + S.decisions.filter(d => d.type === notesTab).map((d, i) => `${i + 1}. ${d.text}${d.detail ? '\n   ' + d.detail.replace(/\n/g, '\n   ') : ''}${d.when ? `\n   （${d.when}）` : ''}`).join('\n');
       }
+      if (notesTab === 'goal') return '【月ごとのめあて】\n' + S.goals.slice().sort((a, b) => b.month.localeCompare(a.month)).map(g => `${g.month}：${g.text}　${'★'.repeat(g.rating || 0)}${g.note ? '　' + g.note : ''}`).join('\n');
+      if (notesTab === 'minutes') return S.minutes.map(m => m.text).join('\n\n----------------\n\n');
+      return S.voteHistory.map(h => `${h.date} ${h.title}\n` + h.data.map(d => `  ${d.name}：${d.count}票`).join('\n')).join('\n\n');
     }
+    function copyNotes() { copyText(notesText()); }
+    function printNotes() { document.body.classList.add('printing'); window.print(); }
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing'));
 
-    function resetAllVotes() {
-      if (confirm("すべての票を0に戻しますか？")) {
-        voteOptions.forEach(v => v.count = 0);
-        renderVotes();
+    // =====================================================
+    // 7. 発表モード（大型モニター用）
+    // =====================================================
+    let presenterOpen = false;
+    function togglePresenter() {
+      presenterOpen = !presenterOpen;
+      $('presenter').classList.toggle('open', presenterOpen);
+      if (presenterOpen) { ac(); renderPresenter(); }
+    }
+    function renderPresenter() {
+      const root = $('presenter'), a = cur();
+      if (!a) { root.innerHTML = `<div class="pr-top"><div class="pr-agenda">議題がありません</div><button class="btn btn-red" onclick="togglePresenter()">✕ とじる</button></div>`; return; }
+      const s = a.steps[a.stepIdx] || { title: '', text: '', tool: 'none' };
+      let work = '';
+      const tool = s.tool;
+      if (tool === 'opinions') {
+        const list = a.opinions;
+        work = list.length ? list.map(o => `<div class="pr-chip tag-${o.tag}">${TAGS[o.tag].icon} ${esc(o.text)}${o.plus ? ` <small>👥+${o.plus}</small>` : ''}${o.star ? ' ★' : ''}</div>`).join('') : '';
+      } else if (tool === 'vote' && a.options.length) {
+        const tot = a.options.reduce((x, o) => x + o.count, 0), ids = new Set(leaders(a).map(o => o.id));
+        work = `<div class="pr-bars">${a.options.map(o => `<div class="pr-bar-row ${ids.has(o.id) ? 'lead' : ''}"><span>${esc(o.name)}</span><div class="bar-bg"><div class="bar-fill" style="width:${tot ? o.count / tot * 100 : 0}%"></div></div><b>${o.count}票</b></div>`).join('')}</div>`;
+      } else if (tool === 'decision' || (a.decision && a.stepIdx >= a.steps.length - 2 && tool !== 'vote')) {
+        work = a.decision ? `<div class="pr-decision">📌 ${esc(a.decision)}</div>` : '';
+        if (a.detail) work += `<div class="pr-text" style="width:100%;font-size:clamp(1.1rem,2.4vw,1.8rem);white-space:pre-wrap">${esc(a.detail)}</div>`;
       }
-    }
-    // 履歴機能
-    function renderVoteHistory() {
-      const box = document.getElementById('vote-history-box');
-      box.innerHTML = '';
-      if (voteHistory.length === 0) {
-        box.innerHTML = '<span style="color:var(--text-sub);">履歴はありません。</span>';
-        return;
-      }
-      [...voteHistory].reverse().forEach((history, idx) => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        let resultStr = history.data.map(d => `${d.name}: ${d.count}票`).join(' / ');
-        item.innerHTML = `<strong style="color:var(--gold);">${history.date} - ${history.title}</strong><br>${resultStr}`;
-        box.appendChild(item);
-      });
+      root.innerHTML = `<div class="pr-top"><div class="pr-agenda">${TYPES[a.type].icon} ${a.title ? rb(a.title, a) : '（議題）'}</div><div class="pr-timer timer-text">${fmt(T.remaining)}</div><button class="btn btn-red" onclick="togglePresenter()">✕ とじる (Esc)</button></div>
+        <div class="pr-step" style="--tc:${TYPES[a.type].color}"><div class="pr-title">${a.stepIdx + 1}. ${rb(s.title, a)}</div><div class="pr-text">${rb(s.text, a)}</div></div>
+        ${sayText ? `<div class="pr-say">📢 ${rb(sayText, a)}</div>` : ''}
+        ${work ? `<div class="pr-work">${work}</div>` : ''}
+        <div class="pr-nav"><button class="btn" onclick="prevStep()">◀ 前へ</button><button class="btn btn-green" onclick="nextStep()">次へ ▶</button></div>`;
+      updateTimerUI();
     }
 
-    function saveVoteToHistory() {
-      if (voteOptions.length === 0) return alert("保存する案がありません。");
-      const title = prompt("この投票結果に名前をつけて保存しますか？", "〇月〇日の多数決");
-      if (!title) return;
-      voteHistory.push({
-        date: new Date().toLocaleDateString('ja-JP'),
-        title,
-        data: JSON.parse(JSON.stringify(voteOptions))
-      });
-      localStorage.setItem('cmdV3VoteHistory', JSON.stringify(voteHistory));
-      renderVoteHistory();
-      alert("履歴に保存しました！");
+    // =====================================================
+    // 8. タイマー
+    // =====================================================
+    const T = { total: 300, remaining: 300, running: false, endAt: 0, label: '', iv: null };
+    function fmt(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+    function updateTimerUI() {
+      document.querySelectorAll('.timer-text').forEach(e => { e.textContent = fmt(T.remaining); e.classList.toggle('low', T.total > 0 && T.remaining <= 10 && (T.running || T.remaining === 0)); });
+      $('timer-bar').style.width = (T.total ? T.remaining / T.total * 100 : 0) + '%';
+      $('timer-label').textContent = T.label || '';
+      $('btn-timer-toggle').textContent = T.running ? '⏸ とめる' : '▶ スタート';
     }
-    renderVotes();
-    renderVoteHistory();
-    // ==========================================
-    // 5. ブレインストーミング（意見箱）
-    // ==========================================
-    function renderBrainstorms() {
-      const board = document.getElementById('brainstorm-board');
-      board.innerHTML = '';
-      brainstorms.forEach((bs, i) => {
-        const chip = document.createElement('span');
-        chip.className = 'bs-chip';
-        chip.innerText = bs + " ✖";
-        chip.onclick = () => {
-          brainstorms.splice(i, 1);
-          renderBrainstorms();
-        };
-        board.appendChild(chip);
-      });
-      localStorage.setItem('cmdV3Brainstorm', JSON.stringify(brainstorms));
+    function setTimer(sec, label) {
+      stopTimerInterval(); T.total = T.remaining = Math.max(0, sec); T.label = label || '';
+      $('t-min').value = Math.floor(sec / 60); $('t-sec').value = sec % 60; updateTimerUI();
     }
-
-    function addBrainstorm(e) {
-      if (e.key === 'Enter' && e.target.value.trim() !== '') {
-        brainstorms.push(e.target.value.trim());
-        e.target.value = '';
-        renderBrainstorms();
-      }
-    }
-    renderBrainstorms();
-    // ==========================================
-    // 6. カスタム・タイマー (自由設定対応)
-    // ==========================================
-    let timerInterval;
-    let timeLeft = 300;
-
-    function formatTime(seconds) {
-      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-      const s = (seconds % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
-    }
-
-    function applyCustomTimer() {
-      clearInterval(timerInterval);
-      const m = parseInt(document.getElementById('t-min').value) || 0;
-      const s = parseInt(document.getElementById('t-sec').value) || 0;
-      timeLeft = (m * 60) + s;
-      document.getElementById('timer-display').innerText = formatTime(timeLeft);
-    }
-
-    function quickTimer(m, s) {
-      document.getElementById('t-min').value = m;
-      document.getElementById('t-sec').value = s;
-      applyCustomTimer();
-      startTimer();
-    }
-
+    function applyCustomTimer() { setTimer((parseInt($('t-min').value) || 0) * 60 + (parseInt($('t-sec').value) || 0), ''); }
+    function quickTimer(sec) { setTimer(sec, ''); startTimer(); }
+    function stopTimerInterval() { clearInterval(T.iv); T.running = false; }
     function startTimer() {
-      clearInterval(timerInterval);
-      applyCustomTimer(); // 現在の入力値で開始
-      timerInterval = setInterval(() => {
-        if (timeLeft > 0) {
-          timeLeft--;
-          document.getElementById('timer-display').innerText = formatTime(timeLeft);
-        } else {
-          clearInterval(timerInterval);
-          playChime();
-          alert("時間が来ました！");
-        }
-      }, 1000);
+      if (T.remaining <= 0) T.remaining = T.total; if (T.remaining <= 0) return;
+      ac(); T.running = true; T.endAt = Date.now() + T.remaining * 1000;
+      clearInterval(T.iv); T.iv = setInterval(tick, 200); updateTimerUI();
+    }
+    function pauseTimer() { if (T.running) { T.remaining = Math.max(0, Math.ceil((T.endAt - Date.now()) / 1000)); } stopTimerInterval(); updateTimerUI(); }
+    function toggleTimer() { T.running ? pauseTimer() : startTimer(); }
+    function resetTimer() { stopTimerInterval(); T.remaining = T.total; updateTimerUI(); }
+    function tick() {
+      const left = Math.max(0, Math.ceil((T.endAt - Date.now()) / 1000));
+      if (left !== T.remaining) { T.remaining = left; updateTimerUI(); if (left > 0 && left <= 3) playBeep(); }
+      if (left <= 0) { stopTimerInterval(); updateTimerUI(); triggerFlare(); showCue('⏰ 時間です', 'chime'); }
     }
 
-    function stopTimer() {
-      clearInterval(timerInterval);
+    // =====================================================
+    // 9. メンバー・ガチャ・班分け
+    // =====================================================
+    function parseNums(str) {
+      const set = new Set();
+      String(str || '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).split(/[,、\s]+/).forEach(tok => {
+        if (!tok) return; const m = tok.match(/^(\d+)[-〜~ー](\d+)$/);
+        if (m) { for (let i = +m[1]; i <= +m[2] && i < 500; i++) set.add(i); } else if (/^\d+$/.test(tok)) set.add(+tok);
+      });
+      return set;
     }
-    applyCustomTimer(); // 初期表示
-    // ==========================================
-    // 7. 点呼ドロップダウン ＆ ルーレット
-    // ==========================================
-    function renderHeadcountSelect() {
-      const sel = document.getElementById('headcount-select');
-      sel.innerHTML = '';
-      for (let i = 0; i <= maxStudents; i++) {
-        sel.add(new Option(i + '人', i));
+    function presentList() { const ab = parseNums(S.absent), r = []; for (let i = 1; i <= S.maxStudents; i++) if (!ab.has(i)) r.push(i); return r; }
+    function saveMembers(keepFocus) {
+      S.maxStudents = Math.max(1, parseInt($('max-students').value) || 35); S.absent = $('absent-input').value;
+      if (S.headcount > S.maxStudents) S.headcount = S.maxStudents;
+      renderMembers(!keepFocus); save();
+    }
+    function renderMembers(rebuildSelect) {
+      $('present-info').textContent = `出席見込み：${presentList().length}人`;
+      if (rebuildSelect !== false) {
+        const sel = $('headcount-select'); sel.innerHTML = '';
+        for (let i = 0; i <= S.maxStudents; i++) sel.add(new Option(i + '人', i));
+        sel.value = S.headcount;
       }
-      // もし保存された人数が最大人数を超えていたら調整
-      if (headcount > maxStudents) headcount = maxStudents;
-      sel.value = headcount;
+      $('used-info').textContent = S.usedNums.length ? '当たり済み：' + S.usedNums.join(', ') : '';
+      if (cur() && $('v-summary')) renderVotes();
     }
-
-    function changeHeadcount(val) {
-      headcount = parseInt(val);
-      localStorage.setItem('cmdV3Headcount', headcount);
-    }
-    renderHeadcountSelect();
-
+    function changeHeadcount(v) { S.headcount = parseInt(v) || 0; save(); if (cur()) renderVotes(); }
+    function autoHeadcount() { S.headcount = presentList().length; $('headcount-select').value = S.headcount; save(); if (cur()) renderVotes(); toast(`点呼人数を ${S.headcount}人 にしました`); }
+    function resetUsed() { S.usedNums = []; save(); renderMembers(false); }
     function spinRoulette() {
-      saveSettings();
-      let counter = 0;
-      const display = document.getElementById('rng-result');
-      const interval = setInterval(() => {
-        display.innerText = Math.floor(Math.random() * maxStudents) + 1;
-        counter++;
-        if (counter > 15) {
-          clearInterval(interval);
-          playBeep();
-        }
-      }, 50);
-    }
-    // ランダム班分け
-    function generateGroups() {
-      saveSettings();
-      const numGroups = parseInt(document.getElementById('group-count').value) || 4;
-      let students = Array.from({
-        length: maxStudents
-      }, (_, i) => i + 1);
-      for (let i = students.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [students[i], students[j]] = [students[j], students[i]];
+      const pool = presentList().filter(n => !S.noRepeat || !S.usedNums.includes(n));
+      if (!pool.length) {
+        if (S.usedNums.length) { S.usedNums = []; toast('全員が当たったので、はじめからにします', 'warn'); return spinRoulette(); }
+        return toast('出席番号がありません', 'warn');
       }
-      let groups = Array.from({
-        length: numGroups
-      }, () => []);
-      students.forEach((student, index) => {
-        groups[index % numGroups].push(student);
-      });
-      let resultHtml = "";
-      groups.forEach((g, i) => {
-        resultHtml += `<div style="margin-bottom: 5px;"><strong style="color:var(--gold);">第${i+1}班:</strong> ${g.join(', ')}</div>`;
-      });
-      document.getElementById('group-result').innerHTML = resultHtml;
+      const final = pool[Math.floor(Math.random() * pool.length)], el = $('rng-result'); let c = 0;
+      const iv = setInterval(() => {
+        el.textContent = pool[Math.floor(Math.random() * pool.length)]; tone(500 + c * 20, 0.05, 0.05);
+        if (++c > 15) {
+          clearInterval(iv); el.textContent = final; playBeep();
+          if (S.noRepeat) S.usedNums.push(final); renderMembers(false); save();
+        }
+      }, 55);
+    }
+    let lastGroupsText = '';
+    function generateGroups() {
+      const list = shuffle(presentList()); if (!list.length) return toast('出席者がいません', 'warn');
+      const val = Math.max(1, parseInt($('group-count').value) || 1);
+      const n = $('group-mode').value === 'count' ? Math.min(val, list.length) : Math.ceil(list.length / val);
+      const groups = Array.from({ length: n }, () => []); list.forEach((x, i) => groups[i % n].push(x));
+      const leader = $('group-leader').checked;
+      lastGroupsText = groups.map((g, i) => `第${i + 1}班：${g.map((x, j) => leader && j === 0 ? `${x}(班長)` : x).join(', ')}`).join('\n');
+      $('group-result').innerHTML = groups.map((g, i) => `<div style="margin-bottom:5px"><strong style="color:var(--gold)">第${i + 1}班（${g.length}人）:</strong> ${g.map((x, j) => leader && j === 0 ? `<b style="color:var(--cyan)">${x}★</b>` : x).join(', ')}</div>`).join('');
       playBeep();
     }
-    // ==========================================
-    // 8. ユーティリティ（音、フラッシュ、コピペなど）
-    // ==========================================
-    const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
 
-    function playBeep() {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.1);
+    // =====================================================
+    // 10. タスク・DB・各種入力
+    // =====================================================
+    function renderTasks() {
+      const c = $('task-list-container');
+      c.innerHTML = S.tasks.length ? S.tasks.map((t, i) => `<div class="task-item ${t.priority} ${t.done ? 'done' : ''}"><span>${esc(t.text)}</span><span class="row"><button class="mini" onclick="toggleTask(${i})">✔</button><button class="mini red" onclick="deleteTask(${i})">✖</button></span></div>`).join('') : '<div class="empty">やることを入れておこう</div>';
+      save();
+    }
+    function addTask() { const i = $('task-input'); if (!i.value.trim()) return; S.tasks.push({ text: i.value.trim(), priority: $('task-pri').value, done: false }); i.value = ''; renderTasks(); updateExp(5); }
+    function toggleTask(i) { S.tasks[i].done = !S.tasks[i].done; if (S.tasks[i].done) updateExp(10); renderTasks(); }
+    function deleteTask(i) { S.tasks.splice(i, 1); renderTasks(); }
+    function clearDoneTasks() { S.tasks = S.tasks.filter(t => !t.done); renderTasks(); }
+
+    function renderDb() {
+      const q = $('db-search').value.trim().toLowerCase(), cf = $('db-cat-filter').value;
+      const list = S.db.filter(d => (cf === 'all' || d.cat === cf) && (!q || (d.title + d.detail).toLowerCase().includes(q)));
+      $('db-container').innerHTML = list.length ? list.map(d => `<div class="db-item">
+        <div class="row"><select style="width:auto" onchange="updateDb('${d.id}','cat',this.value)">${Object.entries(DB_CATS).map(([k, v]) => `<option value="${k}" ${d.cat === k ? 'selected' : ''}>${v}</option>`).join('')}</select><input type="text" value="${esc(d.title)}" oninput="updateDb('${d.id}','title',this.value)" placeholder="タイトル"></div>
+        <textarea oninput="updateDb('${d.id}','detail',this.value)" placeholder="詳しい内容（ルール・時間・道具など）">${esc(d.detail)}</textarea>
+        <div class="row" style="justify-content:flex-end"><button class="btn btn-cyan sm" onclick="dbToOption('${d.id}')">→ 案にする</button><button class="btn btn-red sm" onclick="deleteDbItem('${d.id}')">削除</button></div></div>`).join('') : '<div class="empty">該当するものがありません</div>';
+    }
+    function addDbItem() { S.db.unshift({ id: uid(), cat: 'etc', title: '', detail: '' }); $('db-search').value = ''; $('db-cat-filter').value = 'all'; renderDb(); save(); }
+    function updateDb(id, f, v) { const d = S.db.find(x => x.id === id); if (d) { d[f] = v; save(); } }
+    async function deleteDbItem(id) { if (await askConfirm('このメモを消しますか？', '消す')) { S.db = S.db.filter(d => d.id !== id); renderDb(); save(); } }
+    function dbToOption(id) {
+      const d = S.db.find(x => x.id === id); if (!d) return;
+      if (!cur()) return toast('先に議題をえらんでね', 'warn');
+      addOption(d.title, d.detail, true); toast('📊 「案と投票」に追加しました');
     }
 
-    function playChime() {
-      const notes = [523.25, 659.25, 783.99, 523.25];
-      notes.forEach((freq, i) => {
-        setTimeout(() => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 1);
-        }, i * 400);
+    function onRole(k, v) { S.roles[k] = v; save(); if (cur()) { renderStep(); renderStepper(); if (presenterOpen) renderPresenter(); } }
+    function onMeetingNo(v) { S.meetingNo = Math.max(1, parseInt(v) || 1); save(); if (cur()) renderStep(); }
+
+    // =====================================================
+    // 11. 設定・バックアップ・終礼リセット
+    // =====================================================
+    function toggleFurigana() { S.furigana = !S.furigana; document.body.classList.toggle('furigana-mode', S.furigana); save(); }
+    function fontStep(d) { S.fontScale = Math.min(1.6, Math.max(0.8, Math.round((S.fontScale + d) * 10) / 10)); document.documentElement.style.fontSize = (16 * S.fontScale) + 'px'; save(); }
+
+    function openSettings() {
+      const b = openModal(`<h3>⚙ せってい・つかいかた</h3>
+        <div><b>⌨ キーボード</b><div class="hint" style="line-height:1.9"><kbd>←</kbd> <kbd>→</kbd> 手順を前後に　<kbd>P</kbd> 発表モード　<kbd>T</kbd> タイマー開始/停止　<kbd>Esc</kbd> とじる</div></div>
+        <div><b>💡 ひと言ガイド</b><div class="hint" style="line-height:1.7">・議題を選ぶ → 手順に沿って「次へ」で進行<br>・「手順を編集」で、読む言葉や順番を自由に変更（議題ごとに変えられます）<br>・意見は「意見」タブに入力 →「→案」で投票の案に<br>・決まったら「決定」タブで登録 → 決定ノートに残ります<br>・データはこのブラウザに自動保存されます</div></div>
+        <div class="m-btns" style="justify-content:flex-start">
+          <button class="btn btn-cyan" onclick="exportData()">⬇ バックアップを保存</button>
+          <button class="btn btn-cyan" onclick="$('import-file').click()">⬆ バックアップから復元</button>
+          <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])">
+        </div>
+        <div class="m-btns" style="justify-content:flex-start"><button class="btn sm" onclick="resetTemplates()">自分用の手順を初期化</button><button class="btn btn-red sm" onclick="wipeAll()">全データを消す</button></div>
+        <div class="m-btns"><button class="btn" id="set-close">閉じる</button></div>`);
+      b.querySelector('#set-close').onclick = () => b.remove();
+    }
+    function exportData() { flush(); download(`学級委員コンソール_バックアップ_${monthKey()}.json`, JSON.stringify(S, null, 1), 'application/json'); toast('⬇ 保存しました'); }
+    function importData(file) {
+      if (!file) return;
+      const r = new FileReader();
+      r.onload = async () => {
+        try {
+          const d = JSON.parse(r.result); if (!d || typeof d !== 'object' || !Array.isArray(d.agendas)) throw new Error('形式がちがいます');
+          if (!(await askConfirm('いまのデータを、バックアップの内容で置きかえます。よろしいですか？', '復元する'))) return;
+          S = Object.assign(defaultState(), d); S.roles = Object.assign(defaultState().roles, d.roles || {}); flush(); location.reload();
+        } catch (e) { toast('読みこめませんでした：' + e.message, 'warn'); }
+      };
+      r.readAsText(file);
+    }
+    async function resetTemplates() { if (await askConfirm('編集して保存した「自分用の手順」を、すべて初期にもどしますか？\n（すでに作った議題には影響しません）', 'もどす')) { S.customTemplates = {}; save(); toast('初期の手順にもどしました'); } }
+    async function wipeAll() {
+      if (!(await askConfirm('すべてのデータ（議題・ノート・めあて・メモ）を消します。\n先にバックアップを保存することをおすすめします。', '全部消す'))) return;
+      S = defaultState(); flush(); location.reload();
+    }
+    async function resetDay() {
+      const c = await askChoice('終礼リセット', '今日の分をリセットします。\n・完了したタスク、先生への報告、点呼、欠席、ガチャ記録をクリア\n・「おわり」にした議題を片づけ（決定ノート・議事録は残ります）\n・未完了の議題は次回に持ち越し\n・学級会の回数を +1', ['リセットする', 'やめる']);
+      if (c !== 0) return;
+      S.tasks = S.tasks.filter(t => !t.done); S.daily = ''; $('daily-memo').value = '';
+      S.headcount = 0; S.absent = ''; $('absent-input').value = ''; S.usedNums = [];
+      storeAllDoneMinutes();
+      S.agendas = S.agendas.filter(a => a.status !== 'done');
+      if (!S.agendas.find(a => a.id === S.curId)) S.curId = S.agendas.length ? S.agendas[0].id : null;
+      S.meetingNo = (S.meetingNo || 1) + 1; $('meeting-no').value = S.meetingNo;
+      renderTasks(); renderMembers(true); renderAgendaList(); buildMeeting(); updateExp(20); touch();
+      toast('お疲れさまでした！ボーナスEXPを獲得 🎉');
+    }
+    function storeAllDoneMinutes() {
+      S.agendas.filter(a => a.status === 'done').forEach(a => {
+        const text = a.minutesText.trim() ? a.minutesText : buildMinutesText(a);
+        const m = S.minutes.find(x => x.agendaId === a.id);
+        if (m) m.text = text; else S.minutes.push({ id: uid(), agendaId: a.id, date: todayStr(), title: a.title || '（議題未入力）', type: a.type, text });
       });
     }
 
-    function triggerFlare() {
-      const overlay = document.getElementById('alert-overlay');
-      overlay.classList.add('flash-anim');
-      setTimeout(() => overlay.classList.remove('flash-anim'), 2000);
+    // =====================================================
+    // 12. 初期化・キーボード・背景
+    // =====================================================
+    function applyStaticRuby() { document.querySelectorAll('[data-rb]').forEach(el => { el.innerHTML = rb(el.dataset.rb, null); }); }
+    function initUI() {
+      $('date-display').textContent = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      document.body.classList.toggle('furigana-mode', !!S.furigana);
+      document.documentElement.style.fontSize = (16 * (S.fontScale || 1)) + 'px';
+      $('ag-type').innerHTML = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.icon} ${t.label}</option>`).join('');
+      $('db-cat-filter').innerHTML = '<option value="all">すべて</option>' + Object.entries(DB_CATS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+      $('daily-memo').value = S.daily; $('max-students').value = S.maxStudents; $('absent-input').value = S.absent;
+      $('meeting-no').value = S.meetingNo || 1; $('no-repeat').checked = S.noRepeat !== false;
+      ['chair', 'vice', 'scribe', 'timekeeper'].forEach(k => $('role-' + k).value = S.roles[k] || '');
+      applyStaticRuby();
     }
 
-    function copyToClip(id) {
-      const text = document.getElementById(id).value;
-      navigator.clipboard.writeText(text).then(() => alert("クリップボードにコピーしました！"));
-    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { const m = topModal(); if (m) return closeModal(m); if (presenterOpen) return togglePresenter(); }
+      const tg = e.target.tagName; if (/INPUT|TEXTAREA|SELECT/.test(tg) || e.ctrlKey || e.metaKey || e.altKey || topModal()) return;
+      if (e.key === 'ArrowRight' && cur()) { e.preventDefault(); nextStep(); }
+      else if (e.key === 'ArrowLeft' && cur()) { e.preventDefault(); prevStep(); }
+      else if (e.key === 'p' || e.key === 'P') togglePresenter();
+      else if (e.key === 't' || e.key === 'T') toggleTimer();
+    });
 
-    function toggleFocus() {
-      document.getElementById('meeting-core-panel').classList.toggle('fullscreen-mode');
-    }
+    // 背景パーティクル
+    (function () {
+      const canvas = $('bg-canvas'), ctx2 = canvas.getContext('2d'); if (!ctx2) return;
+      const resize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
+      addEventListener('resize', resize); resize();
+      const ps = Array.from({ length: 45 }, () => ({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, s: Math.random() * 2 + 0.5, vx: Math.random() * 0.2 - 0.1, vy: Math.random() * 0.2 - 0.1, o: Math.random(), f: Math.random() > 0.5 ? 0.005 : -0.005 }));
+      (function anim() {
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        ps.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.o += p.f; if (p.o >= 1 || p.o <= 0.1) p.f *= -1;
+          if (p.x > canvas.width) p.x = 0; if (p.x < 0) p.x = canvas.width; if (p.y > canvas.height) p.y = 0; if (p.y < 0) p.y = canvas.height;
+          ctx2.fillStyle = `rgba(255,170,0,${p.o * 0.5})`; ctx2.beginPath(); ctx2.arc(p.x, p.y, p.s, 0, Math.PI * 2); ctx2.fill();
+        });
+        requestAnimationFrame(anim);
+      })();
+    })();
 
-    function resetDay() {
-      if (confirm("今日のメモやチェックしたタスクをリセットしますか？（経験値・データベースは残ります）")) {
-        tasks = tasks.filter(t => !t.done);
-        renderTasks();
-        document.getElementById('daily-memo').value = '';
-        localStorage.setItem('cmdV3Daily', '');
-        document.getElementById('meeting-memo').value = '';
-        localStorage.setItem('cmdV3Meeting', '');
-        voteOptions = [];
-        renderVotes(); // 投票案もリセット
-        brainstorms = [];
-        renderBrainstorms();
-        headcount = 0;
-        renderHeadcountSelect();
-        localStorage.setItem('cmdV3Headcount', 0);
-        updateExp(20);
-        alert("今日も一日お疲れ様でした！リセット完了。ボーナスEXPを獲得しました。");
-      }
-    }
-    // ==========================================
-    // 9. 背景パーティクル
-    // ==========================================
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    const particles = [];
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.5,
-        speedX: Math.random() * 0.2 - 0.1,
-        speedY: Math.random() * 0.2 - 0.1,
-        opacity: Math.random(),
-        fade: Math.random() > 0.5 ? 0.005 : -0.005
-      });
-    }
-
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.x += p.speedX;
-        p.y += p.speedY;
-        p.opacity += p.fade;
-        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.y > canvas.height) p.y = 0;
-        if (p.y < 0) p.y = canvas.height;
-        ctx.fillStyle = `rgba(255, 170, 0, ${p.opacity * 0.5})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
+    // ---- 起動
+    loadState();
+    buildDict();
+    initUI();
+    updateExp(0);
+    renderGoalBar();
+    renderTasks();
+    renderDb();
+    renderMembers(true);
+    renderAgendaList();
+    if (!S.curId && S.agendas.length) S.curId = S.agendas[0].id;
+    buildMeeting();
+    updateTimerUI();
   </script>
 </body>
 
-</html>
-    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-  </body>
-  
 </html>
