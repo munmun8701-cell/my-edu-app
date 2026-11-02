@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学級委員マスターコンソール v4</title>
+  <style>
+    :root {
+      --bg-dark: #0a0510;
+      --card-bg: rgba(20, 10, 35, 0.8);
+      --card-border: rgba(255, 170, 0, 0.3);
+      --gold: #ffaa00;
+      --gold-glow: rgba(255, 170, 0, 0.5);
+      --cyan: #00f3ff;
+      --cyan-glow: rgba(0, 243, 255, 0.5);
+      --red: #ff0055;
+      --red-glow: rgba(255, 0, 85, 0.5);
+      --green: #00ff88;
+      --pink: #ff7ad9;
+      --text-main: #f0f0f5;
+      --text-sub: #aa99bb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', Meiryo, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* ===== ふりがな ===== */
+    rt { display: none; }
+    body.furigana-mode rt { display: ruby-text; font-size: 0.55em; color: var(--gold); font-weight: normal; }
+    body.furigana-mode .step-text, body.furigana-mode .pr-text { line-height: 2; }
+
+    #bg-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; background: radial-gradient(circle at center, #150a20 0%, #05020a 100%); }
+    #alert-overlay { position: fixed; inset: 0; background: rgba(255, 0, 85, 0.3); z-index: 3000; pointer-events: none; opacity: 0; display: none; }
+    .flash-anim { animation: flashRed 0.5s infinite; display: block !important; }
+    @keyframes flashRed { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+    #cue-overlay { position: fixed; inset: 0; z-index: 3500; display: none; align-items: center; justify-content: center; font-size: clamp(3rem, 14vw, 10rem); font-weight: 900; color: #fff; background: rgba(10, 5, 20, 0.88); text-shadow: 0 0 30px var(--gold); pointer-events: none; text-align: center; }
+    #cue-overlay.show { display: flex; animation: pop 0.25s ease; }
+    @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    #toast-root { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+    .toast { background: rgba(0, 0, 0, 0.9); border: 1px solid var(--cyan); color: var(--cyan); padding: 8px 18px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; animation: pop 0.2s ease; box-shadow: 0 0 12px var(--cyan-glow); }
+    .toast.warn { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px var(--gold-glow); }
+
+    /* ===== トップバー ===== */
+    .top-bar { width: 100%; max-width: 1560px; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 5, 20, 0.85); border: 1px solid var(--gold); border-radius: 12px; padding: 12px 20px; margin-bottom: 14px; box-shadow: 0 0 18px var(--gold-glow); backdrop-filter: blur(10px); flex-wrap: wrap; gap: 12px; }
+    .title-area h1 { font-size: 1.5rem; color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
+    .exp-bar-container { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--cyan); }
+    .exp-bar-bg { width: 130px; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 5px; overflow: hidden; }
+    .exp-bar-fill { height: 100%; background: var(--cyan); width: 0%; transition: width 0.5s; box-shadow: 0 0 10px var(--cyan-glow); }
+    .goal-box { flex: 1; min-width: 260px; max-width: 520px; background: rgba(0, 243, 255, 0.07); border: 1px solid var(--cyan); border-radius: 10px; padding: 6px 12px; }
+    .goal-box label { font-size: 0.8rem; color: var(--cyan); font-weight: bold; }
+    .goal-box input { border-color: transparent; background: rgba(0, 0, 0, 0.4); color: var(--cyan); font-weight: bold; font-size: 1.05rem; }
+    #prev-goal { font-size: 0.78rem; color: var(--text-sub); min-height: 1em; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    /* ===== ボタン ===== */
+    .btn { background: rgba(255, 170, 0, 0.15); color: var(--gold); border: 1px solid var(--gold); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 0.9rem; font-family: inherit; }
+    .btn:hover { background: rgba(255, 170, 0, 0.32); box-shadow: 0 0 10px var(--gold-glow); }
+    .btn:active { transform: scale(0.96); }
+    .btn-cyan { background: rgba(0, 243, 255, 0.13); color: var(--cyan); border-color: var(--cyan); }
+    .btn-cyan:hover { background: rgba(0, 243, 255, 0.3); box-shadow: 0 0 10px var(--cyan-glow); }
+    .btn-red { background: rgba(255, 0, 85, 0.13); color: var(--red); border-color: var(--red); }
+    .btn-red:hover { background: rgba(255, 0, 85, 0.3); box-shadow: 0 0 10px var(--red-glow); }
+    .btn-green { background: rgba(0, 255, 136, 0.13); color: var(--green); border-color: var(--green); }
+    .btn-green:hover { background: rgba(0, 255, 136, 0.3); }
+    .btn.sm { padding: 3px 9px; font-size: 0.78rem; }
+    .btn.big { padding: 11px 20px; font-size: 1.05rem; }
+    .btn.wide { width: 100%; }
+    .mini { background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 5px; padding: 1px 7px; cursor: pointer; font-size: 0.75rem; font-family: inherit; }
+    .mini:hover { background: rgba(255, 255, 255, 0.2); }
+    .mini.red { color: var(--red); border-color: var(--red); }
+    .mini.on { background: var(--gold); color: #000; }
+
+    /* ===== レイアウト ===== */
+    .dashboard-grid { width: 100%; max-width: 1560px; display: grid; grid-template-columns: 1fr 1.9fr 1fr; gap: 14px; align-items: start; }
+    .column { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    @media (max-width: 1150px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } .col-center { grid-column: 1 / -1; order: -1; } }
+    @media (max-width: 700px) { .dashboard-grid { grid-template-columns: 1fr; } body { padding: 8px; } }
+
+    .panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 10px; }
+    .panel-header { font-size: 1.05rem; color: var(--cyan); border-bottom: 1px solid rgba(0, 243, 255, 0.3); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .hdr-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hint { font-size: 0.78rem; color: var(--text-sub); font-weight: normal; }
+    .empty { font-size: 0.85rem; color: var(--text-sub); text-align: center; padding: 10px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 8px; }
+    .row { display: flex; gap: 6px; align-items: center; }
+    .row.wrap { flex-wrap: wrap; }
+    .grow { flex: 1; min-width: 0; }
+
+    input[type="text"], input[type="number"], input[type="date"], textarea, select {
+      width: 100%; padding: 7px 8px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--text-sub); color: var(--text-main); border-radius: 6px; font-family: inherit; font-size: 0.95rem;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
+    textarea { resize: vertical; min-height: 54px; }
+    select { cursor: pointer; }
+    input[type="checkbox"] { width: auto; accent-color: var(--gold); cursor: pointer; }
+    input.num { width: 64px; text-align: center; }
+    label { font-size: 0.85rem; color: var(--text-sub); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+    ::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 3px; }
+
+    /* ===== 議題リスト ===== */
+    #agenda-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+    .ag-item { display: flex; align-items: center; gap: 6px; padding: 7px 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid transparent; border-left: 4px solid var(--text-sub); border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    .ag-item:hover { background: rgba(255, 255, 255, 0.08); }
+    .ag-item.cur { border-color: var(--gold); box-shadow: 0 0 10px var(--gold-glow); }
+    .ag-item.st-done { opacity: 0.6; border-left-color: var(--green); }
+    .ag-item.st-doing { border-left-color: var(--gold); }
+    .ag-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ag-st { color: var(--gold); }
+    .ag-btns { display: flex; gap: 3px; }
+
+    /* ===== タスク ===== */
+    .task-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+    .task-item { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 7px; background: rgba(0, 0, 0, 0.4); border-left: 4px solid var(--text-sub); border-radius: 6px; font-size: 0.9rem; }
+    .task-item.pri-high { border-left-color: var(--red); }
+    .task-item.pri-med { border-left-color: var(--gold); }
+    .task-item.pri-low { border-left-color: var(--cyan); }
+    .task-item.done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
+
+    /* ===== DB ===== */
+    .db-item { background: rgba(0, 0, 0, 0.4); border: 1px dashed var(--text-sub); padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 5px; }
+    .db-item textarea { font-size: 0.85rem; min-height: 50px; }
+    #db-container { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+
+    /* ===== 中央：議題ヘッダー ===== */
+    .start-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+    .start-card { background: rgba(0, 0, 0, 0.45); border: 2px solid var(--c, var(--cyan)); border-radius: 14px; padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text-main); font-family: inherit; }
+    .start-card:hover { transform: translateY(-3px); box-shadow: 0 0 18px var(--c); background: rgba(255, 255, 255, 0.07); }
+    .start-card .ico { font-size: 2.4rem; display: block; }
+    .start-card .nm { font-size: 1.15rem; font-weight: bold; color: var(--c); display: block; margin: 4px 0; }
+    .start-card .ds { font-size: 0.8rem; color: var(--text-sub); }
+
+    .ag-head { display: flex; flex-direction: column; gap: 6px; }
+    .ag-head label { display: flex; align-items: center; gap: 6px; }
+    .ag-head select { width: auto; }
+    .ag-head .row { flex-wrap: wrap; }
+    #m-title { min-width: 200px; }
+    .ag-head label { white-space: nowrap; }
+    #m-title { font-size: 1.15rem; font-weight: bold; color: var(--gold); }
+
+    .stepper { display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 8px; }
+    .pill { flex: 0 0 auto; background: rgba(0, 0, 0, 0.5); color: var(--text-sub); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 20px; padding: 5px 12px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; font-family: inherit; }
+    .pill.past { color: var(--green); border-color: rgba(0, 255, 136, 0.5); }
+    .pill.on { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; box-shadow: 0 0 12px var(--gold-glow); }
+    .pill.on rt { color: #000; }
+
+    .step-card { background: rgba(0, 0, 0, 0.4); border: 2px solid var(--tc, var(--cyan)); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .step-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .step-no { background: var(--gold); color: #000; font-weight: bold; border-radius: 12px; padding: 1px 10px; font-size: 0.85rem; }
+    .script-speaker { color: var(--gold); font-weight: bold; font-size: 1.2rem; flex: 1; }
+    .step-text { font-size: 1.25rem; line-height: 1.8; }
+    .script-guide { font-size: 0.88rem; color: var(--text-sub); background: rgba(255, 255, 255, 0.05); border-radius: 6px; padding: 6px 10px; }
+    .step-nav { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+    .ph { color: var(--cyan); border-bottom: 2px solid var(--cyan); font-weight: bold; padding: 0 2px; }
+    .ph.empty { color: var(--text-sub); border-bottom-style: dashed; border-color: var(--text-sub); }
+    .say-box { background: rgba(255, 170, 0, 0.12); border: 2px dashed var(--gold); border-radius: 10px; padding: 10px 12px; font-size: 1.3rem; font-weight: bold; color: #fff; display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+    .say-box .lbl { font-size: 0.75rem; color: var(--gold); display: block; }
+
+    /* ===== 手順エディタ ===== */
+    .editor { background: rgba(255, 170, 0, 0.06); border: 1px dashed var(--gold); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .ed-step { background: rgba(0, 0, 0, 0.4); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 5px; border-left: 4px solid var(--text-sub); }
+    .ed-step.cur { border-left-color: var(--gold); }
+    .ed-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .ed-row select { width: auto; }
+    .ed-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ===== ことばバンク ===== */
+    .phrase-bank { border: 1px solid rgba(0, 243, 255, 0.35); border-radius: 10px; padding: 8px 10px; background: rgba(0, 243, 255, 0.04); }
+    .phrase-bank summary { cursor: pointer; color: var(--cyan); font-weight: bold; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip { background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 16px; padding: 4px 11px; font-size: 0.85rem; cursor: pointer; font-family: inherit; }
+    .chip:hover { background: rgba(255, 255, 255, 0.2); }
+    .chip.on { background: var(--cyan); color: #000; border-color: var(--cyan); font-weight: bold; }
+    .chip.say { border-color: var(--gold); color: var(--gold); }
+
+    /* ===== 作業タブ ===== */
+    .work-tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 6px; }
+    .wtab { background: rgba(0, 0, 0, 0.4); color: var(--text-sub); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 8px 8px 0 0; padding: 7px 14px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.92rem; }
+    .wtab.on { background: var(--cyan); color: #000; border-color: var(--cyan); }
+    .wtab .bd { background: var(--red); color: #fff; border-radius: 10px; padding: 0 6px; font-size: 0.72rem; margin-left: 4px; }
+    .work-pane { display: none; flex-direction: column; gap: 10px; }
+    .work-pane.on { display: flex; }
+
+    /* 意見 */
+    .op-input { display: grid; grid-template-columns: auto 1fr 90px auto auto; gap: 6px; }
+    .op-input select { width: auto; }
+    @media (max-width: 600px) { .op-input { grid-template-columns: 1fr 1fr; } .op-input #op-text { grid-column: 1 / -1; } }
+    #op-list { display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+    .op-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.45); border-left: 5px solid var(--tg, var(--cyan)); }
+    .op-item.star { background: rgba(255, 170, 0, 0.18); }
+    .op-text { flex: 1; font-size: 1rem; word-break: break-word; }
+    .op-who { font-size: 0.78rem; color: var(--text-sub); }
+    .op-btns { display: flex; gap: 3px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    .tag-idea { --tg: var(--cyan); } .tag-agree { --tg: var(--green); } .tag-disagree { --tg: var(--red); } .tag-question { --tg: var(--gold); } .tag-worry { --tg: var(--pink); }
+
+    /* 投票 */
+    .vote-top { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .vote-summary { font-size: 0.9rem; color: var(--text-sub); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .warn { color: var(--gold); font-weight: bold; }
+    .vote-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .vote-card { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--cyan); border-radius: 10px; padding: 10px; position: relative; display: flex; flex-direction: column; gap: 6px; }
+    .vote-card.lead { border-color: var(--gold); box-shadow: 0 0 14px var(--gold-glow); }
+    .vote-card.spot { border-color: var(--green); box-shadow: 0 0 22px var(--green); }
+    .vote-title-input { font-weight: bold; color: var(--gold); text-align: center; min-height: 44px; padding-right: 22px; }
+    .vote-memo { font-size: 0.82rem; min-height: 46px; }
+    .rank { position: absolute; top: -9px; left: -6px; background: var(--gold); color: #000; font-weight: bold; border-radius: 10px; padding: 0 8px; font-size: 0.8rem; }
+    .del-vote-btn { position: absolute; top: -8px; right: -8px; background: var(--red); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+    .vote-count-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .vote-count-row input { width: 70px; text-align: center; font-size: 1.6rem; font-weight: bold; color: var(--cyan); }
+    .vote-count-row .btn { font-size: 1.2rem; padding: 2px 14px; }
+    .bar-bg { height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--cyan); transition: width 0.3s; }
+    .lead .bar-fill { background: var(--gold); }
+    .crit { display: flex; flex-wrap: wrap; gap: 4px; }
+    .crit .chip { font-size: 0.75rem; padding: 2px 8px; }
+    .banner { border-radius: 8px; padding: 8px 12px; font-weight: bold; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .banner.win { background: rgba(255, 170, 0, 0.15); border: 1px solid var(--gold); color: var(--gold); }
+    .banner.tie { background: rgba(255, 0, 85, 0.12); border: 1px solid var(--red); color: var(--red); }
+
+    /* ===== 右カラム ===== */
+    .timer-display { font-size: 3.4rem; font-family: monospace; color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); line-height: 1; text-align: center; }
+    .timer-display.low { color: var(--red); text-shadow: 0 0 14px var(--red-glow); }
+    .timer-bar { height: 6px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; overflow: hidden; }
+    #timer-bar { height: 100%; width: 100%; background: var(--gold); transition: width 0.3s linear; }
+    #timer-label { text-align: center; font-size: 0.85rem; color: var(--cyan); min-height: 1.2em; }
+    .btn-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.88rem; }
+    .setting-row input, .setting-row select { width: 100px; text-align: right; }
+    .setting-row .wide-in { width: 140px; text-align: left; }
+    #rng-result { font-size: 3rem; color: var(--gold); text-align: center; font-weight: bold; min-height: 1.2em; }
+    .group-result { background: rgba(0, 0, 0, 0.6); border: 1px dashed var(--cyan); padding: 8px; font-size: 0.9rem; max-height: 220px; overflow-y: auto; border-radius: 6px; }
+
+    /* ===== モーダル ===== */
+    .modal-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 2500; display: flex; align-items: center; justify-content: center; padding: 14px; }
+    .modal { background: #160c26; border: 1px solid var(--gold); border-radius: 14px; padding: 18px; width: min(460px, 100%); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 30px var(--gold-glow); }
+    .modal.large { width: min(920px, 100%); height: 90vh; }
+    .modal h3 { color: var(--gold); }
+    .m-msg { line-height: 1.6; }
+    .m-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+    .note-item { background: rgba(0, 0, 0, 0.45); border-left: 4px solid var(--gold); border-radius: 8px; padding: 9px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .note-item .ni-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .note-item .ni-sub { font-size: 0.8rem; color: var(--text-sub); }
+    .note-item pre { white-space: pre-wrap; font-family: inherit; font-size: 0.88rem; color: var(--text-main); }
+    .note-item.done { opacity: 0.6; }
+    .notes-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
+    .stars span { cursor: pointer; font-size: 1.4rem; color: var(--gold); }
+    kbd { background: #333; border: 1px solid #666; border-radius: 4px; padding: 0 6px; font-family: monospace; font-size: 0.85em; }
+
+    /* ===== 発表モード ===== */
+    #presenter { position: fixed; inset: 0; z-index: 2000; background: radial-gradient(circle at center, #1a0d2c 0%, #05020a 100%); padding: 22px 30px; overflow-y: auto; display: none; flex-direction: column; gap: 18px; }
+    #presenter.open { display: flex; }
+    .pr-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .pr-agenda { font-size: clamp(1.2rem, 3vw, 2rem); font-weight: bold; color: var(--gold); }
+    .pr-timer { font-size: clamp(2.2rem, 6vw, 4rem); font-family: monospace; color: var(--gold); }
+    .pr-timer.low { color: var(--red); }
+    .pr-step { border: 3px solid var(--tc, var(--cyan)); border-radius: 18px; padding: 22px 28px; background: rgba(0, 0, 0, 0.4); }
+    .pr-title { color: var(--gold); font-size: clamp(1.4rem, 3.4vw, 2.4rem); font-weight: bold; margin-bottom: 10px; }
+    .pr-text { font-size: clamp(1.5rem, 3.6vw, 2.8rem); line-height: 1.7; }
+    .pr-say { font-size: clamp(1.6rem, 4vw, 3rem); font-weight: bold; color: var(--gold); border: 3px dashed var(--gold); border-radius: 14px; padding: 14px 20px; text-align: center; }
+    .pr-work { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pr-chip { font-size: clamp(1.1rem, 2.4vw, 1.8rem); background: rgba(0, 0, 0, 0.5); border-left: 6px solid var(--tg, var(--cyan)); padding: 8px 16px; border-radius: 10px; }
+    .pr-bars { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .pr-bar-row { display: grid; grid-template-columns: minmax(120px, 28%) 1fr 90px; gap: 12px; align-items: center; font-size: clamp(1.1rem, 2.6vw, 2rem); }
+    .pr-bar-row .bar-bg { height: 28px; border-radius: 14px; }
+    .pr-bar-row .bar-fill { background: var(--cyan); }
+    .pr-bar-row.lead .bar-fill { background: var(--gold); }
+    .pr-bar-row b { text-align: right; color: var(--gold); }
+    .pr-decision { font-size: clamp(1.8rem, 4.4vw, 3.4rem); font-weight: bold; color: var(--green); }
+    .pr-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: auto; }
+    .pr-nav .btn { font-size: 1.2rem; padding: 12px 28px; }
+
+
+    /* ===== 学年モード・タッチ操作 ===== */
+    .grade-switch { display: flex; gap: 4px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--gold); border-radius: 14px; padding: 3px; }
+    .grade-switch button { border: none; background: transparent; color: var(--text-sub); padding: 8px 12px; border-radius: 11px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.92rem; }
+    .grade-switch button.on { background: var(--gold); color: #000; }
+    .grade-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+    @media (pointer: coarse) { .btn { min-height: 42px; } .mini { min-height: 34px; min-width: 34px; font-size: 0.85rem; } .chip { min-height: 36px; } .pill { min-height: 40px; } select, input[type="text"], input[type="number"] { min-height: 42px; } }
+    body.grade-low .btn { min-height: 56px; font-size: 1.1rem; padding: 10px 18px; }
+    body.grade-low .btn.sm { min-height: 48px; font-size: 1rem; }
+    body.grade-low .mini { min-height: 46px; min-width: 46px; font-size: 1.05rem; }
+    body.grade-mid .btn { min-height: 46px; }
+    body.grade-low .step-text { font-size: 1.9rem; line-height: 1.9; }
+    body.grade-mid .step-text { font-size: 1.5rem; }
+    body.grade-low .script-speaker { font-size: 1.6rem; }
+    body.grade-low .step-nav .btn { font-size: 1.4rem; padding: 14px 30px; }
+    body.grade-low .op-text { font-size: 1.25rem; }
+    body.grade-low input[type="text"], body.grade-low textarea, body.grade-low select { font-size: 1.15rem; }
+    body.grade-low .vote-count-row { gap: 4px; }
+    body.grade-low .vote-count-row input { font-size: 2.4rem; width: 84px; }
+    body.grade-low .vote-count-row .btn { font-size: 1.8rem; padding: 4px 0; width: 56px; min-width: 56px; }
+    body.grade-low .vote-container { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    body.simple .adv { display: none !important; }
+    body.simple .stepper { display: none; }
+    .opt-emoji { display: none; font-size: 2.2rem; text-align: center; line-height: 1; }
+    body.grade-low .opt-emoji, body.grade-mid .opt-emoji { display: block; }
+    .stamp-row { display: none; gap: 8px; flex-wrap: wrap; }
+    body.grade-low .stamp-row, body.grade-mid .stamp-row { display: flex; }
+    .stamp-row .btn { flex: 1; min-width: 120px; }
+    .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 8px; }
+    .pk { background: rgba(0, 0, 0, 0.5); color: var(--text-main); border: 2px solid var(--cyan); border-radius: 12px; min-height: 62px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; }
+    .pk b { font-size: 1.4rem; } .pk small { font-size: 0.68rem; color: var(--text-sub); }
+    .pk.on { background: var(--gold); color: #000; border-color: var(--gold); } .pk.on small { color: #222; }
+    .pk.ab { opacity: 0.4; }
+    .modal.wide { width: min(720px, 100%); }
+    #osk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2800; background: #120a20; border-top: 2px solid var(--gold); padding: 6px 8px 10px; display: none; flex-direction: column; gap: 5px; box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.6); user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    #osk.open { display: flex; }
+    .osk-sug { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+    .osk-sug .chip { flex: 0 0 auto; }
+    .osk-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+    .osk-grid.n5 { grid-template-columns: repeat(5, 1fr); }
+    .osk-row { display: flex; gap: 4px; }
+    .osk-row .osk-key { flex: 1; }
+    .osk-key { background: #2a1d40; color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; min-height: 44px; font-size: 1.25rem; font-family: inherit; cursor: pointer; padding: 0 4px; }
+    .osk-key:active { background: var(--gold); color: #000; }
+    .osk-key.fn { background: #1d2f40; color: var(--cyan); font-size: 0.9rem; font-weight: bold; }
+    .osk-key.ok { background: var(--green); color: #000; font-weight: bold; }
+    .osk-key.rec { background: var(--red); color: #fff; }
+    .osk-key.empty { visibility: hidden; }
+    body.grade-low .osk-key { min-height: 50px; font-size: 1.5rem; }
+    body.grade-low .osk-key.fn { font-size: 1rem; }
+    body.osk-open { padding-bottom: calc(12px + var(--osk-h, 300px)); }
+    body.osk-open .modal-back { align-items: flex-start; padding-bottom: var(--osk-h, 300px); overflow-y: auto; }
+    body.osk-open .modal { max-height: calc(100vh - var(--osk-h, 300px) - 24px); }
+    #osk-toggle { position: fixed; right: 10px; bottom: 10px; z-index: 2790; font-size: 0.8rem; opacity: 0.85; background: rgba(10, 5, 20, 0.92); }
+    body.osk-open #osk-toggle { display: none; }
+
+    /* ===== 印刷 ===== */
+    @media print {
+      body.printing { background: #fff !important; color: #000 !important; display: block; padding: 0; }
+      body.printing > *:not(#modal-root) { display: none !important; }
+      body.printing .modal-back { position: static; background: none; padding: 0; }
+      body.printing .modal { border: none; box-shadow: none; background: #fff; color: #000; width: 100%; height: auto; max-height: none; overflow: visible; }
+      body.printing .modal h3, body.printing .note-item b { color: #000; }
+      body.printing .note-item { background: #fff; border: 1px solid #999; color: #000; break-inside: avoid; }
+      body.printing .note-item pre, body.printing .note-item .ni-sub { color: #222; }
+      body.printing .no-print { display: none !important; }
+      body.printing .notes-list { overflow: visible; }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div id="alert-overlay"></div>
+  <div id="cue-overlay"></div>
+  <div id="toast-root"></div>
+  <div id="modal-root"></div>
+
+  <!-- ================= トップバー ================= -->
+  <header class="top-bar">
+    <div class="title-area">
+      <h1><span data-rb="学級委員"></span>マスターコンソール v4</h1>
+      <div id="date-display" style="color:var(--text-sub); font-size: 0.85rem;"></div>
+      <div class="exp-bar-container">
+        <span>LV.<span id="lvl-display">1</span></span>
+        <div class="exp-bar-bg"><div class="exp-bar-fill" id="exp-fill"></div></div>
+        <span id="exp-text">0 / 100 EXP</span>
+      </div>
+    </div>
+
+    <div class="grade-switch" id="grade-switch"></div>
+    <div class="goal-box">
+      <label id="goal-label" for="class-goal">🎯 今月のめあて</label>
+      <input type="text" id="class-goal" placeholder="今月のクラスのめあて（学級会で決めたら自動で入ります）" oninput="onGoalInput(this.value)">
+      <div id="prev-goal"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-green" onclick="openNotes('rule')">📒 <span data-rb="決定"></span>ノート</button>
+      <button class="btn btn-cyan" onclick="toggleFurigana()">🔤 ふりがな</button>
+      <button class="btn btn-cyan sm" onclick="fontStep(-0.1)" title="文字を小さく">A−</button>
+      <button class="btn btn-cyan sm" onclick="fontStep(0.1)" title="文字を大きく">A＋</button>
+      <button class="btn" onclick="openSettings()">⚙ せってい</button>
+      <button class="btn btn-red" onclick="resetDay()">🔄 <span data-rb="終礼"></span>リセット</button>
+    </div>
+  </header>
+
+  <!-- ================= メイン ================= -->
+  <main class="dashboard-grid">
+
+    <!-- ===== 左カラム ===== -->
+    <section class="column col-left">
+      <div class="panel" id="p-agenda">
+        <div class="panel-header"><span>📋 <span data-rb="議題"></span>リスト</span></div>
+        <div class="row">
+          <select id="ag-type" style="width:auto"></select>
+          <input type="text" id="ag-title" placeholder="議題（例：給食のならび方）" onkeydown="if(event.key==='Enter')addAgenda()">
+          <button class="btn" onclick="addAgenda()">追加</button>
+        </div>
+        <div id="agenda-list"></div>
+      </div>
+
+      <div class="panel" id="p-roles">
+        <div class="panel-header"><span>👤 <span data-rb="役割"></span>（<span data-rb="司会"></span>など）</span></div>
+        <div class="setting-row"><span>第 <input type="number" id="meeting-no" min="1" style="width:64px;text-align:center" oninput="onMeetingNo(this.value)"> <span data-rb="回"></span> <span data-rb="学級会"></span></span></div>
+        <div class="setting-row"><span data-rb="司会"></span><span class="row"><input type="text" class="wide-in" id="role-chair" style="width:110px" oninput="onRole('chair',this.value)"><button class="mini" onclick="pickInto('role-chair')">👆</button></span></div>
+        <div class="setting-row"><span>副<span data-rb="司会"></span></span><span class="row"><input type="text" class="wide-in" id="role-vice" style="width:110px" oninput="onRole('vice',this.value)"><button class="mini" onclick="pickInto('role-vice')">👆</button></span></div>
+        <div class="setting-row"><span data-rb="書記"></span><span class="row"><input type="text" class="wide-in" id="role-scribe" style="width:110px" oninput="onRole('scribe',this.value)"><button class="mini" onclick="pickInto('role-scribe')">👆</button></span></div>
+        <div class="setting-row"><span>タイムキーパー</span><span class="row"><input type="text" class="wide-in" id="role-timekeeper" style="width:110px" oninput="onRole('timekeeper',this.value)"><button class="mini" onclick="pickInto('role-timekeeper')">👆</button></span></div>
+        <div class="hint">入力した名前は、手順の中の {{司会}} などに自動で入ります。</div>
+      </div>
+
+      <div class="panel adv" id="p-tasks">
+        <div class="panel-header"><span>✅ <span data-rb="臨機応変"></span>タスク</span><button class="btn sm" onclick="clearDoneTasks()">完了を消す</button></div>
+        <div class="row">
+          <select id="task-pri" style="width:60px"><option value="pri-high">高</option><option value="pri-med" selected>中</option><option value="pri-low">低</option></select>
+          <input type="text" id="task-input" placeholder="新しい任務..." onkeydown="if(event.key==='Enter')addTask()">
+          <button class="btn" onclick="addTask()">追加</button>
+        </div>
+        <div class="task-list" id="task-list-container"></div>
+      </div>
+
+      <div class="panel adv" id="p-report">
+        <div class="panel-header"><span>📝 先生への<span data-rb="報告"></span></span><button class="btn btn-cyan sm" onclick="copyText($('daily-memo').value)">コピー</button></div>
+        <textarea id="daily-memo" placeholder="先生に伝えること、今日の気づき..." oninput="S.daily=this.value;save()"></textarea>
+      </div>
+
+      <div class="panel adv" id="p-db">
+        <div class="panel-header"><span>💡 お<span data-rb="役立"></span>ちデータベース</span><button class="btn sm" onclick="addDbItem()">+ 新規</button></div>
+        <div class="hint">レクの案・きまりの例・係の仕事などをためておくと、「案にする」で投票にすぐ出せます。</div>
+        <div class="row"><input type="text" id="db-search" placeholder="🔍 さがす" oninput="renderDb()"><select id="db-cat-filter" style="width:auto" onchange="renderDb()"></select></div>
+        <div id="db-container"></div>
+      </div>
+    </section>
+
+    <!-- ===== 中央カラム ===== -->
+    <section class="column col-center" id="meeting-root"></section>
+
+    <!-- ===== 右カラム ===== -->
+    <section class="column col-right">
+      <div class="panel">
+        <div class="panel-header"><span>⏱️ タイマー</span></div>
+        <div class="timer-display timer-text" id="timer-main">05:00</div>
+        <div class="timer-bar"><div id="timer-bar"></div></div>
+        <div id="timer-label"></div>
+        <div class="btn-row">
+          <button class="btn btn-cyan" id="btn-timer-toggle" onclick="toggleTimer()">▶ スタート</button>
+          <button class="btn btn-red" onclick="resetTimer()">↺ もどす</button>
+        </div>
+        <div class="btn-row" style="align-items:center">
+          <input type="number" class="num" id="t-min" value="5" min="0" onchange="applyCustomTimer()"> 分
+          <input type="number" class="num" id="t-sec" value="0" min="0" max="59" onchange="applyCustomTimer()"> 秒
+        </div>
+        <div class="btn-row">
+          <button class="btn sm" onclick="quickTimer(30)">30秒</button>
+          <button class="btn sm" onclick="quickTimer(60)">1分</button>
+          <button class="btn sm" onclick="quickTimer(120)">2分</button>
+          <button class="btn sm" onclick="quickTimer(180)">3分</button>
+          <button class="btn sm" onclick="quickTimer(300)">5分</button>
+          <button class="btn sm" onclick="quickTimer(600)">10分</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span>👥 メンバー<span data-rb="管理"></span></span></div>
+        <div class="setting-row"><span>クラスの最大人数</span><input type="number" id="max-students" min="1" onchange="saveMembers()"></div>
+        <div class="setting-row"><span><span data-rb="欠席"></span>の番号</span><span class="row"><input type="text" class="wide-in" id="absent-input" style="width:90px" placeholder="例 3,12" oninput="saveMembers(true)"><button class="mini" onclick="pickAbsent()">👆えらぶ</button></span></div>
+        <div class="setting-row"><span id="present-info"></span><button class="btn sm" onclick="autoHeadcount()">人数を自動</button></div>
+        <div class="setting-row" style="background:rgba(0,0,0,.3);padding:8px;border-radius:8px"><span><span data-rb="点呼"></span>カウンター</span><select id="headcount-select" onchange="changeHeadcount(this.value)"></select></div>
+
+        <div style="border-top:1px dashed rgba(255,255,255,.2);padding-top:10px">
+          <span class="hint">🎲 出席番号ガチャ</span>
+          <div id="rng-result">--</div>
+          <label class="row" style="justify-content:center"><input type="checkbox" id="no-repeat" onchange="S.noRepeat=this.checked;save()"> 当たった人はのぞく</label>
+          <button class="btn btn-cyan wide" onclick="spinRoulette()">🎯 抽選スタート</button>
+          <div class="row" style="margin-top:6px"><span class="hint grow" id="used-info"></span><button class="mini" onclick="resetUsed()">リセット</button></div>
+        </div>
+      </div>
+
+      <div class="panel adv">
+        <div class="panel-header"><span>🧩 ランダム<span data-rb="班"></span>分け</span></div>
+        <div class="setting-row">
+          <select id="group-mode" style="width:auto;text-align:left"><option value="count">班の数</option><option value="size">1班の人数</option></select>
+          <input type="number" id="group-count" value="6" min="1">
+        </div>
+        <div class="row"><label class="row"><input type="checkbox" id="group-leader"> 班長も決める</label></div>
+        <button class="btn wide" onclick="generateGroups()">実行</button>
+        <div class="group-result" id="group-result">※ 欠席の番号を除いて、ランダムに班を作ります。</div>
+        <button class="btn btn-cyan sm" onclick="copyText(lastGroupsText)">結果をコピー</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span>⚠️ アテンション（<span data-rb="注目"></span>）</span></div>
+        <div class="btn-row">
+          <button class="btn btn-cyan" onclick="playChime()">🔔 チャイム</button>
+          <button class="btn btn-red" onclick="triggerFlare()">🚨 フラッシュ</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="showCue('しずかに','chime')">🤫 しずかに</button>
+          <button class="btn" onclick="showCue('注目！','chime')">👀 注目</button>
+          <button class="btn" onclick="showCue('ストップ','chime')">✋ ストップ</button>
+          <button class="btn" onclick="showCue('はい、どうぞ','beep')">🎤 どうぞ</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="presenter"></div>
+  <div id="osk"></div>
+  <button class="btn btn-cyan sm" id="osk-toggle" onclick="setOsk(!S.osk)">⌨ 画面キーボード</button>
+
+  <script>
+    'use strict';
+    // =====================================================
+    // 0. ユーティリティ
+    // =====================================================
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const uid = () => Math.random().toString(36).slice(2, 9);
+    const todayStr = () => new Date().toLocaleDateString('ja-JP');
+    const monthKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const prevMonthKey = () => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return monthKey(d); };
+    const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const clone = o => JSON.parse(JSON.stringify(o));
+
+    const KEY = 'gakkyuV4';
+    const memStore = {};
+    const store = {
+      get(k) { try { return localStorage.getItem(k); } catch (e) { return memStore[k] == null ? null : memStore[k]; } },
+      set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } }
+    };
+
+    function toast(msg, kind) {
+      const el = document.createElement('div');
+      el.className = 'toast ' + (kind || '');
+      el.textContent = msg;
+      $('toast-root').appendChild(el);
+      setTimeout(() => el.remove(), 2600);
+    }
+
+    async function copyText(t) {
+      t = String(t == null ? '' : t);
+      try { await navigator.clipboard.writeText(t); }
+      catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (_) { }
+        ta.remove();
+      }
+      toast('📋 コピーしました');
+    }
+
+    function download(name, text, mime) {
+      const b = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    }
+
+    // ---- モーダル（prompt/confirm の代わり：埋め込み環境でも動く）
+    function openModal(html, cls, onClose) {
+      const back = document.createElement('div');
+      back.className = 'modal-back';
+      back.innerHTML = `<div class="modal ${cls || ''}" role="dialog">${html}</div>`;
+      back._onClose = onClose || null;
+      back.addEventListener('mousedown', e => { if (e.target === back) closeModal(back); });
+      $('modal-root').appendChild(back);
+      return back;
+    }
+    function closeModal(back) { if (!back || !back.parentNode) return; back.remove(); if (back._onClose) back._onClose(); }
+    function topModal() { const m = $('modal-root').querySelectorAll('.modal-back'); return m.length ? m[m.length - 1] : null; }
+
+    function askChoice(title, msg, buttons) {
+      return new Promise(res => {
+        let done = false;
+        const fin = v => { if (done) return; done = true; res(v); };
+        const b = openModal(`<h3>${esc(title)}</h3><p class="m-msg">${esc(msg).replace(/\n/g, '<br>')}</p><div class="m-btns">${buttons.map((l, i) => `<button class="btn ${i === 0 ? '' : 'btn-cyan'}" data-i="${i}">${esc(l)}</button>`).join('')}</div>`, '', () => fin(-1));
+        b.querySelectorAll('[data-i]').forEach(btn => btn.onclick = () => { fin(+btn.dataset.i); b.remove(); });
+      });
+    }
+    async function askConfirm(msg, ok) { return (await askChoice('かくにん', msg, [ok || 'はい', 'キャンセル'])) === 0; }
+
+    function askText(title, def, multi) {
+      return new Promise(res => {
+        let done = false;
+        const fin = v => { if (done) return; done = true; res(v); };
+        const b = openModal(`<h3>${esc(title)}</h3>${multi ? `<textarea id="ask-in" rows="6">${esc(def || '')}</textarea>` : `<input type="text" id="ask-in" value="${esc(def || '')}">`}<div class="m-btns"><button class="btn" id="ask-ok">OK</button><button class="btn btn-cyan" id="ask-cancel">キャンセル</button></div>`, '', () => fin(null));
+        const inp = b.querySelector('#ask-in');
+        setTimeout(() => { inp.focus(); if (inp.select) inp.select(); }, 30);
+        b.querySelector('#ask-ok').onclick = () => { fin(inp.value); b.remove(); };
+        b.querySelector('#ask-cancel').onclick = () => { fin(null); b.remove(); };
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter' && (!multi || e.ctrlKey)) { e.preventDefault(); fin(inp.value); b.remove(); } });
+      });
+    }
+
+    // ---- 音
+    let actx;
+    function ac() {
+      if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C(); }
+      if (actx.state === 'suspended') actx.resume();
+      return actx;
+    }
+    function tone(freq, dur, vol, delay) {
+      const c = ac(); if (!c) return;
+      const t = c.currentTime + (delay || 0);
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.15, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + (dur || 0.15));
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + (dur || 0.15));
+    }
+    const playBeep = () => tone(880, 0.12, 0.1);
+    const playChime = () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.9, 0.18, i * 0.28));
+    const playFanfare = () => [523.25, 659.25, 783.99, 659.25, 1046.5].forEach((f, i) => tone(f, 0.35, 0.16, i * 0.14));
+
+    let cueT;
+    function showCue(text, sound) {
+      const el = $('cue-overlay');
+      el.textContent = text; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+      clearTimeout(cueT); cueT = setTimeout(() => el.classList.remove('show'), 2200);
+      if (sound === 'chime') playChime(); else if (sound === 'beep') playBeep(); else if (sound === 'fanfare') playFanfare();
+    }
+    function triggerFlare() {
+      const o = $('alert-overlay'); o.classList.add('flash-anim'); playBeep();
+      setTimeout(() => o.classList.remove('flash-anim'), 2000);
+    }
+
+    // =====================================================
+    // 1. 定数：議題の種類・手順テンプレート・ことば
+    // =====================================================
+    const TYPES = {
+      rule: { label: 'クラスのきまり', icon: '📏', color: 'var(--cyan)', desc: '生活のきまり・ルールを決める', criteria: ['守れる', '具体的', 'みんなのため', '続けられる'] },
+      goal: { label: '今月のめあて', icon: '🎯', color: 'var(--gold)', desc: '月のめあてを決める・ふりかえる', criteria: ['具体的', '毎日できる', 'みんなでできる', '成長につながる'] },
+      rec: { label: '学級レク', icon: '🎉', color: 'var(--pink)', desc: 'レクの内容・ルール・役割を決める', criteria: ['安全', '全員参加', '時間内', '道具がある', 'ルールがわかる'] },
+      free: { label: '自由な話し合い', icon: '💬', color: 'var(--green)', desc: 'そのほか、なんでも話し合う', criteria: [] }
+    };
+    const TAGS = {
+      idea: { icon: '💡', label: 'アイデア' }, agree: { icon: '👍', label: '賛成' }, disagree: { icon: '👎', label: '反対' },
+      question: { icon: '❓', label: '質問' }, worry: { icon: '😟', label: '心配' }
+    };
+    const TOOLS = { none: '（なし）', opinions: '意見ボード', vote: '案と投票', decision: '決定', minutes: '議事録・ふりかえり' };
+    const TOOL_TAB = { opinions: 'opinions', vote: 'vote', decision: 'decision', minutes: 'minutes' };
+
+    const S1 = { title: 'はじめの言葉', tool: 'none', min: 0, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』です。」', guide: '司会は{{司会}}さん、副司会は{{副司会}}さん、書記は{{書記}}さんです。' };
+    const SQ = { title: '質問タイム', tool: 'none', min: 2, text: '「今の提案について、わからないことや、くわしく聞きたいことはありますか？」', guide: '質問は「意見」ではなく、わからないことを聞く時間だよ。' };
+    const SV = { title: '多数決', tool: 'vote', min: 0, text: '「それでは、決を採ります。みなさん、机に伏せてください。」\n「〇〇の案によいと思う人は、手をあげてください。」', guide: '「案と投票」タブでカウント！ 同数のときは決選投票かくじ。' };
+    const SE = { title: 'ふりかえり・終わり', tool: 'minutes', min: 0, text: '「今日の話し合いで、よかったことや、次にがんばることはありますか？」\n「これで、第{{回}}[回|かい] 学級会を終わります。」', guide: 'ふりかえりは「議事録」タブに書いておくと、あとで見返せるよ。' };
+
+    const TPL = {
+      free: [
+        S1,
+        { title: '提案理由', tool: 'none', min: 2, text: '「これを話し合う理由を、提案者の{{提案者}}さん、お願いします。」', guide: '' },
+        SQ,
+        { title: '意見の発表', tool: 'opinions', min: 5, text: '「みんなの意見を聞きます。賛成・反対や、新しいアイデアがある人は手をあげてください。」', guide: '「〇〇さん、どうぞ」「同じ意見の人はいますか？」と回そう。出た意見は意見ボードへ。' },
+        { title: '意見をまとめる', tool: 'vote', min: 3, text: '「いろいろな意見が出ました。合体できる意見や、ゆずり合える方法はありませんか？」', guide: '意見ボードの「→案」で投票の案にできるよ。' },
+        SV,
+        { title: '決まったこと', tool: 'decision', min: 0, text: '「多数決の結果、{{決定}}に決まりました。反対だった人も、決まったことには協力しましょう。」', guide: '決まったことを書いて「決定ノートに登録」を押そう。' },
+        SE
+      ],
+      rule: [
+        { ...S1, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』、クラスのきまりについてです。」' },
+        { title: '困っていること', tool: 'none', min: 3, text: '「このきまりを話し合う理由を、提案者の{{提案者}}さん、お願いします。今のようすや、困っていることも教えてください。」', guide: '「だれかを責める話」ではなく「どうしたらよくなるか」の話にしよう。' },
+        SQ,
+        { title: 'きまりの案出し', tool: 'opinions', min: 5, text: '「どんなきまりにしたらよいか、案を出し合いましょう。『〜する』と、やることがわかる言い方で考えましょう。」', guide: '「〜しない」だけでなく「どうすればよいか」も考えよう。' },
+        { title: '観点で確かめる', tool: 'vote', min: 3, text: '「出た案を、『守れるか』『具体的か』『みんなのためになるか』の観点で確かめましょう。」', guide: '「案と投票」タブの観点チェックを使おう。' },
+        SV,
+        { title: 'きまりを決める', tool: 'decision', min: 0, text: '「きまりは『{{決定}}』です。いつから始めますか？ 守れなかったときは、どうしますか？」', guide: '期間（例：1か月）と見直す日を決めておくと◎' },
+        SE
+      ],
+      goal: [
+        { ...S1, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』、今月のめあてについてです。」' },
+        { title: '先月のふりかえり', tool: 'minutes', min: 3, text: '「先月のめあては『{{先月のめあて}}』でした。できたこと、できなかったことを発表してください。」', guide: '決定ノート →「めあて」で、☆の評価と一言を書いておけるよ。' },
+        { title: 'がんばりたいこと', tool: 'opinions', min: 5, text: '「今月、クラスでがんばりたいことを出しましょう。『〜できるクラス』のように、言葉にしてみましょう。」', guide: '一人ひとりの「やってみたい」を大切に出させよう。' },
+        { title: '質問・意見', tool: 'opinions', min: 3, text: '「出た意見について、質問や付け足しはありますか？」', guide: '' },
+        { title: 'めあてをしぼる', tool: 'vote', min: 3, text: '「似ている意見は合体して、めあての案をしぼりましょう。」', guide: '観点：具体的？ 毎日できる？ みんなでできる？' },
+        SV,
+        { title: '行動目標を決める', tool: 'decision', min: 0, text: '「今月のめあては『{{決定}}』に決まりました。めあてのために、毎日できる行動を決めましょう。」', guide: '「いつ・だれが・どうやってふりかえるか」も決めよう。' },
+        SE
+      ],
+      rec: [
+        { ...S1, text: '「これから、第{{回}}[回|かい] 学級会を始めます。今日の議題は『{{議題}}』、学級レクについてです。」' },
+        { title: 'ねらいの確認', tool: 'none', min: 2, text: '「レクのねらいを確かめます。みんなが楽しめて、なかよくなれる内容にしましょう。」', guide: '日時・時間（何分）・場所を先に確認すると進めやすい。' },
+        { title: 'レクの案出し', tool: 'opinions', min: 5, text: '「やりたいレクの案を出してください。ルールが短く言えるものだと、説明しやすいです。」', guide: 'お役立ちデータベースから「案にする」もできるよ。' },
+        { title: '質問・心配ごと', tool: 'opinions', min: 3, text: '「案についてわからないことや、心配なことはありますか？（安全・道具・場所・時間）」', guide: '心配ごとは意見ボードで「😟心配」にして残そう。' },
+        { title: '観点で確かめる', tool: 'vote', min: 3, text: '「安全か、全員が参加できるか、時間内にできるか、道具があるかを確かめましょう。」', guide: '「案と投票」タブの観点チェックを使おう。' },
+        SV,
+        { title: '役割・準備を決める', tool: 'decision', min: 0, text: '「レクは『{{決定}}』に決まりました。係や準備するもの、ルールを決めましょう。」', guide: '「くわしい内容」に、係・持ち物・ルールを書いて登録しよう。' },
+        SE
+      ]
+    };
+
+
+    // ---- 低学年用（ひらがな・やさしい手順）
+    const L_START = { title: 'はじめの ことば', tool: 'none', min: 0, text: '「これから がっきゅうかいを はじめます。\nきょうの はなしあいは 『{{議題}}』です。」', guide: 'しかいは {{司会}}さん です。' };
+    const L_END = { title: 'おわりの ことば', tool: 'none', min: 0, text: '「きょうの はなしあいで よかったことは ありますか？」\n「これで がっきゅうかいを おわります。」', guide: '' };
+    const L_VOTE = { title: 'どれに する？', tool: 'vote', min: 0, text: '「いいと おもう ものに てを あげてください。\nかぞえます。」', guide: '「あんと とうひょう」で ＋を おして かぞえよう。' };
+    const TPL_LOW = {
+      free: [L_START,
+        { title: 'どうして はなしたいの？', tool: 'none', min: 2, text: '「{{提案者}}さん、どうして はなしあいたいのか おしえてください。」', guide: '' },
+        { title: 'みんなの いけん', tool: 'opinions', min: 3, text: '「どうしたら いいと おもいますか？\nてを あげて いってください。」', guide: '「さんせい」「はんたい」の スタンプも つかえるよ。' },
+        L_VOTE,
+        { title: 'きまった こと', tool: 'decision', min: 0, text: '「{{決定}}に きまりました。みんなで きょうりょくしましょう。」', guide: '「きまったこと」に かいて、とうろくを おそう。' }, L_END],
+      rule: [{ ...L_START, text: '「これから がっきゅうかいを はじめます。\nきょうは クラスの きまりを はなしあいます。\n『{{議題}}』です。」' },
+        { title: 'こまって いること', tool: 'none', min: 2, text: '「{{提案者}}さん、こまって いることを おしえてください。」', guide: '' },
+        { title: 'どんな きまりに する？', tool: 'opinions', min: 3, text: '「どんな きまりに したら いいですか？\n『〜する』と いう いいかたで かんがえましょう。」', guide: '「まもれるか」も かんがえよう。' },
+        L_VOTE,
+        { title: 'きまりを きめる', tool: 'decision', min: 0, text: '「きまりは 『{{決定}}』です。みんなで まもりましょう。」', guide: '' }, L_END],
+      goal: [{ ...L_START, text: '「これから がっきゅうかいを はじめます。\nきょうは こんげつの めあてを きめます。」' },
+        { title: 'せんげつの ふりかえり', tool: 'none', min: 2, text: '「せんげつの めあては 『{{先月のめあて}}』でした。\nできたことを おしえてください。」', guide: '' },
+        { title: 'がんばりたい こと', tool: 'opinions', min: 3, text: '「こんげつ がんばりたい ことを おしえてください。」', guide: '' },
+        L_VOTE,
+        { title: 'めあてを きめる', tool: 'decision', min: 0, text: '「こんげつの めあては 『{{決定}}』です。\nまいにち がんばりましょう。」', guide: '' }, L_END],
+      rec: [{ ...L_START, text: '「これから がっきゅうかいを はじめます。\nきょうは クラスの レクを きめます。\n『{{議題}}』です。」' },
+        { title: 'やりたい あそび', tool: 'opinions', min: 3, text: '「やりたい あそびを おしえてください。」', guide: 'おやくだちメモから「あんにする」も できるよ。' },
+        { title: 'あんぜんかな？', tool: 'none', min: 2, text: '「けがを しないか、みんなで あそべるか、かんがえましょう。」', guide: '' },
+        L_VOTE,
+        { title: 'やくわりを きめる', tool: 'decision', min: 0, text: '「『{{決定}}』に きまりました。\nじゅんびする ものや かかりを きめましょう。」', guide: '' }, L_END]
+    };
+    const PHRASES_LOW = ['つぎに すすみます。', 'ほかに ありませんか？', '{{司会}}さんは どう おもいますか？', 'はんたいの いけんは ありますか？', 'おなじ いけんの ひとは てを あげてください。', 'しずかに しましょう。', 'ひとの はなしを さいごまで ききましょう。', 'たすうけつを とって いいですか？', 'きまった ことは みんなで まもりましょう。'];
+    const OPT_EMO = ['🍎', '🍊', '🍇', '🍓', '🍑', '🍋', '🍉', '🍌'];
+    const GRADES = {
+      low: { label: '低学年', sub: '1・2年', icon: '🐣', desc: 'おおきなボタン・ひらがな・よみあげ・画面キーボード', furigana: true, fontScale: 1.2, osk: true, simple: true },
+      mid: { label: '中学年', sub: '3・4年', icon: '🐥', desc: 'ふりがな・画面キーボード・スタンプ', furigana: true, fontScale: 1.1, osk: true, simple: false },
+      high: { label: '高学年', sub: '5・6年', icon: '🦅', desc: 'キーボード入力・すべての機能', furigana: false, fontScale: 1, osk: false, simple: false }
+    };
+
+    const PHRASES_BASE = [
+      { name: '進める', list: ['では、次に進みます。', 'ほかにありませんか？', '意見は出つくしましたか？', '時間になりました。次に進みます。', '発言は、1人30秒くらいでお願いします。', '今は「{{議題}}」について話し合っています。'] },
+      { name: '意見をひきだす', list: ['〇〇さんは、どう思いますか？', '反対の意見はありますか？', '付け足しの意見はありますか？', '理由も、いっしょに言ってください。', '同じ意見の人は、手をあげてください。', 'まだ発言していない人はいませんか？'] },
+      { name: '意見が出ないとき', list: ['となりの人と1分間、相談してみましょう。', '賛成か反対かだけでも、手をあげてください。', 'ひと言でもいいので、思いついたことを言ってみましょう。', '少し考える時間をとります。'] },
+      { name: '意見が分かれたとき', list: ['どちらの意見にも、よいところがあります。', '合体できる意見はありませんか？', 'ゆずり合える方法はありませんか？', '反対の人は、どうなったら賛成できますか？', '少数の意見も、大切にしましょう。'] },
+      { name: '話がそれたとき', list: ['今の議題は「{{議題}}」です。話をもどしましょう。', 'それは別の話なので、あとで話し合いましょう。', '今、話し合っていることを、もう一度確かめます。'] },
+      { name: '決めるとき', list: ['多数決をとってもよいですか？', '反対の人はいませんか？ では、これに決定します。', '同数なので、決選投票をします。', '決まったことには、みんなで協力しましょう。', '反対だった人も、決まったことを守りましょう。'] },
+      { name: '声かけ・注意', list: ['しずかにしましょう。', '人の意見は、最後まで聞きましょう。', '人を悪く言うのはやめましょう。', '「〇〇さんの意見に付け足しで…」のように言いましょう。'] }
+    ];
+    const PHRASES_TYPE = {
+      rule: ['そのきまりは、みんなが守れそうですか？', '「〜しない」だけでなく、「〜する」の言い方にできますか？', '守れなかったとき、どうしたらよいでしょう？', 'いつまで続けて、いつ見直しますか？'],
+      goal: ['先月のめあては、どのくらいできましたか？', 'めあてのために、毎日できることは何ですか？', '「いつ・だれが・何を」するか、具体的に言えますか？', 'できたかどうか、だれが見てもわかるめあてですか？'],
+      rec: ['安全にできますか？ けがの心配はありませんか？', '全員が参加できますか？', '時間は何分かかりますか？', '必要な道具は、そろいますか？', 'ルールを短く説明できますか？']
+    };
+
+    function seedDb() {
+      return [
+        { id: uid(), cat: 'rec', title: '爆弾ゲームのルール', detail: 'タイマーをセットし、しりとりをしながら物を回す。鳴った時に持っていた人が負け。' },
+        { id: uid(), cat: 'rec', title: '伝言ゲーム', detail: '班で一列になり、お題を耳打ちで伝える。最後の人が答えて正解なら得点。（5〜10分）' },
+        { id: uid(), cat: 'rec', title: 'ジェスチャーゲーム', detail: '班の代表が言葉を使わずにお題を表現。班のみんなが1分以内に当てる。（10分）' },
+        { id: uid(), cat: 'rule', title: 'きまりの書き方の例', detail: '「〜しない」ではなく「〜する」で書くと、やることがわかりやすい。例：「ろうかは右がわを歩く」' }
+      ];
+    }
+    const DB_CATS = { rec: 'レク案', rule: 'きまりの例', goal: 'めあての例', etc: 'その他' };
+
+    // ---- ふりがな辞書（自動でルビを付ける）  書式：漢字{よみ}おくりがな
+    const RUBY_DICT = [
+      '学級会{がっきゅうかい}', '学級{がっきゅう}', '学期{がっき}', '委員{いいん}', '司会{しかい}', '副{ふく}', '書記{しょき}', '議事録{ぎじろく}', '議題{ぎだい}', '提案者{ていあんしゃ}', '提案{ていあん}',
+      '理由{りゆう}', '発表{はっぴょう}', '質問{しつもん}', '意見{いけん}', '賛成{さんせい}', '反対{はんたい}', '多数決{たすうけつ}', '決選投票{けっせんとうひょう}', '投票{とうひょう}', '同数{どうすう}',
+      '合体{がったい}', '結果{けっか}', '今日{きょう}', '今月{こんげつ}', '先月{せんげつ}', '来月{らいげつ}', '今週{こんしゅう}', '毎日{まいにち}', '目当{めあ}て', '目標{もくひょう}', '全員{ぜんいん}', '参加{さんか}',
+      '安全{あんぜん}', '時間内{じかんない}', '時間{じかん}', '道具{どうぐ}', '準備{じゅんび}', '係{かかり}', '役割{やくわり}', '決定{けってい}', '決{き}まりました', '決{き}まり', '決{き}まっ', '決{き}める', '決{き}め', '決{けつ}を', '採{と}ります', '採{と}り',
+      '守{まも}れる', '守{まも}り', '守{まも}る', '守{まも}れ', '約束{やくそく}', '大切{たいせつ}', '楽{たの}しい', '楽{たの}しめる', '楽{たの}しみ', '友達{ともだち}', '仲{なか}', '一緒{いっしょ}', '協力{きょうりょく}', '反省{はんせい}',
+      '振{ふ}り返{かえ}り', '次{つぎ}', '始{はじ}めます', '始{はじ}める', '始{はじ}め', '終{お}わります', '終{お}わり', '言葉{ことば}', '手{て}を', '机{つくえ}', '伏{ふ}せて', '思{おも}う', '思{おも}い', '人{ひと}は', '人{ひと}が', '人{ひと}の', '人{ひと}も',
+      '出席番号{しゅっせきばんごう}', '出席{しゅっせき}', '欠席{けっせき}', '出{で}ました', '出{だ}し合{あ}い', '出{だ}し', '出{だ}して', '出{だ}さ', '新{あたら}しい', '聞{き}きます', '聞{き}きたい', '聞{き}いて', '聞{き}く', '聞{き}き', '話{はな}し合{あ}い', '話{はな}し合{あ}う', '話{はな}し合{あ}', '話{はな}し', '話{はな}す',
+      '考{かんが}え', '考{かんが}える', '方法{ほうほう}', '困{こま}って', '困{こま}る', '様子{ようす}', '確{たし}かめ', '活動{かつどう}', '内容{ないよう}', '場所{ばしょ}', '持{も}ち物{もの}', '遊{あそ}び', '遊{あそ}ぶ', '運動{うんどう}', '自由{じゆう}', '順番{じゅんばん}',
+      '点呼{てんこ}', '人数{にんずう}', '班{はん}', '当番{とうばん}', '規則{きそく}', '注意{ちゅうい}', '静{しず}かに', '注目{ちゅうもく}', '終礼{しゅうれい}', '給食{きゅうしょく}', '掃除{そうじ}', '宿題{しゅくだい}', '授業{じゅぎょう}', '休{やす}み時間{じかん}', '放課後{ほうかご}',
+      '第{だい}', '多{おお}く', '少数{しょうすう}', '少{すこ}し', '別{べつ}', '同{おな}じ', '最後{さいご}', '悪{わる}く', '言{い}って', '言{い}う', '言{い}い方{かた}', '言{い}ってみ', '付{つ}け足{た}し', '付{つ}け足{た}', '足{た}し', '相談{そうだん}', '分間{ふんかん}', '小{ちい}さな', '合{あ}う', '合{あ}わせ', '合{あ}い', '細{こま}かい',
+      '評価{ひょうか}', '達成{たっせい}', '行動{こうどう}', '期間{きかん}', '見直{みなお}す', '見直{みなお}し', '日{にち}', '実施{じっし}', '期限{きげん}', '案{あん}', '観点{かんてん}', '確認{かくにん}', '登録{とうろく}', '記録{きろく}', '案出{あんだ}し',
+      '生活{せいかつ}', '心配{しんぱい}', '勉強{べんきょう}', '成長{せいちょう}', '自分{じぶん}', '感想{かんそう}', '得点{とくてん}', '代表{だいひょう}', '正解{せいかい}', '表現{ひょうげん}', '制限{せいげん}', '勝{か}ち', '負{ま}け', '楽{たの}しく', '作{つく}る', '作{つく}り', '使{つか}う', '使{つか}い', '重{おも}い', '大事{だいじ}', '全体{ぜんたい}', '編集{へんしゅう}', '時間{じかん}になりました', '今{いま}', '今{いま}の', '合図{あいず}', '先生{せんせい}',
+      '願{ねが}い', '書{か}い', '書{か}き', '書{か}く', '書{か}', '押{お}し', '押{お}す', '見返{みかえ}', '教{おし}え', '責{せ}め', '具体的{ぐたいてき}', '使{つか}い', '使{つか}って', '使{つか}え', '例{れい}', '一言{ひとこと}', '一人{ひとり}', '似{に}て', '何分{なんぷん}', '進{すす}み', '進{すす}め', '進{すす}', '短{みじか}く', '説明{せつめい}', '役立{やくだ}ち', '役立{やくだ}', '残{のこ}し', '発言{はつげん}', '秒{びょう}', '一度{いちど}', '続{つづ}け', '必要{ひつよう}', '臨機応変{りんきおうへん}', '報告{ほうこく}', '管理{かんり}', '何{なに}', '何{なん}', '見{み}', '時{とき}', '先{さき}に', '先{さき}', '楽{たの}', '話{はな}', '言{い}', '出{だ}', '合{あ}', '人{ひと}', '続{つづ}', '月{がつ}'
+    ];
+    let DICT_RE, DICT_MAP;
+    function buildDict() {
+      DICT_MAP = {}; const keys = [];
+      RUBY_DICT.forEach(e => {
+        const key = e.replace(/\{[^}]*\}/g, '');
+        DICT_MAP[key] = e.replace(/([一-龠々〆]+)\{([^}]*)\}/g, (m, k, r) => `<ruby>${k}<rt>${r}</rt></ruby>`);
+        keys.push(key);
+      });
+      keys.sort((a, b) => b.length - a.length);
+      DICT_RE = new RegExp(keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+    }
+    function dictRb(t) { return t ? esc(t).replace(DICT_RE, m => DICT_MAP[m]) : ''; }
+    function rbPlain(t) {
+      let out = '', last = 0, m; const re = /\[([^\[\]|]+)\|([^\[\]]+)\]/g;
+      while ((m = re.exec(t))) { out += dictRb(t.slice(last, m.index)) + `<ruby>${esc(m[1])}<rt>${esc(m[2])}</rt></ruby>`; last = m.index + m[0].length; }
+      return out + dictRb(t.slice(last));
+    }
+    // {{議題}} などを差し込み、ふりがなを付けたHTMLを返す
+    function rb(text, a) {
+      if (text == null) return '';
+      const c = ctx(a === undefined ? cur() : a);
+      const phs = [];
+      const t = String(text).replace(/\{\{([^}]+)\}\}/g, (m, k) => {
+        const v = String(c[k.trim()] == null ? '' : c[k.trim()]).trim();
+        phs.push({ v, empty: !v });
+        return '\u0001' + (phs.length - 1) + '\u0002';
+      });
+      return rbPlain(t)
+        .replace(/\u0001(\d+)\u0002/g, (m, i) => { const p = phs[+i]; return `<span class="ph${p.empty ? ' empty' : ''}">${p.empty ? '〇〇' : rbPlain(p.v)}</span>`; })
+        .replace(/\n/g, '<br>');
+    }
+    function plain(text, a) { // 文章としてのテキスト（議事録用）
+      const c = ctx(a === undefined ? cur() : a);
+      return String(text || '').replace(/\{\{([^}]+)\}\}/g, (m, k) => c[k.trim()] || '〇〇').replace(/\[([^\[\]|]+)\|([^\[\]]+)\]/g, '$1');
+    }
+    function ctx(a) {
+      const g = getGoal(monthKey()), pg = getGoal(prevMonthKey());
+      return {
+        '議題': a && a.title, '提案者': a && a.proposer, '司会': S.roles.chair, '副司会': S.roles.vice, '書記': S.roles.scribe,
+        '回': String(S.meetingNo || 1), '決定': a && a.decision, '今月のめあて': g && g.text, '先月のめあて': pg && pg.text,
+        '案': a ? (leaders(a)[0] || {}).name : ''
+      };
+    }
+
+    // =====================================================
+    // 2. 状態の読み込み・保存
+    // =====================================================
+    let S;
+    function defaultState() {
+      return {
+        v: 4, exp: 0, furigana: false, fontScale: 1, daily: '', maxStudents: 35, headcount: 0, absent: '', meetingNo: 1,
+        roles: { chair: '', vice: '', scribe: '', timekeeper: '' },
+        tasks: [], db: seedDb(), agendas: [], curId: null, goals: [], decisions: [], voteHistory: [], minutes: [],
+        customPhrases: [], customTemplates: {}, usedNums: [], noRepeat: true, workTab: 'opinions', lastTag: 'idea',
+        grade: null, osk: false, simple: false, roster: []
+      };
+    }
+    function loadState() {
+      S = defaultState();
+      const raw = store.get(KEY);
+      if (raw) {
+        try { const p = JSON.parse(raw); S = Object.assign(S, p); S.roles = Object.assign(defaultState().roles, p.roles || {}); return; } catch (e) { }
+      }
+      // v3 からの引き継ぎ
+      try {
+        const g = k => store.get(k);
+        const j = (k, d) => { try { return JSON.parse(g(k)) || d; } catch (e) { return d; } };
+        if (g('cmdV3Exp') != null || g('cmdV3DB') != null) {
+          S.exp = parseInt(g('cmdV3Exp')) || 0;
+          S.furigana = g('cmdV3Furigana') === 'true';
+          S.daily = g('cmdV3Daily') || '';
+          S.maxStudents = parseInt(g('cmdV3MaxNum')) || 35;
+          S.tasks = j('cmdV3Tasks', []);
+          const db = j('cmdV3DB', null);
+          if (db) S.db = db.map(d => ({ id: uid(), cat: 'etc', title: d.title || '', detail: d.detail || '' }));
+          S.voteHistory = j('cmdV3VoteHistory', []).map(h => ({ id: uid(), date: h.date, title: h.title, agendaTitle: '', data: (h.data || []).map(d => ({ name: d.name, count: d.count })) }));
+          const goal = g('cmdV3Goal'); if (goal) S.goals.push({ id: uid(), month: monthKey(), text: goal, rating: 0, note: '' });
+        }
+      } catch (e) { }
+    }
+    let saveT;
+    function save() { clearTimeout(saveT); saveT = setTimeout(flush, 200); }
+    function flush() { clearTimeout(saveT); store.set(KEY, JSON.stringify(S)); }
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+
+    const cur = () => S.agendas.find(a => a.id === S.curId) || null;
+    function touch() { save(); renderWorkTabs(); if (presenterOpen) renderPresenter(); }
+
+    function updateExp(n) {
+      S.exp += n;
+      const level = Math.floor(S.exp / 100) + 1, ce = S.exp % 100;
+      $('lvl-display').textContent = level;
+      $('exp-text').textContent = `${ce} / 100 EXP`;
+      $('exp-fill').style.width = ce + '%';
+      save();
+    }
+
+    // =====================================================
+    // 3. めあて（月ごと）
+    // =====================================================
+    const getGoal = mk => S.goals.find(g => g.month === mk);
+    function setGoal(mk, text) {
+      let g = getGoal(mk);
+      if (!g) { if (!text) return; g = { id: uid(), month: mk, text: '', rating: 0, note: '' }; S.goals.push(g); }
+      g.text = text;
+      if (!g.text && !g.note && !g.rating) S.goals = S.goals.filter(x => x !== g);
+    }
+    function onGoalInput(v) { setGoal(monthKey(), v); save(); if (cur()) renderStep(); }
+    function renderGoalBar() {
+      $('goal-label').textContent = `🎯 ${new Date().getMonth() + 1}月のめあて`;
+      const inp = $('class-goal'); if (document.activeElement !== inp) { const g = getGoal(monthKey()); inp.value = g ? g.text : ''; }
+      const pg = getGoal(prevMonthKey());
+      $('prev-goal').innerHTML = pg && pg.text ? `先月：${esc(pg.text)} <span style="color:var(--gold)">${'★'.repeat(pg.rating || 0)}${'☆'.repeat(5 - (pg.rating || 0))}</span>` : '';
+    }
+
+    // =====================================================
+    // 4. 議題（アジェンダ）
+    // =====================================================
+    const tplKey = type => S.grade === 'low' ? 'low:' + type : type;
+    const defaultTpl = type => S.grade === 'low' ? TPL_LOW[type] : TPL[type];
+    function cloneSteps(type) { return (S.customTemplates[tplKey(type)] || defaultTpl(type)).map(s => ({ ...s, id: uid() })); }
+    function newAgenda(type, title) {
+      return {
+        id: uid(), type, title: title || '', proposer: '', reason: '', status: 'todo', stepIdx: 0, steps: cloneSteps(type),
+        opinions: [], options: [], criteria: TYPES[type].criteria.slice(), oneVote: true, round: 1,
+        decision: '', detail: '', when: '', setGoal: true, memo: '', reflect: '', minutesText: '', regId: null, created: Date.now()
+      };
+    }
+    function addAgenda() {
+      const title = $('ag-title').value.trim();
+      const a = newAgenda($('ag-type').value, title);
+      S.agendas.push(a); $('ag-title').value = '';
+      updateExp(5);
+      selectAgenda(a.id);
+    }
+    function quickStart(type) {
+      const a = newAgenda(type, ''); S.agendas.push(a); selectAgenda(a.id);
+      setTimeout(() => { const t = $('m-title'); if (t) t.focus(); }, 50);
+    }
+    function selectAgenda(id) {
+      S.curId = id; const a = cur();
+      if (a && a.status === 'todo') a.status = 'doing';
+      renderAgendaList(); buildMeeting(); touch();
+    }
+    function moveAgenda(i, d) {
+      const j = i + d; if (j < 0 || j >= S.agendas.length) return;
+      [S.agendas[i], S.agendas[j]] = [S.agendas[j], S.agendas[i]]; renderAgendaList(); save();
+    }
+    async function deleteAgenda(id) {
+      const a = S.agendas.find(x => x.id === id); if (!a) return;
+      if (!(await askConfirm(`議題「${a.title || '（未入力）'}」を消しますか？\n（出た意見や投票もいっしょに消えます）`, '消す'))) return;
+      S.agendas = S.agendas.filter(x => x.id !== id);
+      if (S.curId === id) S.curId = S.agendas.length ? S.agendas[0].id : null;
+      renderAgendaList(); buildMeeting(); touch();
+    }
+    function renderAgendaList() {
+      const box = $('agenda-list');
+      if (!S.agendas.length) { box.innerHTML = '<div class="empty">議題がありません。上から追加するか、中央の「はじめる」から種類を選んでね。</div>'; return; }
+      box.innerHTML = S.agendas.map((a, i) => `<div class="ag-item ${a.id === S.curId ? 'cur' : ''} st-${a.status}" onclick="selectAgenda('${a.id}')" style="border-left-color:${a.status === 'done' ? 'var(--green)' : TYPES[a.type].color}">
+        <span>${TYPES[a.type].icon}</span><span class="ag-title">${esc(a.title || '（議題未入力）')}</span>
+        <span class="ag-st">${{ todo: '○', doing: '▶', done: '✔' }[a.status]}</span>
+        <span class="ag-btns"><button class="mini" onclick="event.stopPropagation();moveAgenda(${i},-1)">▲</button><button class="mini" onclick="event.stopPropagation();moveAgenda(${i},1)">▼</button><button class="mini red" onclick="event.stopPropagation();deleteAgenda('${a.id}')">✖</button></span></div>`).join('');
+    }
+
+    // =====================================================
+    // 5. 学級会コア（中央）
+    // =====================================================
+    let editMode = false, workTab = 'opinions', opFilter = 'all', phraseCat = 0, sayText = '';
+
+    function startHtml() {
+      return `<div class="panel" id="meeting-core-panel">
+        <div class="panel-header"><span>🎙️ <span data-rb="学級会"></span>コア</span></div>
+        <div class="hint">話し合う内容をえらぶと、それに合った進め方（手順）が出ます。手順は、いつでも自由に書きかえ・入れかえできます。</div>
+        <div class="start-grid">${Object.entries(TYPES).map(([k, t]) => `<button class="start-card" style="--c:${t.color}" onclick="quickStart('${k}')"><span class="ico">${t.icon}</span><span class="nm">${rb(t.label, null)}</span><span class="ds">${rb(t.desc, null)}</span></button>`).join('')}</div>
+        <div class="hint">※ 議題の名前は、はじめてから入力してもOKです。左の「議題リスト」に先に並べておくこともできます。</div>
+      </div>`;
+    }
+
+    function buildMeeting() {
+      const a = cur(), root = $('meeting-root');
+      if (!a) { root.innerHTML = startHtml(); applyStaticRuby(); return; }
+      workTab = S.workTab || 'opinions';
+      root.innerHTML = `<div class="panel" id="meeting-core-panel">
+        <div class="panel-header"><span>🎙️ <span data-rb="学級会"></span>コア</span>
+          <div class="hdr-btns"><button class="btn btn-cyan sm" onclick="togglePresenter()">📺 発表モード</button><button class="btn sm adv" id="btn-edit" onclick="toggleEdit()">✏️ 手順を編集</button><button class="btn btn-green sm" onclick="openNotes('rule')">📒 ノート</button></div></div>
+        <div class="ag-head">
+          <div class="row">
+            <select id="m-type" onchange="changeType(this.value)">${Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.icon} ${t.label}</option>`).join('')}</select>
+            <input type="text" id="m-title" class="grow" placeholder="議題を入力（例：給食のならび方について）" oninput="onTitle(this.value)">
+            <select id="m-status" onchange="onStatus(this.value)"><option value="todo">まだ</option><option value="doing">話し合い中</option><option value="done">おわり</option></select>
+          </div>
+          <div class="row wrap">
+            <label class="row">提案者 <input type="text" id="m-proposer" style="width:110px" oninput="onProposer(this.value)"><button class="mini" onclick="pickInto('m-proposer')">👆</button></label>
+            <label class="row grow">提案理由 <input type="text" id="m-reason" oninput="cur().reason=this.value;save()" placeholder="なぜ話し合いたいか"></label>
+          </div>
+        </div>
+        <div class="stepper" id="m-stepper"></div>
+        <div class="step-card" id="m-step"></div>
+        <div id="m-editor"></div>
+        <details class="phrase-bank" id="m-phrase" ${S.grade === 'low' ? '' : 'open'}></details>
+        <div class="work-tabs" id="w-tabs"></div>
+
+        <div class="work-pane" id="w-opinions">
+          <div class="stamp-row">
+            <button class="btn btn-green" onclick="stampOpinion('agree')">👍 さんせい</button>
+            <button class="btn btn-red" onclick="stampOpinion('disagree')">👎 はんたい</button>
+            <button class="btn" onclick="stampOpinion('idea')">💡 いいこと おもいついた</button>
+            <button class="btn btn-cyan" onclick="stampOpinion('question')">❓ しつもん</button>
+          </div>
+          <div class="op-input">
+            <select id="op-tag">${Object.entries(TAGS).map(([k, t]) => `<option value="${k}">${t.icon} ${t.label}</option>`).join('')}</select>
+            <input type="text" id="op-text" placeholder="出た意見をサッと入力して Enter" onkeydown="if(event.key==='Enter')addOpinion()">
+            <input type="text" id="op-who" placeholder="だれ（番号/名前）" onkeydown="if(event.key==='Enter')addOpinion()"><button class="mini" onclick="pickInto('op-who')">👆</button>
+            <button class="btn" onclick="addOpinion()">追加</button>
+          </div>
+          <div class="chips adv" id="op-filter" style="margin-top:0"></div>
+          <div id="op-list"></div>
+        </div>
+
+        <div class="work-pane" id="w-vote">
+          <div class="vote-top">
+            <button class="btn" onclick="addOption()">+ 案を追加</button>
+            <button class="btn btn-cyan sm" onclick="resetAllVotes()">票を0にもどす</button>
+            <button class="btn btn-cyan sm" onclick="saveVoteToHistory()">💾 履歴に保存</button>
+            <label class="row"><input type="checkbox" id="v-onevote" onchange="cur().oneVote=this.checked;save();renderVotes()"> 1人1票</label>
+          </div>
+          <div class="vote-summary" id="v-summary"></div>
+          <div class="crit-edit row wrap adv" id="v-crit"></div>
+          <div id="v-banner"></div>
+          <div class="vote-container" id="v-cards"></div>
+        </div>
+
+        <div class="work-pane" id="w-decision">
+          <label>📌 決まったこと（ひと言で）</label>
+          <textarea id="m-decision" rows="2" placeholder="例：給食は、時間までに静かに並ぶ。" oninput="onDecision(this.value)"></textarea>
+          <label class="adv">くわしい内容（役割・ルール・持ち物・期限など）</label>
+          <textarea class="adv" id="m-detail" rows="3" placeholder="例：係は〇〇さんと△△さん。持ち物：ボール。ルール：…" oninput="cur().detail=this.value;save()"></textarea>
+          <div class="row wrap adv">
+            <label class="row">実施日・期限 <input type="date" id="m-when" style="width:auto" onchange="cur().when=this.value;save()"></label>
+            <label class="row" id="m-setgoal-wrap"><input type="checkbox" id="m-setgoal" onchange="cur().setGoal=this.checked;save()"> 今月のめあてにも設定する</label>
+          </div>
+          <div class="row wrap"><button class="btn btn-green big" onclick="registerDecision()">✅ 決定ノートに登録する</button><span class="hint" id="reg-state"></span></div>
+        </div>
+
+        <div class="work-pane" id="w-minutes">
+          <label>🗣️ ふりかえり（よかったこと・次にがんばること）</label>
+          <textarea id="m-reflect" rows="3" oninput="cur().reflect=this.value;save()"></textarea>
+          <label>✍️ 書記メモ（決定事項・細かいルールなど）</label>
+          <textarea id="m-memo" rows="3" placeholder="決定事項や細かいルールをしっかり記録しよう..." oninput="cur().memo=this.value;save()"></textarea>
+          <div class="row wrap"><button class="btn btn-cyan" onclick="makeMinutes()">📄 議事録を自動作成</button><button class="btn sm" onclick="copyText($('m-minutes').value)">コピー</button><button class="btn sm" onclick="downloadMinutes()">⬇ 保存(.txt)</button><button class="btn btn-green sm" onclick="storeMinutes(true)">📥 ノートに保存</button></div>
+          <textarea id="m-minutes" rows="12" placeholder="「議事録を自動作成」を押すと、ここに今日の話し合いがまとまります。自由に直せます。" oninput="cur().minutesText=this.value;save()"></textarea>
+        </div>
+      </div>`;
+      $('m-type').value = a.type; $('m-title').value = a.title; $('m-status').value = a.status;
+      $('m-proposer').value = a.proposer; $('m-reason').value = a.reason;
+      $('v-onevote').checked = a.oneVote;
+      $('m-decision').value = a.decision; $('m-detail').value = a.detail; $('m-when').value = a.when || '';
+      $('m-setgoal').checked = a.setGoal; $('m-setgoal-wrap').style.display = a.type === 'goal' ? '' : 'none';
+      $('m-reflect').value = a.reflect; $('m-memo').value = a.memo; $('m-minutes').value = a.minutesText;
+      editMode = false; sayText = '';
+      applyStaticRuby();
+      renderStepper(); renderStep(); renderEditor(); renderPhrases(); renderOpinions(); renderVotes(); renderRegState(); showTab(workTab);
+    }
+
+    // ---- ヘッダー入力
+    function onTitle(v) { const a = cur(); a.title = v; renderAgendaList(); renderStep(); touch(); }
+    function onProposer(v) { cur().proposer = v; renderStep(); touch(); }
+    function onStatus(v) { cur().status = v; renderAgendaList(); save(); }
+    function onDecision(v) { cur().decision = v; renderStep(); touch(); }
+    async function changeType(t) {
+      const a = cur(); if (t === a.type) return;
+      const c = await askChoice('種類をかえる', `「${TYPES[t].label}」に変えます。\n進め方（手順）も入れかえますか？`, ['手順も入れかえる', '種類だけ変える', 'やめる']);
+      if (c === 0 || c === 1) {
+        const oldDef = TYPES[a.type].criteria;
+        if (JSON.stringify(a.criteria) === JSON.stringify(oldDef)) a.criteria = TYPES[t].criteria.slice();
+        a.type = t;
+        if (c === 0) { a.steps = cloneSteps(t); a.stepIdx = 0; }
+        renderAgendaList(); buildMeeting(); touch();
+      } else $('m-type').value = a.type;
+    }
+
+    // ---- ステップ
+    function renderStepper() {
+      const a = cur(); if (!a) return; const box = $('m-stepper');
+      box.innerHTML = a.steps.map((s, i) => `<button class="pill ${i === a.stepIdx ? 'on' : ''} ${i < a.stepIdx ? 'past' : ''}" onclick="goStep(${i})">${i < a.stepIdx ? '✔' : i + 1}. ${rb(s.title, a)}</button>`).join('');
+      const on = box.querySelector('.pill.on');
+      if (on) box.scrollLeft = on.offsetLeft - box.clientWidth / 2 + on.clientWidth / 2;
+    }
+    function renderStep() {
+      const a = cur(); if (!a) return; const s = a.steps[a.stepIdx]; const box = $('m-step');
+      if (!s) { box.innerHTML = '<div class="empty">手順がありません。「手順を編集」から追加できます。</div>'; return; }
+      const last = a.stepIdx >= a.steps.length - 1;
+      box.style.setProperty('--tc', TYPES[a.type].color);
+      box.innerHTML = `<div class="step-top"><span class="step-no">${a.stepIdx + 1} / ${a.steps.length}</span><div class="script-speaker">${rb(s.title, a)}</div>
+          <button class="btn sm" onclick="speakStep()">🔊 よむ</button>
+          ${s.min ? `<button class="btn btn-cyan sm" onclick="startStepTimer()">⏱ ${s.min}分タイマー</button>` : ''}
+          ${s.tool && s.tool !== 'none' ? `<button class="btn sm" onclick="showTab('${TOOL_TAB[s.tool]}')">→ ${TOOLS[s.tool]}</button>` : ''}</div>
+        <div class="step-text">${rb(s.text, a)}</div>
+        ${s.guide ? `<div class="script-guide">💡 ${rb(s.guide, a)}</div>` : ''}
+        ${sayText ? `<div class="say-box"><div><span class="lbl">📢 いま言うこと</span>${rb(sayText, a)}</div><div class="row"><button class="mini" onclick="speak(plain(sayText))">🔊</button><button class="mini adv" onclick="copyText(plain(sayText))">コピー</button><button class="mini red" onclick="saySelect('')">✖</button></div></div>` : ''}
+        <div class="step-nav"><button class="btn" onclick="prevStep()" ${a.stepIdx === 0 ? 'disabled style="opacity:.4"' : ''}>◀ 前へ</button>
+          <button class="btn btn-green big" onclick="nextStep()">${last ? '✅ 話し合いをおわる' : '次へ ▶'}</button></div>`;
+    }
+    function goStep(i) {
+      const a = cur(); if (!a || i < 0 || i >= a.steps.length) return;
+      const fwd = i > a.stepIdx; a.stepIdx = i;
+      const s = a.steps[i];
+      if (TOOL_TAB[s.tool]) showTab(TOOL_TAB[s.tool]);
+      if (s.min && !T.running) setTimer(s.min * 60, s.title);
+      if (fwd) updateExp(2);
+      renderStepper(); renderStep(); if (editMode) renderEditor(); touch();
+    }
+    const prevStep = () => goStep(cur().stepIdx - 1);
+    function nextStep() {
+      const a = cur(); if (!a) return;
+      if (a.stepIdx < a.steps.length - 1) return goStep(a.stepIdx + 1);
+      finishAgenda();
+    }
+    function finishAgenda() {
+      const a = cur(); a.status = 'done'; storeMinutes(false); updateExp(10); playFanfare();
+      const next = S.agendas.find(x => x.status !== 'done');
+      toast('🎉 おつかれさま！ 話し合いが終わりました');
+      renderAgendaList(); $('m-status').value = 'done'; touch();
+      if (next) toast('次の議題：' + (next.title || '（未入力）') + '（左のリストから選べます）', 'warn');
+    }
+    function startStepTimer() {
+      const a = cur(), s = a.steps[a.stepIdx]; if (!s || !s.min) return;
+      setTimer(s.min * 60, s.title); startTimer();
+    }
+
+    // ---- 手順の編集
+    function toggleEdit() { editMode = !editMode; $('btn-edit').textContent = editMode ? '✏️ 編集をとじる' : '✏️ 手順を編集'; renderEditor(); }
+    function renderEditor() {
+      const box = $('m-editor'); if (!box) return;
+      if (!editMode) { box.innerHTML = ''; return; }
+      const a = cur();
+      box.innerHTML = `<div class="editor">
+        <div class="hint">✏️ 進める手順を自由に書きかえできます。<b>{{議題}} {{提案者}} {{司会}} {{副司会}} {{書記}} {{決定}} {{今月のめあて}} {{先月のめあて}}</b> は自動で入ります。ふりがなは <b>[漢字|かんじ]</b> と書くと付きます。</div>
+        ${a.steps.map((s, i) => `<div class="ed-step ${i === a.stepIdx ? 'cur' : ''}">
+          <div class="ed-row"><b>${i + 1}</b>
+            <input type="text" class="grow" value="${esc(s.title)}" oninput="edStep(${i},'title',this.value)" placeholder="手順の名前">
+            <select onchange="edStep(${i},'tool',this.value)">${Object.entries(TOOLS).map(([k, v]) => `<option value="${k}" ${s.tool === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+            <label class="row">⏱<input type="number" class="num" min="0" value="${s.min || 0}" onchange="edStep(${i},'min',+this.value)">分</label>
+            <button class="mini" onclick="moveStep(${i},-1)">▲</button><button class="mini" onclick="moveStep(${i},1)">▼</button><button class="mini" onclick="goStep(${i})">ここへ</button><button class="mini red" onclick="delStep(${i})">✖</button></div>
+          <textarea rows="2" oninput="edStep(${i},'text',this.value)" placeholder="司会が読む言葉">${esc(s.text)}</textarea>
+          <input type="text" value="${esc(s.guide || '')}" placeholder="💡 司会へのメモ（任意）" oninput="edStep(${i},'guide',this.value)">
+        </div>`).join('')}
+        <div class="ed-actions"><button class="btn sm" onclick="addStep()">＋ 手順を追加</button>
+          <button class="btn btn-cyan sm" onclick="saveTemplate()">💾 この手順を「${esc(TYPES[a.type].label)}」の基本にする</button>
+          <button class="btn btn-red sm" onclick="resetSteps()">↩ はじめの手順にもどす</button></div></div>`;
+    }
+    function edStep(i, f, v) {
+      const a = cur(); a.steps[i][f] = v;
+      if (f === 'title') renderStepper();
+      if (f === 'tool' || f === 'min' || f === 'text' || f === 'guide' || f === 'title') { if (i === a.stepIdx) renderStep(); }
+      touch();
+    }
+    function moveStep(i, d) {
+      const a = cur(), j = i + d; if (j < 0 || j >= a.steps.length) return;
+      [a.steps[i], a.steps[j]] = [a.steps[j], a.steps[i]];
+      if (a.stepIdx === i) a.stepIdx = j; else if (a.stepIdx === j) a.stepIdx = i;
+      renderStepper(); renderStep(); renderEditor(); touch();
+    }
+    async function delStep(i) {
+      const a = cur(); if (a.steps.length <= 1) return toast('手順は1つ以上必要です', 'warn');
+      if (!(await askConfirm(`手順「${a.steps[i].title}」を消しますか？`, '消す'))) return;
+      a.steps.splice(i, 1); if (a.stepIdx >= a.steps.length) a.stepIdx = a.steps.length - 1;
+      renderStepper(); renderStep(); renderEditor(); touch();
+    }
+    function addStep() {
+      const a = cur(); const at = a.stepIdx + 1;
+      a.steps.splice(at, 0, { id: uid(), title: '新しい手順', text: '', guide: '', tool: 'none', min: 0 });
+      a.stepIdx = at; renderStepper(); renderStep(); renderEditor(); touch();
+    }
+    function saveTemplate() {
+      const a = cur(); S.customTemplates[tplKey(a.type)] = a.steps.map(s => { const c = { ...s }; delete c.id; return c; });
+      save(); toast(`✅ 次から「${TYPES[a.type].label}」はこの手順で始まります`);
+    }
+    async function resetSteps() {
+      const a = cur();
+      if (!(await askConfirm('この議題の手順を、はじめの手順にもどしますか？', 'もどす'))) return;
+      a.steps = defaultTpl(a.type).map(s => ({ ...s, id: uid() })); a.stepIdx = 0;
+      renderStepper(); renderStep(); renderEditor(); touch();
+    }
+
+    // ---- ことばバンク
+    function phraseCats(a) {
+      if (S.grade === 'low') return [{ name: 'つかう ことば', list: PHRASES_LOW }, { name: 'じぶんの ことば', list: S.customPhrases, custom: true }];
+      const cats = PHRASES_BASE.map(c => ({ name: c.name, list: c.list }));
+      if (PHRASES_TYPE[a.type]) cats.unshift({ name: TYPES[a.type].label + '向け', list: PHRASES_TYPE[a.type] });
+      cats.push({ name: '自分の言葉', list: S.customPhrases, custom: true });
+      return cats;
+    }
+    function renderPhrases() {
+      const a = cur(); const box = $('m-phrase'); if (!a || !box) return;
+      const cats = phraseCats(a); if (phraseCat >= cats.length) phraseCat = 0;
+      const c = cats[phraseCat];
+      box.innerHTML = `<summary>💬 司会のことばバンク <span class="hint">（タップすると「いま言うこと」に大きく出ます）</span></summary>
+        <div class="chips">${cats.map((x, i) => `<button class="chip ${i === phraseCat ? 'on' : ''}" onclick="setPhraseCat(${i})">${esc(x.name)}</button>`).join('')}</div>
+        <div class="chips">${c.list.map((p, i) => `<button class="chip say" onclick="saySelect(phraseCats(cur())[${phraseCat}].list[${i}])">${rb(p, a)}</button>${c.custom ? `<button class="mini red" onclick="delPhrase(${i})">✖</button>` : ''}`).join('')}
+          ${c.custom ? `<button class="chip" onclick="addPhrase()">＋ 言葉を追加</button>` : ''}</div>
+        ${c.custom && !c.list.length ? '<div class="hint">よく使う言葉を登録しておけます。</div>' : ''}`;
+    }
+    function setPhraseCat(i) { phraseCat = i; renderPhrases(); }
+    function saySelect(t) { sayText = t; renderStep(); if (presenterOpen) renderPresenter(); }
+    async function addPhrase() {
+      const t = await askText('登録する言葉（{{議題}} なども使えます）', ''); if (!t || !t.trim()) return;
+      S.customPhrases.push(t.trim()); save(); renderPhrases();
+    }
+    function delPhrase(i) { S.customPhrases.splice(i, 1); save(); renderPhrases(); }
+
+    // ---- 作業タブ
+    function renderWorkTabs() {
+      const a = cur(); const box = $('w-tabs'); if (!a || !box) return;
+      const tabs = [['opinions', '💭 意見', a.opinions.length], ['vote', '📊 案と投票', a.options.length], ['decision', '✅ 決定', a.regId ? '✔' : 0], ['minutes', '📝 議事録', 0]];
+      box.innerHTML = tabs.map(([k, l, n]) => `<button class="wtab ${workTab === k ? 'on' : ''}${k === 'minutes' ? ' adv' : ''}" onclick="showTab('${k}')">${l}${n ? `<span class="bd">${n}</span>` : ''}</button>`).join('');
+    }
+    function showTab(k) {
+      workTab = k; S.workTab = k;
+      ['opinions', 'vote', 'decision', 'minutes'].forEach(t => { const e = $('w-' + t); if (e) e.classList.toggle('on', t === k); });
+      renderWorkTabs(); save();
+    }
+
+    // ---- 意見ボード
+    function addOpinion() {
+      const a = cur(), t = $('op-text'), text = t.value.trim(); if (!text) return;
+      const tag = $('op-tag').value; S.lastTag = tag;
+      a.opinions.push({ id: uid(), text, who: $('op-who').value.trim(), tag, star: false, plus: 0 });
+      t.value = ''; $('op-who').value = ''; t.focus();
+      renderOpinions(); touch(); updateExp(1);
+    }
+    function setOpFilter(k) { opFilter = k; renderOpinions(); }
+    function renderOpinions() {
+      const a = cur(); if (!a || !$('op-list')) return;
+      if ($('op-tag').dataset.init !== a.id) { $('op-tag').value = S.lastTag || 'idea'; $('op-tag').dataset.init = a.id; }
+      const cnt = {}; a.opinions.forEach(o => cnt[o.tag] = (cnt[o.tag] || 0) + 1);
+      $('op-filter').innerHTML = [['all', 'すべて', a.opinions.length], ...Object.entries(TAGS).map(([k, t]) => [k, t.icon + t.label, cnt[k] || 0])]
+        .map(([k, l, n]) => `<button class="chip ${opFilter === k ? 'on' : ''}" onclick="setOpFilter('${k}')">${l} ${n}</button>`).join('');
+      const list = a.opinions.filter(o => opFilter === 'all' || o.tag === opFilter).slice().reverse();
+      $('op-list').innerHTML = list.length ? list.map(o => `<div class="op-item tag-${o.tag} ${o.star ? 'star' : ''}">
+        <span>${TAGS[o.tag].icon}</span>
+        <div class="op-text">${esc(o.text)} ${o.who ? `<span class="op-who">（${esc(o.who)}）</span>` : ''} ${o.plus ? `<span class="op-who">👥+${o.plus}</span>` : ''}</div>
+        <div class="op-btns"><button class="mini ${o.star ? 'on' : ''}" onclick="opAct('${o.id}','star')" title="注目">★</button><button class="mini" onclick="opAct('${o.id}','plus')" title="同じ意見">👥+1</button><button class="mini" onclick="opAct('${o.id}','toOpt')" title="投票の案にする">→案</button><button class="mini" onclick="opAct('${o.id}','edit')">✎</button><button class="mini red" onclick="opAct('${o.id}','del')">✖</button></div></div>`).join('')
+        : '<div class="empty">まだ意見がありません。上の入力欄に、出た意見をどんどん入れよう。</div>';
+    }
+    async function opAct(id, act) {
+      const a = cur(), o = a.opinions.find(x => x.id === id); if (!o) return;
+      if (act === 'star') o.star = !o.star;
+      else if (act === 'plus') o.plus = (o.plus || 0) + 1;
+      else if (act === 'del') a.opinions = a.opinions.filter(x => x !== o);
+      else if (act === 'toOpt') { addOption(o.text, '', true); toast('📊 「案と投票」に追加しました'); }
+      else if (act === 'edit') { const t = await askText('意見をなおす', o.text); if (t && t.trim()) o.text = t.trim(); }
+      renderOpinions(); touch();
+    }
+
+    // ---- 案と投票
+    function leaders(a) {
+      if (!a || !a.options.length) return [];
+      const mx = Math.max(...a.options.map(o => o.count));
+      return mx > 0 ? a.options.filter(o => o.count === mx) : [];
+    }
+    function addOption(name, memo, silent) {
+      const a = cur(); if (!a) return;
+      a.options.push({ id: uid(), name: name || `案${a.options.length + 1}`, memo: memo || '', count: 0, checks: [] });
+      renderVotes(); touch();
+      if (!silent) setTimeout(() => { const els = document.querySelectorAll('.vote-title-input'); if (els.length) els[els.length - 1].focus(); }, 30);
+    }
+    function removeOption(id) { const a = cur(); a.options = a.options.filter(o => o.id !== id); renderVotes(); touch(); }
+    function updateOpt(id, f, v) { const o = cur().options.find(x => x.id === id); if (o) { o[f] = v; save(); if (presenterOpen) renderPresenter(); } }
+    function changeVote(id, d) { const o = cur().options.find(x => x.id === id); if (o) { o.count = Math.max(0, o.count + d); renderVotes(); touch(); } }
+    function setVote(id, v) { const o = cur().options.find(x => x.id === id); if (o) { o.count = Math.max(0, parseInt(v) || 0); renderVotes(); touch(); } }
+    function toggleCheck(id, c) {
+      const o = cur().options.find(x => x.id === id); if (!o) return;
+      const i = o.checks.indexOf(c); if (i >= 0) o.checks.splice(i, 1); else o.checks.push(c);
+      renderVotes(); touch();
+    }
+    async function resetAllVotes() {
+      const a = cur(); if (!a.options.length) return;
+      if (await askConfirm('すべての票を0にもどしますか？', 'もどす')) { a.options.forEach(o => o.count = 0); renderVotes(); touch(); }
+    }
+    function addCrit() { const i = $('crit-in'); const v = i.value.trim(); if (!v) return; const a = cur(); if (!a.criteria.includes(v)) a.criteria.push(v); renderVotes(); touch(); setTimeout(() => $('crit-in') && $('crit-in').focus(), 20); }
+    function delCrit(i) { const a = cur(); const c = a.criteria[i]; a.criteria.splice(i, 1); a.options.forEach(o => o.checks = o.checks.filter(x => x !== c)); renderVotes(); touch(); }
+
+    function renderVotes() {
+      const a = cur(); if (!a || !$('v-cards')) return;
+      const total = a.options.reduce((s, o) => s + o.count, 0), head = S.headcount;
+      let note = '';
+      if (a.oneVote && head > 0 && total > head) note = `<span class="warn">⚠ 合計が点呼人数(${head}人)より多いです</span>`;
+      else if (a.oneVote && head > 0 && total > 0 && total < head) note = `<span>あと${head - total}人分（白票・保留？）</span>`;
+      $('v-summary').innerHTML = `<span>投票の合計：<b style="color:var(--gold)">${total}</b>票</span><span>点呼：${head}人</span><span>${a.round > 1 ? `🔁 ${a.round}回目の投票` : ''}</span>${note}`;
+      $('v-crit').innerHTML = `<span class="hint">確かめる観点：</span>${a.criteria.map((c, i) => `<span class="chip">${esc(c)} <b style="cursor:pointer;color:var(--red)" onclick="delCrit(${i})">×</b></span>`).join('')}<input type="text" id="crit-in" placeholder="観点を追加" style="width:130px" onkeydown="if(event.key==='Enter')addCrit()"><button class="mini" onclick="addCrit()">＋</button>`;
+      const ld = leaders(a), ids = new Set(ld.map(o => o.id));
+      let banner = '';
+      if (ld.length > 1) banner = `<div class="banner tie">⚖ 同数です！（${ld.map(o => esc(o.name)).join(' / ')}）<button class="btn btn-red sm" onclick="runoff()">🔁 決選投票</button><button class="btn btn-cyan sm" onclick="drawLots()">🎲 くじで決める</button></div>`;
+      else if (ld.length === 1) banner = `<div class="banner win">👑 いちばん多い案：${esc(ld[0].name)}（${ld[0].count}票）<button class="btn btn-green sm" onclick="decideOption('${ld[0].id}')">この案に決定</button></div>`;
+      $('v-banner').innerHTML = banner;
+      const sorted = a.options.slice().sort((x, y) => y.count - x.count);
+      $('v-cards').innerHTML = a.options.length ? a.options.map((o, oi) => {
+        const pct = total ? Math.round(o.count / total * 100) : 0;
+        const rank = total ? sorted.findIndex(x => x.count === o.count) + 1 : 0;
+        return `<div class="vote-card ${ids.has(o.id) ? 'lead' : ''}" id="vc-${o.id}">
+          ${rank ? `<span class="rank">${rank}位</span>` : ''}<button class="del-vote-btn" onclick="removeOption('${o.id}')">×</button><div class="opt-emoji">${OPT_EMO[oi % OPT_EMO.length]}</div>
+          <textarea class="vote-title-input" onchange="updateOpt('${o.id}','name',this.value)" oninput="updateOpt('${o.id}','name',this.value)" placeholder="案の名前">${esc(o.name)}</textarea>
+          <textarea class="vote-memo adv" oninput="updateOpt('${o.id}','memo',this.value)" placeholder="内容メモ（ルール・理由など）">${esc(o.memo)}</textarea>
+          ${a.criteria.length ? `<div class="crit adv">${a.criteria.map(c => `<button class="chip ${o.checks.includes(c) ? 'on' : ''}" onclick="toggleCheck('${o.id}',${JSON.stringify(c).replace(/"/g, '&quot;')})">${o.checks.includes(c) ? '✔' : '○'} ${esc(c)}</button>`).join('')}</div>` : ''}
+          <div class="vote-count-row"><button class="btn" onclick="changeVote('${o.id}',-1)">－</button><input type="number" min="0" value="${o.count}" onchange="setVote('${o.id}',this.value)"><button class="btn" onclick="changeVote('${o.id}',1)">＋</button></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><div class="hint" style="text-align:center">${pct}%${a.criteria.length ? `<span class="adv">　観点 ${o.checks.length}/${a.criteria.length}</span>` : ''}</div>
+          <button class="btn btn-green sm" onclick="decideOption('${o.id}')">👑 この案に決定</button></div>`;
+      }).join('') : '<div class="empty" style="grid-column:1/-1">「+ 案を追加」を押すか、意見ボードの「→案」、お役立ちデータベースの「案にする」で案を作ろう。</div>';
+    }
+    function decideOption(id) {
+      const a = cur(), o = a.options.find(x => x.id === id); if (!o) return;
+      a.decision = o.name; if (o.memo && !a.detail) a.detail = o.memo;
+      $('m-decision').value = a.decision; $('m-detail').value = a.detail;
+      const di = a.steps.findIndex(s => s.tool === 'decision');
+      if (di >= 0 && a.stepIdx < di) goStep(di);
+      showTab('decision'); renderStep(); touch(); toast('📌 「決まったこと」に入れました。内容を整えて登録しよう');
+    }
+    async function runoff() {
+      const a = cur(), ld = leaders(a); if (ld.length < 2) return;
+      pushHistory(`${a.title || '多数決'}（${a.round}回目）`, a);
+      a.options = ld.map(o => ({ ...o, count: 0 })); a.round++;
+      renderVotes(); touch(); toast('🔁 同数の案だけ残しました。もう一度投票しよう', 'warn');
+    }
+    function drawLots() {
+      const a = cur(), ld = leaders(a); if (ld.length < 2) return;
+      let n = 0; const pick = ld[Math.floor(Math.random() * ld.length)];
+      const iv = setInterval(() => {
+        document.querySelectorAll('.vote-card').forEach(c => c.classList.remove('spot'));
+        const o = n >= 14 ? pick : ld[n % ld.length];
+        const el = $('vc-' + o.id); if (el) el.classList.add('spot'); tone(600 + (n % 5) * 80, 0.08, 0.08);
+        if (++n > 14) { clearInterval(iv); playFanfare(); toast('🎲 くじの結果：' + pick.name); }
+      }, 130);
+    }
+    function pushHistory(title, a) {
+      S.voteHistory.push({ id: uid(), date: todayStr(), title, agendaTitle: a.title || '', data: a.options.map(o => ({ name: o.name, count: o.count })) });
+    }
+    async function saveVoteToHistory() {
+      const a = cur(); if (!a.options.length) return toast('保存する案がありません', 'warn');
+      const t = await askText('この投票結果の名前', `${a.title || '多数決'}（${a.round}回目）`); if (!t) return;
+      pushHistory(t, a); save(); toast('💾 履歴に保存しました（ノート →「投票」で見られます）');
+    }
+
+    // ---- 決定・議事録
+    function renderRegState() { const a = cur(); if (a && $('reg-state')) $('reg-state').textContent = a.regId ? '✔ 登録ずみ（もう一度押すと内容を更新します）' : ''; }
+    function registerDecision() {
+      const a = cur(), text = a.decision.trim();
+      if (!text) { toast('「決まったこと」を書いてください', 'warn'); $('m-decision').focus(); return; }
+      const rec = { type: a.type, title: a.title, text, detail: a.detail.trim(), when: a.when || '', date: todayStr() };
+      let d = S.decisions.find(x => x.id === a.regId);
+      if (d) Object.assign(d, rec); else { d = { id: uid(), done: false, ...rec }; S.decisions.push(d); a.regId = d.id; updateExp(20); }
+      if (a.type === 'goal' && a.setGoal) { setGoal(monthKey(), text); renderGoalBar(); }
+      a.status = 'done'; $('m-status').value = 'done';
+      if (!a.minutesText.trim()) { a.minutesText = buildMinutesText(a); $('m-minutes').value = a.minutesText; }
+      storeMinutes(false); renderRegState(); renderAgendaList(); touch();
+      showCue('🎉 決定！', 'fanfare');
+    }
+    const TAG_JA = { idea: 'アイデア', agree: '賛成', disagree: '反対', question: '質問', worry: '心配' };
+    function buildMinutesText(a) {
+      const R = S.roles, L = [];
+      L.push('【学級会 議事録】');
+      L.push(`日時：${new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}`);
+      L.push(`第${S.meetingNo || 1}回　議題：${a.title || '（未入力）'}（${TYPES[a.type].label}）`);
+      L.push(`司会：${R.chair || '　'}　副司会：${R.vice || '　'}　書記：${R.scribe || '　'}　提案者：${a.proposer || '　'}`);
+      if (a.reason) L.push('', '■ 提案理由', a.reason);
+      if (a.opinions.length) {
+        L.push('', '■ 出た意見');
+        a.opinions.forEach(o => L.push(`・[${TAG_JA[o.tag]}] ${o.text}${o.who ? `（${o.who}）` : ''}${o.plus ? ` 同じ意見+${o.plus}` : ''}${o.star ? ' ★' : ''}`));
+      }
+      if (a.options.length) {
+        const tot = a.options.reduce((s, o) => s + o.count, 0);
+        L.push('', `■ 案と投票結果（${a.round}回目・合計${tot}票）`);
+        a.options.forEach(o => L.push(`・${o.name}　${o.count}票${o.checks.length ? `　観点：${o.checks.join('・')}` : ''}${o.memo ? `\n　　${o.memo.replace(/\n/g, ' ')}` : ''}`));
+      }
+      L.push('', '■ 決まったこと', a.decision || '（まだ決まっていません）');
+      if (a.detail) L.push('', '■ くわしい内容', a.detail);
+      if (a.when) L.push(`実施日・期限：${a.when}`);
+      if (a.memo) L.push('', '■ 書記メモ', a.memo);
+      if (a.reflect) L.push('', '■ ふりかえり', a.reflect);
+      return L.join('\n');
+    }
+    function makeMinutes() { const a = cur(); a.minutesText = buildMinutesText(a); $('m-minutes').value = a.minutesText; save(); toast('📄 議事録を作りました。自由に直せます'); }
+    function downloadMinutes() { const a = cur(); download(`議事録_${a.title || '学級会'}.txt`, $('m-minutes').value || buildMinutesText(a)); }
+    function storeMinutes(msg) {
+      const a = cur(); if (!a) return;
+      const text = a.minutesText.trim() ? a.minutesText : buildMinutesText(a);
+      let m = S.minutes.find(x => x.agendaId === a.id);
+      if (m) { m.text = text; m.title = a.title; } else S.minutes.push({ id: uid(), agendaId: a.id, date: todayStr(), title: a.title || '（議題未入力）', type: a.type, text });
+      save(); if (msg) toast('📥 議事録をノートに保存しました');
+    }
+
+    // =====================================================
+    // 6. 決定ノート（きまり・めあて・レク・議事録・投票）
+    // =====================================================
+    let notesTab = 'rule', notesBack = null;
+    function openNotes(tab) {
+      notesTab = tab || notesTab;
+      if (!notesBack || !notesBack.parentNode) notesBack = openModal(`<div id="notes-inner" style="display:flex;flex-direction:column;gap:10px;height:100%"></div>`, 'large');
+      renderNotes();
+    }
+    function renderNotes() {
+      const root = document.getElementById('notes-inner'); if (!root) return;
+      const tabs = [['rule', '📏 きまり'], ['goal', '🎯 めあて'], ['rec', '🎉 レク'], ['free', '💬 その他'], ['minutes', '📄 議事録'], ['votes', '📊 投票']];
+      root.innerHTML = `<div class="row" style="justify-content:space-between"><h3>📒 学級会ノート</h3><div class="row no-print"><button class="btn btn-cyan sm" onclick="copyNotes()">コピー</button><button class="btn sm" onclick="printNotes()">🖨 印刷</button><button class="btn btn-red sm" onclick="closeModal(notesBack)">閉じる</button></div></div>
+        <div class="work-tabs no-print">${tabs.map(([k, l]) => `<button class="wtab ${notesTab === k ? 'on' : ''}" onclick="notesTab='${k}';renderNotes()">${l}</button>`).join('')}</div>
+        <div class="notes-list" id="notes-list"></div>`;
+      const L = $('notes-list');
+      if (['rule', 'rec', 'free'].includes(notesTab)) {
+        const items = S.decisions.filter(d => d.type === notesTab);
+        L.innerHTML = `<div class="no-print"><button class="btn sm" onclick="addManualDecision('${notesTab}')">＋ 手入力で追加</button></div>` + (items.length ? items.slice().reverse().map(d => `<div class="note-item ${d.done ? 'done' : ''}">
+          <div class="ni-head"><b style="font-size:1.05rem">${esc(d.text)}</b><span class="ni-sub">${esc(d.date)}</span></div>
+          <div class="ni-sub">議題：${esc(d.title || '—')}${d.when ? `　／　実施日・期限：${esc(d.when)}` : ''}${d.done ? '　✔済' : ''}</div>
+          ${d.detail ? `<pre>${esc(d.detail)}</pre>` : ''}
+          <div class="row no-print">${notesTab === 'rec' ? `<button class="mini" onclick="toggleDecDone('${d.id}')">${d.done ? '↩ 未実施にする' : '✔ 実施した'}</button>` : ''}<button class="mini" onclick="editDecision('${d.id}')">✎ なおす</button><button class="mini red" onclick="delDecision('${d.id}')">✖ 消す</button></div></div>`).join('') : '<div class="empty">まだありません。学級会で決めて「決定ノートに登録」すると、ここに並びます。</div>');
+      } else if (notesTab === 'goal') {
+        const gs = S.goals.slice().sort((a, b) => b.month.localeCompare(a.month));
+        L.innerHTML = gs.length ? gs.map(g => `<div class="note-item"><div class="ni-head"><b style="font-size:1.05rem">${g.month.replace('-', '年')}月</b><span class="stars no-print">${[1, 2, 3, 4, 5].map(n => `<span onclick="rateGoal('${g.id}',${n})">${n <= (g.rating || 0) ? '★' : '☆'}</span>`).join('')}</span></div>
+          <input type="text" value="${esc(g.text)}" oninput="editGoal('${g.id}','text',this.value)" placeholder="めあて">
+          <input type="text" value="${esc(g.note || '')}" oninput="editGoal('${g.id}','note',this.value)" placeholder="ふりかえり（どうだった？ 次にどうする？）"></div>`).join('') : '<div class="empty">今月のめあてを、画面上の入力欄に書くか、「今月のめあて」の学級会で決めよう。月ごとに★で自己評価できます。</div>';
+      } else if (notesTab === 'minutes') {
+        L.innerHTML = S.minutes.length ? S.minutes.slice().reverse().map(m => `<div class="note-item"><div class="ni-head"><b>${TYPES[m.type] ? TYPES[m.type].icon : ''} ${esc(m.title)}</b><span class="ni-sub">${esc(m.date)}</span></div>
+          <details><summary class="ni-sub" style="cursor:pointer">議事録を見る</summary><pre>${esc(m.text)}</pre></details>
+          <div class="row no-print"><button class="mini" onclick="copyMinutes('${m.id}')">コピー</button><button class="mini" onclick="dlMinutes('${m.id}')">保存</button><button class="mini red" onclick="delMinutes('${m.id}')">✖</button></div></div>`).join('') : '<div class="empty">議事録はまだありません。話し合いを終えたり決定を登録すると、自動で保存されます。</div>';
+      } else {
+        L.innerHTML = S.voteHistory.length ? S.voteHistory.slice().reverse().map(h => `<div class="note-item"><div class="ni-head"><b>${esc(h.title)}</b><span class="ni-sub">${esc(h.date)}</span></div>
+          <pre>${h.data.map(d => `${d.name}：${d.count}票`).join('\n')}</pre><div class="row no-print"><button class="mini red" onclick="delVoteHist('${h.id}')">✖</button></div></div>`).join('') : '<div class="empty">投票の履歴はありません。</div>';
+      }
+    }
+    async function addManualDecision(type) {
+      const t = await askText('決まったこと', ''); if (!t || !t.trim()) return;
+      S.decisions.push({ id: uid(), type, title: '手入力', text: t.trim(), detail: '', when: '', date: todayStr(), done: false }); save(); renderNotes();
+    }
+    async function editDecision(id) {
+      const d = S.decisions.find(x => x.id === id); if (!d) return;
+      const t = await askText('決まったこと', d.text); if (t == null) return;
+      const dt = await askText('くわしい内容', d.detail, true); if (dt == null) return;
+      d.text = t.trim() || d.text; d.detail = dt; save(); renderNotes();
+    }
+    async function delDecision(id) { if (!(await askConfirm('このきまりを消しますか？', '消す'))) return; S.decisions = S.decisions.filter(x => x.id !== id); S.agendas.forEach(a => { if (a.regId === id) a.regId = null; }); save(); renderNotes(); renderRegState(); renderWorkTabs(); }
+    function toggleDecDone(id) { const d = S.decisions.find(x => x.id === id); if (d) { d.done = !d.done; save(); renderNotes(); } }
+    function rateGoal(id, n) { const g = S.goals.find(x => x.id === id); if (g) { g.rating = g.rating === n ? 0 : n; save(); renderNotes(); renderGoalBar(); } }
+    function editGoal(id, f, v) { const g = S.goals.find(x => x.id === id); if (g) { g[f] = v; save(); if (f === 'text') renderGoalBar(); } }
+    function copyMinutes(id) { const m = S.minutes.find(x => x.id === id); if (m) copyText(m.text); }
+    function dlMinutes(id) { const m = S.minutes.find(x => x.id === id); if (m) download(`議事録_${m.title}.txt`, m.text); }
+    async function delMinutes(id) { if (await askConfirm('この議事録を消しますか？', '消す')) { S.minutes = S.minutes.filter(x => x.id !== id); save(); renderNotes(); } }
+    function delVoteHist(id) { S.voteHistory = S.voteHistory.filter(x => x.id !== id); save(); renderNotes(); }
+    function notesText() {
+      if (['rule', 'rec', 'free'].includes(notesTab)) {
+        const head = { rule: '【クラスのきまり】', rec: '【学級レク】', free: '【決まったこと】' }[notesTab];
+        return head + '\n' + S.decisions.filter(d => d.type === notesTab).map((d, i) => `${i + 1}. ${d.text}${d.detail ? '\n   ' + d.detail.replace(/\n/g, '\n   ') : ''}${d.when ? `\n   （${d.when}）` : ''}`).join('\n');
+      }
+      if (notesTab === 'goal') return '【月ごとのめあて】\n' + S.goals.slice().sort((a, b) => b.month.localeCompare(a.month)).map(g => `${g.month}：${g.text}　${'★'.repeat(g.rating || 0)}${g.note ? '　' + g.note : ''}`).join('\n');
+      if (notesTab === 'minutes') return S.minutes.map(m => m.text).join('\n\n----------------\n\n');
+      return S.voteHistory.map(h => `${h.date} ${h.title}\n` + h.data.map(d => `  ${d.name}：${d.count}票`).join('\n')).join('\n\n');
+    }
+    function copyNotes() { copyText(notesText()); }
+    function printNotes() { document.body.classList.add('printing'); window.print(); }
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing'));
+
+    // =====================================================
+    // 7. 発表モード（大型モニター用）
+    // =====================================================
+    let presenterOpen = false;
+    function togglePresenter() {
+      presenterOpen = !presenterOpen;
+      $('presenter').classList.toggle('open', presenterOpen);
+      if (presenterOpen) { ac(); renderPresenter(); }
+    }
+    function renderPresenter() {
+      const root = $('presenter'), a = cur();
+      if (!a) { root.innerHTML = `<div class="pr-top"><div class="pr-agenda">議題がありません</div><button class="btn btn-red" onclick="togglePresenter()">✕ とじる</button></div>`; return; }
+      const s = a.steps[a.stepIdx] || { title: '', text: '', tool: 'none' };
+      let work = '';
+      const tool = s.tool;
+      if (tool === 'opinions') {
+        const list = a.opinions;
+        work = list.length ? list.map(o => `<div class="pr-chip tag-${o.tag}">${TAGS[o.tag].icon} ${esc(o.text)}${o.plus ? ` <small>👥+${o.plus}</small>` : ''}${o.star ? ' ★' : ''}</div>`).join('') : '';
+      } else if (tool === 'vote' && a.options.length) {
+        const tot = a.options.reduce((x, o) => x + o.count, 0), ids = new Set(leaders(a).map(o => o.id));
+        work = `<div class="pr-bars">${a.options.map(o => `<div class="pr-bar-row ${ids.has(o.id) ? 'lead' : ''}"><span>${esc(o.name)}</span><div class="bar-bg"><div class="bar-fill" style="width:${tot ? o.count / tot * 100 : 0}%"></div></div><b>${o.count}票</b></div>`).join('')}</div>`;
+      } else if (tool === 'decision' || (a.decision && a.stepIdx >= a.steps.length - 2 && tool !== 'vote')) {
+        work = a.decision ? `<div class="pr-decision">📌 ${esc(a.decision)}</div>` : '';
+        if (a.detail) work += `<div class="pr-text" style="width:100%;font-size:clamp(1.1rem,2.4vw,1.8rem);white-space:pre-wrap">${esc(a.detail)}</div>`;
+      }
+      root.innerHTML = `<div class="pr-top"><div class="pr-agenda">${TYPES[a.type].icon} ${a.title ? rb(a.title, a) : '（議題）'}</div><div class="pr-timer timer-text">${fmt(T.remaining)}</div><button class="btn btn-red" onclick="togglePresenter()">✕ とじる (Esc)</button></div>
+        <div class="pr-step" style="--tc:${TYPES[a.type].color}"><div class="pr-title">${a.stepIdx + 1}. ${rb(s.title, a)}</div><div class="pr-text">${rb(s.text, a)}</div></div>
+        ${sayText ? `<div class="pr-say">📢 ${rb(sayText, a)}</div>` : ''}
+        ${work ? `<div class="pr-work">${work}</div>` : ''}
+        <div class="pr-nav"><button class="btn" onclick="prevStep()">◀ 前へ</button><button class="btn btn-green" onclick="nextStep()">次へ ▶</button></div>`;
+      updateTimerUI();
+    }
+
+    // =====================================================
+    // 8. タイマー
+    // =====================================================
+    const T = { total: 300, remaining: 300, running: false, endAt: 0, label: '', iv: null };
+    function fmt(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+    function updateTimerUI() {
+      document.querySelectorAll('.timer-text').forEach(e => { e.textContent = fmt(T.remaining); e.classList.toggle('low', T.total > 0 && T.remaining <= 10 && (T.running || T.remaining === 0)); });
+      $('timer-bar').style.width = (T.total ? T.remaining / T.total * 100 : 0) + '%';
+      $('timer-label').textContent = T.label || '';
+      $('btn-timer-toggle').textContent = T.running ? '⏸ とめる' : '▶ スタート';
+    }
+    function setTimer(sec, label) {
+      stopTimerInterval(); T.total = T.remaining = Math.max(0, sec); T.label = label || '';
+      $('t-min').value = Math.floor(sec / 60); $('t-sec').value = sec % 60; updateTimerUI();
+    }
+    function applyCustomTimer() { setTimer((parseInt($('t-min').value) || 0) * 60 + (parseInt($('t-sec').value) || 0), ''); }
+    function quickTimer(sec) { setTimer(sec, ''); startTimer(); }
+    function stopTimerInterval() { clearInterval(T.iv); T.running = false; }
+    function startTimer() {
+      if (T.remaining <= 0) T.remaining = T.total; if (T.remaining <= 0) return;
+      ac(); T.running = true; T.endAt = Date.now() + T.remaining * 1000;
+      clearInterval(T.iv); T.iv = setInterval(tick, 200); updateTimerUI();
+    }
+    function pauseTimer() { if (T.running) { T.remaining = Math.max(0, Math.ceil((T.endAt - Date.now()) / 1000)); } stopTimerInterval(); updateTimerUI(); }
+    function toggleTimer() { T.running ? pauseTimer() : startTimer(); }
+    function resetTimer() { stopTimerInterval(); T.remaining = T.total; updateTimerUI(); }
+    function tick() {
+      const left = Math.max(0, Math.ceil((T.endAt - Date.now()) / 1000));
+      if (left !== T.remaining) { T.remaining = left; updateTimerUI(); if (left > 0 && left <= 3) playBeep(); }
+      if (left <= 0) { stopTimerInterval(); updateTimerUI(); triggerFlare(); showCue('⏰ 時間です', 'chime'); }
+    }
+
+    // =====================================================
+    // 9. メンバー・ガチャ・班分け
+    // =====================================================
+    function parseNums(str) {
+      const set = new Set();
+      String(str || '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).split(/[,、\s]+/).forEach(tok => {
+        if (!tok) return; const m = tok.match(/^(\d+)[-〜~ー](\d+)$/);
+        if (m) { for (let i = +m[1]; i <= +m[2] && i < 500; i++) set.add(i); } else if (/^\d+$/.test(tok)) set.add(+tok);
+      });
+      return set;
+    }
+    function presentList() { const ab = parseNums(S.absent), r = []; for (let i = 1; i <= S.maxStudents; i++) if (!ab.has(i)) r.push(i); return r; }
+    function saveMembers(keepFocus) {
+      S.maxStudents = Math.max(1, parseInt($('max-students').value) || 35); S.absent = $('absent-input').value;
+      if (S.headcount > S.maxStudents) S.headcount = S.maxStudents;
+      renderMembers(!keepFocus); save();
+    }
+    function renderMembers(rebuildSelect) {
+      $('present-info').textContent = `出席見込み：${presentList().length}人`;
+      if (rebuildSelect !== false) {
+        const sel = $('headcount-select'); sel.innerHTML = '';
+        for (let i = 0; i <= S.maxStudents; i++) sel.add(new Option(i + '人', i));
+        sel.value = S.headcount;
+      }
+      $('used-info').textContent = S.usedNums.length ? '当たり済み：' + S.usedNums.join(', ') : '';
+      if (cur() && $('v-summary')) renderVotes();
+    }
+    function changeHeadcount(v) { S.headcount = parseInt(v) || 0; save(); if (cur()) renderVotes(); }
+    function autoHeadcount() { S.headcount = presentList().length; $('headcount-select').value = S.headcount; save(); if (cur()) renderVotes(); toast(`点呼人数を ${S.headcount}人 にしました`); }
+    function resetUsed() { S.usedNums = []; save(); renderMembers(false); }
+    function spinRoulette() {
+      const pool = presentList().filter(n => !S.noRepeat || !S.usedNums.includes(n));
+      if (!pool.length) {
+        if (S.usedNums.length) { S.usedNums = []; toast('全員が当たったので、はじめからにします', 'warn'); return spinRoulette(); }
+        return toast('出席番号がありません', 'warn');
+      }
+      const final = pool[Math.floor(Math.random() * pool.length)], el = $('rng-result'); let c = 0;
+      const iv = setInterval(() => {
+        el.textContent = pool[Math.floor(Math.random() * pool.length)]; tone(500 + c * 20, 0.05, 0.05);
+        if (++c > 15) {
+          clearInterval(iv); el.textContent = final; playBeep();
+          if (S.noRepeat) S.usedNums.push(final); renderMembers(false); save();
+        }
+      }, 55);
+    }
+    let lastGroupsText = '';
+    function generateGroups() {
+      const list = shuffle(presentList()); if (!list.length) return toast('出席者がいません', 'warn');
+      const val = Math.max(1, parseInt($('group-count').value) || 1);
+      const n = $('group-mode').value === 'count' ? Math.min(val, list.length) : Math.ceil(list.length / val);
+      const groups = Array.from({ length: n }, () => []); list.forEach((x, i) => groups[i % n].push(x));
+      const leader = $('group-leader').checked;
+      lastGroupsText = groups.map((g, i) => `第${i + 1}班：${g.map((x, j) => leader && j === 0 ? `${x}(班長)` : x).join(', ')}`).join('\n');
+      $('group-result').innerHTML = groups.map((g, i) => `<div style="margin-bottom:5px"><strong style="color:var(--gold)">第${i + 1}班（${g.length}人）:</strong> ${g.map((x, j) => leader && j === 0 ? `<b style="color:var(--cyan)">${x}★</b>` : x).join(', ')}</div>`).join('');
+      playBeep();
+    }
+
+    // =====================================================
+    // 10. タスク・DB・各種入力
+    // =====================================================
+    function renderTasks() {
+      const c = $('task-list-container');
+      c.innerHTML = S.tasks.length ? S.tasks.map((t, i) => `<div class="task-item ${t.priority} ${t.done ? 'done' : ''}"><span>${esc(t.text)}</span><span class="row"><button class="mini" onclick="toggleTask(${i})">✔</button><button class="mini red" onclick="deleteTask(${i})">✖</button></span></div>`).join('') : '<div class="empty">やることを入れておこう</div>';
+      save();
+    }
+    function addTask() { const i = $('task-input'); if (!i.value.trim()) return; S.tasks.push({ text: i.value.trim(), priority: $('task-pri').value, done: false }); i.value = ''; renderTasks(); updateExp(5); }
+    function toggleTask(i) { S.tasks[i].done = !S.tasks[i].done; if (S.tasks[i].done) updateExp(10); renderTasks(); }
+    function deleteTask(i) { S.tasks.splice(i, 1); renderTasks(); }
+    function clearDoneTasks() { S.tasks = S.tasks.filter(t => !t.done); renderTasks(); }
+
+    function renderDb() {
+      const q = $('db-search').value.trim().toLowerCase(), cf = $('db-cat-filter').value;
+      const list = S.db.filter(d => (cf === 'all' || d.cat === cf) && (!q || (d.title + d.detail).toLowerCase().includes(q)));
+      $('db-container').innerHTML = list.length ? list.map(d => `<div class="db-item">
+        <div class="row"><select style="width:auto" onchange="updateDb('${d.id}','cat',this.value)">${Object.entries(DB_CATS).map(([k, v]) => `<option value="${k}" ${d.cat === k ? 'selected' : ''}>${v}</option>`).join('')}</select><input type="text" value="${esc(d.title)}" oninput="updateDb('${d.id}','title',this.value)" placeholder="タイトル"></div>
+        <textarea oninput="updateDb('${d.id}','detail',this.value)" placeholder="詳しい内容（ルール・時間・道具など）">${esc(d.detail)}</textarea>
+        <div class="row" style="justify-content:flex-end"><button class="btn btn-cyan sm" onclick="dbToOption('${d.id}')">→ 案にする</button><button class="btn btn-red sm" onclick="deleteDbItem('${d.id}')">削除</button></div></div>`).join('') : '<div class="empty">該当するものがありません</div>';
+    }
+    function addDbItem() { S.db.unshift({ id: uid(), cat: 'etc', title: '', detail: '' }); $('db-search').value = ''; $('db-cat-filter').value = 'all'; renderDb(); save(); }
+    function updateDb(id, f, v) { const d = S.db.find(x => x.id === id); if (d) { d[f] = v; save(); } }
+    async function deleteDbItem(id) { if (await askConfirm('このメモを消しますか？', '消す')) { S.db = S.db.filter(d => d.id !== id); renderDb(); save(); } }
+    function dbToOption(id) {
+      const d = S.db.find(x => x.id === id); if (!d) return;
+      if (!cur()) return toast('先に議題をえらんでね', 'warn');
+      addOption(d.title, d.detail, true); toast('📊 「案と投票」に追加しました');
+    }
+
+    function onRole(k, v) { S.roles[k] = v; save(); if (cur()) { renderStep(); renderStepper(); if (presenterOpen) renderPresenter(); } }
+    function onMeetingNo(v) { S.meetingNo = Math.max(1, parseInt(v) || 1); save(); if (cur()) renderStep(); }
+
+    // =====================================================
+    // 11. 設定・バックアップ・終礼リセット
+    // =====================================================
+    function toggleFurigana() { S.furigana = !S.furigana; document.body.classList.toggle('furigana-mode', S.furigana); save(); }
+    function fontStep(d) { S.fontScale = Math.min(1.6, Math.max(0.8, Math.round((S.fontScale + d) * 10) / 10)); document.documentElement.style.fontSize = (16 * S.fontScale) + 'px'; save(); }
+
+    function openSettings() {
+      const b = openModal(`<h3>⚙ せってい・つかいかた</h3>
+        <div><b>🎒 学年・操作のしかた</b><div class="row wrap" style="margin-top:6px">
+          <label class="row"><input type="checkbox" ${S.simple ? 'checked' : ''} onchange="toggleSimple(this.checked)"> かんたん表示</label>
+          <label class="row"><input type="checkbox" ${S.osk ? 'checked' : ''} onchange="setOsk(this.checked)"> 画面キーボード</label>
+          <label class="row"><input type="checkbox" ${S.furigana ? 'checked' : ''} onchange="setFurigana(this.checked)"> ふりがな</label></div></div>
+        <div><b>👥 名簿（任意）</b><div class="hint">1行に1人。「3 ひろむ」のように番号を付けても、上から順でもOK。番号ピッカーに名前が出ます。この端末の中だけに保存されます。</div>
+          <textarea rows="4" id="roster-in" oninput="saveRoster(this.value)" placeholder="1 さくら&#10;2 たろう">${esc((S.roster || []).map((n, i) => n ? `${i + 1} ${n}` : '').filter(Boolean).join('\n'))}</textarea></div>
+        <div><b>⌨ キーボード</b><div class="hint" style="line-height:1.9"><kbd>←</kbd> <kbd>→</kbd> 手順を前後に　<kbd>P</kbd> 発表モード　<kbd>T</kbd> タイマー開始/停止　<kbd>Esc</kbd> とじる</div></div>
+        <div><b>💡 ひと言ガイド</b><div class="hint" style="line-height:1.7">・議題を選ぶ → 手順に沿って「次へ」で進行<br>・「手順を編集」で、読む言葉や順番を自由に変更（議題ごとに変えられます）<br>・意見は「意見」タブに入力 →「→案」で投票の案に<br>・決まったら「決定」タブで登録 → 決定ノートに残ります<br>・データはこのブラウザに自動保存されます</div></div>
+        <div class="m-btns" style="justify-content:flex-start">
+          <button class="btn btn-cyan" onclick="exportData()">⬇ バックアップを保存</button>
+          <button class="btn btn-cyan" onclick="$('import-file').click()">⬆ バックアップから復元</button>
+          <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])">
+        </div>
+        <div class="m-btns" style="justify-content:flex-start"><button class="btn sm" onclick="resetTemplates()">自分用の手順を初期化</button><button class="btn btn-red sm" onclick="wipeAll()">全データを消す</button></div>
+        <div class="m-btns"><button class="btn" id="set-close">閉じる</button></div>`);
+      b.querySelector('#set-close').onclick = () => b.remove();
+    }
+    function exportData() { flush(); download(`学級委員コンソール_バックアップ_${monthKey()}.json`, JSON.stringify(S, null, 1), 'application/json'); toast('⬇ 保存しました'); }
+    function importData(file) {
+      if (!file) return;
+      const r = new FileReader();
+      r.onload = async () => {
+        try {
+          const d = JSON.parse(r.result); if (!d || typeof d !== 'object' || !Array.isArray(d.agendas)) throw new Error('形式がちがいます');
+          if (!(await askConfirm('いまのデータを、バックアップの内容で置きかえます。よろしいですか？', '復元する'))) return;
+          S = Object.assign(defaultState(), d); S.roles = Object.assign(defaultState().roles, d.roles || {}); flush(); location.reload();
+        } catch (e) { toast('読みこめませんでした：' + e.message, 'warn'); }
+      };
+      r.readAsText(file);
+    }
+    async function resetTemplates() { if (await askConfirm('編集して保存した「自分用の手順」を、すべて初期にもどしますか？\n（すでに作った議題には影響しません）', 'もどす')) { S.customTemplates = {}; save(); toast('初期の手順にもどしました'); } }
+    async function wipeAll() {
+      if (!(await askConfirm('すべてのデータ（議題・ノート・めあて・メモ）を消します。\n先にバックアップを保存することをおすすめします。', '全部消す'))) return;
+      S = defaultState(); flush(); location.reload();
+    }
+    async function resetDay() {
+      const c = await askChoice('終礼リセット', '今日の分をリセットします。\n・完了したタスク、先生への報告、点呼、欠席、ガチャ記録をクリア\n・「おわり」にした議題を片づけ（決定ノート・議事録は残ります）\n・未完了の議題は次回に持ち越し\n・学級会の回数を +1', ['リセットする', 'やめる']);
+      if (c !== 0) return;
+      S.tasks = S.tasks.filter(t => !t.done); S.daily = ''; $('daily-memo').value = '';
+      S.headcount = 0; S.absent = ''; $('absent-input').value = ''; S.usedNums = [];
+      storeAllDoneMinutes();
+      S.agendas = S.agendas.filter(a => a.status !== 'done');
+      if (!S.agendas.find(a => a.id === S.curId)) S.curId = S.agendas.length ? S.agendas[0].id : null;
+      S.meetingNo = (S.meetingNo || 1) + 1; $('meeting-no').value = S.meetingNo;
+      renderTasks(); renderMembers(true); renderAgendaList(); buildMeeting(); updateExp(20); touch();
+      toast('お疲れさまでした！ボーナスEXPを獲得 🎉');
+    }
+    function storeAllDoneMinutes() {
+      S.agendas.filter(a => a.status === 'done').forEach(a => {
+        const text = a.minutesText.trim() ? a.minutesText : buildMinutesText(a);
+        const m = S.minutes.find(x => x.agendaId === a.id);
+        if (m) m.text = text; else S.minutes.push({ id: uid(), agendaId: a.id, date: todayStr(), title: a.title || '（議題未入力）', type: a.type, text });
+      });
+    }
+
+
+    // =====================================================
+    // 11b. 学年モード・画面キーボード・名前ピッカー・よみあげ
+    // =====================================================
+    const fire = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true }));
+    function applyGradeUI() {
+      const g = S.grade || 'high', b = document.body;
+      ['low', 'mid', 'high'].forEach(k => b.classList.toggle('grade-' + k, k === g));
+      b.classList.toggle('simple', !!S.simple);
+      b.classList.toggle('furigana-mode', !!S.furigana);
+      document.documentElement.style.fontSize = (16 * (S.fontScale || 1)) + 'px';
+      $('grade-switch').innerHTML = Object.entries(GRADES).map(([k, v]) => `<button class="${k === g ? 'on' : ''}" onclick="setGrade('${k}')" title="${v.sub}">${v.icon} ${v.label}</button>`).join('');
+      $('osk-toggle').textContent = `⌨ 画面キーボード：${S.osk ? 'ON' : 'OFF'}`;
+      if (!S.osk) oskHide();
+    }
+    async function setGrade(k) {
+      const G = GRADES[k];
+      S.grade = k; S.furigana = G.furigana; S.fontScale = G.fontScale; S.osk = G.osk; S.simple = G.simple;
+      applyGradeUI(); save();
+      const a = cur();
+      if (a) {
+        const c = await askChoice('学年をかえました', `「${G.label}」用に、いまの議題の進め方（手順）も入れかえますか？\n（出た意見や投票はそのまま残ります）`, ['入れかえる', 'そのまま']);
+        if (c === 0) { a.steps = cloneSteps(a.type); a.stepIdx = 0; }
+      }
+      buildMeeting(); renderAgendaList(); touch(); toast(`${G.icon} ${G.label}モードにしました`);
+    }
+    function openGradeChooser() {
+      const b = openModal(`<h3>🎒 学年をえらんでね</h3><p class="m-msg">学年に合わせて、文字の大きさ・ふりがな・入力のしかたが変わります。あとから、いつでも上のボタンで変えられます。</p>
+        <div class="grade-cards">${Object.entries(GRADES).map(([k, g]) => `<button class="start-card" style="--c:var(--gold)" data-g="${k}"><span class="ico">${g.icon}</span><span class="nm">${g.label}</span><span class="ds">${g.sub}<br>${g.desc}</span></button>`).join('')}</div>`, 'wide', () => { if (!S.grade) { S.grade = 'high'; applyGradeUI(); save(); } });
+      b.querySelectorAll('[data-g]').forEach(btn => btn.onclick = () => { b.remove(); setGrade(btn.dataset.g); });
+    }
+    function setOsk(v) { S.osk = !!v; applyGradeUI(); save(); if (v) toast('⌨ 入力ボックスをタッチすると、画面キーボードが出ます'); }
+    function toggleSimple(v) { S.simple = !!v; applyGradeUI(); save(); }
+    function setFurigana(v) { S.furigana = !!v; applyGradeUI(); save(); }
+
+    // ---- 読み上げ
+    function speak(text) {
+      if (!('speechSynthesis' in window)) return toast('この端末では読み上げできません', 'warn');
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(String(text).replace(/〇〇/g, '')); u.lang = 'ja-JP'; u.rate = 0.9; speechSynthesis.speak(u);
+    }
+    function speakStep() { const a = cur(), s = a && a.steps[a.stepIdx]; if (s) speak(plain(s.title + '。' + s.text, a)); }
+
+    // ---- 名前・番号ピッカー
+    const labelOf = n => ((S.roster || [])[n - 1]) || `${n}番`;
+    function openPicker(o) {
+      const ab = parseNums(S.absent), sel = new Set(o.selected || []);
+      const b = openModal(`<h3>${esc(o.title)}</h3><div class="pick-grid" id="pk-grid"></div><div class="m-btns">${o.skip ? '<button class="btn btn-cyan" id="pk-skip">とばす</button>' : ''}${o.multi ? '' : '<button class="btn btn-cyan" id="pk-rand">🎲 ランダム</button>'}${o.multi ? '<button class="btn" id="pk-ok">きめた</button>' : ''}<button class="btn btn-red" id="pk-cancel">やめる</button></div>`, 'wide');
+      const grid = b.querySelector('#pk-grid');
+      for (let n = 1; n <= S.maxStudents; n++) {
+        const nm = (S.roster || [])[n - 1], btn = document.createElement('button');
+        btn.className = 'pk' + (sel.has(n) ? ' on' : '') + (ab.has(n) && !o.multi ? ' ab' : '');
+        btn.innerHTML = `<b>${n}</b>${nm ? `<small>${esc(nm)}</small>` : ''}`;
+        btn.onclick = () => { if (o.multi) { sel.has(n) ? sel.delete(n) : sel.add(n); btn.classList.toggle('on'); } else { b.remove(); o.onDone(n); } };
+        grid.appendChild(btn);
+      }
+      b.querySelector('#pk-cancel').onclick = () => b.remove();
+      const sk = b.querySelector('#pk-skip'); if (sk) sk.onclick = () => { b.remove(); o.onDone(0); };
+      const rd = b.querySelector('#pk-rand'); if (rd) rd.onclick = () => { const l = presentList(); if (!l.length) return; b.remove(); o.onDone(l[Math.floor(Math.random() * l.length)]); };
+      const ok = b.querySelector('#pk-ok'); if (ok) ok.onclick = () => { b.remove(); o.onDone([...sel].sort((x, y) => x - y)); };
+    }
+    function pickInto(id) {
+      openPicker({ title: '👆 だれ？ タッチしてえらぶ', multi: false, onDone: n => { const el = $(id); if (!el) return; el.value = n ? labelOf(n) : ''; fire(el, 'input'); } });
+    }
+    function pickAbsent() {
+      openPicker({ title: '👆 おやすみの人をタッチ（もう一度でもどる）', multi: true, selected: [...parseNums(S.absent)], onDone: arr => { $('absent-input').value = arr.join(','); saveMembers(); } });
+    }
+    function stampOpinion(tag) {
+      const a = cur(); if (!a) return;
+      if (tag === 'agree' || tag === 'disagree') {
+        openPicker({ title: `${TAGS[tag].icon} ${TAGS[tag].label}の人は だれ？（とばしてもOK）`, multi: false, skip: true, onDone: n => {
+          a.opinions.push({ id: uid(), text: TAGS[tag].label, who: n ? labelOf(n) : '', tag, star: false, plus: 0 });
+          renderOpinions(); touch(); updateExp(1);
+        } });
+      } else { $('op-tag').value = tag; S.lastTag = tag; $('op-text').focus(); }
+    }
+    function saveRoster(txt) {
+      const arr = []; let seq = 0;
+      String(txt).split('\n').forEach(l => {
+        l = l.trim(); if (!l) return;
+        const m = l.match(/^(\d+)[\s:：、,.\-]+(.+)$/);
+        if (m) arr[+m[1] - 1] = m[2].trim(); else arr[seq] = l;
+        seq++;
+      });
+      S.roster = Array.from(arr, x => x || ''); save();
+    }
+
+    // ---- 画面キーボード（ひらがな・カタカナ・数字・音声入力）
+    const OSK = { target: null, mode: 'kana', kata: false, fresh: false, dirty: false, rec: null };
+    const KANA_COLS = [['あ', 'い', 'う', 'え', 'お'], ['か', 'き', 'く', 'け', 'こ'], ['さ', 'し', 'す', 'せ', 'そ'], ['た', 'ち', 'つ', 'て', 'と'], ['な', 'に', 'ぬ', 'ね', 'の'], ['は', 'ひ', 'ふ', 'へ', 'ほ'], ['ま', 'み', 'む', 'め', 'も'], ['や', '', 'ゆ', '', 'よ'], ['ら', 'り', 'る', 'れ', 'ろ'], ['わ', '', 'を', '', 'ん']];
+    const DAKU = {}, HAN = {}, SMALL = {};
+    ['かが', 'きぎ', 'くぐ', 'けげ', 'こご', 'さざ', 'しじ', 'すず', 'せぜ', 'そぞ', 'ただ', 'ちぢ', 'つづ', 'てで', 'とど', 'うゔ'].forEach(p => { DAKU[p[0]] = p[1]; DAKU[p[1]] = p[0]; });
+    ['はばぱ', 'ひびぴ', 'ふぶぷ', 'へべぺ', 'ほぼぽ'].forEach(t => { DAKU[t[0]] = t[1]; DAKU[t[1]] = t[0]; DAKU[t[2]] = t[1]; HAN[t[0]] = t[2]; HAN[t[2]] = t[0]; HAN[t[1]] = t[2]; });
+    ['あぁ', 'いぃ', 'うぅ', 'えぇ', 'おぉ', 'やゃ', 'ゆゅ', 'よょ', 'つっ', 'わゎ'].forEach(p => { SMALL[p[0]] = p[1]; SMALL[p[1]] = p[0]; });
+    const toKata = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+    const toHira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function isTextTarget(t) {
+      if (!t || !t.tagName || t.readOnly || t.disabled) return false;
+      if (t.tagName === 'TEXTAREA') return true;
+      return t.tagName === 'INPUT' && ['text', 'number', 'search', ''].includes(t.type || 'text');
+    }
+    function oskSuggestions(t) {
+      if (!t) return []; const a = cur(), low = S.grade === 'low';
+      if (t.id === 'op-text') return low ? ['さんせいです', 'はんたいです', '〜が いいです', '〜が したいです', 'なぜなら〜', 'つけたしです'] : ['〜がいいと思います', '〜したいです', '〜はどうですか', '理由は〜', '付け足しです', '賛成です', '反対です'];
+      if (t.id === 'm-title' || t.id === 'ag-title') {
+        const type = t.id === 'm-title' && a ? a.type : $('ag-type').value;
+        const M = low ? { rule: ['ろうかの あるきかた', 'きゅうしょくの ならびかた', 'そうじの やりかた', 'ことばづかい'], goal: ['なかよくする クラス', 'はなしを さいごまで きく', 'あいさつを する'], rec: ['おたのしみかい', 'ドッジボール', 'おにごっこ'], free: ['クラスの かかり', 'せきがえ'] }
+          : { rule: ['廊下の歩き方', '給食の並び方', '掃除のやり方', '言葉づかい', '休み時間のすごし方'], goal: ['なかよくするクラス', '話を最後まで聞く', 'あいさつをする'], rec: ['お楽しみ会', 'ドッジボール', 'おにごっこ', 'ゲーム大会'], free: ['クラスの係', '席がえ'] };
+        return M[type] || [];
+      }
+      if (t.id === 'm-decision') return ['〜する', '〜にする', '〜を守る'];
+      if (t.id === 'm-reflect') return ['よかったこと：', '次にがんばること：', 'みんなが意見を言えました'];
+      return [];
+    }
+    function oskShow(t) {
+      OSK.target = t; OSK.dirty = false;
+      if (t.type === 'number') OSK.fresh = true;
+      else if (OSK.mode === 'num' && false) OSK.mode = 'kana';
+      renderOsk(); $('osk').classList.add('open'); document.body.classList.add('osk-open'); updateOskH();
+      setTimeout(() => {
+        try {
+          if (t.closest('.modal')) return;
+          const r = t.getBoundingClientRect(), vb = innerHeight - $('osk').offsetHeight - 16;
+          if (r.bottom > vb) scrollBy({ top: r.bottom - vb + 40, behavior: 'smooth' });
+          else if (r.top < 70) scrollBy({ top: r.top - 100, behavior: 'smooth' });
+        } catch (e) { }
+      }, 80);
+    }
+    function oskHide() {
+      const t = OSK.target;
+      if (t && OSK.dirty && document.body.contains(t)) { OSK.dirty = false; fire(t, 'change'); }
+      OSK.target = null; const el = $('osk'); if (el) el.classList.remove('open');
+      document.body.classList.remove('osk-open');
+      if (OSK.rec) { try { OSK.rec.stop(); } catch (e) { } OSK.rec = null; }
+    }
+    function updateOskH() { const el = $('osk'); document.documentElement.style.setProperty('--osk-h', (el.offsetHeight || 300) + 'px'); }
+    function renderOsk() {
+      const t = OSK.target, el = $('osk'); if (!t) return;
+      const isNum = t.type === 'number', isArea = t.tagName === 'TEXTAREA';
+      const k = c => OSK.kata ? toKata(c) : c;
+      const key = (c, cls) => `<button class="osk-key ${cls || ''}" data-k="${esc(c)}">${esc(c)}</button>`;
+      const fn = (id, label, cls) => `<button class="osk-key fn ${cls || ''}" data-fn="${id}">${label}</button>`;
+      let h = '';
+      const sug = isNum ? [] : oskSuggestions(t);
+      if (sug.length) h += `<div class="osk-sug">${sug.map(s => `<button class="chip say" data-ins="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
+      if (isNum) {
+        h += `<div class="osk-grid n5">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map(d => key(d)).join('')}</div>
+          <div class="osk-row">${fn('back', '⌫ けす')}${fn('close', 'とじる')}${fn('ok', '✔ OK', 'ok')}</div>`;
+      } else if (OSK.mode === 'num') {
+        h += `<div class="osk-grid n5">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map(d => key(d)).join('')}</div>
+          <div class="osk-grid n5">${['「', '」', '・', '〜', '（', '）', '＋', '＝', '○', '×'].map(d => key(d)).join('')}</div>`;
+      } else {
+        let g = '';
+        for (let r = 0; r < 5; r++) for (let c = 0; c < 10; c++) { const ch = KANA_COLS[c][r]; g += ch ? `<button class="osk-key" data-k="${ch}">${k(ch)}</button>` : '<button class="osk-key empty" tabindex="-1"></button>'; }
+        h += `<div class="osk-grid">${g}</div>
+          <div class="osk-row">${fn('daku', '゛')}${fn('han', '゜')}${fn('small', 'ゃゅょっ')}${key('ー')}${key('、')}${key('。')}${key('？')}${key('！')}${key('〜')}</div>`;
+      }
+      if (!isNum) {
+        h += `<div class="osk-row">${fn('kata', OSK.kata ? 'あ ひらがな' : 'ア カタカナ')}${fn(OSK.mode === 'num' ? 'kana' : 'num', OSK.mode === 'num' ? 'あいう' : '123 記号')}${fn('space', '⎵ あき')}${isArea ? fn('nl', '↵ かいぎょう') : fn('enter', '↵ けってい', 'ok')}${SR ? fn('mic', OSK.rec ? '⏹ とめる' : '🎤 こえ', OSK.rec ? 'rec' : '') : ''}${fn('back', '⌫ けす')}${fn('close', 'とじる')}</div>`;
+      }
+      el.innerHTML = h; updateOskH();
+    }
+    function oskInsert(txt) {
+      const t = OSK.target; if (!t) return;
+      if (t.type === 'number') {
+        const cur0 = OSK.fresh ? '' : (t.value || ''); OSK.fresh = false;
+        t.value = (cur0 + txt).slice(0, 4); OSK.dirty = true; fire(t, 'input'); return;
+      }
+      const s = t.selectionStart == null ? t.value.length : t.selectionStart, e = t.selectionEnd == null ? s : t.selectionEnd;
+      t.setRangeText(txt, s, e, 'end'); fire(t, 'input');
+    }
+    function oskBack() {
+      const t = OSK.target; if (!t) return;
+      if (t.type === 'number') { OSK.fresh = false; t.value = String(t.value || '').slice(0, -1); OSK.dirty = true; fire(t, 'input'); return; }
+      const s = t.selectionStart, e = t.selectionEnd;
+      if (s !== e) { t.setRangeText('', s, e, 'end'); } else if (s > 0) { t.setRangeText('', s - 1, s, 'end'); } else return;
+      fire(t, 'input');
+    }
+    function oskTransform(map) {
+      const t = OSK.target; if (!t || t.type === 'number') return; const pos = t.selectionStart; if (!pos) return;
+      const c = t.value[pos - 1], r = map[toHira(c)]; if (!r) return;
+      t.setRangeText(/[ァ-ヶ]/.test(c) ? toKata(r) : r, pos - 1, pos, 'end'); fire(t, 'input');
+    }
+    function oskMic() {
+      if (!SR) return;
+      if (OSK.rec) { try { OSK.rec.stop(); } catch (e) { } OSK.rec = null; return renderOsk(); }
+      const r = new SR(); r.lang = 'ja-JP'; r.interimResults = false;
+      r.onresult = ev => { const txt = ev.results[0][0].transcript; if (txt) oskInsert(txt); };
+      r.onerror = () => { toast('こえが ききとれませんでした', 'warn'); };
+      r.onend = () => { OSK.rec = null; if (OSK.target) renderOsk(); };
+      try { r.start(); OSK.rec = r; toast('🎤 はなしてね'); } catch (e) { toast('この端末では使えません', 'warn'); }
+      renderOsk();
+    }
+    function oskFn(f) {
+      const t = OSK.target;
+      if (f === 'back') oskBack();
+      else if (f === 'space') oskInsert('　');
+      else if (f === 'nl') oskInsert('\n');
+      else if (f === 'enter') { if (t) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })); }
+      else if (f === 'daku') oskTransform(DAKU);
+      else if (f === 'han') oskTransform(HAN);
+      else if (f === 'small') oskTransform(SMALL);
+      else if (f === 'kata') { OSK.kata = !OSK.kata; renderOsk(); }
+      else if (f === 'num') { OSK.mode = 'num'; renderOsk(); }
+      else if (f === 'kana') { OSK.mode = 'kana'; renderOsk(); }
+      else if (f === 'mic') oskMic();
+      else if (f === 'ok' || f === 'close') oskHide();
+    }
+    (function initOsk() {
+      const el = $('osk');
+      el.addEventListener('mousedown', e => e.preventDefault());   // 入力欄からフォーカスを奪わない
+      el.addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.fn) oskFn(b.dataset.fn);
+        else if (b.dataset.ins != null) oskInsert(b.dataset.ins);
+        else if (b.dataset.k != null) { const c = b.dataset.k; oskInsert(OSK.kata && /[ぁ-ゖ]/.test(c) ? toKata(c) : c); }
+        playBeep();
+      });
+      document.addEventListener('focusin', e => {
+        const t = e.target; if (!S || !S.osk || !isTextTarget(t)) return;
+        t.setAttribute('inputmode', 'none'); oskShow(t);
+      });
+      document.addEventListener('pointerdown', e => {
+        if (!el.classList.contains('open')) return;
+        if (e.target.closest('#osk') || e.target.closest('#osk-toggle') || isTextTarget(e.target)) return;
+        oskHide();
+      }, true);
+      addEventListener('resize', () => { if (el.classList.contains('open')) updateOskH(); });
+    })();
+
+    // =====================================================
+    // 12. 初期化・キーボード・背景
+    // =====================================================
+    function applyStaticRuby() { document.querySelectorAll('[data-rb]').forEach(el => { el.innerHTML = rb(el.dataset.rb, null); }); }
+    function initUI() {
+      $('date-display').textContent = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      document.body.classList.toggle('furigana-mode', !!S.furigana);
+      document.documentElement.style.fontSize = (16 * (S.fontScale || 1)) + 'px';
+      $('ag-type').innerHTML = Object.entries(TYPES).map(([k, t]) => `<option value="${k}">${t.icon} ${t.label}</option>`).join('');
+      $('db-cat-filter').innerHTML = '<option value="all">すべて</option>' + Object.entries(DB_CATS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+      $('daily-memo').value = S.daily; $('max-students').value = S.maxStudents; $('absent-input').value = S.absent;
+      $('meeting-no').value = S.meetingNo || 1; $('no-repeat').checked = S.noRepeat !== false;
+      ['chair', 'vice', 'scribe', 'timekeeper'].forEach(k => $('role-' + k).value = S.roles[k] || '');
+      applyStaticRuby();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { const m = topModal(); if (m) return closeModal(m); if (presenterOpen) return togglePresenter(); }
+      const tg = e.target.tagName; if (/INPUT|TEXTAREA|SELECT/.test(tg) || e.ctrlKey || e.metaKey || e.altKey || topModal()) return;
+      if (e.key === 'ArrowRight' && cur()) { e.preventDefault(); nextStep(); }
+      else if (e.key === 'ArrowLeft' && cur()) { e.preventDefault(); prevStep(); }
+      else if (e.key === 'p' || e.key === 'P') togglePresenter();
+      else if (e.key === 't' || e.key === 'T') toggleTimer();
+    });
+
+    // 背景パーティクル
+    (function () {
+      const canvas = $('bg-canvas'), ctx2 = canvas.getContext('2d'); if (!ctx2) return;
+      const resize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
+      addEventListener('resize', resize); resize();
+      const ps = Array.from({ length: 45 }, () => ({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, s: Math.random() * 2 + 0.5, vx: Math.random() * 0.2 - 0.1, vy: Math.random() * 0.2 - 0.1, o: Math.random(), f: Math.random() > 0.5 ? 0.005 : -0.005 }));
+      (function anim() {
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        ps.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.o += p.f; if (p.o >= 1 || p.o <= 0.1) p.f *= -1;
+          if (p.x > canvas.width) p.x = 0; if (p.x < 0) p.x = canvas.width; if (p.y > canvas.height) p.y = 0; if (p.y < 0) p.y = canvas.height;
+          ctx2.fillStyle = `rgba(255,170,0,${p.o * 0.5})`; ctx2.beginPath(); ctx2.arc(p.x, p.y, p.s, 0, Math.PI * 2); ctx2.fill();
+        });
+        requestAnimationFrame(anim);
+      })();
+    })();
+
+    // ---- 起動
+    loadState();
+    buildDict();
+    initUI();
+    updateExp(0);
+    renderGoalBar();
+    renderTasks();
+    renderDb();
+    renderMembers(true);
+    renderAgendaList();
+    if (!S.curId && S.agendas.length) S.curId = S.agendas[0].id;
+    buildMeeting();
+    updateTimerUI();
+    applyGradeUI();
+    if (!S.grade) openGradeChooser();
+  </script>
+</body>
+
+</html>

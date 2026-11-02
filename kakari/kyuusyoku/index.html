@@ -1,670 +1,461 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>給食係　仕事　チェック表</title>
-    
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>給食ミッション・コントロール</title>
+  <title>給食係コンソール</title>
   <style>
     :root {
-      --bg-dark: #050a15;
-      --card-bg: rgba(15, 25, 45, 0.6);
-      --card-border: rgba(0, 243, 255, 0.2);
-      --cyan: #00f3ff;
-      --cyan-glow: rgba(0, 243, 255, 0.5);
-      --green: #00ff88;
-      --green-glow: rgba(0, 255, 136, 0.5);
-      --red: #ff0055;
-      --text-main: #ffffff;
-      --text-sub: #8899aa;
+      --bg: #0a0510; --card: rgba(20, 10, 35, 0.82); --line: rgba(255, 170, 0, 0.3);
+      --gold: #ffaa00; --gold-glow: rgba(255, 170, 0, 0.5); --cyan: #00f3ff; --red: #ff0055; --green: #00ff88; --pink: #ff7ad9;
+      --text: #f0f0f5; --sub: #aa99bb;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', Meiryo, sans-serif; background: radial-gradient(circle at 30% 20%, #1a0d2c 0%, #05020a 100%) fixed; color: var(--text); min-height: 100vh; padding: 12px; line-height: 1.5; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    rt { display: none; }
+    body.furigana rt { display: ruby-text; font-size: 0.55em; color: var(--gold); font-weight: normal; }
+    body.furigana .big-text { line-height: 2; }
 
-    body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      overflow-x: hidden;
-      transition: background-color 0.5s;
-    }
+    .top-bar { width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: rgba(10, 5, 20, 0.85); border: 1px solid var(--gold); border-radius: 14px; padding: 10px 18px; box-shadow: 0 0 18px var(--gold-glow); }
+    h1 { font-size: 1.5rem; color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
+    .sub { font-size: 0.82rem; color: var(--sub); }
+    .grade-switch { display: flex; gap: 4px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--gold); border-radius: 14px; padding: 3px; }
+    .grade-switch button { border: none; background: transparent; color: var(--sub); padding: 8px 12px; border-radius: 11px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.92rem; }
+    .grade-switch button.on { background: var(--gold); color: #000; }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    /* 背景アニメーション用キャンバス */
-    #bg-canvas {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      z-index: -1; pointer-events: none;
-      background: radial-gradient(circle at center, #0a1128 0%, #02040a 100%);
-    }
+    .btn { background: rgba(255, 170, 0, 0.15); color: var(--gold); border: 1px solid var(--gold); padding: 9px 14px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; font-family: inherit; min-height: 44px; transition: all 0.15s; }
+    .btn:hover { background: rgba(255, 170, 0, 0.3); box-shadow: 0 0 10px var(--gold-glow); }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+    .btn.cyan { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 243, 255, 0.12); }
+    .btn.green { color: var(--green); border-color: var(--green); background: rgba(0, 255, 136, 0.13); }
+    .btn.red { color: var(--red); border-color: var(--red); background: rgba(255, 0, 85, 0.13); }
+    .btn.sm { min-height: 36px; padding: 4px 10px; font-size: 0.85rem; }
+    .btn.huge { font-size: 1.8rem; padding: 22px 30px; min-height: 90px; width: 100%; border-width: 3px; border-radius: 18px; }
 
-    /* 上部ナビゲーション（タブ ＆ 言語トグル） */
-    .top-nav {
-      width: 100%; max-width: 1000px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 30px;
-      padding: 12px 20px;
-      background: rgba(5, 10, 20, 0.8);
-      border: 1px solid var(--cyan);
-      border-radius: 30px;
-      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-      backdrop-filter: blur(5px);
-      z-index: 10;
-      flex-wrap: wrap;
-      gap: 15px;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    body.hiragana-mode .top-nav {
-      border-color: #ff00ff;
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
-    }
+    #banner { width: 100%; max-width: 1400px; }
+    .banner { background: rgba(255, 170, 0, 0.15); border: 2px solid var(--gold); border-radius: 12px; padding: 12px 16px; font-weight: bold; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; gap: 10px; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 18px var(--gold-glow); } }
 
-    .nav-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .grid { width: 100%; max-width: 1400px; display: grid; grid-template-columns: 250px 1fr 290px; gap: 12px; align-items: start; }
+    @media (max-width: 1050px) { .grid { grid-template-columns: 1fr 1fr; } #main { grid-column: 1 / -1; order: -1; } }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+    .col { display: flex; flex-direction: column; gap: 12px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 10px; }
+    .panel h3 { color: var(--cyan); font-size: 1.02rem; border-bottom: 1px solid rgba(0, 243, 255, 0.3); padding-bottom: 6px; }
 
-    .nav-btn {
-      background: transparent;
-      color: var(--text-sub);
-      border: 1px solid var(--text-sub);
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: bold;
-      transition: all 0.3s;
-    }
-    .nav-btn.active {
-      background: rgba(0, 243, 255, 0.15);
-      color: var(--cyan);
-      border-color: var(--cyan);
-      box-shadow: 0 0 10px var(--cyan-glow);
-    }
-    body.hiragana-mode .nav-btn.active {
-      background: rgba(255, 0, 255, 0.15);
-      color: #ff00ff;
-      border-color: #ff00ff;
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-    }
-    .nav-btn:hover:not(.active) { color: var(--text-main); border-color: var(--text-main); }
+    /* ---- 仕事のレール ---- */
+    .rail-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); border: 2px solid transparent; cursor: pointer; text-align: left; color: var(--text); font-family: inherit; font-size: 0.95rem; width: 100%; }
+    .rail-item .no { width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+    .rail-item.cur { border-color: var(--gold); box-shadow: 0 0 12px var(--gold-glow); background: rgba(255, 170, 0, 0.1); }
+    .rail-item.done .no { background: var(--green); color: #000; }
+    .rail-item.done { opacity: 0.75; }
+    .prog { height: 10px; background: rgba(255, 255, 255, 0.12); border-radius: 6px; overflow: hidden; }
+    .prog > div { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); transition: width 0.4s; }
 
-    /* 言語トグルスイッチ */
-    .lang-toggle { display: flex; align-items: center; gap: 10px; }
-    .lang-label { font-size: 0.85rem; font-weight: bold; color: var(--text-sub); transition: color 0.3s; }
-    .active-lang { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
-    body.hiragana-mode .active-lang { color: #ff00ff; text-shadow: 0 0 8px rgba(255, 0, 255, 0.5); }
+    /* ---- メイン ---- */
+    #main h2 { font-size: 1.5rem; color: var(--gold); display: flex; align-items: center; gap: 10px; }
+    .big-text { font-size: 1.2rem; }
+    .checklist { display: flex; flex-direction: column; gap: 8px; }
+    .chk { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: rgba(0, 0, 0, 0.45); color: var(--text); border: 2px solid rgba(255, 255, 255, 0.25); border-radius: 12px; padding: 14px; cursor: pointer; font-size: 1.15rem; font-family: inherit; min-height: 58px; }
+    .chk .box { width: 34px; height: 34px; border: 3px solid var(--sub); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; color: #000; }
+    .chk.on { border-color: var(--green); background: rgba(0, 255, 136, 0.1); }
+    .chk.on .box { background: var(--green); border-color: var(--green); }
+    .chk.on .tx { text-decoration: line-through; opacity: 0.7; }
+    .chk-row { display: flex; gap: 6px; align-items: stretch; }
+    .chk-row .chk { flex: 1; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .grow { flex: 1; }
+    input[type="text"] { width: 100%; padding: 9px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--sub); color: var(--text); border-radius: 8px; font-family: inherit; font-size: 1rem; }
+    input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
 
-    .toggle-switch {
-      position: relative; width: 44px; height: 24px;
-      background: rgba(0, 243, 255, 0.1); border: 1px solid var(--cyan);
-      border-radius: 12px; cursor: pointer; transition: all 0.3s;
-    }
-    .toggle-knob {
-      position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
-      background: var(--cyan); border-radius: 50%; transition: all 0.3s;
-      box-shadow: 0 0 8px var(--cyan-glow);
-    }
-    body.hiragana-mode .toggle-switch { border-color: #ff00ff; background: rgba(255, 0, 255, 0.1); }
-    body.hiragana-mode .toggle-knob { left: 22px; background: #ff00ff; box-shadow: 0 0 8px rgba(255, 0, 255, 0.5); }
+    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+    .team { position: relative; background: rgba(0, 0, 0, 0.5); border: 3px solid var(--cyan); color: var(--text); border-radius: 16px; min-height: 100px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+    .team b { font-size: 2rem; } .team small { font-size: 0.8rem; color: var(--sub); }
+    .team:active { transform: scale(0.95); }
+    .team.called { border-color: var(--green); background: rgba(0, 255, 136, 0.13); }
+    .team .ord { position: absolute; top: -9px; left: -6px; background: var(--green); color: #000; border-radius: 12px; padding: 0 9px; font-weight: bold; font-size: 0.85rem; }
 
-    /* 共通コンテナ */
-    .screen-container {
-      width: 100%; max-width: 1000px;
-      display: none; flex-direction: column; align-items: center; z-index: 1;
-      animation: fadeIn 0.4s ease-out;
-    }
-    .screen-container.active { display: flex; }
+    .timer-card { background: rgba(0, 0, 0, 0.45); border: 2px solid var(--gold); border-radius: 18px; padding: 18px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+    .timer-card.ring { border-color: var(--red); animation: pulse 0.6s infinite; }
+    .timer-card.ok { border-color: var(--green); }
+    .tm { font-size: clamp(3.6rem, 12vw, 6.5rem); font-family: monospace; color: var(--gold); line-height: 1; text-shadow: 0 0 14px var(--gold-glow); }
+    .timer-card.ring .tm { color: var(--red); }
+    .tstate { font-size: 1.15rem; font-weight: bold; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .step-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .stamps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .stamp { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255, 255, 255, 0.25); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--sub); }
+    .stamp.on { border: 2px solid var(--gold); background: rgba(255, 170, 0, 0.18); color: var(--gold); font-size: 1.1rem; }
+    .level { text-align: center; font-size: 1.15rem; font-weight: bold; color: var(--gold); }
+    .stepper { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .stepper .v { font-size: 1.5rem; font-weight: bold; min-width: 70px; text-align: center; color: var(--cyan); }
+    .clock { font-size: 2rem; font-family: monospace; text-align: center; color: var(--cyan); }
 
-    /* ヘッダー */
-    .header { text-align: center; margin-bottom: 40px; }
-    h1 {
-      font-size: 2.2rem; color: var(--text-main);
-      text-shadow: 0 0 10px var(--cyan-glow), 0 0 20px var(--cyan-glow);
-      margin-bottom: 15px; letter-spacing: 2px; transition: all 0.3s;
-    }
-    body.hiragana-mode h1 { text-shadow: 0 0 10px rgba(255, 0, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.5); }
+    #alarm-flash { position: fixed; inset: 0; background: rgba(255, 0, 85, 0.3); z-index: 3000; pointer-events: none; display: none; }
+    #alarm-flash.on { display: block; animation: flash 0.6s infinite; }
+    @keyframes flash { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    #cue { position: fixed; inset: 0; z-index: 3500; display: none; align-items: center; justify-content: center; font-size: clamp(2.6rem, 11vw, 8rem); font-weight: 900; text-align: center; background: rgba(10, 5, 20, 0.88); text-shadow: 0 0 30px var(--gold); pointer-events: none; padding: 20px; }
+    #cue.show { display: flex; animation: pop 0.25s ease; }
+    @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    #toast-root { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+    .toast { background: rgba(0, 0, 0, 0.92); border: 1px solid var(--cyan); color: var(--cyan); padding: 8px 18px; border-radius: 20px; font-weight: bold; box-shadow: 0 0 12px rgba(0, 243, 255, 0.5); }
+    .modal-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.72); z-index: 2500; display: flex; align-items: center; justify-content: center; padding: 14px; }
+    .modal { background: #160c26; border: 1px solid var(--gold); border-radius: 16px; padding: 20px; width: min(560px, 100%); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px var(--gold-glow); }
+    .modal h3 { color: var(--gold); }
+    .grade-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    .gcard { background: rgba(0, 0, 0, 0.45); border: 2px solid var(--gold); border-radius: 14px; padding: 16px 8px; text-align: center; cursor: pointer; color: var(--text); font-family: inherit; }
+    .gcard .ico { font-size: 2.4rem; display: block; } .gcard .nm { font-size: 1.1rem; font-weight: bold; color: var(--gold); display: block; } .gcard .ds { font-size: 0.78rem; color: var(--sub); }
 
-    #date-display {
-      font-size: 1.1rem; color: var(--cyan); background: rgba(0, 243, 255, 0.1);
-      border: 1px solid var(--cyan); display: inline-block; padding: 6px 20px;
-      border-radius: 30px; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transition: all 0.3s;
-    }
-    body.hiragana-mode #date-display { color: #ff00ff; background: rgba(255, 0, 255, 0.1); border-color: #ff00ff; }
-
-    /* メイン画面：タスクリスト */
-    #task-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; }
-    .task-card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 25px; backdrop-filter: blur(10px);
-      display: flex; flex-direction: column; position: relative; overflow: hidden;
-      transition: all 0.3s;
-    }
-    .task-card::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-      background: var(--cyan); box-shadow: 0 0 10px var(--cyan); transition: all 0.3s;
-    }
-    body.hiragana-mode .task-card::before { background: #ff00ff; box-shadow: 0 0 10px #ff00ff; }
-    .task-card.done-card::before { background: var(--green); box-shadow: 0 0 15px var(--green); }
-
-    .card-header { display: flex; align-items: center; margin-bottom: 20px; }
-    .icon-box {
-      width: 50px; height: 50px; background: rgba(0, 243, 255, 0.1); border-radius: 12px;
-      display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
-      border: 1px solid rgba(0, 243, 255, 0.3); margin-right: 15px;
-    }
-    .task-title { font-size: 1.15rem; font-weight: bold; color: var(--text-main); }
-    .task-person { font-size: 0.9rem; color: var(--text-sub); margin-top: 5px; }
-    .person-name { color: var(--cyan); font-weight: bold; }
-    .done-card .person-name { color: var(--green); }
-
-    .check-btn {
-      width: 100%; font-size: 1rem; font-weight: bold; padding: 12px; border-radius: 8px;
-      cursor: pointer; transition: all 0.3s; margin-top: auto;
-    }
-    .btn-not-done { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); }
-    body.hiragana-mode .btn-not-done { border-color: #ff00ff; color: #ff00ff; }
-    .btn-done { background: rgba(0, 255, 136, 0.15); border: 1px solid var(--green); color: var(--green); box-shadow: 0 0 15px var(--green-glow); }
-    .btn-disabled { background: transparent; border: 1px dashed var(--text-sub); color: var(--text-sub); cursor: not-allowed; }
-
-    .save-btn {
-      background: transparent; color: #ff00ff; border: 2px solid #ff00ff;
-      font-size: 1.2rem; font-weight: bold; padding: 15px 40px; border-radius: 30px;
-      cursor: pointer; box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
-      margin: 40px 0; transition: all 0.3s; width: 100%; max-width: 400px; text-align: center;
-    }
-    .save-btn:hover { background: rgba(255, 0, 255, 0.15); box-shadow: 0 0 25px rgba(255, 0, 255, 0.6); transform: scale(1.05); }
-
-    /* 評価マトリクス画面 */
-    .stats-container { width: 100%; display: flex; flex-direction: column; gap: 20px; }
-    .stat-card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px;
-    }
-    .stat-header { display: flex; justify-content: space-between; align-items: flex-end; }
-    .stat-name { font-size: 1.3rem; font-weight: bold; color: var(--cyan); }
-    body.hiragana-mode .stat-name { color: #ff00ff; }
-    .stat-numbers { font-size: 0.9rem; color: var(--text-sub); }
-    .stat-bar-bg { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; overflow: hidden; }
-    .stat-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease-out; }
-    .stat-perfect { border-color: var(--green); box-shadow: 0 0 15px var(--green-glow); }
-    .stat-perfect .stat-name { color: var(--green); }
-
-    /* 設定画面 */
-    .settings-section { width: 100%; background: var(--card-bg); border: 1px solid var(--cyan); padding: 25px; border-radius: 16px; margin-bottom: 25px; }
-    body.hiragana-mode .settings-section { border-color: #ff00ff; }
-    .settings-title { color: var(--cyan); font-size: 1.3rem; border-bottom: 1px solid rgba(0, 243, 255, 0.3); padding-bottom: 10px; margin-bottom: 15px; }
-    body.hiragana-mode .settings-title { color: #ff00ff; border-bottom-color: rgba(255, 0, 255, 0.3); }
-    
-    .role-setup-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-    .role-input-group { display: flex; gap: 10px; align-items: center; }
-    .role-input { flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--text-sub); color: var(--text-main); border-radius: 6px; }
-    .role-input:focus { outline: none; border-color: var(--cyan); }
-    
-    .table-wrapper { overflow-x: auto; }
-    .data-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-    .data-table th, .data-table td { border: 1px solid rgba(0, 243, 255, 0.2); padding: 10px; text-align: center; }
-    .data-table th { background: rgba(0, 243, 255, 0.1); color: var(--cyan); }
-    .cell-input { width: 90%; padding: 6px; background: rgba(0,0,0,0.4); border: 1px solid var(--text-sub); color: white; text-align: center; border-radius: 4px; }
-    .cell-input:focus { border-color: var(--cyan); outline: none; }
-
-    .action-btn {
-      padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s;
-      background: rgba(0, 243, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan);
-    }
-    body.hiragana-mode .action-btn { background: rgba(255, 0, 255, 0.15); color: #ff00ff; border-color: #ff00ff; }
-    .action-btn:hover { box-shadow: 0 0 15px var(--cyan-glow); }
-    
-    .danger-btn { background: rgba(255, 0, 85, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 0.85rem; padding: 8px 15px; }
+    body.grade-low .btn { min-height: 56px; font-size: 1.15rem; }
+    body.grade-low .chk { font-size: 1.4rem; min-height: 70px; }
+    body.grade-low .big-text { font-size: 1.5rem; }
+    body.grade-low .team b { font-size: 2.6rem; }
+    body.grade-low .team { min-height: 120px; }
+    body.grade-low .adv { display: none !important; }
   </style>
 </head>
+
 <body>
+  <div id="alarm-flash"></div>
+  <div id="cue"></div>
+  <div id="toast-root"></div>
+  <div id="modal-root"></div>
 
-  <canvas id="bg-canvas"></canvas>
+  <header class="top-bar">
+    <div>
+      <h1>🍱 <span id="t-title"></span></h1>
+      <div class="sub" id="t-date"></div>
+    </div>
+    <div class="grade-switch" id="grade-switch"></div>
+    <div class="controls">
+      <button class="btn cyan sm" onclick="openSettings()">⚙ <span id="t-set"></span></button>
+    </div>
+  </header>
+  <div id="banner"></div>
 
-  <!-- 上部ナビゲーション -->
-  <div class="top-nav">
-    <div class="nav-buttons">
-      <button class="nav-btn active" id="nav-main" onclick="switchTab('main')">💻 ミッション</button>
-      <button class="nav-btn" id="nav-stats" onclick="switchTab('stats')">📊 評価マトリクス</button>
-      <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">⚙️ システム設定</button>
-    </div>
-    <div class="lang-toggle">
-      <span class="lang-label active-lang" id="label-kanji">漢字</span>
-      <div class="toggle-switch" onclick="toggleLanguage()"><div class="toggle-knob"></div></div>
-      <span class="lang-label" id="label-hiragana">ひらがな</span>
-    </div>
-  </div>
-
-  <!-- ================= メイン画面 ================= -->
-  <div id="screen-main" class="screen-container active">
-    <div class="header">
-      <h1 id="title-main">給食ミッション・コントロール</h1>
-      <div id="date-display"></div>
-    </div>
-    <div id="task-list"></div>
-    <button class="save-btn" id="btn-record" onclick="saveAndReset()">▶ ミッションログを記録して終了する</button>
-  </div>
-
-  <!-- ================= 評価マトリクス画面 ================= -->
-  <div id="screen-stats" class="screen-container">
-    <div class="header">
-      <h1 id="title-stats">クルー評価マトリクス</h1>
-      <p style="color: var(--text-sub);" id="desc-stats">> 各クルーのミッション達成率を可視化しています。</p>
-    </div>
-    <div class="stats-container" id="stats-list"></div>
-  </div>
-
-  <!-- ================= 設定画面 ================= -->
-  <div id="screen-settings" class="screen-container">
-    <div class="header">
-      <h1 id="title-settings">システム構造定義（管理者用）</h1>
-    </div>
-    
-    <!-- 役割の設定 -->
-    <div class="settings-section">
-      <h2 class="settings-title" id="title-role-setup">📝 ミッションの定義</h2>
-      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-role-setup">
-        > 最大3つまでミッションを設定できます。使わない枠の名前は空欄にしてください。
-      </p>
-      <div class="role-setup-grid" id="role-setup-container"></div>
-    </div>
-
-    <!-- スケジュールの設定 -->
-    <div class="settings-section">
-      <h2 class="settings-title" id="title-schedule-setup">📅 スケジュール・データベース</h2>
-      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px;" id="desc-schedule-setup">
-        > 誰がいつ担当するか入力してください。「なし」や「OFFLINE」でスキップできます。
-      </p>
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr id="schedule-thead-tr">
-              <th>CYCLE</th>
-              <th id="th-task1">任務1</th>
-              <th id="th-task2">任務2</th>
-              <th id="th-task3">任務3</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <button class="action-btn" id="btn-save-config" onclick="saveConfiguration()">💾 データベースを上書き保存する</button>
-    
-    <!-- データリセット -->
-    <div style="margin-top: 40px; text-align: center; border-top: 1px dashed var(--text-sub); padding-top: 20px; width: 100%;">
-      <p style="color: var(--text-sub); font-size: 0.85rem;" id="desc-reset">> 評価データ（達成率）をすべてゼロに戻す場合は以下を実行してください。</p>
-      <button class="action-btn danger-btn" id="btn-reset-stats" onclick="resetStats()">⚠️ 評価データを初期化</button>
-    </div>
-  </div>
+  <main class="grid">
+    <nav class="panel" id="rail"></nav>
+    <section class="panel" id="main"></section>
+    <aside class="col" id="side"></aside>
+  </main>
 
   <script>
-    // --- 初期データ構造 ---
-    const defaultRoles = {
-      task1: { name: "牛乳パック回収", icon: "🥛" },
-      task2: { name: "配膳台の除菌", icon: "✨" },
-      task3: { name: "号令の発動", icon: "🙏" }
-    };
-    const defaultSchedule = {
-      "月": { task1: "Aさん", task2: "Bさん", task3: "Cさん" },
-      "火": { task1: "Bさん", task2: "Cさん", task3: "Dさん" },
-      "水": { task1: "Cさん", task2: "Dさん", task3: "Aさん" },
-      "木": { task1: "Dさん", task2: "Aさん", task3: "Bさん" },
-      "金": { task1: "Aさん", task2: "Bさん", task3: "Cさん" },
-      "土": { task1: "OFFLINE", task2: "OFFLINE", task3: "OFFLINE" },
-      "日": { task1: "OFFLINE", task2: "OFFLINE", task3: "OFFLINE" }
-    };
+    'use strict';
+    // ================= ユーティリティ =================
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const rb = s => esc(s).replace(/\[([^\[\]|]+)\|([^\[\]]+)\]/g, '<ruby>$1<rt>$2</rt></ruby>');
+    const uid = () => Math.random().toString(36).slice(2, 8);
+    const isoDate = (d = new Date()) => d.toLocaleDateString('sv-SE');
+    const KEY = 'kyushokuGakariV1';
+    const mem = {};
+    const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return mem[k] == null ? null : mem[k]; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { mem[k] = v; } } };
+    // 学年に合わせた文字：低学年＝ひらがな、中・高学年＝漢字（中学年はふりがな付き）
+    let S;
+    const U = (k, h) => S && S.grade === 'low' ? esc(h) : rb(k);
+    const UH = (k, h) => S && S.grade === 'low' ? h : k.replace(/\[([^\[\]|]+)\|([^\[\]]+)\]/g, '<ruby>$1<rt>$2</rt></ruby>'); // 信頼できる固定HTML用
+    const plainU = (k, h) => (S && S.grade === 'low' ? h : k).replace(/\[([^\[\]|]+)\|([^\[\]]+)\]/g, '$1');
 
-    // --- データ読み込み ---
-    let appConfig = JSON.parse(localStorage.getItem('lunchMissionConfig')) || { roles: defaultRoles, schedule: defaultSchedule };
-    let appStats = JSON.parse(localStorage.getItem('lunchMissionStats')) || {}; 
-    let currentMode = localStorage.getItem('lunchMissionLang') || 'kanji';
-    
-    let taskState = { task1: false, task2: false, task3: false };
-    const daysKey = ["日", "月", "火", "水", "木", "金", "土"];
-    const today = new Date();
-    const dayOfWeekKey = daysKey[today.getDay()];
-    let todaysAssigns = appConfig.schedule[dayOfWeekKey] || { task1: "なし", task2: "なし", task3: "なし" };
-
-    // --- 言語ディクショナリ ---
-    const i18n = {
-      kanji: {
-        navMain: "💻 ミッション", navStats: "📊 評価マトリクス", navSettings: "⚙️ システム設定",
-        titleMain: "給食ミッション・コントロール", btnRecord: "▶ ミッションログを記録して終了する",
-        titleStats: "クルー評価マトリクス", descStats: "> 各クルーのミッション達成率を可視化しています。",
-        titleSettings: "システム構造定義（管理者用）",
-        titleRole: "📝 ミッションの定義", descRole: "> 最大3つまでミッションを設定できます。使わない枠の名前は空欄にしてください。",
-        titleSch: "📅 スケジュール・データベース", descSch: "> 誰がいつ担当するか入力してください。「なし」や「OFFLINE」でスキップできます。",
-        btnSaveConfig: "💾 データベースを上書き保存する",
-        descReset: "> 評価データ（達成率）をすべてゼロに戻す場合は以下を実行してください。", btnReset: "⚠️ 評価データを初期化",
-        dayNames: ["日", "月", "火", "水", "木", "金", "土"],
-        operator: "担当", none: "なし", btnCheck: "確認する ▶", btnDone: "ミッション完了！",
-        msgOffline: "本日のシステムはオフライン（お休み）です。", sysOffline: "SYSTEM OFFLINE",
-        msgSaved: "ミッションログと評価データを記録しました！", msgConfigSaved: "システム設定を保存しました。",
-        msgReset: "評価データをすべて初期化しました。"
-      },
-      hiragana: {
-        navMain: "💻 ミッション", navStats: "📊 みんなの がんばり", navSettings: "⚙️ せってい（せんせい）",
-        titleMain: "きゅうしょく ミッション・コントロール", btnRecord: "▶ ミッションログをきろくして おわる",
-        titleStats: "クルー がんばりデータ", descStats: "> みんなが どれくらい ミッションを できたか わかります。",
-        titleSettings: "システム せってい（せんせいよう）",
-        titleRole: "📝 ミッションの なまえを きめる", descRole: "> ３つまで つくれます。つかわない ところは からっぽに してください。",
-        titleSch: "📅 １しゅうかんの よてい", descSch: "> だれが いつ やるか いれてください。「なし」や「おやすみ」で おやすみに なります。",
-        btnSaveConfig: "💾 データベースを うわがきする",
-        descReset: "> がんばりデータを ぜんぶ ゼロに もどすときは ここを おしてください。", btnReset: "⚠️ データを ゼロに 戻す",
-        dayNames: ["にち", "げつ", "か", "すい", "もく", "きん", "ど"],
-        operator: "たんとう", none: "なし", btnCheck: "かくにんする ▶", btnDone: "ミッションかんりょう！",
-        msgOffline: "ほんじつの システムは オフライン（おやすみ）です。",
-        sysOffline: "おやすみ",
-        msgSaved: "ミッションログを きろくしました！", msgConfigSaved: "せっていを ほぞんしました。",
-        msgReset: "がんばりデータを ぜんぶ ゼロに もどしました。"
-      }
-    };
-
-    // --- タブ切り替え ---
-    function switchTab(tabId) {
-      document.querySelectorAll('.screen-container').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      
-      document.getElementById(`screen-${tabId}`).classList.add('active');
-      document.getElementById(`nav-${tabId}`).classList.add('active');
-
-      if (tabId === 'main') renderMain();
-      if (tabId === 'stats') renderStats();
-      if (tabId === 'settings') renderSettings();
+    function toast(msg) { const e = document.createElement('div'); e.className = 'toast'; e.textContent = msg; $('toast-root').appendChild(e); setTimeout(() => e.remove(), 2600); }
+    let cueT;
+    function cue(text) { const e = $('cue'); e.textContent = text; e.classList.remove('show'); void e.offsetWidth; e.classList.add('show'); clearTimeout(cueT); cueT = setTimeout(() => e.classList.remove('show'), 2300); }
+    function openModal(html, onClose) {
+      const b = document.createElement('div'); b.className = 'modal-back'; b.innerHTML = `<div class="modal">${html}</div>`;
+      b.addEventListener('mousedown', e => { if (e.target === b) { b.remove(); if (onClose) onClose(); } });
+      $('modal-root').appendChild(b); return b;
     }
 
-    // --- メイン画面描画 ---
+    // ================= 音・読み上げ =================
+    let actx;
+    function ac() { if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C(); } if (actx.state === 'suspended') actx.resume(); return actx; }
+    function tone(f, d, v, delay) {
+      if (!S.sound) return; const c = ac(); if (!c) return; const t = c.currentTime + (delay || 0);
+      const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(v || 0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t + (d || 0.2));
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + (d || 0.2));
+    }
+    const beep = () => tone(880, 0.12, 0.1);
+    const chime = () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.9, 0.18, i * 0.28));
+    const fanfare = () => [523.25, 659.25, 783.99, 659.25, 1046.5].forEach((f, i) => tone(f, 0.35, 0.16, i * 0.14));
+    function say(text) {
+      if (!S.speech || !('speechSynthesis' in window)) return;
+      try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = 0.9; speechSynthesis.speak(u); } catch (e) { }
+    }
+    let alarmIv = null;
+    function startAlarm() {
+      stopAlarm(); $('alarm-flash').classList.add('on');
+      const ring = () => { tone(988, 0.18, 0.22); tone(784, 0.18, 0.22, 0.22); tone(988, 0.18, 0.22, 0.44); };
+      ring(); alarmIv = setInterval(ring, 1400);
+    }
+    function stopAlarm() { clearInterval(alarmIv); alarmIv = null; $('alarm-flash').classList.remove('on'); }
+
+    // ================= 仕事の定義 =================
+    const GRADES = {
+      low: { label: '低学年', sub: '1・2年', icon: '🐣', desc: 'ひらがな・おおきなボタン・よみあげ', furigana: false, scale: 1.2 },
+      mid: { label: '中学年', sub: '3・4年', icon: '🐥', desc: '漢字にふりがな付き', furigana: true, scale: 1.1 },
+      high: { label: '高学年', sub: '5・6年', icon: '🦅', desc: '漢字・すべての機能', furigana: false, scale: 1 }
+    };
+    const STEPS = [
+      { id: 1, icon: '🧽', type: 'check', k: '[配膳台|はいぜんだい]の[準備|じゅんび]', h: 'はいぜんだいの じゅんび' },
+      { id: 2, icon: '🥛', type: 'check', k: '[前日|ぜんじつ]の[牛乳|ぎゅうにゅう]パックの[片付|かたづ]け', h: 'きのうの ぎゅうにゅうパックの かたづけ' },
+      { id: 3, icon: '📣', type: 'call', k: '[準備|じゅんび]できた[班|はん]を[呼|よ]ぶ', h: 'じゅんびできた はんを よぶ' },
+      { id: 4, icon: '🙏', type: 'itadaki', k: 'いただきます', h: 'いただきます' },
+      { id: 5, icon: '😋', type: 'mogu', k: 'モグモグタイム（5[分|ふん]）', h: 'モグモグタイム（5ふん）' },
+      { id: 6, icon: '🔔', type: 'gochi', k: '[終|お]わり5[分前|ふんまえ]タイマー → ごちそうさま', h: 'おわり5ふんまえ → ごちそうさま' },
+      { id: 7, icon: '🧹', type: 'check', k: '[配膳台|はいぜんだい]の[片付|かたづ]け', h: 'はいぜんだいの かたづけ' }
+    ];
+    const DEFAULT_LISTS = {
+      1: [['[手|て]をあらう', 'てを あらう'], ['エプロン・マスク・[帽子|ぼうし]をつける', 'エプロン・マスク・ぼうしを つける'], ['[配膳台|はいぜんだい]を[出|だ]す', 'はいぜんだいを だす'], ['[配膳台|はいぜんだい]を[拭|ふ]く', 'はいぜんだいを ふく'], ['[給食|きゅうしょく]を[受|う]け[取|と]る[準備|じゅんび]をする', 'きゅうしょくを うけとる じゅんびを する']],
+      2: [['[昨日|きのう]の[牛乳|ぎゅうにゅう]パックを[集|あつ]める', 'きのうの ぎゅうにゅうパックを あつめる'], ['[決|き]められた[方法|ほうほう]で[片付|かたづ]ける（[洗|あら]う・[開|ひら]く・[干|ほ]す）', 'きめられた ほうほうで かたづける（あらう・ひらく・ほす）'], ['[回収|かいしゅう]の[場所|ばしょ]に[置|お]く', 'かいしゅうの ばしょに おく']],
+      4: [['みんなが[席|せき]についたか[確|たし]かめる', 'みんなが せきに ついたか たしかめる'], ['[今日|きょう]のメニューをつたえる', 'きょうの メニューを つたえる']],
+      7: [['[配膳台|はいぜんだい]をきれいに[拭|ふ]く', 'はいぜんだいを きれいに ふく'], ['[食器|しょっき]・[道具|どうぐ]をもどす', 'しょっき・どうぐを もどす'], ['ごみがないか[確認|かくにん]する', 'ごみが ないか かくにん する'], ['[手|て]をあらう', 'てを あらう']]
+    };
+    const LEVELS = [[0, '🌱 みならい給食係', '🌱 みならい きゅうしょくがかり'], [3, '🌼 がんばり給食係', '🌼 がんばり きゅうしょくがかり'], [10, '🍀 しっかり給食係', '🍀 しっかり きゅうしょくがかり'], [20, '👑 プロの給食係', '👑 プロの きゅうしょくがかり']];
+
+    // ================= 状態 =================
+    function defaultLists() { const o = {}; Object.entries(DEFAULT_LISTS).forEach(([k, arr]) => o[k] = arr.map(([kk, h]) => ({ id: uid(), k: kk, h }))); return o; }
+    function newToday() { return { date: isoDate(), cur: 1, checks: {}, called: [], itadaki: false, mogu: { state: 'idle', endAt: 0, left: 300 }, last: { state: 'idle', endAt: 0, left: 300 }, gochi: false, announced5: false, startedAt: null, finishedAt: null, done: false }; }
+    function load() {
+      S = { grade: null, furigana: false, speech: true, sound: true, teams: 6, endTime: '13:00', menu: '', edit: false, lists: defaultLists(), history: [], today: newToday() };
+      try { const r = store.get(KEY); if (r) Object.assign(S, JSON.parse(r)); } catch (e) { }
+      if (!S.today || S.today.date !== isoDate()) S.today = newToday();
+    }
+    let saveT; const save = () => { clearTimeout(saveT); saveT = setTimeout(() => store.set(KEY, JSON.stringify(S)), 150); };
+    window.addEventListener('beforeunload', () => store.set(KEY, JSON.stringify(S)));
+    const T = () => S.today;
+
+    function touchStart() { if (!T().startedAt) T().startedAt = Date.now(); }
+    const items = id => S.lists[id] || [];
+    function stepDone(id) {
+      const t = T();
+      switch (id) {
+        case 1: case 2: case 7: { const l = items(id); return l.length > 0 && l.every(i => t.checks[i.id]); }
+        case 3: return t.called.length >= S.teams;
+        case 4: return t.itadaki;
+        case 5: return t.mogu.state === 'done';
+        case 6: return t.gochi;
+      }
+    }
+    const doneCount = () => STEPS.filter(s => stepDone(s.id)).length;
+
+    // ================= 学年 =================
+    function applyGrade() {
+      const g = S.grade || 'high';
+      ['low', 'mid', 'high'].forEach(k => document.body.classList.toggle('grade-' + k, k === g));
+      document.body.classList.toggle('furigana', g !== 'low' && !!S.furigana);
+      document.documentElement.style.fontSize = (16 * GRADES[g].scale) + 'px';
+      $('grade-switch').innerHTML = Object.entries(GRADES).map(([k, v]) => `<button class="${k === g ? 'on' : ''}" onclick="setGrade('${k}')" title="${v.sub}">${v.icon} ${v.label}</button>`).join('');
+      $('t-title').innerHTML = U('[給食係|きゅうしょくがかり]', 'きゅうしょくがかり');
+      $('t-set').innerHTML = U('[設定|せってい]', 'せってい');
+      $('t-date').textContent = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+    }
+    function setGrade(k) { S.grade = k; S.furigana = GRADES[k].furigana; applyGrade(); save(); render(); toast(`${GRADES[k].icon} ${GRADES[k].label}`); }
+    function openGradeChooser() {
+      const b = openModal(`<h3>🎒 学年をえらんでね</h3><div class="grade-cards">${Object.entries(GRADES).map(([k, g]) => `<button class="gcard" data-g="${k}"><span class="ico">${g.icon}</span><span class="nm">${g.label}</span><span class="ds">${g.sub}<br>${g.desc}</span></button>`).join('')}</div>`, () => { if (!S.grade) { S.grade = 'high'; applyGrade(); save(); render(); } });
+      b.querySelectorAll('[data-g]').forEach(btn => btn.onclick = () => { b.remove(); setGrade(btn.dataset.g); });
+    }
+
+    // ================= 画面 =================
+    function render() { renderRail(); renderMain(); renderSide(); renderBanner(); tickDisplay(); }
+
+    function renderRail() {
+      const n = doneCount();
+      $('rail').innerHTML = `<h3>🍱 ${U('[今日|きょう]の[仕事|しごと]', 'きょうの しごと')}</h3>
+        <div class="prog"><div style="width:${n / 7 * 100}%"></div></div><div class="sub">${n} / 7</div>
+        ${STEPS.map(s => `<button class="rail-item ${T().cur === s.id ? 'cur' : ''} ${stepDone(s.id) ? 'done' : ''}" onclick="goStep(${s.id})"><span class="no">${stepDone(s.id) ? '✔' : s.id}</span><span>${s.icon} ${U(s.k, s.h)}</span></button>`).join('')}`;
+    }
+    function goStep(id) { T().cur = Math.max(1, Math.min(7, id)); save(); render(); }
+    function navHtml() {
+      const c = T().cur;
+      return `<div class="step-nav"><button class="btn" ${c === 1 ? 'disabled' : ''} onclick="goStep(${c - 1})">◀ ${U('[前|まえ]へ', 'まえへ')}</button>
+        <button class="btn ${stepDone(c) ? 'green' : ''}" ${c === 7 ? 'disabled' : ''} onclick="goStep(${c + 1})">${U('[次|つぎ]へ', 'つぎへ')} ▶</button></div>`;
+    }
+
     function renderMain() {
-      const t = i18n[currentMode];
-      const taskListDiv = document.getElementById('task-list');
-      taskListDiv.innerHTML = ""; 
-
-      let activeTaskCount = 0;
-
-      ["task1", "task2", "task3"].forEach(taskId => {
-        const role = appConfig.roles[taskId];
-        if (!role || !role.name.trim()) return; 
-        activeTaskCount++;
-
-        const person = todaysAssigns[taskId] || t.none;
-        const isOffline = person === t.none || person.toUpperCase() === "OFFLINE" || person === "おやすみ" || person === "なし";
-        const isDone = taskState[taskId];
-        
-        const btnText = isOffline ? t.sysOffline : (isDone ? t.btnDone : t.btnCheck);
-        const btnClass = isOffline ? 'btn-disabled' : (isDone ? 'btn-done' : 'btn-not-done');
-        
-        const cardHTML = `
-          <div class="task-card ${isDone ? 'done-card' : ''}" style="opacity: ${isOffline ? 0.4 : 1}">
-            <div class="card-header">
-              <div class="icon-box">${role.icon || "⚙️"}</div>
-              <div>
-                <div class="task-title">${role.name}</div>
-                <div class="task-person">${t.operator}: <span class="person-name">${isOffline ? t.none : person}</span></div>
-              </div>
-            </div>
-            <button class="check-btn ${btnClass}" onclick="toggleTask('${taskId}', ${isOffline})" ${isOffline ? 'disabled' : ''}>
-              ${btnText}
-            </button>
-          </div>
-        `;
-        taskListDiv.insertAdjacentHTML('beforeend', cardHTML);
-      });
-
-      if (activeTaskCount === 0) {
-        taskListDiv.innerHTML = `<p style="color: var(--text-sub);">※ 現在、設定されているミッションがありません。</p>`;
-      }
+      const s = STEPS.find(x => x.id === T().cur), t = T();
+      let body = '';
+      if (s.type === 'check') body = checkHtml(s.id);
+      else if (s.type === 'call') body = callHtml();
+      else if (s.type === 'itadaki') body = itadakiHtml();
+      else if (s.type === 'mogu') body = moguHtml();
+      else if (s.type === 'gochi') body = gochiHtml();
+      $('main').innerHTML = `<h2>${s.icon} ${s.id}. ${U(s.k, s.h)} ${stepDone(s.id) ? '<span style="color:var(--green)">✔</span>' : ''}</h2>${body}${navHtml()}`;
     }
 
-    window.toggleTask = function(taskId, isOffline) {
-      if (isOffline) return; 
-      taskState[taskId] = !taskState[taskId];
-      renderMain(); 
-    };
+    function checkHtml(id) {
+      const l = items(id), t = T();
+      let h = `<div class="checklist">${l.map(i => `<div class="chk-row"><button class="chk ${t.checks[i.id] ? 'on' : ''}" onclick="toggleItem('${i.id}')"><span class="box">${t.checks[i.id] ? '✔' : ''}</span><span class="tx big-text">${S.grade === 'low' ? esc(i.h) : rb(i.k)}</span></button>${S.edit ? `<button class="btn red sm" onclick="delItem(${id},'${i.id}')">✖</button>` : ''}</div>`).join('')}</div>`;
+      if (!l.length) h += `<div class="sub">${U('[項目|こうもく]がありません。「[編集|へんしゅう]」から[追加|ついか]できます。', 'こうもくが ありません。')}</div>`;
+      if (S.edit) h += `<div class="row"><input type="text" id="add-in" placeholder="${plainU('[項目|こうもく]を[追加|ついか]', 'こうもくを ついか')}" onkeydown="if(event.key==='Enter')addItem(${id})"><button class="btn" onclick="addItem(${id})">＋</button></div>`;
+      h += `<div class="row"><button class="btn green grow" onclick="allDone(${id})">✅ ${U('ぜんぶ できた！', 'ぜんぶ できた！')}</button><button class="btn cyan sm adv" onclick="toggleEdit()">✏ ${U('[編集|へんしゅう]', 'へんしゅう')}</button></div>`;
+      return h;
+    }
+    function toggleItem(iid) { const t = T(); touchStart(); t.checks[iid] = !t.checks[iid]; beep(); afterChange(); }
+    function allDone(id) { touchStart(); items(id).forEach(i => T().checks[i.id] = true); chime(); afterChange(true); }
+    function delItem(id, iid) { S.lists[id] = items(id).filter(i => i.id !== iid); save(); render(); }
+    function addItem(id) { const v = $('add-in').value.trim(); if (!v) return; S.lists[id].push({ id: uid(), k: v, h: v }); save(); render(); setTimeout(() => $('add-in') && $('add-in').focus(), 20); }
+    function toggleEdit() { S.edit = !S.edit; save(); render(); }
 
-    // --- 記録保存と評価データ（Stats）の更新 ---
-    window.saveAndReset = function() {
-      const t = i18n[currentMode];
-      let hasTaskToday = false;
+    function callHtml() {
+      const t = T(); const next = [...Array(S.teams).keys()].map(i => i + 1).filter(n => !t.called.includes(n));
+      return `<div class="big-text">${U('[準備|じゅんび]できた[班|はん]を[タッチ|たっち]して[呼|よ]ぼう。[呼|よ]んだ[順|じゅん]に[番号|ばんごう]が[付|つ]きます。', 'じゅんびが できた はんを タッチして よびましょう。よんだ じゅんに ばんごうが つきます。')}</div>
+        <div class="team-grid">${[...Array(S.teams).keys()].map(i => { const n = i + 1, o = t.called.indexOf(n) + 1; return `<button class="team ${o ? 'called' : ''}" onclick="callTeam(${n})">${o ? `<span class="ord">${o}</span>` : ''}<b>${n}</b><small>${U('[班|はん]', 'はん')}${o ? ' 🍽' : ''}</small></button>`; }).join('')}</div>
+        <div class="row"><span class="sub grow">${next.length ? U(`まだ：${next.join('・')}[班|はん]`, `まだ：${next.join('・')}はん`) : '🎉 ' + U('ぜんぶ[呼|よ]びました！', 'ぜんぶ よびました！')}</span>
+          <button class="btn red sm" onclick="resetCalls()">↺ ${U('やりなおし', 'やりなおし')}</button></div>`;
+    }
+    function callTeam(n) {
+      touchStart(); ac(); const t = T(); const was = t.called.includes(n);
+      if (!was) t.called.push(n);
+      chime(); say(`${n}はんの みなさん、きゅうしょくを とりに きてください。`);
+      toast(`📣 ${n}${plainU('班を呼びました', 'はんを よびました')}`);
+      afterChange(); }
+    function resetCalls() { T().called = []; save(); render(); }
 
-      ["task1", "task2", "task3"].forEach(taskId => {
-        const role = appConfig.roles[taskId];
-        if (!role || !role.name.trim()) return;
-        const person = todaysAssigns[taskId];
-        if (person && person !== "なし" && person !== "おやすみ" && person.toUpperCase() !== "OFFLINE") {
-          hasTaskToday = true;
-          if (!appStats[person]) appStats[person] = { total: 0, done: 0 };
-          appStats[person].total++;
-          if (taskState[taskId]) {
-            appStats[person].done++;
-          }
-        }
-      });
+    function itadakiHtml() {
+      const l = items(4), t = T();
+      return `<div class="checklist">${l.map(i => `<div class="chk-row"><button class="chk ${t.checks[i.id] ? 'on' : ''}" onclick="toggleItem('${i.id}')"><span class="box">${t.checks[i.id] ? '✔' : ''}</span><span class="tx big-text">${S.grade === 'low' ? esc(i.h) : rb(i.k)}</span></button>${S.edit ? `<button class="btn red sm" onclick="delItem(4,'${i.id}')">✖</button>` : ''}</div>`).join('')}</div>
+        ${S.edit ? `<div class="row"><input type="text" id="add-in" onkeydown="if(event.key==='Enter')addItem(4)"><button class="btn" onclick="addItem(4)">＋</button></div>` : ''}
+        ${S.menu ? `<div class="big-text">🍽 ${U('[今日|きょう]のメニュー', 'きょうの メニュー')}：<b style="color:var(--gold)">${esc(S.menu)}</b></div>` : ''}
+        <button class="btn huge ${t.itadaki ? 'green' : ''}" onclick="doItadaki()">🙏 ${t.itadaki ? U('いただきました ✔', 'いただきました ✔') : 'いただきます'}</button>`;
+    }
+    function doItadaki() { touchStart(); ac(); T().itadaki = true; chime(); say('いただきます'); cue('🙏 いただきます'); afterChange(); }
 
-      if (!hasTaskToday) {
-        alert(t.msgOffline);
-        return;
-      }
+    // ---- タイマー共通
+    function tLeft(tm) { if (tm.state === 'run') return Math.max(0, Math.ceil((tm.endAt - Date.now()) / 1000)); if (tm.state === 'paused') return tm.left; if (['ring', 'stopped', 'done'].includes(tm.state)) return 0; return 300; }
+    const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    function tStart(k) { ac(); touchStart(); const tm = T()[k], left = tm.state === 'paused' ? tm.left : 300; tm.state = 'run'; tm.endAt = Date.now() + left * 1000; beep(); save(); render(); }
+    function tPause(k) { const tm = T()[k]; tm.left = tLeft(tm); tm.state = 'paused'; save(); render(); }
+    function tReset(k) { const tm = T()[k]; if (k === 'last') stopAlarm(); tm.state = 'idle'; tm.left = 300; if (k === 'last') T().gochi = false; save(); render(); }
 
-      localStorage.setItem('lunchMissionStats', JSON.stringify(appStats));
-      
-      taskState = { task1: false, task2: false, task3: false };
-      alert(t.msgSaved);
-      renderMain();
-    };
-
-    // --- 評価マトリクス（STATS）描画 ---
-    function renderStats() {
-      const container = document.getElementById('stats-list');
-      container.innerHTML = "";
-      
-      const persons = Object.keys(appStats);
-      if (persons.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-sub); text-align:center;">> データがありません。</p>`;
-        return;
-      }
-
-      persons.sort((a, b) => {
-        const rateA = appStats[a].total > 0 ? (appStats[a].done / appStats[a].total) : 0;
-        const rateB = appStats[b].total > 0 ? (appStats[b].done / appStats[b].total) : 0;
-        return rateB - rateA;
-      });
-
-      persons.forEach(person => {
-        const stat = appStats[person];
-        const rate = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0;
-        
-        let barColor = 'var(--cyan)';
-        let shadow = 'var(--cyan-glow)';
-        let isPerfect = false;
-        
-        if (rate === 100 && stat.total >= 1) {
-          barColor = 'var(--green)'; shadow = 'var(--green-glow)'; isPerfect = true;
-        } else if (rate < 50) {
-          barColor = 'var(--red)'; shadow = 'rgba(255,0,85,0.5)';
-        } else if (currentMode === 'hiragana') {
-          barColor = '#ff00ff'; shadow = 'rgba(255,0,255,0.5)';
-        }
-
-        const html = `
-          <div class="stat-card ${isPerfect ? 'stat-perfect' : ''}">
-            <div class="stat-header">
-              <span class="stat-name">${person}</span>
-              <span class="stat-numbers">達成: ${stat.done} / 割当: ${stat.total} ( <strong>${rate}%</strong> )</span>
-            </div>
-            <div class="stat-bar-bg">
-              <div class="stat-bar-fill" style="width: ${rate}%; background: ${barColor}; box-shadow: 0 0 10px ${shadow};"></div>
-            </div>
-          </div>
-        `;
-        container.insertAdjacentHTML('beforeend', html);
-      });
+    function moguHtml() {
+      const tm = T().mogu, st = tm.state;
+      const msg = { idle: U('[食|た]べはじめたら[スタート|すたーと]！ よくかんで、しずかに[食|た]べよう。', 'たべはじめたら スタート！ よく かんで、しずかに たべよう。'), run: '😋 ' + U('モグモグ…よくかもう！', 'モグモグ… よく かもう！'), paused: '⏸', done: '🎉 ' + U('モグモグタイム[終了|しゅうりょう]！', 'モグモグタイム おわり！') }[st];
+      return `<div class="timer-card ${st === 'done' ? 'ok' : ''}"><div class="tm" id="tm-mogu">${fmt(tLeft(tm))}</div><div class="tstate big-text">${msg}</div>
+        <div class="btn-row">${st === 'run' ? `<button class="btn red" onclick="tPause('mogu')">⏸ ${U('とめる', 'とめる')}</button>` : st !== 'done' ? `<button class="btn green" onclick="tStart('mogu')">▶ ${st === 'paused' ? U('つづける', 'つづける') : 'スタート'}</button>` : ''}
+          <button class="btn sm" onclick="tReset('mogu')">↺ ${U('もどす', 'もどす')}</button></div></div>`;
     }
 
-    // --- 設定画面描画 ---
-    function renderSettings() {
-      const roleContainer = document.getElementById('role-setup-container');
-      roleContainer.innerHTML = "";
-      ["task1", "task2", "task3"].forEach((taskId, index) => {
-        const role = appConfig.roles[taskId] || { name: "", icon: "⚙️" };
-        roleContainer.insertAdjacentHTML('beforeend', `
-          <div class="role-input-group">
-            <span style="color: var(--cyan); width: 60px;">ミッション${index + 1}</span>
-            <input type="text" class="role-input" id="cfg-icon-${taskId}" value="${role.icon}" style="max-width: 60px;" placeholder="絵文字">
-            <input type="text" class="role-input" id="cfg-name-${taskId}" value="${role.name}" placeholder="ミッションの名前（例: 牛乳パック回収）">
-          </div>
-        `);
-      });
+    function gochiHtml() {
+      const t = T(), tm = t.last, st = tm.state;
+      const info = {
+        idle: U('[終|お]わりの5[分前|ふんまえ]になったら[タイマー|たいまー]をセット！', 'おわりの 5ふんまえに なったら タイマーを セット！'),
+        run: '⏳ ' + U('[鳴|な]るまで[待|ま]とう。', 'なるまで まとう。'), paused: '⏸',
+        ring: '🔔 ' + U('[鳴|な]っています！ タイマーを[止|と]めてね', 'なっています！ タイマーを とめてね'),
+        stopped: '✅ ' + U('タイマーを[止|と]めました。ごちそうさまをしよう！', 'タイマーを とめました。ごちそうさまを しよう！')
+      }[st];
+      const [eh, em] = S.endTime.split(':').map(Number), target = eh * 60 + em - 5;
+      const th = String(Math.floor(target / 60)).padStart(2, '0') + ':' + String(((target % 60) + 60) % 60).padStart(2, '0');
+      let act = '';
+      if (st === 'idle') act = `<button class="btn huge green" onclick="tStart('last')">🔔 ${U('5[分|ふん]タイマーを セット', '5ふんタイマーを セット')}</button>`;
+      else if (st === 'run') act = `<button class="btn red" onclick="tPause('last')">⏸ ${U('とめる', 'とめる')}</button>`;
+      else if (st === 'paused') act = `<button class="btn green" onclick="tStart('last')">▶ ${U('つづける', 'つづける')}</button>`;
+      else if (st === 'ring') act = `<button class="btn huge red" onclick="stopLast()">🔕 ${U('タイマーを[止|と]める', 'タイマーを とめる')}</button>`;
+      return `<div class="big-text">${UH(`[給食|きゅうしょく]の[終|お]わりは <b style="color:var(--gold)">${S.endTime}</b>。5[分前|ふんまえ]は <b style="color:var(--gold)">${th}</b> です。`, `きゅうしょくの おわりは <b style="color:var(--gold)">${S.endTime}</b>。5ふんまえは <b style="color:var(--gold)">${th}</b> です。`)}</div>
+        <div class="timer-card ${st === 'ring' ? 'ring' : st === 'stopped' ? 'ok' : ''}"><div class="tm" id="tm-last">${fmt(tLeft(tm))}</div><div class="tstate big-text">${info}</div><div class="btn-row">${act}${st !== 'idle' ? `<button class="btn sm" onclick="tReset('last')">↺ ${U('もどす', 'もどす')}</button>` : ''}</div></div>
+        <button class="btn huge ${t.gochi ? 'green' : 'cyan'}" ${st !== 'stopped' && !t.gochi ? 'disabled' : ''} onclick="doGochi()">🙏 ${t.gochi ? U('ごちそうさまでした ✔', 'ごちそうさまでした ✔') : 'ごちそうさま'}</button>
+        ${st !== 'stopped' && !t.gochi ? `<div class="sub">※ ${U('タイマーを[止|と]めると「ごちそうさま」が[押|お]せます。', 'タイマーを とめると「ごちそうさま」が おせます。')} <button class="btn sm adv" onclick="skipTimer()">${U('タイマーなしで[進|すす]む', 'タイマーなしで すすむ')}</button></div>` : ''}`;
+    }
+    function stopLast() { stopAlarm(); T().last.state = 'stopped'; beep(); toast('🔕 ' + plainU('タイマーを止めました', 'タイマーを とめました')); save(); render(); }
+    function skipTimer() { stopAlarm(); T().last.state = 'stopped'; save(); render(); }
+    function doGochi() { touchStart(); ac(); T().gochi = true; chime(); say('ごちそうさまでした'); cue('🙏 ごちそうさま'); afterChange(); }
 
-      const tbody = document.getElementById('schedule-tbody');
-      tbody.innerHTML = "";
-      const daysList = ["月", "火", "水", "木", "金"];
-      daysList.forEach(day => {
-        let trHTML = `<tr><td style="font-weight: bold; color: inherit;">${day}</td>`;
-        ["task1", "task2", "task3"].forEach(taskId => {
-          const val = (appConfig.schedule[day] && appConfig.schedule[day][taskId]) ? appConfig.schedule[day][taskId] : "";
-          trHTML += `<td><input type="text" class="cell-input" id="cfg-sch-${day}-${taskId}" value="${val}" placeholder="なし"></td>`;
-        });
-        trHTML += `</tr>`;
-        tbody.insertAdjacentHTML('beforeend', trHTML);
-      });
+    function renderSide() {
+      const hist = S.history, n = hist.length;
+      const lv = [...LEVELS].reverse().find(l => n >= l[0]);
+      const days = [...Array(14).keys()].map(i => { const d = new Date(); d.setDate(d.getDate() - (13 - i)); return d; });
+      const set = new Set(hist.map(h => h.date));
+      if (T().done) set.add(isoDate());
+      let streak = 0; for (let i = 0; i < 400; i++) { const d = new Date(); d.setDate(d.getDate() - i); if (set.has(isoDate(d))) streak++; else if (i > 0) break; else continue; }
+      const [eh, em] = S.endTime.split(':').map(Number);
+      $('side').innerHTML = `
+        <div class="panel"><h3>🕒 ${U('[今日|きょう]のようす', 'きょうの ようす')}</h3><div class="clock" id="clock">--:--</div><div class="sub" id="clock-sub"></div>
+          <div class="sub">${U('[給食|きゅうしょく]の[終|お]わり[時刻|じこく]', 'きゅうしょくの おわり')}</div>
+          <div class="stepper"><button class="btn sm" onclick="addEnd(-5)">－5</button><span class="v">${S.endTime}</span><button class="btn sm" onclick="addEnd(5)">＋5</button></div>
+          <div class="sub">${U('[班|はん]の[数|かず]', 'はんの かず')}</div>
+          <div class="stepper"><button class="btn sm" onclick="addTeams(-1)">－</button><span class="v">${S.teams}</span><button class="btn sm" onclick="addTeams(1)">＋</button></div>
+          <div class="sub adv">${U('[今日|きょう]のメニュー（[任意|にんい]）', 'きょうの メニュー')}</div>
+          <input class="adv" type="text" value="${esc(S.menu)}" placeholder="例：カレーライス" oninput="S.menu=this.value;save()"></div>
+        <div class="panel"><h3>⭐ ${U('がんばり[記録|きろく]', 'がんばりきろく')}</h3><div class="level">${esc(S.grade === 'low' ? lv[2] : lv[1])}</div>
+          <div class="sub" style="text-align:center">${U(`これまで ${n}日 ／ [連続|れんぞく] ${streak}日`, `これまで ${n}にち ／ れんぞく ${streak}にち`)}</div>
+          <div class="stamps">${days.map(d => { const on = set.has(isoDate(d)); return `<div class="stamp ${on ? 'on' : ''}">${on ? '⭐' : d.getDate()}</div>`; }).join('')}</div></div>`;
+    }
+    function addEnd(d) { const [h, m] = S.endTime.split(':').map(Number); let tot = (h * 60 + m + d + 1440) % 1440; S.endTime = String(Math.floor(tot / 60)).padStart(2, '0') + ':' + String(tot % 60).padStart(2, '0'); T().announced5 = false; save(); render(); }
+    function addTeams(d) { S.teams = Math.max(1, Math.min(12, S.teams + d)); save(); render(); }
+
+    function renderBanner() {
+      const t = T(); let h = '';
+      if (t.last.state === 'ring') h = `<div class="banner"><span>🔔 ${U('タイマーが[鳴|な]っています！', 'タイマーが なっています！')}</span><button class="btn red" onclick="goStep(6)">${U('[止|と]めにいく', 'とめにいく')}</button></div>`;
+      else if (t.fiveNow && !t.gochi) h = `<div class="banner"><span>⏰ ${U('[給食|きゅうしょく]の[終|お]わり5[分前|ふんまえ]です！ タイマーをセットしよう', 'きゅうしょくの おわり 5ふんまえです！ タイマーを セットしよう')}</span><button class="btn green" onclick="goStep(6)">${U('セットする', 'セットする')}</button></div>`;
+      $('banner').innerHTML = h;
     }
 
-    // --- 設定の保存 ---
-    window.saveConfiguration = function() {
-      const t = i18n[currentMode];
-      ["task1", "task2", "task3"].forEach(taskId => {
-        appConfig.roles[taskId] = {
-          icon: document.getElementById(`cfg-icon-${taskId}`).value || "⚙️",
-          name: document.getElementById(`cfg-name-${taskId}`).value
-        };
-      });
-
-      const daysList = ["月", "火", "水", "木", "金"];
-      daysList.forEach(day => {
-        if (!appConfig.schedule[day]) appConfig.schedule[day] = {};
-        ["task1", "task2", "task3"].forEach(taskId => {
-          appConfig.schedule[day][taskId] = document.getElementById(`cfg-sch-${day}-${taskId}`).value;
-        });
-      });
-
-      localStorage.setItem('lunchMissionConfig', JSON.stringify(appConfig));
-      todaysAssigns = appConfig.schedule[dayOfWeekKey] || { task1: "なし", task2: "なし", task3: "なし" };
-      
-      alert(t.msgConfigSaved);
-      applyLanguage(); 
-    };
-
-    window.resetStats = function() {
-      const t = i18n[currentMode];
-      if(confirm(t.descReset + "\n本当によろしいですか？")) {
-        appStats = {};
-        localStorage.setItem('lunchMissionStats', JSON.stringify(appStats));
-        alert(t.msgReset);
-        renderSettings();
-      }
+    // ---- 状態が変わったあとの共通処理
+    let autoT;
+    function afterChange(skipAuto) {
+      save(); render();
+      const t = T(), id = t.cur;
+      if (stepDone(id) && id < 7 && !t.done) { clearTimeout(autoT); autoT = setTimeout(() => { if (T().cur === id && stepDone(id)) goStep(id + 1); }, 1100); }
+      checkFinish();
+    }
+    function checkFinish() {
+      const t = T(); if (t.done || doneCount() < 7) return;
+      t.done = true; t.finishedAt = Date.now();
+      S.history = S.history.filter(h => h.date !== t.date);
+      S.history.push({ date: t.date, start: t.startedAt, end: t.finishedAt, order: t.called.slice() });
+      save(); render(); fanfare(); say('おつかれさまでした。きょうの きゅうしょくがかり、かんぺきです。');
+      const mins = t.startedAt ? Math.max(1, Math.round((t.finishedAt - t.startedAt) / 60000)) : 0;
+      const b = openModal(`<h3>🎉 ${U('[今日|きょう]の[給食係|きゅうしょくがかり]、おつかれさま！', 'きょうの きゅうしょくがかり、おつかれさま！')}</h3>
+        <div style="font-size:4rem;text-align:center">⭐</div><div class="level">${U('スタンプ ゲット！', 'スタンプ ゲット！')}</div>
+        <div class="big-text" style="text-align:center">${mins ? U(`はじめてから ${mins}[分|ふん]で 7つの[仕事|しごと]を おわらせました`, `はじめてから ${mins}ふんで 7つの しごとを おわらせました`) : ''}</div>
+        <button class="btn green big" id="fin-ok">${U('[閉|と]じる', 'とじる')}</button>`);
+      b.querySelector('#fin-ok').onclick = () => b.remove();
     }
 
-    // --- 言語切り替え処理 ---
-    function toggleLanguage() {
-      currentMode = currentMode === 'kanji' ? 'hiragana' : 'kanji';
-      localStorage.setItem('lunchMissionLang', currentMode);
-      applyLanguage();
+    // ---- 時計・タイマーの進行（250msごと）
+    let lastClockMin = -1;
+    function tickDisplay() {
+      const t = T();
+      ['mogu', 'last'].forEach(k => { const e = $('tm-' + k); if (e) e.textContent = fmt(tLeft(t[k])); });
+      const c = $('clock'); if (c) { const d = new Date(); c.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+    }
+    function tick() {
+      const t = T(); let changed = false;
+      if (t.date !== isoDate()) { S.today = newToday(); save(); render(); return; }
+      if (t.mogu.state === 'run' && tLeft(t.mogu) <= 0) { t.mogu.state = 'done'; chime(); say('モグモグタイム、おわりです。'); cue('😋 ' + plainU('モグモグタイム おわり', 'モグモグタイム おわり')); afterChange(); changed = true; }
+      if (t.last.state === 'run' && tLeft(t.last) <= 0) { t.last.state = 'ring'; startAlarm(); say('たいまーが なりました。とめてください。'); save(); render(); changed = true; }
+      // 終了5分前のおしらせ
+      const [eh, em] = S.endTime.split(':').map(Number), now = new Date(), nm = now.getHours() * 60 + now.getMinutes(), end = eh * 60 + em;
+      const five = nm >= end - 5 && nm < end && !t.gochi;
+      if (five !== !!t.fiveNow) { t.fiveNow = five; if (five && !t.announced5) { t.announced5 = true; chime(); say('きゅうしょくの おわり 5ふんまえです。'); } renderBanner(); save(); }
+      if (!changed) tickDisplay();
     }
 
-    function applyLanguage() {
-      const t = i18n[currentMode];
-      
-      if (currentMode === 'hiragana') {
-        document.body.classList.add('hiragana-mode');
-        document.getElementById('label-hiragana').classList.add('active-lang');
-        document.getElementById('label-kanji').classList.remove('active-lang');
-      } else {
-        document.body.classList.remove('hiragana-mode');
-        document.getElementById('label-kanji').classList.add('active-lang');
-        document.getElementById('label-hiragana').classList.remove('active-lang');
-      }
-
-      document.getElementById('nav-main').innerText = t.navMain;
-      document.getElementById('nav-stats').innerText = t.navStats;
-      document.getElementById('nav-settings').innerText = t.navSettings;
-      
-      document.getElementById('title-main').innerText = t.titleMain;
-      document.getElementById('btn-record').innerText = t.btnRecord;
-      
-      document.getElementById('title-stats').innerText = t.titleStats;
-      document.getElementById('desc-stats').innerText = t.descStats;
-      
-      document.getElementById('title-settings').innerText = t.titleSettings;
-      document.getElementById('title-role-setup').innerText = t.titleRole;
-      document.getElementById('desc-role-setup').innerText = t.descRole;
-      document.getElementById('title-schedule-setup').innerText = t.titleSch;
-      document.getElementById('desc-schedule-setup').innerText = t.descSch;
-      document.getElementById('btn-save-config').innerText = t.btnSaveConfig;
-      document.getElementById('desc-reset').innerText = t.descReset;
-      document.getElementById('btn-reset-stats').innerText = t.btnReset;
-
-      const y = today.getFullYear();
-      const m = String(today.getMonth() + 1).padStart(2, '0');
-      const d = String(today.getDate()).padStart(2, '0');
-      document.getElementById('date-display').innerText = `CURRENT CYCLE: ${y}.${m}.${d} [${t.dayNames[today.getDay()]}]`;
-
-      document.getElementById('th-task1').innerText = appConfig.roles.task1.name || "任務1";
-      document.getElementById('th-task2').innerText = appConfig.roles.task2.name || "任務2";
-      document.getElementById('th-task3').innerText = appConfig.roles.task3.name || "任務3";
-
-      if (document.getElementById('screen-main').classList.contains('active')) renderMain();
-      if (document.getElementById('screen-stats').classList.contains('active')) renderStats();
-      if (document.getElementById('screen-settings').classList.contains('active')) renderSettings();
+    // ---- 設定
+    function openSettings() {
+      const b = openModal(`<h3>⚙ ${U('[設定|せってい]', 'せってい')}</h3>
+        <label class="row"><input type="checkbox" ${S.speech ? 'checked' : ''} onchange="S.speech=this.checked;save()"> 🔊 ${U('[読|よ]み[上|あ]げ（[呼|よ]び[出|だ]し・あいさつ）', 'よみあげ（よびだし・あいさつ）')}</label>
+        <label class="row"><input type="checkbox" ${S.sound ? 'checked' : ''} onchange="S.sound=this.checked;save()"> 🔔 ${U('[音|おと]', 'おと')}</label>
+        ${S.grade !== 'low' ? `<label class="row"><input type="checkbox" ${S.furigana ? 'checked' : ''} onchange="S.furigana=this.checked;applyGrade();save()"> 🔤 ふりがな</label>` : ''}
+        <label class="row"><input type="checkbox" ${S.edit ? 'checked' : ''} onchange="S.edit=this.checked;save();render()"> ✏ ${U('チェック[項目|こうもく]を[編集|へんしゅう]する', 'チェックこうもくを へんしゅうする')}</label>
+        <div class="row"><button class="btn red sm" id="s-reset">↺ ${U('[今日|きょう]をやりなおす', 'きょうを やりなおす')}</button><button class="btn red sm" id="s-lists">${U('チェック[項目|こうもく]を[初期|しょき]にもどす', 'チェックこうもくを はじめに もどす')}</button><button class="btn red sm" id="s-hist">${U('[記録|きろく]を[消|け]す', 'きろくを けす')}</button></div>
+        <div class="row"><button class="btn" id="s-close">${U('[閉|と]じる', 'とじる')}</button></div>`);
+      b.querySelector('#s-close').onclick = () => b.remove();
+      b.querySelector('#s-reset').onclick = () => { if (confirm('今日の進み具合をリセットしますか？')) { stopAlarm(); S.today = newToday(); save(); b.remove(); render(); } };
+      b.querySelector('#s-lists').onclick = () => { if (confirm('チェック項目を最初の内容に戻しますか？')) { S.lists = defaultLists(); save(); b.remove(); render(); } };
+      b.querySelector('#s-hist').onclick = () => { if (confirm('がんばり記録をすべて消しますか？')) { S.history = []; save(); b.remove(); render(); } };
     }
 
-    // --- 背景アニメーション ---
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resizeCanvas); resizeCanvas();
-
-    const particles = [];
-    for (let i = 0; i < 70; i++) {
-      particles.push({
-        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-        size: Math.random() * 1.5 + 0.5, speedX: Math.random() * 0.4 - 0.2, speedY: Math.random() * 0.4 - 0.2,
-        opacity: Math.random(), fade: Math.random() > 0.5 ? 0.005 : -0.005
-      });
-    }
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.x += p.speedX; p.y += p.speedY; p.opacity += p.fade;
-        if (p.opacity >= 1 || p.opacity <= 0.1) p.fade *= -1;
-        if (p.x > canvas.width) p.x = 0; if (p.x < 0) p.x = canvas.width;
-        if (p.y > canvas.height) p.y = 0; if (p.y < 0) p.y = canvas.height;
-        ctx.fillStyle = `rgba(0, 243, 255, ${p.opacity})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-      });
-      requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
-
-    applyLanguage();
+    // ---- 起動
+    load(); applyGrade(); render();
+    if (T().last.state === 'ring') startAlarm();
+    setInterval(tick, 250);
+    if (!S.grade) openGradeChooser();
   </script>
 </body>
-</html>
-    
-  </body>
-  
+
 </html>

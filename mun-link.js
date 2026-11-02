@@ -1,5 +1,5 @@
 /* =====================================================================
-   むんクエスト連携キット（mun-link.js）  v1.2  2026.10
+   むんクエスト連携キット（mun-link.js）  v1.4  2026.11
    ---------------------------------------------------------------------
    単元アプリやゲームの </body> の直前に、次の1行を入れるだけで使えます。
      <script src="/mun-link.js"></script>
@@ -11,17 +11,19 @@
      ボタンの場所を変えたいとき： <script src="/mun-link.js" data-back="top-left"></script>
        （bottom-left ＝左下〔ふつう〕 / bottom-right / top-left / top-right / off ＝出さない）
    ・保護者が設定した「休けいのお知らせ」が、アプリの中でも出ます。
-   ・学習した時間でコインがもらえます：5分ごとに +100 C / +10 EXP
+   ・画面の左下に「🔊よみあげ」ボタンが出ます。オンにすると、さわった文字を読み上げます（文字を選んでいるときは、選んだ文字）。
+     出したくないとき： <script src="/mun-link.js" data-tts="off"></script>
+   ・学習した時間でコインがもらえます：5分ごとに +1000 C / +10 EXP
        （画面を見ながら操作している時間だけ数えます。ひらいたままの放置や、別のタブにいる間は数えません）
-   ・学習でもらえるコインは 1日 3000 C まで（時間・クリアのごほうびを合わせて）
+   ・学習でもらえるコインは 1日 30000 C まで（時間・クリアのごほうびを合わせて）
 
    ■ プログラムから使えること
    1) 授業（1時間目など）をクリアしたら、トップページのワールドマップに★が光り、
-      EXP とコインがたまります（はじめてクリア +10 EXP / +100 C、★がふえたら ★1つ +5 EXP / +30 C）。
+      EXP とコインがたまります（はじめてクリア +10 EXP / +1000 C、★がふえたら ★1つ +5 EXP / +300 C）。
         MunQuest.complete('app-math6-2', 3, 2);   // 単元ID, 何時間目, ★の数(0〜3)
       ・単元ID はトップページのカードの data-id（例：app-math6-2 ＝ 6年「文字と式」）
       ・同じ授業でごほうびがもらえるのは「はじめてクリア」と「★がふえたとき」だけ
-      ・EXP のごほうびは 1日 30回まで、コインは学習コインの上限（1日 3000 C）まで
+      ・EXP のごほうびは 1日 30回まで、コインは学習コインの上限（1日 30000 C）まで
    2) 単元の授業の数を教えると、ワールドマップに「何時間中いくつクリアしたか」が出ます。
         MunQuest.setTotal('app-math6-2', 6);
 
@@ -29,7 +31,7 @@
      mun_exp / mun_coins / mun_daily_exp … EXP・コイン（トップページと同じ）
      mun_progress … 単元ごとのクリア記録
      mun_reward_day … 1日のごほうび回数
-     mun_learn_coin … 今日の学習コイン（上限 3000 C）
+     mun_learn_coin … 今日の学習コイン（上限 30000 C）
      mun_study_day / mun_study_tick … 今日の学習時間
      mun_break / mun_session … 休けいのお知らせ
    ===================================================================== */
@@ -51,10 +53,10 @@
     if ((r.app || 0) >= APP_CAP) return false;
     r.app = (r.app || 0) + 1; save('mun_reward_day', r); return true;
   }
-  /* ---------- 学習コイン（1日 3000 C まで）---------- */
-  var LEARN_CAP = 3000;                // ← 1日にもらえる学習コインの上限
+  /* ---------- 学習コイン（1日 30000 C まで）---------- */
+  var LEARN_CAP = 30000;                // ← 1日にもらえる学習コインの上限
   var STUDY_STEP = 5 * 60;             // ← 何秒ごとにごほうびか（5分）
-  var STUDY_COIN = 100, STUDY_EXP = 10; // ← 5分ごとのコイン・EXP
+  var STUDY_COIN = 1000, STUDY_EXP = 10; // ← 5分ごとのコイン・EXP
   function learnLog() { var r = load('mun_learn_coin', null); if (!r || r.date !== today()) r = { date: today(), c: 0 }; return r; }
   function learnCoins(n) {
     var r = learnLog(), g = Math.max(0, Math.min(n, LEARN_CAP - r.c));
@@ -78,6 +80,7 @@
       '.mq-back-auto{right:auto;bottom:auto;padding:8px 14px;font-size:13px;opacity:.92}.mq-back-auto:hover{opacity:1}' +
       '.mq-bottom-left{left:12px;bottom:calc(12px + env(safe-area-inset-bottom))}.mq-bottom-right{right:12px;bottom:calc(12px + env(safe-area-inset-bottom))}.mq-top-left{left:12px;top:12px}.mq-top-right{right:12px;top:12px}' +
       '@media print{.mq-back{display:none}}' +
+      '.mq-tts{position:fixed;z-index:2147482000;padding:8px 14px;border-radius:999px;border:2px solid #fbbf24;background:rgba(10,15,30,.92);color:#fde68a;font:900 13px/1 "M PLUS Rounded 1c",Meiryo,sans-serif;cursor:pointer;opacity:.92}.mq-tts.on{background:#fbbf24;color:#1a1200}@media print{.mq-tts{display:none}}' +
       '.mq-break{position:fixed;inset:0;z-index:2147483600;display:grid;place-items:center;padding:20px;background:rgba(3,7,18,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",Meiryo,sans-serif}' +
       '.mq-break-box{max-width:440px;width:100%;text-align:center;padding:30px 26px;border-radius:24px;background:#0b1222;color:#e2e8f0;border:1px solid rgba(16,185,129,.5);box-shadow:0 0 40px rgba(16,185,129,.25)}' +
       '.mq-break-box .ic{font-size:56px;line-height:1}.mq-break-box h2{margin:12px 0 8px;font-size:22px;color:#fff}.mq-break-box p{margin:0 0 6px;font-size:15px;line-height:1.8;color:#cbd5e1}' +
@@ -98,8 +101,8 @@
     var all = load('mun_progress', {}), u = all[unitId] || { lessons: {} };
     if (!u.lessons) u.lessons = {};
     var key = String(lesson == null ? 1 : lesson), prev = u.lessons[key], exp = 0, coins = 0;
-    if (!prev) { exp = 10; coins = 100; }
-    else if (stars > (prev.stars || 0)) { exp = 5 * (stars - (prev.stars || 0)); coins = 30 * (stars - (prev.stars || 0)); }
+    if (!prev) { exp = 10; coins = 1000; }
+    else if (stars > (prev.stars || 0)) { exp = 5 * (stars - (prev.stars || 0)); coins = 300 * (stars - (prev.stars || 0)); }
     u.lessons[key] = { stars: Math.max(stars, prev ? prev.stars || 0 : 0), date: new Date().toISOString().slice(0, 10) };
     u.last = Date.now(); all[unitId] = u; save('mun_progress', all);
     if (!exp && !coins) return { exp: 0, coins: 0 };
@@ -163,7 +166,7 @@
     if (pos === 'off' || window.top !== window.self) return;
     var seg = location.pathname.split('/').filter(Boolean);
     if (seg.length < 2) return;                       // トップページ（/index.html）では出さない
-    var cat = CAT[decodeURIComponent(seg[0])] || '';
+    var cat = seg[0] === 'syakai' && seg[1] === 'rekishi' ? 'history' : (CAT[decodeURIComponent(seg[0])] || '');
     var a = document.createElement('a');
     a.className = 'mq-back mq-back-auto mq-' + pos;
     a.href = location.origin + '/index.html' + (cat ? '?cat=' + cat : '');
@@ -172,6 +175,40 @@
     ensureStyle();
     var put = function () { if (!document.body.contains(a)) document.body.appendChild(a); };
     put(); setInterval(put, 2000);                     // アプリが画面を書きかえても、ボタンが消えないように
+  }
+
+  /* ---------- 読み上げモード（文字をさわると読み上げる） ---------- */
+  var ttsOn = LS.get('mun_tts') === 'on';
+  function speak(t) {
+    try {
+      t = String(t || '').replace(/\s+/g, ' ').trim().slice(0, 220); if (!t) return;
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 0.9;
+      var v = speechSynthesis.getVoices().filter(function (x) { return /ja/i.test(x.lang); })[0]; if (v) u.voice = v;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function ttsButton() {
+    if (!('speechSynthesis' in window) || (ME && ME.getAttribute('data-tts') === 'off') || window.top !== window.self) return;
+    if (location.pathname.split('/').filter(Boolean).length < 2) return;
+    ensureStyle();
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'mq-tts';
+    var pos = (ME && ME.getAttribute('data-back')) || 'bottom-left';
+    if (pos === 'top-left') { b.style.top = '12px'; b.style.left = '120px'; } else if (pos === 'top-right') { b.style.top = '12px'; b.style.right = '120px'; }
+    else if (pos === 'bottom-right') { b.style.bottom = 'calc(12px + env(safe-area-inset-bottom))'; b.style.right = '120px'; }
+    else { b.style.bottom = 'calc(12px + env(safe-area-inset-bottom))'; b.style.left = pos === 'off' ? '12px' : '120px'; }
+    var paint = function () { b.textContent = ttsOn ? '🔊 よみあげ ON' : '🔈 よみあげ'; b.classList.toggle('on', ttsOn); b.setAttribute('aria-pressed', ttsOn); };
+    b.onclick = function (e) { e.stopPropagation(); ttsOn = !ttsOn; LS.set('mun_tts', ttsOn ? 'on' : 'off'); paint(); speak(ttsOn ? 'よみあげを オンにしました。もじを さわると よみあげます。' : 'よみあげを オフにしました。'); if (!ttsOn) try { speechSynthesis.cancel(); } catch (er) {} };
+    paint();
+    var put = function () { if (!document.body.contains(b)) document.body.appendChild(b); };
+    put(); setInterval(put, 2000);
+    document.addEventListener('click', function (e) {
+      if (!ttsOn || e.target === b) return;
+      var sel = String(window.getSelection ? window.getSelection() : '').trim();
+      if (sel) { speak(sel); return; }
+      var el = e.target.closest ? e.target.closest('button, a, label, li, td, th, p, h1, h2, h3, h4, span, div') : e.target;
+      if (el) speak(el.innerText || el.textContent);
+    }, true);
   }
 
   /* ---------- 休けいのお知らせ（保護者が設定したときだけ） ---------- */
@@ -197,8 +234,8 @@
     document.body.appendChild(o);
   }
   function startSession() { sessionTick(); setInterval(sessionTick, 30000); document.addEventListener('visibilitychange', function () { if (!document.hidden) sessionTick(); }); }
-  function boot() { startSession(); autoBack(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
+  function boot() { startSession(); autoBack(); ttsButton(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
   if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);
 
-  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.2', learnCoins: function () { return learnLog().c; } };
+  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.4', learnCoins: function () { return learnLog().c; } };
 })();
