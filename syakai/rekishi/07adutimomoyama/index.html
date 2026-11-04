@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050913">
+<title>歴史カードクエスト 第7章 安土桃山時代｜むん先生の学習クエスト</title>
+<!--
+==========================================================================
+  むん先生の 歴史カードクエスト  第7章「安土桃山時代」
+--------------------------------------------------------------------------
+  ■ ファイルの構成
+    [A] 時代データ … この時代だけの内容（ステージ・カード・CPU）
+                     → 次の時代のアプリでは、ここだけを書きかえる
+    [B] 共通コア   … 全時代アプリで同じ（連携・クイズ・デッキ・バトル・画面）
+                     → 直したときは、全時代のアプリに同じものをコピーする
+
+  ■ 時代アプリどうしの連携のしくみ
+    ・記録はブラウザの localStorage「munRekishi.v1」1か所に保存（全時代共通）
+    ・同じドメイン（例：munmungstudymax.com）の下に置いたアプリどうしで、
+      カード・デッキ・学習記録・バトル記録が自動で共有される
+        例）/rekishi/kodai/index.html と /rekishi/akebono/index.html → 共有される
+            サブドメインや別ドメイン（kids.〜 / 〜.github.io）→ 共有されない
+    ・カードを手に入れると、そのカードのデータ（性能・問題・豆知識）も保存される
+      → ほかの時代のアプリでも、デッキに入れて戦える・クイズに出る
+    ・アプリをひらくと「どの時代のアプリがどこにあるか」を登録する
+      → 「時代をつなぐ」画面から、ほかの時代のアプリへ移動できる
+    ・記録は端末の外へは送信しない（引き継ぎコードなし）
+    ・サイトの既存データ（コイン・レベルなど別のキー）にはさわらない
+
+  ■ 次の時代のアプリの作り方
+    1. このファイルをコピーする
+    2. [A] の ERA を書きかえる
+       ・id は下の SERIES の id を使う（例：'akebono'）
+       ・カードの id は「時代id-番号」（例：'akebono-01'）。一度決めたら変えない
+       ・効果(fx)は共通コアにある種類だけを使う（下の FX一覧）
+    3. [B] は変更しない
+    4. このアプリと同じドメインの下に置く
+==========================================================================
+-->
+<style>
+:root{--bg:#050913;--panel:rgba(10,20,46,.9);--panel2:rgba(16,30,66,.94);--line:rgba(0,229,255,.32);--cyan:#00e5ff;--pink:#ff3df2;--gold:#ffd54a;--green:#3dffa8;--red:#ff4d6d;--text:#e9f5ff;--sub:#8fb3d9}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse at 15% -10%,rgba(0,229,255,.2),transparent 50%),radial-gradient(ellipse at 100% 110%,rgba(255,61,242,.16),transparent 50%),linear-gradient(rgba(0,229,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.05) 1px,transparent 1px);background-size:auto,auto,34px 34px,34px 34px;background-attachment:fixed;color:var(--text);font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","BIZ UDPGothic","Yu Gothic UI","Meiryo",system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation;padding:0}
+a{color:inherit;text-decoration:none}
+#app{max-width:1000px;margin:0 auto;padding:0 12px 28px}
+h3.h{margin:0 0 10px;font-size:17px;color:#7ff6ff}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 2px;background:linear-gradient(var(--bg) 72%,transparent)}
+.back{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:20px;color:var(--cyan);flex:none}
+.top h2{margin:0;font-size:20px;flex:1;text-shadow:0 0 10px rgba(0,229,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-size:14px;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--panel);white-space:nowrap;font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:inset 0 0 18px rgba(0,229,255,.08)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:10px 22px;border-radius:14px;font-weight:900;font-size:18px;background:linear-gradient(135deg,#00b8d4,#0062ff);box-shadow:0 0 16px rgba(0,229,255,.45);color:#fff;border:1px solid rgba(255,255,255,.25)}
+.btn.pink{background:linear-gradient(135deg,#ff3df2,#7b2bff);box-shadow:0 0 16px rgba(255,61,242,.45)}
+.btn.gold{background:linear-gradient(135deg,#ffd54a,#ff8a00);color:#2a1300;box-shadow:0 0 14px rgba(255,190,60,.5)}
+.btn.ghost{background:var(--panel);box-shadow:none;border:1px solid var(--line);color:var(--cyan)}
+.btn.sm{min-height:46px;font-size:15px;padding:6px 14px;border-radius:12px}
+.btn:disabled{filter:grayscale(1) brightness(.55);box-shadow:none;cursor:default}
+.btn:active:not(:disabled),.mbtn:active,.stile:active,.choice:active{transform:scale(.97)}
+.sub{color:var(--sub)}
+.center{text-align:center}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.c{justify-content:center}
+.mt{margin-top:14px}
+.warnbox{border-color:var(--gold);color:#ffe9a8;font-size:14px;line-height:1.6}
+/* ---------- ホーム ---------- */
+.hero{text-align:center;padding:24px 10px 6px}
+.hero .series{font-size:14px;color:var(--sub);letter-spacing:.2em}
+.hero .chap{display:inline-block;margin-top:10px;font-size:12px;font-weight:900;letter-spacing:.3em;color:var(--pink);border:1px solid var(--pink);padding:3px 12px;border-radius:4px;text-shadow:0 0 8px var(--pink)}
+.hero h1{margin:8px 0 4px;font-size:clamp(34px,7vw,54px);letter-spacing:.08em;background:linear-gradient(90deg,#7ff6ff,#fff,#ff9df8);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 12px rgba(0,229,255,.5))}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:22px;color:var(--cyan)}
+.stat span{font-size:12px;color:var(--sub)}
+.menu-main{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.menu-sub{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.mbtn{min-height:104px;border-radius:16px;background:var(--panel2);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:900;font-size:17px;padding:8px}
+.mbtn i{font-style:normal;font-size:36px;line-height:1.1}
+.mbtn small{font-weight:400;font-size:12px;color:var(--sub)}
+.mbtn.big{min-height:130px;font-size:22px;flex-direction:row;gap:14px;background:linear-gradient(135deg,rgba(0,184,212,.35),rgba(0,98,255,.25));border-color:var(--cyan);box-shadow:0 0 18px rgba(0,229,255,.3)}
+.mbtn.big.b2{background:linear-gradient(135deg,rgba(255,61,242,.32),rgba(123,43,255,.28));border-color:var(--pink);box-shadow:0 0 18px rgba(255,61,242,.3)}
+.mbtn.big i{font-size:48px}
+.mbtn.big small{font-size:13px;display:block;margin-top:4px}
+@media(max-width:620px){.stats{grid-template-columns:repeat(2,1fr)}.menu-main{grid-template-columns:1fr}.menu-sub{grid-template-columns:repeat(2,1fr)}}
+/* ---------- ステージ ---------- */
+.stage-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.stile{display:flex;gap:12px;align-items:center;text-align:left;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);min-height:96px;width:100%}
+.stile .ic{font-size:40px;width:56px;text-align:center;flex:none}
+.stile .f1{flex:1;min-width:0}
+.stile .no{font-size:12px;color:var(--pink);font-weight:900;letter-spacing:.15em}
+.stile .tt{font-weight:900;font-size:18px}
+.stile.boss{border-color:var(--pink);box-shadow:0 0 16px rgba(255,61,242,.25);background:linear-gradient(135deg,rgba(255,61,242,.16),rgba(10,20,46,.9))}
+.stile.lock{opacity:.5}
+.bar{height:8px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));transition:width .4s}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;font-weight:900;vertical-align:middle}
+.b-clear{background:rgba(61,255,168,.15);color:var(--green);border:1px solid var(--green)}
+.b-perfect{background:rgba(255,213,74,.15);color:var(--gold);border:1px solid var(--gold)}
+.points{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.points li{background:rgba(5,12,30,.6);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:17px;line-height:1.8}
+.points b{color:#7ff6ff}
+.cardrow,.cardgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+/* ---------- クイズ ---------- */
+.qhead{display:flex;align-items:center;gap:10px}
+.qhead .bar{flex:1;margin:0}
+.qbox{margin-top:12px;font-size:21px;font-weight:900;line-height:1.6;padding:20px;min-height:96px;display:flex;align-items:center}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.choices.long{grid-template-columns:1fr}
+.choice{min-height:64px;padding:12px 16px;border-radius:14px;background:var(--panel2);border:2px solid var(--line);font-size:19px;font-weight:900;text-align:left;line-height:1.45;display:flex;align-items:center}
+.choices.long .choice{font-size:16px;font-weight:700}
+.choice .k{display:inline-block;flex:none;width:1.8em;color:var(--cyan);font-weight:900}
+.choice.ok{border-color:var(--green);background:rgba(61,255,168,.2)}
+.choice.ng{border-color:var(--red);background:rgba(255,77,109,.2)}
+.choice.dim{opacity:.4}
+.fb{margin-top:14px;display:flex;gap:14px;align-items:flex-start}
+.fb .f1{flex:1;min-width:0}
+.fb .msg{font-size:24px;font-weight:900}
+.fb.okk{border-color:var(--green)}.fb.okk .msg{color:var(--green)}
+.fb.ngg{border-color:var(--red)}.fb.ngg .msg{color:var(--red)}
+.ans{color:#7ff6ff}
+.get{margin-top:6px;font-weight:900;color:var(--gold);text-shadow:0 0 8px rgba(255,213,74,.6)}
+.trivia{background:rgba(255,213,74,.07);border:1px solid rgba(255,213,74,.5);border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.75}
+.trivia h4{margin:0 0 4px;color:var(--gold);font-size:14px}
+.bosshead{display:flex;align-items:center;gap:14px}
+.bossic{font-size:56px;filter:drop-shadow(0 0 14px var(--pink))}
+.bosshead .f1{flex:1}
+.bosshead .bar{height:14px}
+.bosshead .bar>div{background:linear-gradient(90deg,#ff4d6d,#ff3df2)}
+.hearts{font-size:22px;letter-spacing:2px}
+.rtitle{font-size:30px;font-weight:900;text-shadow:0 0 14px var(--cyan)}
+.score{font-size:64px;font-weight:900;color:var(--cyan);text-shadow:0 0 18px var(--cyan)}
+.score small{font-size:26px;color:var(--sub)}
+@media(max-width:620px){.choices{grid-template-columns:1fr}.fb{flex-direction:column;align-items:center}}
+/* ---------- カード ---------- */
+.card{--cw:112px;--tc:#b07bff;--tg:rgba(176,123,255,.5);position:relative;width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.09);border:2px solid var(--tc);background:linear-gradient(165deg,#17295c 0%,#0a1230 55%,#050915 100%);box-shadow:0 0 10px var(--tg),inset 0 0 14px rgba(0,0,0,.7);font-size:calc(var(--cw)*.12);display:flex;flex-direction:column;align-items:center;overflow:hidden;flex:none;line-height:1.2;text-align:center;transition:transform .15s}
+.card.xs{--cw:58px}.card.sm{--cw:80px}.card.md{--cw:116px}.card.lg{--cw:min(230px,58vw)}
+.t-person{--tc:#ff7a45;--tg:rgba(255,122,69,.5)}
+.t-heritage{--tc:#2fa8ff;--tg:rgba(47,168,255,.5)}
+.t-culture{--tc:#b07bff;--tg:rgba(176,123,255,.5)}
+.c-cost{position:absolute;top:.3em;left:.3em;width:1.75em;height:1.75em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8ff8ff,#0090b8);color:#001018;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 6px #00e5ff;font-size:1.05em;z-index:2}
+.c-rar{position:absolute;top:.4em;right:.35em;font-size:.68em;font-weight:900;padding:.05em .35em;border-radius:.3em;background:rgba(0,0,0,.55);border:1px solid currentColor;z-index:2}
+.r-N .c-rar{color:#9fb3c8}.r-R .c-rar{color:#00e5ff}.r-SR .c-rar{color:#ffd54a}.r-LR .c-rar{color:#ff8af5}
+.c-icon{font-size:2.9em;margin-top:.62em;line-height:1.15;filter:drop-shadow(0 0 6px var(--tg))}
+.c-name{font-weight:900;font-size:.96em;padding:0 .3em;margin-top:.12em;height:2.45em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all}
+.c-type{font-size:.66em;padding:.08em .7em;border-radius:1em;background:var(--tc);color:#050915;font-weight:900;margin-top:.1em}
+.c-stats{position:absolute;bottom:.3em;left:.35em;right:.35em;display:flex;justify-content:space-between;font-weight:900;font-size:1.02em}
+.c-atk{color:#ffb38a}.c-hp{color:#7dffb5}.c-hp.low{color:#ff4d6d}.c-atk.up{color:#ffd54a}
+.c-fx{position:absolute;bottom:.35em;left:.35em;right:.35em;font-size:.62em;color:#dccfff;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
+.card.xs .c-fx,.card.sm .c-fx,.card.f .c-fx,.card.h .c-fx{display:none}
+.c-star{position:absolute;bottom:1.7em;left:0;right:0;font-size:.62em;color:var(--gold);letter-spacing:.05em}
+.t-culture .c-star{bottom:.5em}
+.card.md.t-culture .c-star,.card.lg.t-culture .c-star{bottom:auto;top:2.25em}
+.c-badge{position:absolute;top:.35em;left:50%;transform:translateX(-50%);padding:.12em .55em;border-radius:1em;font-size:.66em;font-weight:900;background:var(--pink);color:#fff;box-shadow:0 0 10px var(--pink);z-index:3;white-space:nowrap;animation:badge 1.2s ease-in-out infinite alternate}
+.c-badge.in{background:var(--green);color:#002a18;box-shadow:0 0 10px var(--green)}
+.c-sleep{position:absolute;top:1.9em;right:.25em;font-size:1em;z-index:2}
+.r-SR{box-shadow:0 0 14px rgba(255,213,74,.55),inset 0 0 14px rgba(0,0,0,.7)}
+.r-SR::after,.r-LR::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.18) 45%,transparent 55%);background-size:250% 100%;animation:shine 3.2s linear infinite;pointer-events:none}
+.r-LR{border-color:transparent;background:linear-gradient(165deg,#17295c 0%,#0a1230 55%,#050915 100%) padding-box,linear-gradient(90deg,#ff3df2,#00e5ff,#ffd54a,#3dffa8,#ff3df2) border-box;background-size:100% 100%,300% 100%;animation:lr 3s linear infinite;box-shadow:0 0 16px rgba(255,61,242,.5),inset 0 0 14px rgba(0,0,0,.7)}
+.card.locked{--tc:#24365a;--tg:transparent;background:#08101f;box-shadow:none;animation:none}
+.card.locked::after{display:none}
+.card.locked .c-icon,.card.locked .c-name{color:#3a5480}
+.card.locked .c-cost{background:#1b2a47;color:#5b77a6;box-shadow:none}
+.card.locked .c-type{background:#1b2a47;color:#5b77a6}
+.card.ghost{opacity:.55}
+.card.indeck{outline:3px solid var(--green);outline-offset:2px}
+.cardgrid .card,.cardrow .card{cursor:pointer}
+.flip{animation:flipIn .7s both}
+/* ---------- 図鑑・デッキ ---------- */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px}
+.tab{padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel);white-space:nowrap;font-weight:900;font-size:15px;color:var(--sub)}
+.tab.on{background:linear-gradient(135deg,#00b8d4,#0062ff);color:#fff;border-color:transparent;box-shadow:0 0 12px rgba(0,229,255,.4)}
+.erah{margin:16px 0 8px;font-weight:900;color:#7ff6ff;font-size:15px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.deckbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.deckbar .cnt{font-size:28px;font-weight:900;color:var(--cyan)}
+.deckbar .cnt.ng{color:var(--gold)}
+.tpill{font-size:13px;padding:3px 10px;border-radius:10px;font-weight:900}
+.tp-person{background:rgba(255,122,69,.2);color:#ffb38a}.tp-heritage{background:rgba(47,168,255,.2);color:#8fd0ff}.tp-culture{background:rgba(176,123,255,.2);color:#d6bdff}
+/* ---------- バトル選択・連携 ---------- */
+.cpu-list{display:grid;gap:12px}
+.cpu-tile{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--line);text-align:left;width:100%}
+.cpu-tile .ic{font-size:50px;width:64px;text-align:center;flex:none}
+.cpu-tile .f1{flex:1;min-width:0}
+.cpu-tile .nm{font-size:20px;font-weight:900}
+.cpu-tile .lv{color:var(--gold);font-size:14px}
+.cpu-tile.lock{opacity:.5}
+.cpu-tile .rw{text-align:center;font-size:11px;color:var(--sub)}
+.linkrow{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:rgba(5,12,30,.6);border:1px solid var(--line);margin-top:8px}
+.linkrow .ic{font-size:32px}
+.linkrow .f1{flex:1;min-width:0}
+.srow{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px dashed rgba(0,229,255,.15);font-size:15px;color:var(--sub)}
+.srow span{width:4.5em;flex:none;font-weight:900}
+.srow em{margin-left:auto;font-style:normal;font-size:12px;padding:2px 8px;border-radius:10px;border:1px solid #3a5480}
+.srow.on{color:var(--text)}
+.srow.on em{border-color:var(--green);color:var(--green)}
+.info-list{margin:0;padding-left:1.2em;line-height:1.8;font-size:15px}
+/* ---------- バトル ---------- */
+.bt{--fw:clamp(72px,12.6vh,108px);--hw:clamp(64px,10.6vh,90px);display:flex;flex-direction:column;gap:6px;max-width:760px;margin:0 auto;padding-top:8px}
+.card.f{--cw:var(--fw)}.card.h{--cw:var(--hw)}
+.bt-top{display:flex;align-items:center;gap:8px}
+.bt-top .back{width:40px;height:40px}
+.turnlbl{margin-left:auto;font-weight:900;font-size:15px;padding:6px 14px;border-radius:20px}
+.turnlbl.me{background:rgba(0,229,255,.18);color:#7ff6ff;border:1px solid var(--cyan)}
+.turnlbl.cpu{background:rgba(255,61,242,.16);color:#ff9df8;border:1px solid var(--pink)}
+.sidebar{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:12px;background:var(--panel);border:1px solid var(--line);flex-wrap:wrap}
+.sidebar.cpu{border-color:rgba(255,61,242,.45)}
+.sidebar .who{font-weight:900;white-space:nowrap;font-size:15px}
+.lifebox{flex:1;min-width:110px}
+.lifebox .num{font-weight:900;font-size:15px}
+.lifebar{height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:2px}
+.lifebar>div{height:100%;background:linear-gradient(90deg,#ff4d6d,#ff3df2);transition:width .4s}
+.me .lifebar>div{background:linear-gradient(90deg,#3dffa8,#00e5ff)}
+.mini{font-size:13px;color:var(--sub);white-space:nowrap}
+.cp{font-weight:900;color:#7ff6ff;white-space:nowrap;font-size:18px;text-shadow:0 0 8px var(--cyan)}
+.cp small{font-size:13px;color:var(--sub)}
+.field{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;justify-items:center;padding:8px;border-radius:14px;border:1px dashed rgba(0,229,255,.22);background:rgba(0,10,30,.35)}
+.field.cpu{border-color:rgba(255,61,242,.25)}
+.lane{width:var(--fw);height:calc(var(--fw)*1.4);border-radius:10px;border:2px dashed rgba(0,229,255,.18);display:flex;align-items:center;justify-content:center;color:#7ff6ff;font-size:13px;font-weight:900;padding:4px}
+.field.cpu .lane{border-color:rgba(255,61,242,.15)}
+.lane.can{border-color:var(--cyan);background:rgba(0,229,255,.14);animation:pulse 1s infinite}
+.msgbar{text-align:center;font-weight:900;font-size:16px;min-height:24px;text-shadow:0 0 8px var(--cyan)}
+.info{display:flex;align-items:center;gap:8px;min-height:54px;padding:6px 10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.info .txt{flex:1;line-height:1.45;min-width:180px}
+.info .fxs{color:#dccfff;font-size:13px}
+.info .warn{color:var(--gold);font-weight:900}
+.info .hint{color:var(--cyan);font-weight:900}
+.hand{display:flex;gap:8px;overflow-x:auto;padding:10px 4px 10px;min-height:calc(var(--hw)*1.4 + 20px)}
+.hand .card.sel{transform:translateY(-8px);box-shadow:0 0 0 3px #fff,0 0 18px var(--cyan)}
+.hand .card.no{filter:brightness(.5) grayscale(.5)}
+@media(max-width:600px){
+  .bt{--fw:clamp(62px,min(10.4vh,25vw),100px);--hw:clamp(58px,min(8.4vh,19vw),84px);gap:5px}
+  .sidebar{padding:5px 8px;gap:6px}
+  .sidebar.me .btn.sm{min-height:40px;font-size:14px;padding:4px 10px}
+  .info{font-size:12.5px;min-height:44px;padding:5px 8px}
+  .info .txt{min-width:150px}
+  .info .btn.sm{min-height:38px;font-size:13px;padding:4px 10px}
+  .msgbar{font-size:14px;min-height:20px}
+  .bt-top .chip{font-size:12px;padding:5px 9px}
+}
+.cbacks{display:flex;gap:2px}
+ruby{ruby-position:over}
+rt{font-size:.5em;font-weight:700;letter-spacing:0;color:inherit;opacity:.9;user-select:none}
+body.nofuri rt{display:none}
+.card.xs rt,.card.sm rt,.card.f rt,.card.h rt,.c-fx rt,.c-type rt{display:none}
+.card.md .c-name,.card.lg .c-name{line-height:1.55;height:3.1em}
+.furi-btn{position:fixed;bottom:14px;right:14px;z-index:30;box-shadow:0 0 12px rgba(0,229,255,.35)}
+.cback{width:12px;height:17px;border-radius:3px;background:linear-gradient(135deg,#ff3df2,#00e5ff);opacity:.8}
+.flash{position:fixed;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.fl-in{display:flex;gap:16px;align-items:center;padding:18px 22px;border-radius:18px;background:rgba(8,14,36,.95);border:1px solid var(--pink);box-shadow:0 0 30px rgba(255,61,242,.5);animation:pop .3s}
+.fl-t{font-weight:900;font-size:16px;line-height:1.6;max-width:260px}
+/* ---------- モーダル・演出 ---------- */
+#modal .bg{position:fixed;inset:0;z-index:40;background:rgba(0,4,14,.78);display:flex;align-items:center;justify-content:center;padding:14px}
+.sheet{width:min(580px,100%);max-height:92vh;overflow:auto;background:linear-gradient(160deg,#0f1f48,#070e26);border:1px solid var(--cyan);border-radius:18px;padding:18px;box-shadow:0 0 30px rgba(0,229,255,.35);animation:pop .25s}
+.sheet h3{margin:0 0 10px;color:#7ff6ff}
+.sheet h4{margin:14px 0 4px;color:var(--gold)}
+.detail{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+.dl{flex:1;min-width:230px;font-size:15px;line-height:1.7;margin:0}
+.dl dt{color:var(--sub);font-size:12px;margin-top:8px}
+.dl dd{margin:0}
+.res-win,.res-lose,.res-draw{font-size:44px;font-weight:900;letter-spacing:.06em}
+.res-win{color:var(--gold);text-shadow:0 0 20px var(--gold)}
+.res-lose{color:#ff8aa0;text-shadow:0 0 16px var(--red)}
+.res-draw{color:var(--cyan)}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:60;background:rgba(8,14,36,.96);border:1px solid var(--cyan);border-radius:14px;padding:12px 18px;font-weight:900;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.float{position:fixed;z-index:55;pointer-events:none;font-weight:900;font-size:30px;color:#ff4d6d;text-shadow:0 0 6px #000,0 0 12px #ff4d6d;animation:floatUp .9s ease-out forwards;transform:translateX(-50%)}
+.float.heal{color:#3dffa8;text-shadow:0 0 6px #000,0 0 12px #3dffa8}
+.hit{animation:shake .35s}
+.lunge-up{animation:lungeUp .3s}
+.lunge-down{animation:lungeDown .3s}
+.spawn{animation:pop .35s}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{50%{box-shadow:0 0 16px var(--cyan)}}
+@keyframes shake{20%{transform:translateX(-6px) rotate(-3deg)}40%{transform:translateX(6px) rotate(3deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes lungeUp{50%{transform:translateY(-22px) scale(1.06)}}
+@keyframes lungeDown{50%{transform:translateY(22px) scale(1.06)}}
+@keyframes floatUp{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-50px}}
+@keyframes flipIn{from{transform:rotateY(90deg) scale(.7);opacity:0}to{transform:rotateY(0) scale(1);opacity:1}}
+@keyframes shine{from{background-position:150% 0}to{background-position:-100% 0}}
+@keyframes lr{to{background-position:0 0,300% 0}}
+@keyframes badge{to{box-shadow:0 0 16px var(--pink),0 0 4px #fff}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ======================================================================
+   [A] 時代データ（この時代のアプリだけの内容）
+   ----------------------------------------------------------------------
+   カードの項目
+     id      : 時代id-番号（一度決めたら変えない。保存データのカギになる）
+     stage   : どのステージで手に入るか（'reward' はボス・CPUの報酬）
+     type    : person=人物 / heritage=遺産 / culture=文化
+     rarity  : N / R / SR / LR
+     cost    : 出すのに必要な💠  atk:こうげき  hp:たいりょく（文化は不要）
+     fx      : 効果（FX一覧の種類だけ使える）
+     q,a,wrong : 問題・正解・まちがいの選択肢3つ
+     desc    : 短いせつめい（「〜の説明として正しいものは？」問題にも使う）
+     trivia  : 豆知識
+   FX一覧
+     draw:n カードをn枚引く / cp:n このターン💠+n / heal:n ライフ+n
+     dmg:n 相手のいちばん強いカードにnダメージ / dmgAll:n 相手の場ぜんぶにn
+     direct:n 相手ライフにn / buffAtk:n 味方の人物こうげき+n / buffHp:n 味方たいりょく+n
+     auraAtk:n【場にいる間】味方の人物こうげき+n / regen:n【毎ターン】ライフ+n
+     cpTurn:n【毎ターン】💠+n / rush 速攻 / pierce 貫通
+   ====================================================================== */
+const ERA = {
+  id: 'azuchi',
+  chapter: 7,
+  title: '安土《あづち》桃山《ももやま》時代《じだい》',
+  subtitle: 'ヨーロッパ人《じん》の来航《らいこう》から天下《てんか》統一《とういつ》まで',
+  icon: '🏯',
+  version: 1,
+  stages: [
+    { id: 's1', no: 1, title: 'ヨーロッパ人《じん》の来航《らいこう》', icon: '⛵', points: [
+      '1543年《ねん》、<b>種子島《たねがしま》</b>（鹿児島《かごしま》県《けん》）に流《なが》れ着《つ》いたポルトガル人《じん》が<b>鉄砲《てっぽう》</b>を伝《つた》えた。鉄砲《てっぽう》は堺《さかい》などで大量《たいりょう》につくられ、全国《ぜんこく》に広《ひろ》まった。',
+      '1549年《ねん》、イエズス会《かい》の宣教師《せんきょうし》<b>フランシスコ・ザビエル</b>が来日《らいにち》し、キリスト教《きょう》を伝《つた》えた。貿易《ぼうえき》の利益《りえき》などを求《もと》めて、キリスト教《きょう》の信者《しんじゃ》になる<b>キリシタン大名《だいみょう》</b>も現《あらわ》れた。',
+      'ポルトガル人《じん》やスペイン人《じん》は<b>南蛮人《なんばんじん》</b>とよばれ、彼《かれ》らとの<b>南蛮《なんばん》貿易《ぼうえき》</b>で長崎《ながさき》や平戸《ひらど》が栄《さか》えた。日本《にほん》は火薬《かやく》や生糸《きいと》を輸入《ゆにゅう》し、銀《ぎん》を輸出《ゆしゅつ》した。'
+    ]},
+    { id: 's2', no: 2, title: '織田《おだ》信長《のぶなが》の統一《とういつ》事業《じぎょう》', icon: '⚔️', points: [
+      '尾張《おわり》（愛知《あいち》県《けん》）の<b>織田《おだ》信長《のぶなが》</b>は、1560年《ねん》の<b>桶狭間《おけはざま》の戦《たたか》い</b>で、駿河《するが》（静岡《しずおか》県《けん》）の<b>今川《いまがわ》義元《よしもと》</b>を破《やぶ》って力《ちから》をのばした。',
+      '信長《のぶなが》は京都《きょうと》に上《のぼ》り、1573年《ねん》に将軍《しょうぐん》足利《あしかが》義昭《よしあき》を追放《ついほう》して<b>室町《むろまち》幕府《ばくふ》</b>をほろぼした。',
+      '1575年《ねん》の<b>長篠《ながしの》の戦《たたか》い</b>では、<b>足軽《あしがる》</b>の鉄砲《てっぽう》隊《たい》を活用《かつよう》して、甲斐《かい》（山梨《やまなし》県《けん》）の<b>武田《たけだ》勝頼《かつより》</b>を破《やぶ》った。'
+    ]},
+    { id: 's3', no: 3, title: '信長《のぶなが》の政策《せいさく》と本能寺《ほんのうじ》の変《へん》', icon: '🏯', points: [
+      '信長《のぶなが》は、琵琶湖《びわこ》のほとりに天守《てんしゅ》をもつ<b>安土城《あづちじょう》</b>を築《きず》き、天下《てんか》統一《とういつ》の拠点《きょてん》とした。',
+      '城下町《じょうかまち》では<b>楽市《らくいち》・楽座《らくざ》</b>を行《おこな》って市《し》の税《ぜい》をなくし、座《ざ》の特権《とっけん》を廃止《はいし》した。また、<b>関所《せきしょ》</b>を廃止《はいし》して、商工業《しょうこうぎょう》をさかんにした。',
+      '信長《のぶなが》は、比叡山《ひえいざん》延暦寺《えんりゃくじ》を焼《や》き討《う》ちし、一向《いっこう》一揆《いっき》をおさえるなど、仏教《ぶっきょう》勢力《せいりょく》と争《あらそ》った。一方《いっぽう》で、キリスト教《きょう》は保護《ほご》した。',
+      '1582年《ねん》、信長《のぶなが》は京都《きょうと》の本能寺《ほんのうじ》で、家臣《かしん》の<b>明智《あけち》光秀《みつひで》</b>にそむかれて自害《じがい》した（<b>本能寺《ほんのうじ》の変《へん》</b>）。'
+    ]},
+    { id: 's4', no: 4, title: '豊臣《とよとみ》秀吉《ひでよし》の全国《ぜんこく》統一《とういつ》', icon: '☀️', points: [
+      '信長《のぶなが》の家臣《かしん》だった<b>豊臣《とよとみ》秀吉《ひでよし》</b>は、明智《あけち》光秀《みつひで》をたおして信長《のぶなが》の後継《こうけい》者《しゃ》となり、<b>大阪城《おおさかじょう》</b>を築《きず》いた。',
+      '秀吉《ひでよし》は朝廷《ちょうてい》から<b>関白《かんぱく》</b>に任命《にんめい》され、1590年《ねん》に小田原《おだわら》の北条氏《ほうじょうし》をほろぼして<b>全国《ぜんこく》統一《とういつ》</b>をなしとげた。',
+      '秀吉《ひでよし》は、キリスト教《きょう》が統一《とういつ》のさまたげになると考《かんが》え、1587年《ねん》に<b>バテレン追放令《ついほうれい》</b>を出《だ》して宣教師《せんきょうし》を国外《こくがい》に追放《ついほう》した。しかし南蛮《なんばん》貿易《ぼうえき》は続《つづ》けたため、取《と》りしまりは不《ふ》十分《じゅうぶん》だった。',
+      '秀吉《ひでよし》は明《みん》を征服《せいふく》しようと、2度《ど》にわたって<b>朝鮮《ちょうせん》</b>に大軍《たいぐん》を送《おく》った（<b>朝鮮《ちょうせん》出兵《しゅっぺい》</b>）。しかし、秀吉《ひでよし》の病死《びょうし》で軍《ぐん》を引《ひ》き上《あ》げた。'
+    ]},
+    { id: 's5', no: 5, title: '太閤《たいこう》検地《けんち》と刀狩《かたながり》', icon: '📏', points: [
+      '秀吉《ひでよし》は、全国《ぜんこく》の田畑《たはた》の広《ひろ》さや土地《とち》のよしあしを調《しら》べ、収穫《しゅうかく》量《りょう》を<b>石高《こくだか》</b>で表《あらわ》した。これを<b>太閤《たいこう》検地《けんち》</b>という。結果《けっか》は<b>検地帳《けんちちょう》</b>に記録《きろく》された。',
+      '百姓《ひゃくしょう》は、田畑《たはた》を耕《たがや》す権利《けんり》を認《みと》められる代《か》わりに、<b>年貢《ねんぐ》</b>を納《おさ》める義務《ぎむ》を負《お》った。こうして、荘園《しょうえん》のしくみはなくなった。',
+      '1588年《ねん》、秀吉《ひでよし》は一揆《いっき》を防《ふせ》ぐため、百姓《ひゃくしょう》から刀《かたな》ややり、鉄砲《てっぽう》などの武器《ぶき》を取《と》り上《あ》げた。これを<b>刀狩《かたながり》</b>という。',
+      '太閤《たいこう》検地《けんち》と刀狩《かたながり》によって、武士《ぶし》と百姓《ひゃくしょう》の身分《みぶん》の区別《くべつ》がはっきりした。これを<b>兵農《へいのう》分離《ぶんり》</b>という。'
+    ]},
+    { id: 's6', no: 6, title: '桃山《ももやま》文化《ぶんか》と南蛮《なんばん》文化《ぶんか》', icon: '🍑', points: [
+      '大名《だいみょう》や大《だい》商人《しょうにん》の気風《きふう》を反映《はんえい》した、雄大《ゆうだい》で豪華《ごうか》な文化《ぶんか》を<b>桃山《ももやま》文化《ぶんか》</b>という。',
+      '城《しろ》には、高《たか》くそびえる<b>天守《てんしゅ》</b>や巨大《きょだい》な石垣《いしがき》が築《きず》かれた。城《しろ》のふすまや屏風《びょうぶ》には、金《きん》ぱくを使《つか》った<b>濃絵《だみえ》</b>がえがかれ、<b>狩野《かのう》永徳《えいとく》</b>らが活躍《かつやく》した。',
+      '堺《さかい》の商人《しょうにん》<b>千利休《せんのりきゅう》</b>は、茶《ちゃ》の湯《ゆ》を<b>わび茶《ちゃ》</b>として完成《かんせい》させた。<b>出雲《いずも》の阿国《おくに》</b>が始《はじ》めた<b>かぶき踊《おど》り</b>が京都《きょうと》で流行《りゅうこう》した。',
+      'ヨーロッパ人《じん》との交流《こうりゅう》で、パンやカステラ、時計《とけい》、活版《かっぱん》印刷《いんさつ》などが伝《つた》わった。これを<b>南蛮《なんばん》文化《ぶんか》</b>という。'
+    ]}
+  ],
+  boss: { title: '時空《じくう》の番人《ばんにん》の挑戦《ちょうせん》', icon: '🌀', hp: 10, hearts: 3, reward: 'azuchi-41',
+          text: '安土《あづち》桃山《ももやま》時代《じだい》の全《ぜん》範囲《はんい》からランダムに出題《しゅつだい》。10問《もん》正解《せいかい》で勝《か》ち、3回《かい》まちがえると負《ま》け。' },
+  cpu: [
+    { id: 'easy', name: '見習《みなら》いの足軽《あしがる》', icon: '🔰', lv: 1, life: 14, size: 12, star: 1, rarity: ['N','R'], ai: 'easy', reward: 'azuchi-42',
+      text: 'まずはここから！ 気《き》まぐれにカードを出《だ》してくる。' },
+    { id: 'normal', name: '堺《さかい》の豪商《ごうしょう》', icon: '🎎', lv: 2, life: 23, size: 15, star: 2, rarity: ['N','R','SR'], ai: 'smart', need: 'easy', reward: 'azuchi-43',
+      text: '人物《じんぶつ》と遺産《いさん》をうまく使《つか》い分《わ》けてくる。' },
+    { id: 'hard', name: '時空《じくう》の番人《ばんにん》', icon: '🌀', lv: 3, life: 30, size: 15, star: 3, rarity: ['R','SR','LR'], ai: 'smart', need: 'normal', reward: 'azuchi-44',
+      text: '伝説《でんせつ》のカードを使《つか》う最強《さいきょう》の相手《あいて》。★を上《あ》げてから挑《いど》もう。' }
+  ],
+  cards: [
+    // ---------- STAGE 1 ヨーロッパ人の来航 ----------
+    { id:'azuchi-01', stage:'s1', name:'種子島《たねがしま》', kana:'たねがしま', icon:'🏝️', type:'heritage', rarity:'R', cost:3, atk:0, hp:6, fx:[{t:'auraAtk',n:1}],
+      q:'1543年《ねん》、ポルトガル人《じん》が流《なが》れ着《つ》き、鉄砲《てっぽう》が伝《つた》わった島《しま》は？', a:'種子島《たねがしま》', wrong:['佐渡島《さどがしま》','対馬《つしま》','出島《でじま》'],
+      desc:'鹿児島《かごしま》県《けん》の島《しま》。1543年《ねん》、ポルトガル人《じん》を乗《の》せた船《ふね》が流《なが》れ着《つ》き、鉄砲《てっぽう》が伝《つた》わった。',
+      trivia:'島《しま》の領主《りょうしゅ》は鉄砲《てっぽう》2丁《ちょう》を大金《たいきん》で買《か》い取《と》り、刀鍛冶《かたなかじ》に命《めい》じて、そっくりのものをつくらせました。' },
+    { id:'azuchi-02', stage:'s1', name:'鉄砲《てっぽう》', kana:'てっぽう', icon:'🔫', type:'culture', rarity:'SR', cost:2, fx:[{t:'dmg',n:3},{t:'buffAtk',n:1}],
+      q:'1543年《ねん》にポルトガル人《じん》が伝《つた》え、戦《たたか》い方《かた》を大《おお》きく変《か》えた武器《ぶき》は？', a:'鉄砲《てっぽう》', wrong:['てつはう','大砲《たいほう》','弓矢《ゆみや》'],
+      desc:'1543年《ねん》に種子島《たねがしま》に伝《つた》わった武器《ぶき》。堺《さかい》や国友《くにとも》（滋賀《しが》県《けん》）などで大量《たいりょう》につくられた。',
+      trivia:'鉄砲《てっぽう》の登場《とうじょう》で戦《たたか》い方《かた》が変《か》わり、高《たか》い石垣《いしがき》をもつ、守《まも》りの固《かた》い城《しろ》が築《きず》かれるようになりました。' },
+    { id:'azuchi-03', stage:'s1', name:'フランシスコ・ザビエル', kana:'ふらんしすこ・ざびえる', icon:'📘', type:'culture', rarity:'SR', cost:3, fx:[{t:'draw',n:2},{t:'heal',n:1}],
+      q:'1549年《ねん》に来日《らいにち》し、キリスト教《きょう》を伝《つた》えたイエズス会《かい》の宣教師《せんきょうし》は？', a:'フランシスコ・ザビエル', wrong:['マルコ・ポーロ','コロンブス','ルイス・フロイス'],
+      desc:'1549年《ねん》に鹿児島《かごしま》に上陸《じょうりく》し、日本《にほん》にキリスト教《きょう》を伝《つた》えたイエズス会《かい》の宣教師《せんきょうし》。',
+      trivia:'約《やく》2年間《ねんかん》日本《にほん》に滞在《たいざい》し、山口《やまぐち》や豊後《ぶんご》（大分《おおいた》県《けん》）などで布教《ふきょう》しました。' },
+    { id:'azuchi-04', stage:'s1', name:'キリシタン大名《だいみょう》', kana:'きりしたんだいみょう', icon:'🏘️', type:'person', rarity:'R', cost:3, atk:2, hp:5, fx:[{t:'draw',n:1},{t:'cp',n:1}],
+      q:'キリスト教《きょう》の信者《しんじゃ》になった大名《だいみょう》を何《なん》という？', a:'キリシタン大名《だいみょう》', wrong:['守護《しゅご》大名《だいみょう》','戦国《せんごく》大名《だいみょう》','外様《とざま》大名《だいみょう》'],
+      desc:'貿易《ぼうえき》の利益《りえき》などを求《もと》めて、キリスト教《きょう》の信者《しんじゃ》になった大名《だいみょう》。',
+      trivia:'大友《おおとも》宗麟《そうりん》や有馬《ありま》晴信《はるのぶ》、大村《おおむら》純忠《すみただ》などがいました。大村《おおむら》純忠《すみただ》は、長崎《ながさき》の港《みなと》をイエズス会《かい》に寄付《きふ》しました。' },
+    { id:'azuchi-05', stage:'s1', name:'南蛮《なんばん》貿易《ぼうえき》', kana:'なんばんぼうえき', icon:'⛵', type:'culture', rarity:'SR', cost:2, fx:[{t:'draw',n:2},{t:'cp',n:1}],
+      q:'ポルトガルやスペインとの貿易《ぼうえき》を何《なん》という？', a:'南蛮《なんばん》貿易《ぼうえき》', wrong:['勘合《かんごう》貿易《ぼうえき》','日宋《にっそう》貿易《ぼうえき》','朱印船《しゅいんせん》貿易《ぼうえき》'],
+      desc:'ポルトガル人《じん》やスペイン人《じん》との貿易《ぼうえき》。長崎《ながさき》や平戸《ひらど》などの港《みなと》が栄《さか》えた。',
+      trivia:'日本《にほん》は火薬《かやく》や生糸《きいと》、鉄砲《てっぽう》などを輸入《ゆにゅう》し、大量《たいりょう》の銀《ぎん》を輸出《ゆしゅつ》しました。' },
+    { id:'azuchi-06', stage:'s1', name:'南蛮人《なんばんじん》', kana:'なんばんじん', icon:'🧔', type:'person', rarity:'N', cost:2, atk:2, hp:3, fx:[{t:'draw',n:1}],
+      q:'当時《とうじ》の日本《にほん》で、ポルトガル人《じん》やスペイン人《じん》は何《なん》とよばれた？', a:'南蛮人《なんばんじん》', wrong:['渡来人《とらいじん》','倭寇《わこう》','唐人《とうじん》'],
+      desc:'ポルトガル人《じん》やスペイン人《じん》のこと。南《みなみ》の方《ほう》から来《き》たので、こうよばれた。',
+      trivia:'「南蛮《なんばん》」は、もとは中国《ちゅうごく》で南方《なんぽう》の人々《ひとびと》を指《さ》す言葉《ことば》でした。チキン南蛮《なんばん》の「南蛮《なんばん》」も、ここから来《き》ているといわれます。' },
+    // ---------- STAGE 2 織田信長の統一事業 ----------
+    { id:'azuchi-07', stage:'s2', name:'織田《おだ》信長《のぶなが》', kana:'おだのぶなが', icon:'⚔️', type:'person', rarity:'LR', cost:6, atk:6, hp:7, fx:[{t:'dmg',n:2},{t:'auraAtk',n:1}],
+      q:'桶狭間《おけはざま》の戦《たたか》いで今川《いまがわ》義元《よしもと》を破《やぶ》り、天下《てんか》統一《とういつ》を進《すす》めた尾張《おわり》の戦国《せんごく》大名《だいみょう》は？', a:'織田《おだ》信長《のぶなが》', wrong:['豊臣《とよとみ》秀吉《ひでよし》','徳川《とくがわ》家康《いえやす》','武田《たけだ》信玄《しんげん》'],
+      desc:'尾張《おわり》（愛知《あいち》県《けん》）の戦国《せんごく》大名《だいみょう》。室町《むろまち》幕府《ばくふ》をほろぼし、天下《てんか》統一《とういつ》を進《すす》めた。',
+      trivia:'「天下布武《てんかふぶ》」という印《いん》を使《つか》い、武力《ぶりょく》で天下《てんか》を治《おさ》める意志《いし》を示《しめ》しました。' },
+    { id:'azuchi-08', stage:'s2', name:'桶狭間《おけはざま》の戦《たたか》い', kana:'おけはざまのたたかい', icon:'⛈️', type:'culture', rarity:'SR', cost:3, fx:[{t:'dmg',n:4}],
+      q:'1560年《ねん》、織田《おだ》信長《のぶなが》が今川《いまがわ》義元《よしもと》を破《やぶ》った戦《たたか》いは？', a:'桶狭間《おけはざま》の戦《たたか》い', wrong:['長篠《ながしの》の戦《たたか》い','関ヶ原《せきがはら》の戦《たたか》い','壇ノ浦《だんのうら》の戦《たたか》い'],
+      desc:'1560年《ねん》、織田《おだ》信長《のぶなが》が、大軍《たいぐん》を率《ひき》いる駿河《するが》（静岡《しずおか》県《けん》）の今川《いまがわ》義元《よしもと》を破《やぶ》った戦《たたか》い。',
+      trivia:'信長《のぶなが》の軍《ぐん》は今川《いまがわ》軍《ぐん》よりずっと少《すく》なかったのですが、すきをついて今川《いまがわ》義元《よしもと》をたおしました。' },
+    { id:'azuchi-09', stage:'s2', name:'今川《いまがわ》義元《よしもと》', kana:'いまがわよしもと', icon:'🗻', type:'person', rarity:'R', cost:3, atk:3, hp:4, fx:[{t:'buffHp',n:1}],
+      q:'桶狭間《おけはざま》の戦《たたか》いで織田《おだ》信長《のぶなが》に敗《やぶ》れた、駿河《するが》の戦国《せんごく》大名《だいみょう》は？', a:'今川《いまがわ》義元《よしもと》', wrong:['武田《たけだ》勝頼《かつより》','北条《ほうじょう》氏政《うじまさ》','明智《あけち》光秀《みつひで》'],
+      desc:'駿河《するが》（静岡《しずおか》県《けん》）などを支配《しはい》した戦国《せんごく》大名《だいみょう》。桶狭間《おけはざま》の戦《たたか》いで織田《おだ》信長《のぶなが》に敗《やぶ》れた。',
+      trivia:'「海道《かいどう》一《いち》の弓取《ゆみと》り」とよばれた、有力《ゆうりょく》な大名《だいみょう》でした。' },
+    { id:'azuchi-10', stage:'s2', name:'室町《むろまち》幕府《ばくふ》の滅亡《めつぼう》', kana:'むろまちばくふのめつぼう', icon:'🏚️', type:'culture', rarity:'R', cost:2, fx:[{t:'dmgAll',n:1},{t:'cp',n:1}],
+      q:'1573年《ねん》、織田《おだ》信長《のぶなが》が将軍《しょうぐん》足利《あしかが》義昭《よしあき》を京都《きょうと》から追放《ついほう》して、ほろぼしたものは？', a:'室町《むろまち》幕府《ばくふ》', wrong:['鎌倉《かまくら》幕府《ばくふ》','江戸《えど》幕府《ばくふ》','六波羅《ろくはら》探題《たんだい》'],
+      desc:'1573年《ねん》、織田《おだ》信長《のぶなが》が15代《だい》将軍《しょうぐん》足利《あしかが》義昭《よしあき》を京都《きょうと》から追放《ついほう》し、室町《むろまち》幕府《ばくふ》はほろんだ。',
+      trivia:'信長《のぶなが》は、はじめは足利《あしかが》義昭《よしあき》を将軍《しょうぐん》にするために京都《きょうと》に上《のぼ》りましたが、のちに対立《たいりつ》しました。' },
+    { id:'azuchi-11', stage:'s2', name:'長篠《ながしの》の戦《たたか》い', kana:'ながしののたたかい', icon:'💥', type:'culture', rarity:'LR', cost:3, fx:[{t:'dmgAll',n:2},{t:'buffAtk',n:1}],
+      q:'1575年《ねん》、織田《おだ》・徳川《とくがわ》の連合《れんごう》軍《ぐん》が、鉄砲《てっぽう》を活用《かつよう》して武田《たけだ》勝頼《かつより》を破《やぶ》った戦《たたか》いは？', a:'長篠《ながしの》の戦《たたか》い', wrong:['桶狭間《おけはざま》の戦《たたか》い','関ヶ原《せきがはら》の戦《たたか》い','川中島《かわなかじま》の戦《たたか》い'],
+      desc:'1575年《ねん》、織田《おだ》信長《のぶなが》と徳川《とくがわ》家康《いえやす》の連合《れんごう》軍《ぐん》が、鉄砲《てっぽう》を活用《かつよう》して甲斐《かい》（山梨《やまなし》県《けん》）の武田《たけだ》勝頼《かつより》を破《やぶ》った戦《たたか》い。',
+      trivia:'「馬防柵《ばぼうさく》」という柵《さく》を立《た》てて、武田《たけだ》軍《ぐん》の騎馬隊《きばたい》をむかえうちました。' },
+    { id:'azuchi-12', stage:'s2', name:'足軽《あしがる》鉄砲隊《てっぽうたい》', kana:'あしがるてっぽうたい', icon:'🎖️', type:'person', rarity:'R', cost:3, atk:4, hp:3, fx:[{t:'pierce'}],
+      q:'戦国《せんごく》時代《じだい》、鉄砲《てっぽう》などを持《も》って集団《しゅうだん》で戦《たたか》った、身軽《みがる》な歩兵《ほへい》を何《なん》という？', a:'足軽《あしがる》', wrong:['御《ご》家人《けにん》','武士《ぶし》団《だん》','町衆《まちしゅう》'],
+      desc:'鉄砲《てっぽう》を持《も》った足軽《あしがる》（身軽《みがる》な歩兵《ほへい》）の部隊《ぶたい》。集団《しゅうだん》で戦《たたか》い、戦《たたか》いの主力《しゅりょく》になった。',
+      trivia:'足軽《あしがる》は、ふだんは農民《のうみん》であることも多《おお》く、戦《たたか》いのときに集《あつ》められました。' },
+    { id:'azuchi-13', stage:'s2', name:'武田《たけだ》勝頼《かつより》', kana:'たけだかつより', icon:'🐎', type:'person', rarity:'SR', cost:4, atk:4, hp:5, fx:[{t:'rush'}],
+      q:'長篠《ながしの》の戦《たたか》いで、織田《おだ》・徳川《とくがわ》の連合《れんごう》軍《ぐん》に敗《やぶ》れた甲斐《かい》の戦国《せんごく》大名《だいみょう》は？', a:'武田《たけだ》勝頼《かつより》', wrong:['今川《いまがわ》義元《よしもと》','明智《あけち》光秀《みつひで》','上杉《うえすぎ》謙信《けんしん》'],
+      desc:'甲斐《かい》（山梨《やまなし》県《けん》）の戦国《せんごく》大名《だいみょう》。武田《たけだ》信玄《しんげん》の子《こ》。長篠《ながしの》の戦《たたか》いで敗《やぶ》れた。',
+      trivia:'父《ちち》の武田《たけだ》信玄《しんげん》は、越後《えちご》の上杉《うえすぎ》謙信《けんしん》と、川中島《かわなかじま》で何《なん》度《ど》も戦《たたか》ったことで有名《ゆうめい》です。' },
+    // ---------- STAGE 3 信長の政策と本能寺の変 ----------
+    { id:'azuchi-14', stage:'s3', name:'安土城《あづちじょう》', kana:'あづちじょう', icon:'🏯', type:'heritage', rarity:'LR', cost:5, atk:0, hp:11, fx:[{t:'cpTurn',n:1}],
+      q:'織田《おだ》信長《のぶなが》が、琵琶湖《びわこ》のほとりに築《きず》いた城《しろ》は？', a:'安土城《あづちじょう》', wrong:['大阪城《おおさかじょう》','姫路城《ひめじじょう》','伏見城《ふしみじょう》'],
+      desc:'織田《おだ》信長《のぶなが》が、琵琶湖《びわこ》のほとり（滋賀《しが》県《けん》）に築《きず》いた城《しろ》。天下《てんか》統一《とういつ》の拠点《きょてん》になった。',
+      trivia:'5層《そう》7階《かい》の豪華《ごうか》な天守《てんしゅ》がそびえていましたが、本能寺《ほんのうじ》の変《へん》のあとに焼《や》けてしまい、今《いま》は石垣《いしがき》だけが残《のこ》っています。' },
+    { id:'azuchi-15', stage:'s3', name:'楽市《らくいち》・楽座《らくざ》', kana:'らくいち・らくざ', icon:'🏪', type:'culture', rarity:'SR', cost:2, fx:[{t:'cp',n:2},{t:'draw',n:1}],
+      q:'市《し》の税《ぜい》をなくし、座《ざ》の特権《とっけん》を廃止《はいし》して、商工業《しょうこうぎょう》をさかんにした政策《せいさく》は？', a:'楽市《らくいち》・楽座《らくざ》', wrong:['太閤《たいこう》検地《けんち》','刀狩《かたながり》','徳政《とくせい》令《れい》'],
+      desc:'城下町《じょうかまち》で市《し》の税《ぜい》を免除《めんじょ》し、座《ざ》の特権《とっけん》を廃止《はいし》して、だれでも自由《じゆう》に商売《しょうばい》ができるようにした政策《せいさく》。',
+      trivia:'「楽《らく》」は「自由《じゆう》な」という意味《いみ》です。多《おお》くの商人《しょうにん》が集《あつ》まり、安土《あづち》の城下町《じょうかまち》はにぎわいました。' },
+    { id:'azuchi-16', stage:'s3', name:'関所《せきしょ》の廃止《はいし》', kana:'せきしょのはいし', icon:'🚧', type:'culture', rarity:'R', cost:2, fx:[{t:'cp',n:1},{t:'buffHp',n:1}],
+      q:'織田《おだ》信長《のぶなが》が、人《ひと》や物《もの》の行《い》き来《き》をさかんにするために廃止《はいし》したものは？', a:'関所《せきしょ》', wrong:['座《ざ》','荘園《しょうえん》','市《し》'],
+      desc:'通行《つうこう》税《ぜい》を取《と》っていた関所《せきしょ》を廃止《はいし》し、人《ひと》や物《もの》の行《い》き来《き》をさかんにした政策《せいさく》。',
+      trivia:'それまでは各地《かくち》の寺社《じしゃ》や大名《だいみょう》が関所《せきしょ》を置《お》き、通《とお》るたびにお金《かね》を取《と》っていました。' },
+    { id:'azuchi-17', stage:'s3', name:'比叡山《ひえいざん》の焼《や》き討《う》ち', kana:'ひえいざんのやきうち', icon:'🔥', type:'culture', rarity:'R', cost:3, fx:[{t:'dmgAll',n:2}],
+      q:'1571年《ねん》、織田《おだ》信長《のぶなが》が、敵対《てきたい》した寺《てら》を焼《や》き払《はら》った出来事《できごと》は？', a:'比叡山《ひえいざん》延暦寺《えんりゃくじ》の焼《や》き討《う》ち', wrong:['本能寺《ほんのうじ》の変《へん》','応仁《おうにん》の乱《らん》','加賀《かが》の一向《いっこう》一揆《いっき》'],
+      desc:'1571年《ねん》、織田《おだ》信長《のぶなが》が、敵対《てきたい》する大名《だいみょう》に味方《みかた》した比叡山《ひえいざん》延暦寺《えんりゃくじ》を焼《や》き払《はら》った出来事《できごと》。',
+      trivia:'信長《のぶなが》は、一向《いっこう》一揆《いっき》など強《つよ》い力《ちから》をもつ仏教《ぶっきょう》勢力《せいりょく》と争《あらそ》う一方《いっぽう》で、キリスト教《きょう》は保護《ほご》しました。' },
+    { id:'azuchi-18', stage:'s3', name:'明智《あけち》光秀《みつひで》', kana:'あけちみつひで', icon:'🎯', type:'person', rarity:'SR', cost:4, atk:5, hp:4, fx:[{t:'rush'}],
+      q:'本能寺《ほんのうじ》で織田《おだ》信長《のぶなが》にそむいた家臣《かしん》は？', a:'明智《あけち》光秀《みつひで》', wrong:['豊臣《とよとみ》秀吉《ひでよし》','徳川《とくがわ》家康《いえやす》','柴田《しばた》勝家《かついえ》'],
+      desc:'織田《おだ》信長《のぶなが》の家臣《かしん》。1582年《ねん》、京都《きょうと》の本能寺《ほんのうじ》で信長《のぶなが》にそむいた。',
+      trivia:'その直後《ちょくご》、豊臣《とよとみ》秀吉《ひでよし》に山崎《やまざき》の戦《たたか》いで敗《やぶ》れました。天下《てんか》をとった期間《きかん》が短《みじか》かったことから「三日《みっか》天下《てんか》」といわれます。' },
+    { id:'azuchi-19', stage:'s3', name:'本能寺《ほんのうじ》の変《へん》', kana:'ほんのうじのへん', icon:'🏮', type:'culture', rarity:'SR', cost:3, fx:[{t:'dmg',n:4},{t:'draw',n:1}],
+      q:'1582年《ねん》、織田《おだ》信長《のぶなが》が家臣《かしん》にそむかれて自害《じがい》した出来事《できごと》は？', a:'本能寺《ほんのうじ》の変《へん》', wrong:['桶狭間《おけはざま》の戦《たたか》い','比叡山《ひえいざん》延暦寺《えんりゃくじ》の焼《や》き討《う》ち','応仁《おうにん》の乱《らん》'],
+      desc:'1582年《ねん》、京都《きょうと》の本能寺《ほんのうじ》に泊《と》まっていた織田《おだ》信長《のぶなが》が、家臣《かしん》の明智《あけち》光秀《みつひで》にそむかれて自害《じがい》した出来事《できごと》。',
+      trivia:'光秀《みつひで》がなぜそむいたのかは今《いま》もはっきりわかっていない、歴史《れきし》のなぞの一《ひと》つです。' },
+    // ---------- STAGE 4 豊臣秀吉の全国統一 ----------
+    { id:'azuchi-20', stage:'s4', name:'豊臣《とよとみ》秀吉《ひでよし》', kana:'とよとみひでよし', icon:'☀️', type:'person', rarity:'LR', cost:6, atk:5, hp:8, fx:[{t:'draw',n:1},{t:'buffAtk',n:1},{t:'cp',n:1}],
+      q:'織田《おだ》信長《のぶなが》の後継《こうけい》者《しゃ》となり、1590年《ねん》に全国《ぜんこく》統一《とういつ》をなしとげた人物《じんぶつ》は？', a:'豊臣《とよとみ》秀吉《ひでよし》', wrong:['織田《おだ》信長《のぶなが》','徳川《とくがわ》家康《いえやす》','明智《あけち》光秀《みつひで》'],
+      desc:'織田《おだ》信長《のぶなが》の家臣《かしん》から出世《しゅっせ》し、信長《のぶなが》のあとをついで、1590年《ねん》に全国《ぜんこく》統一《とういつ》をなしとげた人物《じんぶつ》。',
+      trivia:'尾張《おわり》の身分《みぶん》の低《ひく》い家《いえ》に生《う》まれたといわれ、そこから天下人《てんかびと》にまでなりました。' },
+    { id:'azuchi-21', stage:'s4', name:'大阪城《おおさかじょう》', kana:'おおさかじょう', icon:'🏰', type:'heritage', rarity:'LR', cost:5, atk:0, hp:12, fx:[{t:'regen',n:1},{t:'auraAtk',n:1}],
+      q:'豊臣《とよとみ》秀吉《ひでよし》が、全国《ぜんこく》統一《とういつ》の拠点《きょてん》として築《きず》いた城《しろ》は？', a:'大阪城《おおさかじょう》', wrong:['安土城《あづちじょう》','姫路城《ひめじじょう》','江戸城《えどじょう》'],
+      desc:'豊臣《とよとみ》秀吉《ひでよし》が、石山《いしやま》本願寺《ほんがんじ》のあとに築《きず》いた城《しろ》。全国《ぜんこく》統一《とういつ》の拠点《きょてん》となった。',
+      trivia:'当時《とうじ》は「大坂城《おおさかじょう》」と書《か》きました。今《いま》の天守《てんしゅ》は、昭和《しょうわ》になって再建《さいけん》されたものです。' },
+    { id:'azuchi-22', stage:'s4', name:'関白《かんぱく》', kana:'かんぱく', icon:'📜', type:'culture', rarity:'SR', cost:3, fx:[{t:'buffAtk',n:1},{t:'buffHp',n:1},{t:'cp',n:1}],
+      q:'1585年《ねん》に豊臣《とよとみ》秀吉《ひでよし》が朝廷《ちょうてい》から任命《にんめい》された、天皇《てんのう》を補佐《ほさ》する役職《やくしょく》は？', a:'関白《かんぱく》', wrong:['征夷《せいい》大将軍《たいしょうぐん》','執権《しっけん》','管領《かんれい》'],
+      desc:'成人《せいじん》した天皇《てんのう》を補佐《ほさ》する朝廷《ちょうてい》の役職《やくしょく》。豊臣《とよとみ》秀吉《ひでよし》は武士《ぶし》として初《はじ》めて関白《かんぱく》になった。',
+      trivia:'翌年《よくねん》には太政大臣《だいじょうだいじん》にもなり、朝廷《ちょうてい》から「豊臣《とよとみ》」の姓《せい》をあたえられました。' },
+    { id:'azuchi-23', stage:'s4', name:'小田原《おだわら》攻《ぜ》め', kana:'おだわらぜめ', icon:'🏹', type:'culture', rarity:'R', cost:3, fx:[{t:'dmgAll',n:1},{t:'dmg',n:2}],
+      q:'1590年《ねん》、豊臣《とよとみ》秀吉《ひでよし》が小田原《おだわら》の北条氏《ほうじょうし》をほろぼして達成《たっせい》したことは？', a:'全国《ぜんこく》統一《とういつ》', wrong:['南北朝《なんぼくちょう》の統一《とういつ》','室町《むろまち》幕府《ばくふ》の滅亡《めつぼう》','兵農《へいのう》分離《ぶんり》'],
+      desc:'1590年《ねん》、豊臣《とよとみ》秀吉《ひでよし》が関東《かんとう》の北条氏《ほうじょうし》をほろぼし、東北《とうほく》の大名《だいみょう》も従《したが》えて全国《ぜんこく》統一《とういつ》を達成《たっせい》した。',
+      trivia:'秀吉《ひでよし》は小田原《おだわら》城《しろ》を見下《みお》ろす山《やま》に、80日《にち》ほどで城《しろ》を築《きず》いて北条氏《ほうじょうし》をおどろかせました（石垣山《いしがきやま》一夜城《いちやじょう》）。' },
+    { id:'azuchi-24', stage:'s4', name:'バテレン追放令《ついほうれい》', kana:'ばてれんついほうれい', icon:'📄', type:'culture', rarity:'R', cost:2, fx:[{t:'dmg',n:2},{t:'cp',n:1}],
+      q:'1587年《ねん》、豊臣《とよとみ》秀吉《ひでよし》がキリスト教《きょう》の宣教師《せんきょうし》に国外《こくがい》へ出《で》るよう命《めい》じた法令《ほうれい》は？', a:'バテレン追放令《ついほうれい》', wrong:['刀狩令《かたながりれい》','徳政《とくせい》令《れい》','武家《ぶけ》諸法度《しょはっと》'],
+      desc:'1587年《ねん》、豊臣《とよとみ》秀吉《ひでよし》が、キリスト教《きょう》の宣教師《せんきょうし》（バテレン）を国外《こくがい》に追放《ついほう》するよう命《めい》じた法令《ほうれい》。',
+      trivia:'南蛮《なんばん》貿易《ぼうえき》は続《つづ》けたので取《と》りしまりは不《ふ》十分《じゅうぶん》で、キリスト教《きょう》徒《と》はその後《あと》も増《ふ》えました。' },
+    { id:'azuchi-25', stage:'s4', name:'朝鮮《ちょうせん》出兵《しゅっぺい》', kana:'ちょうせんしゅっぺい', icon:'🚢', type:'culture', rarity:'SR', cost:3, fx:[{t:'dmgAll',n:2}],
+      q:'明《みん》を征服《せいふく》しようと、豊臣《とよとみ》秀吉《ひでよし》が2度《ど》にわたって大軍《たいぐん》を送《おく》った国《くに》は？', a:'朝鮮《ちょうせん》', wrong:['明《みん》','琉球《りゅうきゅう》王国《おうこく》','高麗《こうらい》'],
+      desc:'明《みん》の征服《せいふく》をめざして、豊臣《とよとみ》秀吉《ひでよし》が2度《ど》にわたって朝鮮《ちょうせん》に大軍《たいぐん》を送《おく》ったこと（文禄《ぶんろく》の役《えき》・慶長《けいちょう》の役《えき》）。',
+      trivia:'朝鮮《ちょうせん》の李舜臣《りしゅんしん》が率《ひき》いる水軍《すいぐん》の反撃《はんげき》などで苦戦《くせん》し、秀吉《ひでよし》が病死《びょうし》すると、日本《にほん》軍《ぐん》は引《ひ》き上《あ》げました。' },
+    // ---------- STAGE 5 太閤検地と刀狩 ----------
+    { id:'azuchi-26', stage:'s5', name:'太閤《たいこう》検地《けんち》', kana:'たいこうけんち', icon:'📏', type:'culture', rarity:'LR', cost:3, fx:[{t:'cp',n:2},{t:'buffHp',n:2}],
+      q:'豊臣《とよとみ》秀吉《ひでよし》が、全国《ぜんこく》の田畑《たはた》の広《ひろ》さやよしあしを調《しら》べた政策《せいさく》は？', a:'太閤《たいこう》検地《けんち》', wrong:['刀狩《かたながり》','楽市《らくいち》・楽座《らくざ》','班田《はんでん》収授法《しゅうじゅのほう》'],
+      desc:'豊臣《とよとみ》秀吉《ひでよし》が、全国《ぜんこく》の田畑《たはた》の広《ひろ》さや土地《とち》のよしあしを調《しら》べ、収穫《しゅうかく》量《りょう》（石高《こくだか》）で表《あらわ》した政策《せいさく》。',
+      trivia:'それまで地域《ちいき》ごとにばらばらだった、ものさしやますの大《おお》きさを統一《とういつ》して調《しら》べました。' },
+    { id:'azuchi-27', stage:'s5', name:'石高《こくだか》', kana:'こくだか', icon:'🌾', type:'culture', rarity:'R', cost:2, fx:[{t:'cp',n:1},{t:'draw',n:1}],
+      q:'太閤《たいこう》検地《けんち》で、田畑《たはた》の価値《かち》を表《あらわ》すのに使《つか》われた、米《こめ》の収穫《しゅうかく》量《りょう》を何《なん》という？', a:'石高《こくだか》', wrong:['年貢《ねんぐ》','口分田《くぶんでん》','荘園《しょうえん》'],
+      desc:'田畑《たはた》の価値《かち》を、とれる米《こめ》の量《りょう》（石《こく》）で表《あらわ》したもの。',
+      trivia:'1石《こく》は約《やく》180リットル。1人《じん》が1年間《ねんかん》に食《た》べる米《こめ》の量《りょう》が、だいたい1石《こく》といわれました。' },
+    { id:'azuchi-28', stage:'s5', name:'百姓《ひゃくしょう》', kana:'ひゃくしょう', icon:'🌱', type:'person', rarity:'N', cost:2, atk:2, hp:3, fx:[{t:'heal',n:1}],
+      q:'太閤《たいこう》検地《けんち》によって、田畑《たはた》を耕《たがや》す百姓《ひゃくしょう》に義務《ぎむ》づけられたことは？', a:'年貢《ねんぐ》を納《おさ》めること', wrong:['刀《かたな》を持《も》つこと','座《ざ》に入《はい》ること','関所《せきしょ》を通《とお》ること'],
+      desc:'検地帳《けんちちょう》に登録《とうろく》されて田畑《たはた》を耕《たがや》す権利《けんり》を認《みと》められる代《か》わりに、年貢《ねんぐ》を納《おさ》める義務《ぎむ》を負《お》った人々《ひとびと》。',
+      trivia:'検地《けんち》によって、荘園《しょうえん》のように一《ひと》つの土地《とち》に何《なん》人《にん》もの領主《りょうしゅ》がいるしくみは、なくなりました。' },
+    { id:'azuchi-29', stage:'s5', name:'刀狩《かたながり》', kana:'かたながり', icon:'🗡️', type:'culture', rarity:'SR', cost:2, fx:[{t:'dmgAll',n:1},{t:'buffHp',n:1}],
+      q:'百姓《ひゃくしょう》から刀《かたな》ややりなどの武器《ぶき》を取《と》り上《あ》げた政策《せいさく》は？', a:'刀狩《かたながり》', wrong:['太閤《たいこう》検地《けんち》','楽市《らくいち》・楽座《らくざ》','バテレン追放令《ついほうれい》'],
+      desc:'1588年《ねん》、豊臣《とよとみ》秀吉《ひでよし》が百姓《ひゃくしょう》や寺社《じしゃ》から、刀《かたな》・やり・鉄砲《てっぽう》などの武器《ぶき》を取《と》り上《あ》げた政策《せいさく》。',
+      trivia:'一揆《いっき》を防《ふせ》ぐことが目的《もくてき》でした。取《と》り上《あ》げた刀《かたな》は、京都《きょうと》に建《た》てる大仏《だいぶつ》のくぎなどに使《つか》うと説明《せつめい》されました。' },
+    { id:'azuchi-30', stage:'s5', name:'兵農《へいのう》分離《ぶんり》', kana:'へいのうぶんり', icon:'⚖️', type:'culture', rarity:'SR', cost:3, fx:[{t:'buffAtk',n:1},{t:'buffHp',n:2}],
+      q:'太閤《たいこう》検地《けんち》と刀狩《かたながり》によって、武士《ぶし》と百姓《ひゃくしょう》の身分《みぶん》の区別《くべつ》がはっきりしたことを何《なん》という？', a:'兵農《へいのう》分離《ぶんり》', wrong:['公地《こうち》・公民《こうみん》','下剋上《げこくじょう》','封建《ほうけん》制度《せいど》'],
+      desc:'太閤《たいこう》検地《けんち》と刀狩《かたながり》によって、武士《ぶし》と百姓《ひゃくしょう》の身分《みぶん》の区別《くべつ》がはっきりしたこと。',
+      trivia:'武士《ぶし》は城下町《じょうかまち》に住《す》み、百姓《ひゃくしょう》は村《むら》で農業《のうぎょう》に専念《せんねん》するようになり、江戸《えど》時代《じだい》の身分《みぶん》制度《せいど》の土台《どだい》になりました。' },
+    { id:'azuchi-31', stage:'s5', name:'検地帳《けんちちょう》', kana:'けんちちょう', icon:'📒', type:'heritage', rarity:'N', cost:2, atk:0, hp:5, fx:[{t:'regen',n:1}],
+      q:'太閤《たいこう》検地《けんち》で、田畑《たはた》の広《ひろ》さや耕《たがや》す人《ひと》の名前《なまえ》を記録《きろく》した帳面《ちょうめん》は？', a:'検地帳《けんちちょう》', wrong:['戸籍《こせき》','風土記《ふどき》','御成敗《ごせいばい》式目《しきもく》'],
+      desc:'検地《けんち》の結果《けっか》をまとめ、田畑《たはた》の広《ひろ》さ・よしあし・石高《こくだか》と、耕《たがや》す百姓《ひゃくしょう》の名前《なまえ》を記録《きろく》した帳面《ちょうめん》。',
+      trivia:'検地帳《けんちちょう》に名前《なまえ》がのった百姓《ひゃくしょう》は、その田畑《たはた》を耕《たがや》す権利《けんり》を認《みと》められました。' },
+    // ---------- STAGE 6 桃山文化と南蛮文化 ----------
+    { id:'azuchi-32', stage:'s6', name:'桃山《ももやま》文化《ぶんか》', kana:'ももやまぶんか', icon:'🍑', type:'culture', rarity:'SR', cost:3, fx:[{t:'buffAtk',n:1},{t:'buffHp',n:1},{t:'draw',n:1}],
+      q:'大名《だいみょう》や大《だい》商人《しょうにん》の気風《きふう》を反映《はんえい》した、雄大《ゆうだい》で豪華《ごうか》な文化《ぶんか》は？', a:'桃山《ももやま》文化《ぶんか》', wrong:['東山《ひがしやま》文化《ぶんか》','北山《きたやま》文化《ぶんか》','元禄《げんろく》文化《ぶんか》'],
+      desc:'大名《だいみょう》や大《だい》商人《しょうにん》の気風《きふう》を反映《はんえい》した、雄大《ゆうだい》で豪華《ごうか》な文化《ぶんか》。',
+      trivia:'秀吉《ひでよし》が晩年《ばんねん》に住《す》んだ伏見城《ふしみじょう》のあとに、江戸《えど》時代《じだい》、桃《もも》の木《き》がたくさん植《う》えられて「桃山《ももやま》」とよばれたことから名《な》づけられました。' },
+    { id:'azuchi-33', stage:'s6', name:'天守《てんしゅ》', kana:'てんしゅ', icon:'⛰️', type:'heritage', rarity:'SR', cost:4, atk:0, hp:9, fx:[{t:'auraAtk',n:1}],
+      q:'城《しろ》の中心《ちゅうしん》で、石垣《いしがき》の上《うえ》に高《たか》くそびえる建物《たてもの》を何《なん》という？', a:'天守《てんしゅ》', wrong:['書院造《しょいんづくり》','寝殿造《しんでんづくり》','校倉造《あぜくらづくり》'],
+      desc:'城《しろ》の中心《ちゅうしん》となる、石垣《いしがき》の上《うえ》に高《たか》くそびえる建物《たてもの》。大名《だいみょう》の力《ちから》を示《しめ》した。',
+      trivia:'天守《てんしゅ》は、敵《てき》を見《み》はる物見《ものみ》やぐらとしての役目《やくめ》のほかに、大名《だいみょう》の力《ちから》を人々《ひとびと》に見《み》せつける役目《やくめ》もありました。' },
+    { id:'azuchi-34', stage:'s6', name:'狩野《かのう》永徳《えいとく》', kana:'かのうえいとく', icon:'🖌️', type:'person', rarity:'SR', cost:3, atk:2, hp:5, fx:[{t:'buffHp',n:1},{t:'draw',n:1}],
+      q:'城《しろ》のふすまや屏風《びょうぶ》に、豪華《ごうか》な絵《え》をえがいた絵師《えし》は？', a:'狩野《かのう》永徳《えいとく》', wrong:['雪舟《せっしゅう》','運慶《うんけい》','千利休《せんのりきゅう》'],
+      desc:'信長《のぶなが》や秀吉《ひでよし》に仕《つか》えた絵師《えし》。城《しろ》のふすまや屏風《びょうぶ》に、豪華《ごうか》な絵《え》をえがいた。',
+      trivia:'代表作《だいひょうさく》の「唐獅子図《からじしず》屏風《びょうぶ》」には、大《おお》きな獅子《しし》が力強《ちからづよ》くえがかれています。' },
+    { id:'azuchi-35', stage:'s6', name:'濃絵《だみえ》', kana:'だみえ', icon:'🖼️', type:'culture', rarity:'R', cost:2, fx:[{t:'heal',n:2},{t:'buffAtk',n:1}],
+      q:'金《きん》ぱくの上《うえ》にあざやかな色《いろ》でえがいた、豪華《ごうか》な絵《え》を何《なん》という？', a:'濃絵《だみえ》', wrong:['水墨画《すいぼくが》','大和絵《やまとえ》','浮世絵《うきよえ》'],
+      desc:'金《きん》ぱくをはった上《うえ》に、あざやかな色《いろ》でえがいた豪華《ごうか》な絵《え》。城《しろ》のふすまや屏風《びょうぶ》をかざった。',
+      trivia:'うす暗《ぐら》い城《しろ》の中《なか》でも、金色《きんいろ》の絵《え》は光《ひかり》を反射《はんしゃ》して、部屋《へや》を明《あか》るく見《み》せたといわれます。' },
+    { id:'azuchi-36', stage:'s6', name:'千利休《せんのりきゅう》', kana:'せんのりきゅう', icon:'🍵', type:'person', rarity:'SR', cost:3, atk:2, hp:6, fx:[{t:'regen',n:1},{t:'heal',n:2}],
+      q:'信長《のぶなが》や秀吉《ひでよし》に仕《つか》え、わび茶《ちゃ》を完成《かんせい》させた堺《さかい》の商人《しょうにん》は？', a:'千利休《せんのりきゅう》', wrong:['世阿弥《ぜあみ》','狩野《かのう》永徳《えいとく》','雪舟《せっしゅう》'],
+      desc:'堺《さかい》の商人《しょうにん》で、信長《のぶなが》や秀吉《ひでよし》に仕《つか》えた茶人《ちゃじん》。質素《しっそ》で静《しず》かな「わび茶《ちゃ》」を完成《かんせい》させた。',
+      trivia:'たたみ2畳《じょう》しかない小《ちい》さな茶室《ちゃしつ》「待庵《たいあん》」をつくりました。のちに秀吉《ひでよし》の怒《いか》りにふれ、命《いのち》を絶《た》つよう命《めい》じられました。' },
+    { id:'azuchi-37', stage:'s6', name:'出雲《いずも》の阿国《おくに》', kana:'いずものおくに', icon:'💃', type:'person', rarity:'R', cost:3, atk:3, hp:3, fx:[{t:'rush'}],
+      q:'京都《きょうと》でかぶき踊《おど》りを始《はじ》めて、人気《にんき》を集《あつ》めた女性《じょせい》は？', a:'出雲《いずも》の阿国《おくに》', wrong:['北条《ほうじょう》政子《まさこ》','紫式部《むらさきしきぶ》','日野《ひの》富子《とみこ》'],
+      desc:'京都《きょうと》でかぶき踊《おど》りを始《はじ》め、人気《にんき》を集《あつ》めた女性《じょせい》。',
+      trivia:'阿国《おくに》のかぶき踊《おど》りは、のちの「歌舞伎《かぶき》」のもとになりました。' },
+    { id:'azuchi-38', stage:'s6', name:'かぶき踊《おど》り', kana:'かぶきおどり', icon:'🎭', type:'culture', rarity:'R', cost:2, fx:[{t:'heal',n:2},{t:'cp',n:1}],
+      q:'出雲《いずも》の阿国《おくに》が始《はじ》め、のちの歌舞伎《かぶき》のもとになった芸能《げいのう》は？', a:'かぶき踊《おど》り', wrong:['能《のう》','狂言《きょうげん》','人形《にんぎょう》浄瑠璃《じょうるり》'],
+      desc:'出雲《いずも》の阿国《おくに》が京都《きょうと》で始《はじ》めた、はなやかな踊《おど》り。のちの歌舞伎《かぶき》のもとになった。',
+      trivia:'「かぶく」は、目立《めだ》つ変《か》わったかっこうや行動《こうどう》をするという意味《いみ》の言葉《ことば》です。' },
+    { id:'azuchi-39', stage:'s6', name:'南蛮《なんばん》文化《ぶんか》', kana:'なんばんぶんか', icon:'🍞', type:'culture', rarity:'SR', cost:2, fx:[{t:'draw',n:2},{t:'buffHp',n:1}],
+      q:'ヨーロッパ人《じん》との交流《こうりゅう》で伝《つた》わった文化《ぶんか》は？', a:'南蛮《なんばん》文化《ぶんか》', wrong:['桃山《ももやま》文化《ぶんか》','国風《こくふう》文化《ぶんか》','天平《てんぴょう》文化《ぶんか》'],
+      desc:'ポルトガル人《じん》やスペイン人《じん》との交流《こうりゅう》で伝《つた》わった文化《ぶんか》。パンやカステラ、時計《とけい》、活版《かっぱん》印刷《いんさつ》などが伝《つた》わった。',
+      trivia:'「パン」「カルタ」「てんぷら」など、ポルトガル語《ご》から来《き》たといわれる言葉《ことば》が、今《いま》も使《つか》われています。' },
+    { id:'azuchi-40', stage:'s6', name:'南蛮《なんばん》屏風《びょうぶ》', kana:'なんばんびょうぶ', icon:'🎏', type:'heritage', rarity:'R', cost:3, atk:0, hp:6, fx:[{t:'regen',n:1}],
+      q:'南蛮人《なんばんじん》が港《みなと》に来《き》たようすなどをえがいた屏風《びょうぶ》を何《なん》という？', a:'南蛮《なんばん》屏風《びょうぶ》', wrong:['唐獅子図《からじしず》屏風《びょうぶ》','源氏《げんじ》物語《ものがたり》絵巻《えまき》','蒙古《もうこ》襲来《しゅうらい》絵詞《えことば》'],
+      desc:'南蛮人《なんばんじん》の来航《らいこう》や、南蛮寺《なんばんじ》（教会《きょうかい》）のようすなどをえがいた屏風《びょうぶ》。',
+      trivia:'大《おお》きな南蛮船《なんばんせん》や、めずらしい服《ふく》を着《き》た南蛮人《なんばんじん》のすがたが、ていねいにえがかれています。' },
+    // ---------- 報酬カード（ボス・CPUに勝つと手に入る） ----------
+    { id:'azuchi-41', stage:'reward', name:'姫路城《ひめじじょう》', kana:'ひめじじょう', icon:'🕊️', type:'heritage', rarity:'LR', cost:5, atk:0, hp:12, fx:[{t:'regen',n:2},{t:'auraAtk',n:1}],
+      q:'「白鷺城《はくろじょう》」ともよばれ、1993年《ねん》に世界《せかい》遺産《いさん》になった兵庫《ひょうご》県《けん》の城《しろ》は？', a:'姫路城《ひめじじょう》', wrong:['大阪城《おおさかじょう》','安土城《あづちじょう》','熊本城《くまもとじょう》'],
+      desc:'兵庫《ひょうご》県《けん》にある城《しろ》。白《しろ》くて美《うつく》しい天守《てんしゅ》のすがたから「白鷺城《はくろじょう》」ともよばれる。',
+      trivia:'1993年《ねん》、法隆寺《ほうりゅうじ》とともに、日本《にほん》で最初《さいしょ》の世界《せかい》遺産《いさん》になりました。' },
+    { id:'azuchi-42', stage:'reward', name:'カステラ', kana:'かすてら', icon:'🍰', type:'culture', rarity:'SR', cost:1, fx:[{t:'heal',n:3},{t:'cp',n:1}],
+      q:'ポルトガルから伝《つた》わり、長崎《ながさき》の名物《めいぶつ》になったお菓子《かし》は？', a:'カステラ', wrong:['ようかん','せんべい','だんご'],
+      desc:'ポルトガルから伝《つた》わったお菓子《かし》。長崎《ながさき》の名物《めいぶつ》として知《し》られる。',
+      trivia:'スペインの「カスティーリャ地方《ちほう》」のお菓子《かし》という意味《いみ》の言葉《ことば》が、名前《なまえ》のもとになったといわれます。' },
+    { id:'azuchi-43', stage:'reward', name:'天正《てんしょう》遣欧《けんおう》使節《しせつ》', kana:'てんしょうけんおうしせつ', icon:'🧭', type:'person', rarity:'SR', cost:3, atk:3, hp:4, fx:[{t:'draw',n:2}],
+      q:'キリシタン大名《だいみょう》がローマ教皇《きょうこう》のもとへ送《おく》った、4人《にん》の少年《しょうねん》の使節《しせつ》を何《なん》という？', a:'天正《てんしょう》遣欧《けんおう》使節《しせつ》', wrong:['遣唐使《けんとうし》','遣隋使《けんずいし》','岩倉《いわくら》使節団《しせつだん》'],
+      desc:'1582年《ねん》、キリシタン大名《だいみょう》がローマ教皇《きょうこう》のもとへ送《おく》った、4人《にん》の少年《しょうねん》の使節《しせつ》。',
+      trivia:'約《やく》8年《ねん》かけてヨーロッパを訪《おとず》れて帰国《きこく》し、活版《かっぱん》印刷《いんさつ》機《き》を持《も》ち帰《かえ》りました。' },
+    { id:'azuchi-44', stage:'reward', name:'徳川《とくがわ》家康《いえやす》', kana:'とくがわいえやす', icon:'🍃', type:'person', rarity:'LR', cost:5, atk:5, hp:7, fx:[{t:'buffHp',n:2},{t:'regen',n:1}],
+      q:'織田《おだ》信長《のぶなが》と同盟《どうめい》を結《むす》び、のちに江戸《えど》幕府《ばくふ》を開《ひら》いた人物《じんぶつ》は？', a:'徳川《とくがわ》家康《いえやす》', wrong:['豊臣《とよとみ》秀吉《ひでよし》','明智《あけち》光秀《みつひで》','武田《たけだ》信玄《しんげん》'],
+      desc:'三河《みかわ》（愛知《あいち》県《けん》）の戦国《せんごく》大名《だいみょう》。信長《のぶなが》と同盟《どうめい》を結《むす》び、のちに天下《てんか》をとって江戸《えど》幕府《ばくふ》を開《ひら》いた。',
+      trivia:'「織田《おだ》がつき 羽柴《はしば》がこねし天下餅《てんかもち》 座《すわ》りしままに食《く》うは徳川《とくがわ》」という歌《うた》があります。' }
+  ]
+};
+
+/* ======================================================================
+   [B] 共通コア（全時代のアプリで同じ。ここは書きかえない）
+   ====================================================================== */
+const CORE_VERSION = 1;
+const STORE_KEY = 'munRekishi.v1';      // 全時代アプリ共通の保存場所
+const DECK_MIN = 10, DECK_MAX = 15, FIELD = 3, MAX_CP = 6, HAND_MAX = 7, START_LIFE = 20, TURN_LIMIT = 40, STORM_START = 20, STORM_DMG = 2;
+const TYPE_LABEL = { person: '人物《じんぶつ》', heritage: '遺産《いさん》', culture: '文化《ぶんか》' };
+const RAR_ORDER = { N: 1, R: 2, SR: 3, LR: 4 };
+// シリーズの予定（章の順番）。新しい時代を作るときは id をここから使う
+const SERIES = [
+  { id: 'kodai',      ch: 1,  title: '古代《こだい》文明《ぶんめい》' },
+  { id: 'akebono',    ch: 2,  title: '日本《にほん》のあけぼの（縄文《じょうもん》〜古墳《こふん》）' },
+  { id: 'asuka-nara', ch: 3,  title: '飛鳥《あすか》・奈良《なら》時代《じだい》' },
+  { id: 'heian',      ch: 4,  title: '平安《へいあん》時代《じだい》' },
+  { id: 'kamakura',   ch: 5,  title: '鎌倉《かまくら》時代《じだい》' },
+  { id: 'muromachi',  ch: 6,  title: '室町《むろまち》時代《じだい》' },
+  { id: 'azuchi',     ch: 7,  title: '安土《あづち》桃山《ももやま》時代《じだい》' },
+  { id: 'edo1',       ch: 8,  title: '江戸《えど》時代《じだい》①（幕府《ばくふ》の成立《せいりつ》〜元禄《げんろく》文化《ぶんか》）' },
+  { id: 'edo2',       ch: 9,  title: '江戸《えど》時代《じだい》②（綱吉《つなよし》の政治《せいじ》〜化政《かせい》文化《ぶんか》）' },
+  { id: 'meiji1',     ch: 10, title: '明治《めいじ》時代《じだい》①（黒船《くろふね》来航《らいこう》〜明治《めいじ》維新《いしん》・文明《ぶんめい》開化《かいか》）' },
+  { id: 'meiji2',     ch: 11, title: '明治《めいじ》時代《じだい》②（自由《じゆう》民権《みんけん》運動《うんどう》〜日露《にちろ》戦争《せんそう》・産業《さんぎょう》革命《かくめい》）' },
+  { id: 'taisho',     ch: 12, title: '大正《たいしょう》〜昭和《しょうわ》（戦前《せんぜん》・戦中《せんちゅう》）' },
+  { id: 'gendai',     ch: 13, title: '戦後《せんご》〜現代《げんだい》' }
+];
+
+/* ---------- 小道具 ---------- */
+let SPEED = 1;   // 演出の速さ（テスト用に0にできる）
+const sleep = ms => new Promise(r => setTimeout(r, ms * SPEED));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $app = document.getElementById('app'), $modal = document.getElementById('modal');
+// ふりがな：文字の中の「漢字《よみ》」を <ruby> にする
+const rb = h => String(h).replace(/([\u3400-\u9fff々〆ヶ]+)《([^》]*)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+const plain = s => String(s).replace(/《[^》]*》/g, '');
+const furiOn = () => { const st = Store.get().settings; return !st || st.furi !== false; };
+
+/* ---------- カードデータ ---------- */
+const ERA_CARDS = ERA.cards.map(c => Object.assign({ era: ERA.id, eraTitle: ERA.title, fx: [] }, c));
+const ERA_MAP = {}; ERA_CARDS.forEach(c => { ERA_MAP[c.id] = c; });
+const STAGE_CARDS = ERA_CARDS.filter(c => c.stage !== 'reward');
+const DEF_KEYS = ['id','era','eraTitle','stage','name','kana','icon','type','rarity','cost','atk','hp','fx','q','a','wrong','desc','trivia'];
+function packDef(c) { const o = {}; DEF_KEYS.forEach(k => { if (c[k] !== undefined) o[k] = c[k]; }); o.v = ERA.version; return o; }
+
+/* ---------- 保存（全時代共通） ---------- */
+const Store = (() => {
+  let mem = null, usable = true;
+  try { const k = STORE_KEY + '.test'; localStorage.setItem(k, '1'); localStorage.removeItem(k); } catch (e) { usable = false; }
+  const blank = () => ({ schema: 1, createdAt: Date.now(), updatedAt: 0, owned: {}, defs: {},
+    decks: [{ name: 'デッキ1', cards: [] }, { name: 'デッキ2', cards: [] }, { name: 'デッキ3', cards: [] }],
+    activeDeck: 0, eras: {}, battle: {}, apps: {}, stats: { answered: 0, correct: 0 }, settings: { furi: true } });
+  function fix(d) {
+    const b = blank();
+    for (const k in b) if (d[k] === undefined || d[k] === null) d[k] = b[k];
+    if (!Array.isArray(d.decks)) d.decks = b.decks;
+    while (d.decks.length < 3) d.decks.push({ name: 'デッキ' + (d.decks.length + 1), cards: [] });
+    d.decks.forEach(dk => { if (!Array.isArray(dk.cards)) dk.cards = []; });
+    if (typeof d.activeDeck !== 'number' || !d.decks[d.activeDeck]) d.activeDeck = 0;
+    return d;
+  }
+  function read() {
+    if (!usable) return mem || (mem = blank());
+    let raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { usable = false; return mem || (mem = blank()); }
+    if (!raw) return blank();
+    try { return fix(JSON.parse(raw)); }
+    catch (e) {
+      // こわれたデータは別名で残してから、新しく始める（元データは消さない）
+      const b = blank();
+      try { localStorage.setItem(STORE_KEY + '.broken-' + Date.now(), raw); localStorage.setItem(STORE_KEY, JSON.stringify(b)); } catch (_) {}
+      return b;
+    }
+  }
+  function write(d) {
+    d.updatedAt = Date.now();
+    if (usable) { try { localStorage.setItem(STORE_KEY, JSON.stringify(d)); return; } catch (e) { usable = false; } }
+    mem = d;
+  }
+  return {
+    get: read,
+    update(fn) { const d = read(); fn(d); write(d); return d; },   // いつも最新を読んでから書く（別のタブとぶつからない）
+    usable: () => usable,
+    size: () => { try { return (localStorage.getItem(STORE_KEY) || '').length; } catch (e) { return 0; } }
+  };
+})();
+
+function registerEra() {
+  Store.update(d => {
+    d.apps[ERA.id] = { id: ERA.id, title: ERA.title, ch: ERA.chapter, icon: ERA.icon, url: location.href.split(/[?#]/)[0],
+                       total: ERA_CARDS.length, stages: ERA.stages.length, v: ERA.version, core: CORE_VERSION, seen: Date.now() };
+    if (!d.eras[ERA.id]) d.eras[ERA.id] = { stages: {}, boss: {} };
+    ERA_CARDS.forEach(c => { if (d.owned[c.id]) d.defs[c.id] = packDef(c); });   // 持っているカードのデータを最新に
+  });
+}
+const defOf = (id, d) => ERA_MAP[id] || (d || Store.get()).defs[id] || null;
+const starOf = ok => ok >= 6 ? 3 : ok >= 3 ? 2 : 1;
+const nextStarAt = ok => ok < 3 ? 3 : ok < 6 ? 6 : null;
+function eraRec(d) { if (!d.eras[ERA.id]) d.eras[ERA.id] = { stages: {}, boss: {} }; const r = d.eras[ERA.id]; r.stages = r.stages || {}; r.boss = r.boss || {}; return r; }
+function deckIds(d, slot) { const s = slot == null ? d.activeDeck : slot; return ((d.decks[s] || {}).cards || []).filter(id => d.owned[id] && defOf(id, d)); }
+function allKnownDefs(d) { const m = Object.assign({}, d.defs); ERA_CARDS.forEach(c => { m[c.id] = c; }); return Object.values(m).filter(x => x && x.name); }
+function eraOrder(e, d) { const a = d.apps[e]; if (a && a.ch) return a.ch; const s = SERIES.find(x => x.id === e); return s ? s.ch : 99; }
+function eraTitle(e, d) { const a = d.apps[e]; if (a && a.title) return a.title; const s = SERIES.find(x => x.id === e); return s ? s.title : e; }
+function unitStats(def, star) { let atk = def.atk || 0, hp = def.hp || 0; if (def.type !== 'culture' && star) { hp += star - 1; if (def.type === 'person' && star >= 3) atk += 1; } return { atk, hp }; }
+
+function recordAnswer(def, ok, opt) {
+  opt = opt || {};
+  let isNew = false, starUp = false;
+  Store.update(d => {
+    d.stats.answered = (d.stats.answered || 0) + 1;
+    if (!ok) return;
+    d.stats.correct = (d.stats.correct || 0) + 1;
+    const o = d.owned[def.id];
+    if (o) { const before = starOf(o.ok || 1); o.ok = (o.ok || 1) + 1; if (starOf(o.ok) > before) starUp = true; }
+    else if (opt.acquire) { d.owned[def.id] = { at: Date.now(), ok: 1, era: def.era }; isNew = true; }
+    if (def.era === ERA.id && d.owned[def.id]) d.defs[def.id] = packDef(def);
+  });
+  return { isNew, starUp };
+}
+function grantCard(id) {
+  Store.update(d => { if (!d.owned[id]) { d.owned[id] = { at: Date.now(), ok: 1, era: ERA.id }; d.defs[id] = packDef(ERA_MAP[id]); } });
+}
+
+/* ---------- 効果の文 ---------- */
+function fxLines(def) {
+  const L = [], unit = def.type !== 'culture', pre = unit ? '出《だ》したとき：' : '';
+  (def.fx || []).forEach(f => {
+    const n = f.n;
+    switch (f.t) {
+      case 'draw': L.push(`${pre}カードを${n}枚《まい》引《ひ》く`); break;
+      case 'cp': L.push(`${pre}このターン💠+${n}`); break;
+      case 'heal': L.push(`${pre}自分《じぶん》のライフ+${n}`); break;
+      case 'dmg': L.push(`${pre}相手《あいて》のいちばん強《つよ》いカードに${n}ダメージ（いなければ相手《あいて》ライフに）`); break;
+      case 'dmgAll': L.push(`${pre}相手《あいて》の場《ば》のカードぜんぶに${n}ダメージ`); break;
+      case 'direct': L.push(`${pre}相手《あいて》のライフに${n}ダメージ`); break;
+      case 'buffAtk': L.push(`${pre}味方《みかた》の人物《じんぶつ》ぜんぶ こうげき+${n}`); break;
+      case 'buffHp': L.push(`${pre}味方《みかた》の場《ば》のカードぜんぶ たいりょく+${n}`); break;
+      case 'auraAtk': L.push(`【場《ば》にいる間《あいだ》】味方《みかた》の人物《じんぶつ》 こうげき+${n}`); break;
+      case 'regen': L.push(`【毎《まい》ターン】自分《じぶん》のライフ+${n}`); break;
+      case 'cpTurn': L.push(`【毎《まい》ターン】💠+${n}`); break;
+      case 'rush': L.push('【速攻《そっこう》】出《だ》したターンからこうげきできる'); break;
+      case 'pierce': L.push('【貫通《かんつう》】たおしたあまりのダメージを相手《あいて》ライフに'); break;
+      default: L.push('（このアプリでは使《つか》えない効果《こうか》）');
+    }
+  });
+  if (!L.length) L.push(def.type === 'heritage' && !def.atk ? 'こうげきはしないが、正面《しょうめん》の相手《あいて》をくいとめる' : '特別《とくべつ》な効果《こうか》なし');
+  return L;
+}
+const hasFx = (def, t) => (def.fx || []).some(f => f.t === t);
+
+/* ---------- カードの見た目 ---------- */
+function cardHTML(def, o) {
+  o = o || {};
+  if (!def) return '';
+  const size = o.size || 'md';
+  const act = o.act ? ` data-act="${o.act}" data-arg="${esc(o.arg != null ? o.arg : def.id)}"` : '';
+  const uid = o.uid ? ` data-uid="${o.uid}"` : '';
+  const style = o.style ? ` style="${o.style}"` : '';
+  const cls = `card ${size} t-${esc(def.type)} r-${esc(def.rarity)} ${o.cls || ''}`;
+  if (o.locked) return `<div class="${cls} locked"${act}${uid}${style}><div class="c-cost">?</div><div class="c-icon">？</div><div class="c-name">？？？</div><div class="c-type">${TYPE_LABEL[def.type] || ''}</div></div>`;
+  const unit = def.type !== 'culture', star = o.star || 0;
+  let atk, hp, hpCls = '', atkCls = '';
+  if (o.inst) { atk = o.atk != null ? o.atk : o.inst.atk; hp = o.inst.hp; if (o.inst.hp < o.inst.maxHp) hpCls = ' low'; if (atk > o.inst.atk) atkCls = ' up'; }
+  else { const s = unitStats(def, star); atk = s.atk; hp = s.hp; }
+  return `<div class="${cls}"${act}${uid}${style}>
+    <div class="c-cost">${esc(def.cost)}</div><div class="c-rar">${esc(def.rarity)}</div>
+    <div class="c-icon">${esc(def.icon || '❔')}</div>
+    <div class="c-name">${esc(def.name)}</div>
+    <div class="c-type">${TYPE_LABEL[def.type] || ''}</div>
+    ${unit ? `<div class="c-stats"><span class="c-atk${atkCls}">⚔${atk}</span><span class="c-hp${hpCls}">❤${hp}</span></div>` : `<div class="c-fx">${esc(fxLines(def)[0])}</div>`}
+    ${star ? `<div class="c-star">${'★'.repeat(star)}${'☆'.repeat(3 - star)}</div>` : ''}
+    ${o.badge ? `<div class="c-badge ${o.badgeCls || ''}">${o.badge}</div>` : ''}
+    ${o.sleep ? '<div class="c-sleep">💤</div>' : ''}
+  </div>`;
+}
+
+/* ---------- 画面の土台 ---------- */
+const S = { screen: 'home', arg: null, colEra: ERA.id, deckSlot: null };
+const M = { lock: false };
+let Q = null, B = null;
+function go(screen, arg) { S.screen = screen; S.arg = arg == null ? null : arg; closeModal(); render(); window.scrollTo(0, 0); }
+function render() { const f = SCREENS[S.screen]; document.body.classList.toggle('nofuri', !furiOn()); $app.innerHTML = rb(f ? f() : '') + furiBtn(); }
+function furiBtn() { return S.screen === 'battle' ? '' : `<button class="chip furi-btn" data-act="furi">${furiOn() ? 'ふりがな ON' : 'ふりがな OFF'}</button>`; }
+function topbar(title, backAct, backArg, right) {
+  return `<div class="top"><button class="back" data-act="${backAct}" data-arg="${backArg || ''}" aria-label="もどる">◀</button><h2>${title}</h2>${right || ''}</div>`;
+}
+function openModal(html, opt) { opt = opt || {}; M.lock = !!opt.lock; $modal.innerHTML = rb(`<div class="bg" data-act="bg"><div class="sheet">${html}</div></div>`); }
+function closeModal() { $modal.innerHTML = ''; M.lock = false; }
+let toastT = null;
+function toast(msg) { const t = document.getElementById('toast'); t.innerHTML = rb(msg); t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2000); }
+function storageWarn() {
+  return Store.usable() ? '' : `<div class="panel warnbox mt">⚠️ この画面《がめん》ではブラウザに記録《きろく》を保存《ほぞん》できません（プレビュー表示《ひょうじ》やプライベートモードなど）。サイトに置《お》いてひらくと、記録《きろく》が保存《ほぞん》されます。</div>`;
+}
+function howToGet(def) {
+  if (def.stage === 'reward') {
+    if (ERA.boss.reward === def.id) return `${ERA.stages.length}つのステージをクリアして、ボス「${ERA.boss.title}」に勝《か》つと手《て》に入《はい》る。`;
+    const c = ERA.cpu.find(x => x.reward === def.id);
+    if (c) return `CPU「${c.name}」に初《はじ》めて勝《か》つと手《て》に入《はい》る。`;
+  }
+  const st = ERA.stages.find(s => s.id === def.stage);
+  return st ? `「STAGE ${st.no} ${st.title}」のクイズで、このカードの問題《もんだい》に正解《せいかい》すると手《て》に入《はい》る。` : 'ほかの時代《じだい》のアプリで手《て》に入《はい》る。';
+}
+
+/* ---------- 問題づくり ---------- */
+function makeQ(def, mode, pool) {
+  if (mode === 'rev' && def.desc) {
+    const others = shuffle(pool.filter(x => x.id !== def.id && x.desc && x.desc !== def.desc)).slice(0, 3).map(x => x.desc);
+    if (others.length === 3) return { def, mode: 'rev', text: `「${def.name}」の説明《せつめい》として正《ただ》しいものは？`, choices: shuffle([def.desc].concat(others)), answer: def.desc };
+  }
+  const ans = def.a || def.name;
+  let wrong = (def.wrong || []).filter(w => w !== ans).slice(0, 3);
+  if (wrong.length < 3) wrong = wrong.concat(shuffle(pool.filter(x => x.id !== def.id && x.name !== ans && !wrong.includes(x.name)).map(x => x.name)).slice(0, 3 - wrong.length));
+  return { def, mode: 'fwd', text: def.q || `「${def.desc}」にあてはまるものは？`, choices: shuffle([ans].concat(wrong)), answer: ans };
+}
+
+/* ======================================================================
+   画面
+   ====================================================================== */
+const SCREENS = {};
+
+SCREENS.home = () => {
+  const d = Store.get(), er = eraRec(d);
+  const own = ERA_CARDS.filter(c => d.owned[c.id]).length;
+  const clear = ERA.stages.filter(s => (er.stages[s.id] || {}).clear).length;
+  const wins = ERA.cpu.reduce((a, c) => a + ((d.battle[ERA.id + ':' + c.id] || {}).win || 0), 0);
+  const allOwn = Object.keys(d.owned).length;
+  const others = Object.keys(d.apps).filter(e => e !== ERA.id).length;
+  return `
+  <div class="hero">
+    <div class="series">むん先生《せんせい》の 歴史《れきし》カードクエスト</div>
+    <div class="chap">CHAPTER ${ERA.chapter}</div>
+    <h1>${ERA.icon} ${esc(ERA.title)}</h1>
+    <div class="sub">${esc(ERA.subtitle)}</div>
+  </div>
+  ${storageWarn()}
+  <div class="stats">
+    <div class="stat"><b>${own}/${ERA_CARDS.length}</b><span>この時代《じだい》のカード</span></div>
+    <div class="stat"><b>${clear}/${ERA.stages.length}</b><span>クリアしたステージ</span></div>
+    <div class="stat"><b>${wins}</b><span>バトル勝利《しょうり》</span></div>
+    <div class="stat"><b>${allOwn}</b><span>全《ぜん》時代《じだい》のカード</span></div>
+  </div>
+  <div class="menu-main">
+    <button class="mbtn big" data-act="go" data-arg="stages"><i>📚</i><div>まなぶ・クイズ<small>正解《せいかい》するとカードが手《て》に入《はい》る！</small></div></button>
+    <button class="mbtn big b2" data-act="go" data-arg="battleSelect"><i>⚔️</i><div>CPUとバトル<small>${allOwn >= DECK_MIN ? 'デッキを組《く》んで勝負《しょうぶ》！' : `カードをあと${DECK_MIN - allOwn}枚《まい》あつめると解禁《かいきん》`}</small></div></button>
+  </div>
+  <div class="menu-sub">
+    <button class="mbtn" data-act="go" data-arg="collection"><i>🃏</i>カード図鑑《ずかん》<small>${allOwn}枚《まい》あつめた</small></button>
+    <button class="mbtn" data-act="go" data-arg="deck"><i>🧩</i>デッキを組《く》む<small>${deckIds(d).length}/${DECK_MAX}枚《まい》</small></button>
+    <button class="mbtn" data-act="go" data-arg="link"><i>🔗</i>時代《じだい》をつなぐ<small>${others ? `ほかの${others}時代《じだい》と連携《れんけい》中《ちゅう》` : 'カードと記録《きろく》を共有《きょうゆう》'}</small></button>
+    <button class="mbtn" data-act="rules"><i>❓</i>あそびかた<small>ルールをかくにん</small></button>
+  </div>`;
+};
+
+SCREENS.stages = () => {
+  const d = Store.get(), er = eraRec(d);
+  const tiles = ERA.stages.map(st => {
+    const cs = ERA_CARDS.filter(c => c.stage === st.id), own = cs.filter(c => d.owned[c.id]).length, r = er.stages[st.id] || {};
+    const badge = r.perfect ? '<span class="badge b-perfect">👑 パーフェクト</span>' : r.clear ? '<span class="badge b-clear">✅ クリア</span>' : '';
+    return `<button class="stile" data-act="stage" data-arg="${st.id}"><div class="ic">${st.icon}</div><div class="f1">
+      <div class="no">STAGE ${st.no}</div><div class="tt">${esc(st.title)}</div>
+      <div class="sub" style="font-size:13px">カード ${own}/${cs.length}　${r.best != null ? `最高《さいこう》 ${r.best}/${r.total}` : 'まだ挑戦《ちょうせん》していない'}　${badge}</div>
+      <div class="bar"><div style="width:${own / cs.length * 100}%"></div></div></div></button>`;
+  }).join('');
+  const allClear = ERA.stages.every(s => (er.stages[s.id] || {}).clear);
+  const bossOwn = d.owned[ERA.boss.reward];
+  const boss = `<button class="stile boss ${allClear ? '' : 'lock'}" data-act="boss"><div class="ic">${allClear ? ERA.boss.icon : '🔒'}</div><div class="f1">
+      <div class="no">BOSS</div><div class="tt">${esc(ERA.boss.title)}</div>
+      <div class="sub" style="font-size:13px">${allClear ? esc(ERA.boss.text) : `${ERA.stages.length}つのステージをすべてクリアするとあらわれる`}</div>
+      ${er.boss.clear ? '<span class="badge b-perfect">🏆 撃破《げきは》ずみ</span>' : ''}</div>
+      ${cardHTML(ERA_MAP[ERA.boss.reward], bossOwn ? { size: 'xs', star: starOf(bossOwn.ok) } : { size: 'xs', locked: true })}</button>`;
+  return topbar('まなぶ・クイズ', 'go', 'home') + `<p class="sub" style="margin:0 0 12px">ポイントを読《よ》んでからクイズに挑戦《ちょうせん》！ 正解《せいかい》した問題《もんだい》のカードが手《て》に入《はい》るよ。</p><div class="stage-list">${tiles}${boss}</div>`;
+};
+
+SCREENS.stage = () => {
+  const st = ERA.stages.find(s => s.id === S.arg); if (!st) return '';
+  const d = Store.get(), r = eraRec(d).stages[st.id] || {};
+  const cs = ERA_CARDS.filter(c => c.stage === st.id);
+  const cards = cs.map(c => d.owned[c.id] ? cardHTML(c, { size: 'sm', star: starOf(d.owned[c.id].ok), act: 'card' }) : cardHTML(c, { size: 'sm', locked: true, act: 'card' })).join('');
+  return topbar(`STAGE ${st.no}　${esc(st.title)}`, 'go', 'stages') + `
+    <div class="panel"><h3 class="h">📖 まなぶポイント</h3><ul class="points">${st.points.map(p => `<li>${p}</li>`).join('')}</ul></div>
+    <div class="center mt"><button class="btn pink" data-act="startQuiz" data-arg="${st.id}">⚡ クイズに挑戦《ちょうせん》する（${cs.length}問《もん》）</button>
+      ${r.best != null ? `<div class="sub mt">最高《さいこう》記録《きろく》 ${r.best}/${r.total}　挑戦《ちょうせん》 ${r.plays || 0}回《かい》</div>` : ''}</div>
+    <div class="panel mt"><h3 class="h">🃏 このステージのカード（${cs.filter(c => d.owned[c.id]).length}/${cs.length}）</h3>
+      <div class="cardrow">${cards}</div>
+      <p class="sub center" style="font-size:14px">何《なん》度《ど》も正解《せいかい》するとカードの★が上《あ》がって、バトルで強《つよ》くなる！（正解《せいかい》3回《かい》で★2、6回《かい》で★3）</p></div>`;
+};
+
+function startStageQuiz(sid) {
+  const d = Store.get(), cleared = (eraRec(d).stages[sid] || {}).clear;
+  const cs = ERA_CARDS.filter(c => c.stage === sid);
+  Q = { kind: 'stage', sid, i: 0, correct: 0, news: [], ups: [], answered: null,
+        list: shuffle(cs).map(c => makeQ(c, cleared && Math.random() < 0.5 ? 'rev' : 'fwd', STAGE_CARDS)) };
+  go('quiz');
+}
+function startBoss() {
+  const d = Store.get(), er = eraRec(d);
+  if (!ERA.stages.every(s => (er.stages[s.id] || {}).clear)) return toast(`${ERA.stages.length}つのステージをすべてクリアすると挑戦《ちょうせん》できる！`);
+  Q = { kind: 'boss', pool: shuffle(STAGE_CARDS), list: [], i: 0, correct: 0, news: [], ups: [], answered: null, bossHp: ERA.boss.hp, hearts: ERA.boss.hearts };
+  Q.list.push(nextBossQ());
+  go('quiz');
+}
+function nextBossQ() {
+  if (!Q.pool.length) Q.pool = shuffle(STAGE_CARDS);
+  return makeQ(Q.pool.pop(), Math.random() < 0.5 ? 'rev' : 'fwd', STAGE_CARDS);
+}
+
+SCREENS.quiz = () => {
+  if (!Q) return '';
+  const q = Q.list[Q.i], a = Q.answered, boss = Q.kind === 'boss';
+  let head;
+  if (boss) {
+    head = `<div class="panel bosshead"><div class="bossic ${a && a.ok ? 'hit' : ''}">${ERA.boss.icon}</div><div class="f1">
+      <b>時空《じくう》の番人《ばんにん》</b>　<span class="sub">HP ${Q.bossHp}/${ERA.boss.hp}</span><div class="bar"><div style="width:${Q.bossHp / ERA.boss.hp * 100}%"></div></div></div>
+      <div class="hearts">${'❤️'.repeat(Q.hearts)}${'🖤'.repeat(ERA.boss.hearts - Q.hearts)}</div></div>`;
+  } else {
+    head = `<div class="qhead"><div class="chip">第《だい》${Q.i + 1}問《もん》 / ${Q.list.length}</div><div class="bar"><div style="width:${(Q.i + (a ? 1 : 0)) / Q.list.length * 100}%"></div></div><div class="chip">⭕ ${Q.correct}</div></div>`;
+  }
+  const long = q.mode === 'rev' || q.choices.some(c => plain(c).length > 13);
+  const ch = q.choices.map((c, i) => {
+    let cls = 'choice';
+    if (a) cls += c === q.answer ? ' ok' : i === a.idx ? ' ng' : ' dim';
+    return `<button class="${cls}" data-act="answer" data-arg="${i}"><span class="k">${'ABCD'[i]}</span><span>${esc(c)}</span></button>`;
+  }).join('');
+  let fb = '';
+  if (a) {
+    const d = Store.get(), def = q.def, own = d.owned[def.id];
+    const cardBox = own ? cardHTML(def, { size: 'sm', star: starOf(own.ok), badge: a.isNew ? 'NEW' : a.starUp ? '★UP' : '', cls: a.isNew ? 'flip' : '' }) : cardHTML(def, { size: 'sm', cls: 'ghost' });
+    let next = '次《つぎ》の問題《もんだい》へ';
+    if (boss && (Q.bossHp <= 0 || Q.hearts <= 0)) next = 'けっかを見《み》る';
+    if (!boss && Q.i + 1 >= Q.list.length) next = 'けっかを見《み》る';
+    fb = `<div class="fb panel ${a.ok ? 'okk' : 'ngg'}">${cardBox}<div class="f1">
+        <div class="msg">${a.ok ? '⭕ せいかい！' : '❌ ざんねん…'}</div>
+        ${a.ok ? '' : `<div>正解《せいかい》は <b class="ans">${esc(q.answer)}</b></div>`}
+        ${a.isNew ? `<div class="get">🃏 カード「${esc(def.name)}」をゲット！</div>` : ''}
+        ${a.starUp ? `<div class="get">★ 「${esc(def.name)}」のランクが上《あ》がった！</div>` : ''}
+        <div class="trivia mt"><h4>💡 豆《まめ》知識《ちしき》「${esc(def.name)}」</h4>${esc(def.trivia)}</div></div></div>
+      <div class="center mt"><button class="btn" data-act="nextQ">${next} ▶</button></div>`;
+  }
+  const title = boss ? esc(ERA.boss.title) : `STAGE ${ERA.stages.find(s => s.id === Q.sid).no} クイズ`;
+  return topbar(title, 'quitQuiz', '') + head + `<div class="panel qbox">${esc(q.text)}</div><div class="choices ${long ? 'long' : ''}">${ch}</div>${fb}`;
+};
+
+function answerQ(i) {
+  if (!Q || Q.answered) return;
+  const q = Q.list[Q.i], ok = q.choices[i] === q.answer;
+  const r = recordAnswer(q.def, ok, { acquire: true });
+  Q.answered = { idx: i, ok, isNew: r.isNew, starUp: r.starUp };
+  if (ok) Q.correct++;
+  if (r.isNew) Q.news.push(q.def.id);
+  if (r.starUp) Q.ups.push(q.def.id);
+  if (Q.kind === 'boss') { if (ok) Q.bossHp--; else Q.hearts--; }
+  render();
+  const fbEl = $app.querySelector('.fb');
+  if (fbEl && fbEl.scrollIntoView) fbEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function nextQ() {
+  if (!Q || !Q.answered) return;
+  if (Q.kind === 'boss') {
+    if (Q.bossHp <= 0 || Q.hearts <= 0) return finishQuiz();
+    Q.list.push(nextBossQ());
+  }
+  Q.i++; Q.answered = null;
+  if (Q.i >= Q.list.length) return finishQuiz();
+  render(); window.scrollTo(0, 0);
+}
+function finishQuiz() {
+  if (Q.kind === 'stage') {
+    const total = Q.list.length, sc = Q.correct, clear = sc / total >= 0.7, perfect = sc === total;
+    Store.update(d => {
+      const er = eraRec(d), o = er.stages[Q.sid] || (er.stages[Q.sid] = { best: 0, total, clear: false, perfect: false, plays: 0 });
+      o.plays = (o.plays || 0) + 1; o.total = total; o.best = Math.max(o.best || 0, sc);
+      if (clear) o.clear = true; if (perfect) o.perfect = true; o.last = Date.now();
+    });
+    Q.result = { sc, total, clear, perfect };
+  } else {
+    const win = Q.bossHp <= 0; let reward = null;
+    Store.update(d => { const b = eraRec(d).boss; b.plays = (b.plays || 0) + 1; if (win) { b.clear = true; b.wins = (b.wins || 0) + 1; } });
+    if (win && !Store.get().owned[ERA.boss.reward]) { grantCard(ERA.boss.reward); reward = ERA.boss.reward; }
+    Q.result = { win, reward, sc: Q.correct };
+  }
+  go('result');
+}
+
+SCREENS.result = () => {
+  if (!Q || !Q.result) return '';
+  const d = Store.get(), r = Q.result;
+  const newCards = Q.news.map((id, i) => cardHTML(ERA_MAP[id], { size: 'md', star: starOf((d.owned[id] || {}).ok || 1), badge: 'NEW', cls: 'flip', style: `animation-delay:${i * 0.12}s`, act: 'card' })).join('');
+  const ups = Q.ups.filter(id => !Q.news.includes(id)).map(id => cardHTML(ERA_MAP[id], { size: 'sm', star: starOf((d.owned[id] || {}).ok || 1), badge: '★UP', act: 'card' })).join('');
+  let main, btns;
+  if (Q.kind === 'stage') {
+    const title = r.perfect ? '👑 パーフェクト！' : r.clear ? '✅ ステージクリア！' : '🔥 あと少《すこ》し！';
+    main = `<div class="panel center"><div class="rtitle">${title}</div><div class="score">${r.sc}<small> / ${r.total}</small></div>${r.clear ? '' : '<p class="sub">7割《わり》以上《いじょう》の正解《せいかい》でクリア。ポイントを読《よ》み直《なお》してもう一《いち》度《ど》！</p>'}</div>`;
+    btns = `<button class="btn pink" data-act="startQuiz" data-arg="${Q.sid}">もう一《いち》度《ど》</button><button class="btn ghost" data-act="stage" data-arg="${Q.sid}">ポイントを見《み》る</button><button class="btn ghost" data-act="go" data-arg="stages">ステージ一覧《いちらん》</button>`;
+  } else {
+    const rw = r.reward ? `<div class="panel mt center"><div class="get">🎁 ボス撃破《げきは》ボーナス！</div><div class="cardrow mt">${cardHTML(ERA_MAP[r.reward], { size: 'md', star: 1, badge: 'NEW', cls: 'flip', act: 'card' })}</div></div>` : '';
+    main = `<div class="panel center"><div class="rtitle">${r.win ? '🏆 時空《じくう》の番人《ばんにん》をたおした！' : '💥 時空《じくう》の番人《ばんにん》に負《ま》けた…'}</div><div class="score">${r.sc}<small> 問《もん》正解《せいかい》</small></div></div>${rw}`;
+    btns = `<button class="btn pink" data-act="boss">もう一《いち》度《ど》</button><button class="btn ghost" data-act="go" data-arg="stages">ステージ一覧《いちらん》</button>`;
+  }
+  return topbar('けっか', 'go', 'stages') + main +
+    (newCards ? `<div class="panel mt center"><h3 class="h">🃏 新《あたら》しく手《て》に入《い》れたカード（${Q.news.length}枚《まい》）</h3><div class="cardrow">${newCards}</div></div>` : '') +
+    (ups ? `<div class="panel mt center"><h3 class="h">★ ランクが上《あ》がったカード</h3><div class="cardrow">${ups}</div></div>` : '') +
+    `<div class="row c mt">${btns}${Q.news.length ? '<button class="btn ghost" data-act="go" data-arg="deck">デッキを組《く》む</button>' : ''}</div>`;
+};
+
+SCREENS.collection = () => {
+  const d = Store.get();
+  const eras = [ERA.id];
+  Object.keys(d.apps).forEach(e => { if (!eras.includes(e)) eras.push(e); });
+  Object.values(d.owned).forEach(o => { if (o.era && !eras.includes(o.era)) eras.push(o.era); });
+  eras.sort((a, b) => eraOrder(a, d) - eraOrder(b, d));
+  if (!eras.includes(S.colEra)) S.colEra = ERA.id;
+  const tabs = eras.map(e => `<button class="tab ${e === S.colEra ? 'on' : ''}" data-act="colEra" data-arg="${esc(e)}">${esc(eraTitle(e, d))}</button>`).join('');
+  let grid, count;
+  if (S.colEra === ERA.id) {
+    grid = ERA_CARDS.map(c => d.owned[c.id] ? cardHTML(c, { size: 'sm', star: starOf(d.owned[c.id].ok), act: 'card' }) : cardHTML(c, { size: 'sm', locked: true, act: 'card' })).join('');
+    count = `${ERA_CARDS.filter(c => d.owned[c.id]).length}/${ERA_CARDS.length}`;
+  } else {
+    const list = Object.keys(d.owned).map(id => defOf(id, d)).filter(c => c && c.era === S.colEra).sort((a, b) => a.id < b.id ? -1 : 1);
+    grid = list.map(c => cardHTML(c, { size: 'sm', star: starOf(d.owned[c.id].ok), act: 'card' })).join('') || '<p class="sub">まだカードがありません</p>';
+    count = `${list.length}/${(d.apps[S.colEra] || {}).total || '?'}`;
+  }
+  return topbar('カード図鑑《ずかん》', 'go', 'home', `<span class="chip">🃏 ${count}</span>`) +
+    `<div class="tabs">${tabs}</div><div class="cardgrid">${grid}</div><p class="sub center" style="font-size:14px">カードをタップすると、くわしい説明《せつめい》と豆《まめ》知識《ちしき》が見《み》られるよ。</p>`;
+};
+
+SCREENS.deck = () => {
+  const d = Store.get();
+  if (S.deckSlot == null || !d.decks[S.deckSlot]) S.deckSlot = d.activeDeck;
+  const slot = S.deckSlot, ids = deckIds(d, slot), set = new Set(ids);
+  const cnt = { person: 0, heritage: 0, culture: 0 }; let costSum = 0;
+  ids.forEach(id => { const c = defOf(id, d); cnt[c.type] = (cnt[c.type] || 0) + 1; costSum += c.cost; });
+  const tabs = d.decks.map((dk, i) => `<button class="tab ${i === slot ? 'on' : ''}" data-act="deckSlot" data-arg="${i}">${i === d.activeDeck ? '⭐' : ''}${esc(dk.name)}</button>`).join('');
+  const owned = Object.keys(d.owned).map(id => defOf(id, d)).filter(Boolean)
+    .sort((a, b) => eraOrder(a.era, d) - eraOrder(b.era, d) || a.cost - b.cost || (a.id < b.id ? -1 : 1));
+  let grid = '', lastEra = null;
+  owned.forEach(c => {
+    if (c.era !== lastEra) { if (lastEra !== null) grid += '</div>'; grid += `<div class="erah">📘 ${esc(eraTitle(c.era, d))}</div><div class="cardgrid">`; lastEra = c.era; }
+    const inDeck = set.has(c.id);
+    grid += cardHTML(c, { size: 'sm', star: starOf(d.owned[c.id].ok), act: 'toggleDeck', cls: inDeck ? 'indeck' : '', badge: inDeck ? 'デッキ' : '', badgeCls: 'in' });
+  });
+  if (lastEra !== null) grid += '</div>';
+  if (!owned.length) grid = `<div class="panel center mt"><p>まだカードを持《も》っていません。</p><button class="btn" data-act="go" data-arg="stages">📚 まなぶ・クイズへ</button></div>`;
+  const ok = ids.length >= DECK_MIN;
+  return topbar('デッキを組《く》む', 'go', 'home') + `
+    <div class="tabs">${tabs}</div>
+    <div class="panel">
+      <div class="deckbar"><div class="cnt ${ok ? '' : 'ng'}">${ids.length}<small style="font-size:16px"> / ${DECK_MAX}枚《まい》</small></div>
+        <span class="tpill tp-person">人物《じんぶつ》 ${cnt.person}</span><span class="tpill tp-heritage">遺産《いさん》 ${cnt.heritage}</span><span class="tpill tp-culture">文化《ぶんか》 ${cnt.culture}</span>
+        <span class="sub" style="font-size:13px">平均《へいきん》コスト ${ids.length ? (costSum / ids.length).toFixed(1) : '-'}</span></div>
+      <p class="sub" style="font-size:14px;margin:8px 0">${ok ? '✅ このデッキでバトルできる！' : `⚠️ ${DECK_MIN}枚《まい》以上《いじょう》でバトルできる（あと${DECK_MIN - ids.length}枚《まい》）`}　カードをタップして出《だ》し入《い》れ。ほかの時代《じだい》のカードも入《い》れられるよ。</p>
+      <div class="row">
+        <button class="btn sm" data-act="autoDeck">🪄 おまかせで組《く》む</button>
+        <button class="btn sm ghost" data-act="clearDeck">ぜんぶはずす</button>
+        ${slot === d.activeDeck ? '<span class="chip">⭐ バトルで使《つか》うデッキ</span>' : '<button class="btn sm gold" data-act="useDeck">⭐ このデッキをバトルで使《つか》う</button>'}
+      </div>
+    </div>${grid}`;
+};
+
+SCREENS.battleSelect = () => {
+  const d = Store.get(), ids = deckIds(d), ok = ids.length >= DECK_MIN, allOwn = Object.keys(d.owned).length;
+  let deckPanel = `<div class="panel"><div class="row"><div style="flex:1"><b>使《つか》うデッキ：⭐${esc(d.decks[d.activeDeck].name)}（${ids.length}枚《まい》）</b>`;
+  if (!ok) deckPanel += allOwn >= DECK_MIN ? `<div class="sub" style="font-size:14px">${DECK_MIN}枚《まい》以上《いじょう》のデッキが必要《ひつよう》です。</div>` : `<div class="sub" style="font-size:14px">カードをあと${DECK_MIN - allOwn}枚《まい》あつめると、バトルができるよ。</div>`;
+  deckPanel += `</div>${!ok && allOwn >= DECK_MIN ? '<button class="btn sm gold" data-act="autoDeckGo">🪄 おまかせで組《く》む</button>' : ''}${!ok && allOwn < DECK_MIN ? '<button class="btn sm" data-act="go" data-arg="stages">📚 クイズへ</button>' : ''}<button class="btn sm ghost" data-act="go" data-arg="deck">🧩 デッキを組《く》む</button></div></div>`;
+  const list = ERA.cpu.map(c => {
+    const rec = d.battle[ERA.id + ':' + c.id] || {}, locked = c.need && !((d.battle[ERA.id + ':' + c.need] || {}).win);
+    const needName = c.need ? (ERA.cpu.find(x => x.id === c.need) || {}).name : '';
+    const rown = d.owned[c.reward];
+    const act = locked ? `data-act="toastMsg" data-arg="${esc(`「${needName}」に勝《か》つと挑戦《ちょうせん》できる！`)}"` : ok ? `data-act="battle" data-arg="${c.id}"` : `data-act="toastMsg" data-arg="デッキを${DECK_MIN}枚《まい》以上《いじょう》にしよう"`;
+    return `<button class="cpu-tile ${locked ? 'lock' : ''}" ${act}><div class="ic">${locked ? '🔒' : c.icon}</div><div class="f1">
+      <div class="lv">${'★'.repeat(c.lv)}${'☆'.repeat(3 - c.lv)}　Lv.${c.lv}</div><div class="nm">${esc(c.name)}</div>
+      <div class="sub" style="font-size:13px">${esc(c.text)}<br>ライフ ${c.life}　｜　${rec.win || 0}勝《しょう》 ${rec.lose || 0}敗《はい》</div></div>
+      <div class="rw">${cardHTML(ERA_MAP[c.reward], rown ? { size: 'xs', star: starOf(rown.ok) } : { size: 'xs', locked: true })}<div>${rown ? 'ゲットずみ' : '初《はつ》勝利《しょうり》で<br>ゲット'}</div></div></button>`;
+  }).join('');
+  return topbar('CPUとバトル', 'go', 'home', '<button class="chip" data-act="rules">❓ ルール</button>') + deckPanel + `<div class="cpu-list mt">${list}</div>`;
+};
+
+SCREENS.link = () => {
+  const d = Store.get();
+  const apps = Object.values(d.apps).sort((a, b) => (a.ch || 99) - (b.ch || 99));
+  const rows = apps.map(a => {
+    const own = Object.values(d.owned).filter(o => o.era === a.id).length;
+    const er = d.eras[a.id] || {}, cl = Object.values(er.stages || {}).filter(s => s && s.clear).length, me = a.id === ERA.id;
+    const url = /^https?:\/\//.test(a.url || '') ? a.url : '';
+    return `<div class="linkrow"><div class="ic">${esc(a.icon || '📘')}</div><div class="f1">
+      <b>第《だい》${esc(a.ch)}章《しょう》 ${esc(a.title)}</b> ${me ? '<span class="badge b-clear">このアプリ</span>' : ''}
+      <div class="sub" style="font-size:13px">カード ${own}/${esc(a.total)}　ステージクリア ${cl}/${esc(a.stages)}</div>
+      <div class="bar"><div style="width:${a.total ? own / a.total * 100 : 0}%"></div></div></div>
+      ${!me && url ? `<a class="btn sm ghost" href="${esc(url)}">ひらく ▶</a>` : ''}</div>`;
+  }).join('');
+  const series = SERIES.map(s => `<div class="srow ${d.apps[s.id] ? 'on' : ''}"><span>第《だい》${s.ch}章《しょう》</span>${esc(s.title)}<em>${d.apps[s.id] ? '連携《れんけい》ずみ' : '準備《じゅんび》中《ちゅう》'}</em></div>`).join('');
+  const acc = d.stats.answered ? Math.round(d.stats.correct / d.stats.answered * 100) : 0;
+  return topbar('時代《じだい》をつなぐ', 'go', 'home') + `
+    ${storageWarn()}
+    <div class="panel"><h3 class="h">🔗 カードと記録《きろく》は、全《ぜん》時代《じだい》で共有《きょうゆう》</h3>
+      <p style="margin:0;line-height:1.8">「歴史《れきし》カードクエスト」のほかの時代《じだい》のアプリと、<b>カード・デッキ・学習《がくしゅう》記録《きろく》</b>が自動《じどう》でつながります。ほかの時代《じだい》で手《て》に入《い》れたカードも、このアプリのデッキに入《い》れて戦《たたか》えます。</p>
+      <div class="row mt"><span class="chip">🃏 全《ぜん》時代《じだい》のカード ${Object.keys(d.owned).length}枚《まい》</span><span class="chip">✏️ 回答《かいとう》 ${d.stats.answered}問《もん》</span><span class="chip">⭕ 正解《せいかい》率《りつ》 ${acc}%</span></div></div>
+    <div class="panel mt"><h3 class="h">📚 連携《れんけい》しているアプリ</h3>${rows}</div>
+    <div class="panel mt"><h3 class="h">🗺️ シリーズの予定《よてい》</h3>${series}</div>
+    <div class="panel mt"><h3 class="h">🔒 保存《ほぞん》のしくみ（先生《せんせい》・保護《ほご》者《しゃ》の方《ほう》へ）</h3>
+      <ul class="info-list">
+        <li>記録《きろく》は、このタブレット（パソコン）のブラウザの中《なか》だけに保存《ほぞん》されます。外部《がいぶ》には送信《そうしん》しません。</li>
+        <li>同《おな》じ端末《たんまつ》・同《おな》じブラウザで、同《おな》じサイトにある時代《じだい》アプリどうしだけが共有《きょうゆう》されます。</li>
+        <li>ブラウザの履歴《りれき》・サイトデータを消《け》すと、記録《きろく》も消《き》えます。</li>
+        <li>保存《ほぞん》場所《ばしょ》：localStorage「${STORE_KEY}」（${Math.ceil(Store.size() / 1024)}KB）／コア v${CORE_VERSION}</li>
+      </ul></div>`;
+};
+
+/* ---------- カードの詳しい説明 ---------- */
+function showCard(id) {
+  const d = Store.get(), def = defOf(id, d); if (!def) return;
+  const own = d.owned[id];
+  if (!own) {
+    openModal(`<h3>？？？</h3><div class="detail">${cardHTML(def, { size: 'md', locked: true })}<div class="dl"><p>まだ持《も》っていないカード。</p><p>🗝️ ${esc(howToGet(def))}</p></div></div><div class="center mt"><button class="btn ghost" data-act="closeModal">とじる</button></div>`);
+    return;
+  }
+  const st = starOf(own.ok), nx = nextStarAt(own.ok), s = unitStats(def, st);
+  openModal(`<div class="detail">${cardHTML(def, { size: 'lg', star: st })}<dl class="dl">
+    <dt>なまえ</dt><dd><b style="font-size:18px">${esc(def.name)}</b>（${esc(def.kana || '')}）</dd>
+    <dt>時代《じだい》・種類《しゅるい》</dt><dd>${esc(def.eraTitle || eraTitle(def.era, d))}／${TYPE_LABEL[def.type]}／${esc(def.rarity)}</dd>
+    <dt>バトルでの力《ちから》</dt><dd>コスト${esc(def.cost)}${def.type !== 'culture' ? `　⚔こうげき${s.atk}　❤たいりょく${s.hp}` : ''}<br>${fxLines(def).map(esc).join('<br>')}</dd>
+    <dt>せつめい</dt><dd>${esc(def.desc)}</dd>
+    <dt>ランク</dt><dd><span style="color:var(--gold)">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span>　正解《せいかい》${own.ok}回《かい》${nx ? `（あと${nx - own.ok}回《かい》で★${st + 1}）` : '（最高《さいこう》ランク！）'}</dd>
+    </dl></div>
+    <div class="trivia mt"><h4>💡 豆《まめ》知識《ちしき》</h4>${esc(def.trivia)}</div>
+    <div class="center mt"><button class="btn ghost" data-act="closeModal">とじる</button></div>`);
+}
+
+/* ---------- デッキ ---------- */
+// おまかせ：人物7・遺産3・文化5を目安に、強いカードを選びつつ、軽いカード（コスト2以下）も4枚以上入れる
+function autoDeck(slot) {
+  Store.update(d => {
+    const owned = Object.keys(d.owned).map(id => defOf(id, d)).filter(Boolean);
+    const scm = {};
+    owned.forEach(c => { scm[c.id] = RAR_ORDER[c.rarity] * 2 + starOf(d.owned[c.id].ok) * 1.5 + Math.random() * 1.5 - (c.cost >= 5 ? 1 : 0); });
+    const by = t => owned.filter(c => c.type === t).sort((a, b) => scm[b.id] - scm[a.id]);
+    const pools = { person: by('person'), heritage: by('heritage'), culture: by('culture') };
+    const want = { person: 7, heritage: 3, culture: 5 };
+    let pick = [];
+    for (const t in want) pick = pick.concat(pools[t].slice(0, want[t]));
+    const rest = owned.filter(c => !pick.includes(c)).sort((a, b) => scm[b.id] - scm[a.id]);
+    while (pick.length < DECK_MAX && rest.length) pick.push(rest.shift());
+    const cheap = () => pick.filter(c => c.cost <= 2).length;
+    const cheapRest = rest.filter(c => c.cost <= 2);
+    while (cheap() < 4 && cheapRest.length) {
+      const heavy = pick.filter(c => c.cost >= 3).sort((a, b) => scm[a.id] - scm[b.id])[0];
+      if (!heavy) break;
+      pick[pick.indexOf(heavy)] = cheapRest.shift();
+    }
+    d.decks[slot].cards = pick.slice(0, DECK_MAX).map(c => c.id);
+  });
+}
+
+/* ======================================================================
+   バトル
+   ====================================================================== */
+let UID = 0;
+function inst(def, star) { const s = unitStats(def, star); return { uid: ++UID, def, star, atk: s.atk, hp: s.hp, maxHp: s.hp, buff: 0, sleep: true }; }
+function newSide(name, icon, life, deck) { return { name, icon, life, maxLife: life, cp: 0, maxCp: 0, deck, hand: [], field: [null, null, null], discard: [], turns: 0, quiz: false }; }
+const opp = k => k === 'p' ? 'c' : 'p';
+const alive = () => B && !B.finished && !B.aborted && !B.winner;
+const sideName = k => k === 'p' ? 'あなた' : B.c.name;
+
+function buildCpuDeck(cpu) {
+  const pool = STAGE_CARDS.filter(c => cpu.rarity.includes(c.rarity));
+  const units = shuffle(pool.filter(c => c.type !== 'culture')), cults = shuffle(pool.filter(c => c.type === 'culture'));
+  const nu = Math.min(units.length, Math.round(cpu.size * 0.6));
+  let deck = units.slice(0, nu).concat(cults.slice(0, cpu.size - nu));
+  if (deck.length < cpu.size) deck = deck.concat(units.slice(nu)).slice(0, cpu.size);
+  return deck;
+}
+function startBattle(cpuId) {
+  const d = Store.get(), cpu = ERA.cpu.find(c => c.id === cpuId), ids = deckIds(d);
+  if (!cpu) return;
+  if (ids.length < DECK_MIN) return toast(`デッキを${DECK_MIN}枚《まい》以上《いじょう》にしよう`);
+  if (B) B.aborted = true;
+  const pDeck = shuffle(ids.map(id => inst(defOf(id, d), starOf(d.owned[id].ok))));
+  const cDeck = shuffle(buildCpuDeck(cpu).map(def => inst(def, cpu.star || 1)));
+  B = { cpu, deckIds: ids, p: newSide('あなた', '🎓', START_LIFE, pDeck), c: newSide(cpu.name, cpu.icon, cpu.life, cDeck),
+        turn: null, sel: null, busy: true, msg: '', total: 0, first: Math.random() < 0.5 ? 'p' : 'c', flash: null };
+  for (let i = 0; i < 4; i++) { draw('p', true); draw('c', true); }
+  draw(opp(B.first), true);   // 後攻は1枚多く
+  go('battle');
+  const me = B;
+  (async () => {
+    say(B.first === 'p' ? '⚔️ バトル開始《かいし》！ あなたの先攻《せんこう》！' : `⚔️ バトル開始《かいし》！ ${cpu.name}の先攻《せんこう》！`); render();
+    await sleep(1200);
+    if (B === me && alive()) startTurn(B.first);
+  })();
+}
+function say(m) { if (B) B.msg = m; }
+function draw(k, silent) {
+  const s = B[k];
+  if (!s.deck.length) {
+    if (!s.discard.length) return;
+    s.deck = shuffle(s.discard); s.discard = [];
+    if (!silent) say(`${sideName(k)}の捨《す》て札《ふだ》を山《やま》札《ふだ》にもどした`);
+  }
+  const c = s.deck.pop();
+  if (s.hand.length >= HAND_MAX) { s.discard.push(c); return; }
+  s.hand.push(c);
+}
+function atkOf(k, u) {
+  let a = u.atk + u.buff;
+  if (u.def.type === 'person') B[k].field.forEach(v => { if (v && v !== u) (v.def.fx || []).forEach(f => { if (f.t === 'auraAtk') a += f.n; }); });
+  return Math.max(0, a);
+}
+function strongestLane(k) { let best = -1, bv = -1; B[k].field.forEach((u, i) => { if (!u) return; const v = atkOf(k, u) * 10 + u.hp; if (v > bv) { bv = v; best = i; } }); return best; }
+
+function floatAt(sel, text, cls) {
+  const el = document.querySelector(sel); if (!el || SPEED === 0) return;
+  const r = el.getBoundingClientRect(), f = document.createElement('div');
+  f.className = 'float ' + (cls || ''); f.textContent = text;
+  f.style.left = (r.left + r.width / 2) + 'px'; f.style.top = (r.top + r.height * 0.25) + 'px';
+  document.body.appendChild(f); setTimeout(() => f.remove(), 950);
+}
+function anim(sel, cls) { const el = document.querySelector(sel); if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+function heal(k, n) { const s = B[k], b = s.life; s.life = Math.min(s.maxLife, s.life + n); if (s.life > b) floatAt('#life-' + k, '+' + (s.life - b), 'heal'); }
+function hurtLife(k, n) {
+  const s = B[k]; if (n <= 0) return;
+  floatAt('#life-' + k, '-' + n); anim('#side-' + k, 'hit');
+  s.life = Math.max(0, s.life - n);
+  if (s.life <= 0 && !B.winner) B.winner = opp(k);
+}
+function hurtUnit(k, lane, n) {
+  const s = B[k], u = s.field[lane]; if (!u) return 0;
+  floatAt(`[data-uid="${u.uid}"]`, '-' + n); anim(`[data-uid="${u.uid}"]`, 'hit');
+  u.hp -= n;
+  if (u.hp <= 0) { const over = -u.hp; s.field[lane] = null; s.discard.push(inst(u.def, u.star)); say(`「${u.def.name}」をたおした！`); return over; }
+  return 0;
+}
+
+async function startTurn(k) {
+  if (!alive()) return;
+  B.turn = k; B.sel = null;
+  const s = B[k]; s.turns++; B.total++;
+  if (B.total > TURN_LIMIT) { B.result = B.p.life > B.c.life ? 'win' : B.p.life < B.c.life ? 'lose' : 'draw'; B.limit = true; return finish(); }
+  s.maxCp = Math.min(s.turns + 1, MAX_CP); s.cp = s.maxCp; s.quiz = false;   // 1ターン目は💠2から
+  let regen = 0;
+  s.field.forEach(u => { if (!u) return; u.sleep = false; (u.def.fx || []).forEach(f => { if (f.t === 'cpTurn') s.cp += f.n; if (f.t === 'regen') regen += f.n; }); });
+  if (B.total !== 1) draw(k);
+  say(k === 'p' ? '🔷 あなたのターン' : `🔶 ${s.name}のターン`);
+  render();
+  if (regen) { heal(k, regen); render(); }
+  if (B.total > STORM_START) {   // 時空のあらし：おたがい10ターンをすぎると、毎ターンライフが減る
+    await sleep(500); if (!alive()) return;
+    say(`🌪️ 時空《じくう》のあらし！ ${sideName(k)}のライフ-${STORM_DMG}`); hurtLife(k, STORM_DMG); render();
+    await sleep(700);
+    if (B && B.winner) return finish();
+    if (!alive()) return;
+  }
+  if (k === 'c') { await sleep(800); if (alive()) await cpuTurn(); }
+  else { B.busy = false; render(); }
+}
+async function endTurn() {
+  if (!alive()) return;
+  const k = B.turn; B.busy = true; B.sel = null;
+  say(k === 'p' ? '⚔️ あなたのこうげき！' : `⚔️ ${B[k].name}のこうげき！`); render();
+  await sleep(450);
+  await attackPhase(k);
+  if (B.winner) return finish();
+  if (!alive()) return;
+  await sleep(300);
+  await startTurn(opp(k));
+}
+async function attackPhase(k) {
+  const s = B[k], ok = opp(k), o = B[ok];
+  for (let i = 0; i < FIELD; i++) {
+    if (!alive()) return;
+    const u = s.field[i]; if (!u || u.sleep) continue;
+    const a = atkOf(k, u); if (a <= 0) continue;
+    anim(`[data-uid="${u.uid}"]`, k === 'p' ? 'lunge-up' : 'lunge-down');
+    await sleep(260);
+    if (!alive()) return;
+    const t = o.field[i];
+    if (t) {
+      say(`「${u.def.name}」が「${t.def.name}」をこうげき！`);
+      const over = hurtUnit(ok, i, a);
+      if (over > 0 && hasFx(u.def, 'pierce')) hurtLife(ok, over);
+    } else { say(`「${u.def.name}」が直接《ちょくせつ》こうげき！`); hurtLife(ok, a); }
+    render();
+    await sleep(450);
+  }
+}
+async function playCard(k, hi, lane) {
+  const s = B[k], u = s.hand[hi]; if (!u) return;
+  const def = u.def; if (def.cost > s.cp) return;
+  if (def.type !== 'culture' && (lane == null || s.field[lane])) return;
+  s.cp -= def.cost; s.hand.splice(hi, 1);
+  if (def.type === 'culture') {
+    say(`${sideName(k)}は「${def.name}」を使《つか》った！`); B.flash = { k, def }; render();
+    await sleep(900); if (!B) return; B.flash = null;
+    await applyFx(k, def);
+    s.discard.push(inst(def, u.star));
+  } else {
+    s.field[lane] = u; u.sleep = !hasFx(def, 'rush');
+    say(`${sideName(k)}は「${def.name}」を出《だ》した！`); render(); anim(`[data-uid="${u.uid}"]`, 'spawn');
+    await sleep(450);
+    await applyFx(k, def, u);
+  }
+  if (B) render();
+}
+async function applyFx(k, def) {
+  const s = B[k], ok = opp(k), o = B[ok];
+  for (const f of def.fx || []) {
+    if (!alive()) return;
+    const n = f.n || 0;
+    switch (f.t) {
+      case 'draw': for (let i = 0; i < n; i++) draw(k); break;
+      case 'cp': s.cp += n; break;
+      case 'heal': heal(k, n); break;
+      case 'dmg': { const li = strongestLane(ok); if (li < 0) hurtLife(ok, n); else hurtUnit(ok, li, n); break; }
+      case 'dmgAll': o.field.forEach((u, i) => { if (u) hurtUnit(ok, i, n); }); break;
+      case 'direct': hurtLife(ok, n); break;
+      case 'buffAtk': s.field.forEach(u => { if (u && u.def.type === 'person') u.buff += n; }); break;
+      case 'buffHp': s.field.forEach(u => { if (u) { u.hp += n; u.maxHp += n; } }); break;
+      default: continue;   // 場にいる間の効果・知らない効果はここでは何もしない
+    }
+    render(); await sleep(380);
+  }
+}
+
+/* ---------- CPUの考え方 ---------- */
+function laneScore(k, u, l) {
+  const ok = opp(k), e = B[ok].field[l], a = u.atk + u.buff;
+  if (a > 0) { let v = 0; if (!e) v += 4; else { v += a >= e.hp ? 5 : 1; if (atkOf(ok, e) >= u.hp) v -= 3; } return v; }
+  if (e) { const ea = atkOf(ok, e); return ea > 0 ? 3 + ea : 0; }
+  return -1;
+}
+function cultureValue(k, u) {
+  const s = B[k], ok = opp(k), o = B[ok], def = u.def; let v = 0;
+  (def.fx || []).forEach(f => {
+    const n = f.n || 0;
+    if (f.t === 'draw') v += s.hand.length <= 3 ? 3 * n : 1.5 * n;
+    else if (f.t === 'cp') {
+      const left = s.cp - def.cost, after = left + n;
+      const en = s.hand.filter(h => h !== u && h.def.cost > left && h.def.cost <= after && (h.def.type === 'culture' || s.field.some(x => !x)));
+      v += en.length ? 5 + Math.max.apply(null, en.map(h => h.def.cost)) * 2 : -2;
+    }
+    else if (f.t === 'heal') { const lost = s.maxLife - s.life; v += lost >= n ? n * 1.5 : lost > 0 ? 1 : -1; }
+    else if (f.t === 'dmg') { const li = strongestLane(ok); v += li < 0 ? 2 * n : (n >= o.field[li].hp ? 7 + o.field[li].def.cost : 3); }
+    else if (f.t === 'dmgAll') { let h = 0, kk = 0; o.field.forEach(x => { if (x) { h++; if (n >= x.hp) kk++; } }); v += h ? kk * 4 + h * 1.5 : -1; }
+    else if (f.t === 'direct') v += 2 * n;
+    else if (f.t === 'buffAtk') { const c = s.field.filter(x => x && x.def.type === 'person').length; v += c ? c * 2.5 * n : -1; }
+    else if (f.t === 'buffHp') { const c = s.field.filter(Boolean).length; v += c ? c * 1.5 * n : -1; }
+  });
+  return v;
+}
+function chooseMove(k, ai) {
+  const s = B[k], opts = [];
+  s.hand.forEach((u, idx) => {
+    if (u.def.cost > s.cp) return;
+    if (u.def.type === 'culture') { const v = cultureValue(k, u); if (v > 0) opts.push({ idx, lane: null, v }); }
+    else for (let l = 0; l < FIELD; l++) { if (s.field[l]) continue; const v = u.def.cost * 2 + laneScore(k, u, l); if (v > 0) opts.push({ idx, lane: l, v }); }
+  });
+  if (!opts.length) return null;
+  if (ai === 'easy') return opts[Math.floor(Math.random() * opts.length)];
+  opts.sort((a, b) => b.v - a.v); return opts[0];
+}
+async function cpuTurn() {
+  for (let g = 0; g < 12; g++) {
+    if (!alive()) break;
+    const m = chooseMove('c', B.cpu.ai); if (!m) break;
+    await playCard('c', m.idx, m.lane);
+    if (B && B.winner) return finish();
+    await sleep(500);
+  }
+  if (B && B.winner) return finish();
+  if (!alive()) return;
+  await endTurn();
+}
+
+async function finish() {
+  if (!B || B.finished || B.aborted) return;
+  B.finished = true; B.busy = true; B.flash = null;
+  const res = B.result || (B.winner === 'p' ? 'win' : 'lose');
+  let reward = null;
+  Store.update(d => { const key = ERA.id + ':' + B.cpu.id; const r = d.battle[key] || (d.battle[key] = { win: 0, lose: 0, draw: 0 }); r[res] = (r[res] || 0) + 1; if (res === 'win' && !r.first) r.first = Date.now(); });
+  if (res === 'win' && B.cpu.reward && !Store.get().owned[B.cpu.reward]) { grantCard(B.cpu.reward); reward = B.cpu.reward; }
+  B.res = res; B.reward = reward;
+  say(res === 'win' ? '🏆 勝利《しょうり》！' : res === 'lose' ? '💥 敗北《はいぼく》…' : '🤝 引《ひ》き分《わ》け'); render();
+  await sleep(700);
+  if (S.screen !== 'battle') return;
+  const rdef = reward ? ERA_MAP[reward] : null;
+  const msg = res === 'win' ? `${esc(B.cpu.name)}に勝《か》った！` : res === 'lose' ? 'くやしい！ デッキを見直《みなお》したり、クイズで★を上《あ》げたりしよう。' : 'いい勝負《しょうぶ》だった！';
+  openModal(`<div class="center"><div class="res-${res}">${res === 'win' ? '🏆 WIN!' : res === 'lose' ? '💥 LOSE…' : '🤝 DRAW'}</div>
+    <p style="line-height:1.7">${B.limit ? 'ターンの上限《じょうげん》になったので、ライフの多《おお》いほうの勝《か》ち。<br>' : ''}${msg}</p>
+    ${rdef ? `<div class="get">🎁 初《はつ》勝利《しょうり》ボーナス！ 新《あたら》しいカードをゲット！</div><div class="cardrow mt">${cardHTML(rdef, { size: 'md', star: 1, badge: 'NEW', cls: 'flip' })}</div><div class="trivia mt" style="text-align:left"><h4>💡 豆《まめ》知識《ちしき》「${esc(rdef.name)}」</h4>${esc(rdef.trivia)}</div>` : ''}
+    <div class="row c mt"><button class="btn" data-act="battle" data-arg="${B.cpu.id}">もう一《いち》度《ど》</button><button class="btn ghost" data-act="go" data-arg="battleSelect">もどる</button></div></div>`, { lock: true });
+}
+
+SCREENS.battle = () => {
+  if (!B) return '';
+  const p = B.p, c = B.c, my = B.turn === 'p' && !B.busy && !B.finished;
+  const sel = B.sel != null ? p.hand[B.sel] : null;
+  const field = k => B[k].field.map((u, i) => {
+    if (u) return `<div>${cardHTML(u.def, { size: 'f', inst: u, atk: atkOf(k, u), uid: u.uid, act: 'fieldCard', arg: u.uid, sleep: u.sleep && k === B.turn })}</div>`;
+    const can = k === 'p' && my && sel && sel.def.type !== 'culture' && sel.def.cost <= p.cp;
+    return `<div><div class="lane ${can ? 'can' : ''}" ${k === 'p' ? `data-act="lane" data-arg="${i}"` : ''}>${can ? 'ここに<br>出《だ》す' : ''}</div></div>`;
+  }).join('');
+  let info;
+  if (sel) {
+    const d = sel.def, afford = d.cost <= p.cp;
+    let action;
+    if (!my) action = '';
+    else if (!afford) action = '<span class="warn">💠が足《た》りない</span>';
+    else if (d.type === 'culture') action = '<button class="btn sm pink" data-act="useCard">✨ つかう</button>';
+    else action = p.field.some(x => !x) ? '<span class="hint">▲ 光《ひか》っているマスをタップ</span>' : '<span class="warn">場《ば》がいっぱい</span>';
+    info = `<div class="txt"><b>${esc(d.name)}</b> <span class="sub">${TYPE_LABEL[d.type]}・コスト${d.cost}${d.type !== 'culture' ? `・⚔${sel.atk + sel.buff} ❤${sel.hp}` : ''}</span><br><span class="fxs">${fxLines(d).map(esc).join('／')}</span></div>${action}<button class="btn sm ghost" data-act="cardInfo" data-arg="${esc(d.id)}">くわしく</button>`;
+  } else {
+    info = `<div class="txt sub">${my ? '手札《てふだ》のカードをタップして選《えら》ぼう。出《だ》し終《お》わったら「ターン終了《しゅうりょう》」！' : B.finished ? 'バトル終了《しゅうりょう》' : '相手《あいて》のターン…'}</div>`;
+  }
+  const hand = p.hand.map((u, i) => cardHTML(u.def, { size: 'h', inst: u, atk: u.atk + u.buff, act: 'hand', arg: i, cls: (B.sel === i ? 'sel ' : '') + (my && u.def.cost > p.cp ? 'no' : '') })).join('');
+  const flash = B.flash ? `<div class="flash"><div class="fl-in">${cardHTML(B.flash.def, { size: 'md' })}<div class="fl-t">${B.flash.k === 'p' ? 'あなた' : esc(c.name)}が使《つか》った！<br><span style="color:#dccfff">${fxLines(B.flash.def).map(esc).join('<br>')}</span></div></div></div>` : '';
+  return `<div class="bt">
+    <div class="bt-top"><button class="back" data-act="quitBattle" aria-label="やめる">✕</button><span class="chip">ターン ${Math.max(1, Math.ceil(B.total / 2))}</span><span class="chip" style="font-size:12px">📦${p.deck.length} 🗑${p.discard.length}</span>${B.total > STORM_START ? '<span class="chip" style="color:#ff9df8;border-color:var(--pink)">🌪️ あらし</span>' : B.total > STORM_START - 4 ? '<span class="chip" style="color:var(--gold)">⚠️ もうすぐあらし</span>' : ''}
+      <span class="turnlbl ${B.turn === 'p' ? 'me' : 'cpu'}">${B.turn === 'p' ? 'あなたのターン' : B.turn === 'c' ? 'あいてのターン' : 'じゅんび中《ちゅう》'}</span></div>
+    <div class="sidebar cpu" id="side-c"><span class="who">${esc(c.icon)} ${esc(c.name)}</span>
+      <div class="lifebox" id="life-c"><div class="num">❤ ${c.life} / ${c.maxLife}</div><div class="lifebar"><div style="width:${c.life / c.maxLife * 100}%"></div></div></div>
+      <span class="cbacks">${'<span class="cback"></span>'.repeat(c.hand.length)}</span><span class="mini">📦${c.deck.length}</span></div>
+    <div class="field cpu">${field('c')}</div>
+    <div class="msgbar">${esc(B.msg)}</div>
+    <div class="field me">${field('p')}</div>
+    <div class="sidebar me" id="side-p">
+      <div class="lifebox" id="life-p"><div class="num">❤ ${p.life} / ${p.maxLife}</div><div class="lifebar"><div style="width:${p.life / p.maxLife * 100}%"></div></div></div>
+      <span class="cp">💠 ${p.cp}<small> / ${p.maxCp}</small></span>
+      <button class="btn sm gold" data-act="quizCharge" ${my && !p.quiz ? '' : 'disabled'}>📚 クイズで💠+1</button>
+      <button class="btn sm" data-act="endTurn" ${my ? '' : 'disabled'}>ターン終了《しゅうりょう》 ▶</button></div>
+    <div class="info">${info}</div>
+    <div class="hand">${hand}</div>
+  </div>${flash}`;
+};
+
+function findInst(uid) { if (!B) return null; for (const k of ['p', 'c']) for (const u of B[k].field) if (u && String(u.uid) === String(uid)) return { u, k }; return null; }
+function showInst(u, k) {
+  const d = u.def;
+  openModal(`<div class="detail">${cardHTML(d, { size: 'md', inst: u, atk: atkOf(k, u) })}<dl class="dl">
+    <dt>${k === 'p' ? 'あなたのカード' : '相手《あいて》のカード'}</dt><dd><b style="font-size:18px">${esc(d.name)}</b>（${TYPE_LABEL[d.type]}）</dd>
+    <dt>いまの力《ちから》</dt><dd>⚔こうげき ${atkOf(k, u)}　❤たいりょく ${u.hp} / ${u.maxHp}${u.sleep ? '<br>💤 次《つぎ》の自分《じぶん》のターンからこうげき' : ''}</dd>
+    <dt>効果《こうか》</dt><dd>${fxLines(d).map(esc).join('<br>')}</dd>
+    <dt>せつめい</dt><dd>${esc(d.desc)}</dd></dl></div>
+    <div class="center mt"><button class="btn ghost" data-act="closeModal">とじる</button></div>`);
+}
+
+/* ---------- クイズチャージ（バトル中のクイズ） ---------- */
+function qcHTML() {
+  const { q, ans } = B.qc;
+  const ch = q.choices.map((c, i) => {
+    let cls = 'choice'; if (ans) cls += c === q.answer ? ' ok' : i === ans.idx ? ' ng' : ' dim';
+    return `<button class="${cls}" data-act="qcAnswer" data-arg="${i}"><span class="k">${'ABCD'[i]}</span><span>${esc(c)}</span></button>`;
+  }).join('');
+  const long = q.mode === 'rev' || q.choices.some(c => plain(c).length > 13);
+  return `<h3>📚 クイズチャージ</h3><div class="sub" style="font-size:13px">正解《せいかい》すると、このターンの💠が+1！</div>
+    <div class="panel qbox" style="font-size:19px">${esc(q.text)}</div><div class="choices ${long ? 'long' : ''}">${ch}</div>
+    ${ans ? `<div class="fb panel ${ans.ok ? 'okk' : 'ngg'}"><div class="f1"><div class="msg">${ans.ok ? '⭕ せいかい！ 💠+1' : '❌ ざんねん…'}</div>
+      ${ans.ok ? '' : `<div>正解《せいかい》は <b class="ans">${esc(q.answer)}</b></div>`}${ans.starUp ? `<div class="get">★ 「${esc(q.def.name)}」のランクが上《あ》がった！</div>` : ''}
+      <div class="trivia mt"><h4>💡 豆《まめ》知識《ちしき》「${esc(q.def.name)}」</h4>${esc(q.def.trivia)}</div></div></div>
+      <div class="center mt"><button class="btn" data-act="qcClose">バトルにもどる ▶</button></div>` : ''}`;
+}
+
+/* ---------- あそびかた ---------- */
+function rulesHTML() {
+  return `<h3>❓ あそびかた</h3>
+  <h4>📚 まなぶ・クイズ</h4><ul class="info-list">
+    <li>ステージの「まなぶポイント」を読《よ》んでから、クイズに挑戦《ちょうせん》。</li>
+    <li>正解《せいかい》した問題《もんだい》のカードが手《て》に入《はい》る！ 答《こた》えたあとに豆《まめ》知識《ちしき》も読《よ》めるよ。</li>
+    <li>同《おな》じカードの問題《もんだい》に何《なん》度《ど》も正解《せいかい》すると★が上《あ》がる（正解《せいかい》3回《かい》で★2、6回《かい》で★3）。★が上《あ》がると、バトルでたいりょくやこうげきが上《あ》がる。</li>
+    <li>${ERA.stages.length}つのステージをクリアすると、ボス「${esc(ERA.boss.title)}」があらわれる。</li></ul>
+  <h4>🧩 デッキ</h4><ul class="info-list">
+    <li>${DECK_MIN}〜${DECK_MAX}枚《まい》で組《く》む。ほかの時代《じだい》のアプリで手《て》に入《い》れたカードも入《い》れられる。</li></ul>
+  <h4>⚔️ バトル</h4><ul class="info-list">
+    <li>相手《あいて》のライフを0にしたら勝《か》ち。</li>
+    <li>毎《まい》ターン💠（文明《ぶんめい》ポイント）がたまる（1ターン目《め》は2、最大《さいだい》${MAX_CP}）。カード左上《ひだりうえ》の数字《すうじ》（コスト）ぶんの💠を使《つか》って出《だ》す。</li>
+    <li><b>人物《じんぶつ》</b>・<b>遺産《いさん》</b>カードは、自分《じぶん》の場《ば》の3つのマスに置《お》く。<b>文化《ぶんか》</b>カードは1回《かい》だけ効果《こうか》を使《つか》う。</li>
+    <li>「ターン終了《しゅうりょう》」をおすと、場《ば》のカードが<b>正面《しょうめん》の相手《あいて》</b>をこうげき。正面《しょうめん》にだれもいなければ、相手《あいて》のライフに直接《ちょくせつ》ダメージ！</li>
+    <li>出《だ》したばかりのカードは💤（次《つぎ》の自分《じぶん》のターンからこうげき）。【速攻《そっこう》】のカードはすぐこうげきできる。</li>
+    <li>遺産《いさん》カードの多《おお》くはこうげきしないけど、たいりょくが高《たか》く、正面《しょうめん》の相手《あいて》をくいとめる。</li>
+    <li>📚クイズチャージ：1ターンに1回《かい》、デッキのカードのクイズに正解《せいかい》すると💠+1。</li>
+    <li>🌪️ 時空《じくう》のあらし：おたがい10ターンをすぎると、ターンのはじめにライフが${STORM_DMG}ずつ減《へ》る。早《はや》めに決着《けっちゃく》をつけよう！</li></ul>
+  <div class="center mt"><button class="btn ghost" data-act="closeModal">とじる</button></div>`;
+}
+
+/* ======================================================================
+   ボタンの動き
+   ====================================================================== */
+const ACT = {
+  go: a => go(a),
+  stage: a => go('stage', a),
+  startQuiz: a => startStageQuiz(a),
+  boss: () => startBoss(),
+  answer: a => answerQ(+a),
+  nextQ: () => nextQ(),
+  quitQuiz: () => { const sid = Q && Q.kind === 'stage' ? Q.sid : null; Q = null; sid ? go('stage', sid) : go('stages'); },
+  card: a => showCard(a),
+  cardInfo: a => showCard(a),
+  closeModal: () => closeModal(),
+  bg: (a, el, e) => { if (e.target === el && !M.lock) closeModal(); },
+  rules: () => openModal(rulesHTML()),
+  toastMsg: a => toast(a),
+  colEra: a => { S.colEra = a; render(); },
+  deckSlot: a => { S.deckSlot = +a; render(); },
+  useDeck: () => { Store.update(d => { d.activeDeck = S.deckSlot; }); toast('⭐ バトルで使《つか》うデッキにしたよ'); render(); },
+  autoDeck: () => { autoDeck(S.deckSlot); toast('🪄 おまかせでデッキを組《く》んだよ'); render(); },
+  autoDeckGo: () => { const d = Store.get(); autoDeck(d.activeDeck); toast('🪄 おまかせでデッキを組《く》んだよ'); render(); },
+  clearDeck: () => openModal(`<h3>デッキのカードをぜんぶはずす？</h3><p>「${esc(Store.get().decks[S.deckSlot].name)}」のカードをぜんぶはずします。持《も》っているカードは消《き》えません。</p><div class="row c mt"><button class="btn pink" data-act="clearYes">はずす</button><button class="btn ghost" data-act="closeModal">やめる</button></div>`),
+  clearYes: () => { Store.update(d => { d.decks[S.deckSlot].cards = []; }); closeModal(); render(); },
+  toggleDeck: a => {
+    let full = false;
+    Store.update(d => {
+      const dk = d.decks[S.deckSlot]; dk.cards = dk.cards.filter(x => d.owned[x]);
+      const i = dk.cards.indexOf(a);
+      if (i >= 0) dk.cards.splice(i, 1); else if (dk.cards.length < DECK_MAX) dk.cards.push(a); else full = true;
+    });
+    if (full) toast(`デッキは${DECK_MAX}枚《まい》まで`);
+    render();
+  },
+  battle: a => startBattle(a),
+  hand: a => {
+    if (!B) return; const i = +a, u = B.p.hand[i]; if (!u) return;
+    if (B.busy || B.turn !== 'p' || B.finished) { showCard(u.def.id); return; }
+    B.sel = B.sel === i ? null : i; render();
+  },
+  lane: async a => {
+    if (!B || B.busy || B.turn !== 'p' || B.sel == null || B.finished) return;
+    const i = +a, u = B.p.hand[B.sel];
+    if (!u || u.def.type === 'culture' || B.p.field[i] || u.def.cost > B.p.cp) return;
+    B.busy = true; const hi = B.sel; B.sel = null;
+    await playCard('p', hi, i);
+    if (!B) return; if (B.winner) return finish();
+    B.busy = false; render();
+  },
+  useCard: async () => {
+    if (!B || B.busy || B.turn !== 'p' || B.sel == null || B.finished) return;
+    const u = B.p.hand[B.sel]; if (!u || u.def.type !== 'culture' || u.def.cost > B.p.cp) return;
+    B.busy = true; const hi = B.sel; B.sel = null;
+    await playCard('p', hi, null);
+    if (!B) return; if (B.winner) return finish();
+    B.busy = false; render();
+  },
+  endTurn: () => { if (!B || B.busy || B.turn !== 'p' || B.finished) return; endTurn(); },
+  fieldCard: a => { const f = findInst(a); if (f) showInst(f.u, f.k); },
+  quizCharge: () => {
+    if (!B || B.busy || B.turn !== 'p' || B.p.quiz || B.finished) return;
+    const d = Store.get(), id = B.deckIds[Math.floor(Math.random() * B.deckIds.length)], def = defOf(id, d); if (!def) return;
+    const pool = allKnownDefs(d).filter(x => x.stage !== 'reward' || d.owned[x.id]);
+    B.p.quiz = true; B.qc = { q: makeQ(def, Math.random() < 0.5 ? 'fwd' : 'rev', pool), ans: null };
+    render(); openModal(qcHTML(), { lock: true });
+  },
+  qcAnswer: a => {
+    if (!B || !B.qc || B.qc.ans) return;
+    const q = B.qc.q, i = +a, ok = q.choices[i] === q.answer, r = recordAnswer(q.def, ok, {});
+    B.qc.ans = { idx: i, ok, starUp: r.starUp };
+    if (ok) B.p.cp += 1;
+    const sh = $modal.querySelector('.sheet'); if (sh) sh.innerHTML = rb(qcHTML());
+    render();
+  },
+  qcClose: () => { if (B) B.qc = null; closeModal(); render(); },
+  quitBattle: () => {
+    if (!B) return go('battleSelect');
+    if (B.finished) return go('battleSelect');
+    openModal(`<h3>バトルをやめる？</h3><p>このバトルは記録《きろく》されません。</p><div class="row c mt"><button class="btn pink" data-act="quitYes">やめる</button><button class="btn ghost" data-act="closeModal">つづける</button></div>`);
+  },
+  furi: () => { Store.update(d => { d.settings = d.settings || {}; d.settings.furi = !furiOn(); }); render(); },
+  quitYes: () => { if (B) B.aborted = true; B = null; go('battleSelect'); }
+};
+function onClick(e) {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const f = ACT[el.dataset.act]; if (f) f(el.dataset.arg, el, e);
+}
+$app.addEventListener('click', onClick);
+$modal.addEventListener('click', onClick);
+// 別のタブで別の時代アプリが記録を変えたら、表示を更新
+window.addEventListener('storage', e => {
+  if (e.key === STORE_KEY && ['home', 'collection', 'deck', 'link', 'stages', 'battleSelect'].includes(S.screen) && !$modal.innerHTML) render();
+});
+
+/* ---------- スタート ---------- */
+registerEra();
+render();
+</script>
+</body>
+</html>

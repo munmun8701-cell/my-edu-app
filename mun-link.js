@@ -1,5 +1,5 @@
 /* =====================================================================
-   むんクエスト連携キット（mun-link.js）  v1.4  2026.11
+   むんクエスト連携キット（mun-link.js）  v1.5  2026.11
    ---------------------------------------------------------------------
    単元アプリやゲームの </body> の直前に、次の1行を入れるだけで使えます。
      <script src="/mun-link.js"></script>
@@ -33,6 +33,8 @@
      mun_reward_day … 1日のごほうび回数
      mun_learn_coin … 今日の学習コイン（上限 30000 C）
      mun_study_day / mun_study_tick … 今日の学習時間
+     mun_study_log … 日ごとの学習時間（トップの「今日の学習メーター」「がんばりカード」で使う）
+     mun_last_app … 最後にひらいたアプリ（トップの「つづきから」で使う）
      mun_break / mun_session … 休けいのお知らせ
    ===================================================================== */
 (function () {
@@ -45,6 +47,7 @@
   function load(k, d) { try { var v = JSON.parse(LS.get(k)); return v == null ? d : v; } catch (e) { return d; } }
   function save(k, v) { LS.set(k, JSON.stringify(v)); }
   function today() { return new Date().toDateString(); }
+  function ymd() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
   var APP_CAP = 30;
 
   function useAppReward() {
@@ -148,6 +151,9 @@
     LS.set('mun_study_tick', now);
     var d = load('mun_study_day', null); if (!d || d.date !== today()) d = { date: today(), sec: 0, paid: 0 };
     d.sec += 15;
+    var lg = load('mun_study_log', {}); lg[ymd()] = (lg[ymd()] || 0) + 15;
+    var ks = Object.keys(lg).sort(); while (ks.length > 120) delete lg[ks.shift()];
+    save('mun_study_log', lg);
     var steps = Math.floor(d.sec / STUDY_STEP);
     if (steps > d.paid) {
       d.paid = steps; save('mun_study_day', d);
@@ -234,8 +240,14 @@
     document.body.appendChild(o);
   }
   function startSession() { sessionTick(); setInterval(sessionTick, 30000); document.addEventListener('visibilitychange', function () { if (!document.hidden) sessionTick(); }); }
-  function boot() { startSession(); autoBack(); ttsButton(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
+  /* ---------- 最後にひらいたアプリ（トップの「つづきから」） ---------- */
+  function rememberApp() {
+    var seg = location.pathname.split('/').filter(Boolean);
+    if (seg.length < 2 || seg[0] === 'koinn' || window.top !== window.self) return;
+    save('mun_last_app', { path: location.pathname, title: String(document.title || '').slice(0, 60), t: Date.now() });
+  }
+  function boot() { rememberApp(); startSession(); autoBack(); ttsButton(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
   if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);
 
-  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.4', learnCoins: function () { return learnLog().c; } };
+  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.5', learnCoins: function () { return learnLog().c; } };
 })();

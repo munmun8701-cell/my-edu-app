@@ -585,10 +585,12 @@ const SERIES = [
   { id: 'kamakura',   ch: 5,  title: '鎌倉《かまくら》時代《じだい》' },
   { id: 'muromachi',  ch: 6,  title: '室町《むろまち》時代《じだい》' },
   { id: 'azuchi',     ch: 7,  title: '安土《あづち》桃山《ももやま》時代《じだい》' },
-  { id: 'edo',        ch: 8,  title: '江戸《えど》時代《じだい》' },
-  { id: 'meiji',      ch: 9,  title: '明治《めいじ》時代《じだい》' },
-  { id: 'taisho',     ch: 10, title: '大正《たいしょう》〜昭和《しょうわ》（戦前《せんぜん》・戦中《せんちゅう》）' },
-  { id: 'gendai',     ch: 11, title: '戦後《せんご》〜現代《げんだい》' }
+  { id: 'edo1',       ch: 8,  title: '江戸《えど》時代《じだい》①（幕府《ばくふ》の成立《せいりつ》〜元禄《げんろく》文化《ぶんか》）' },
+  { id: 'edo2',       ch: 9,  title: '江戸《えど》時代《じだい》②（綱吉《つなよし》の政治《せいじ》〜化政《かせい》文化《ぶんか》）' },
+  { id: 'meiji1',     ch: 10, title: '明治《めいじ》時代《じだい》①（黒船《くろふね》来航《らいこう》〜明治《めいじ》維新《いしん》・文明《ぶんめい》開化《かいか》）' },
+  { id: 'meiji2',     ch: 11, title: '明治《めいじ》時代《じだい》②（自由《じゆう》民権《みんけん》運動《うんどう》〜日露《にちろ》戦争《せんそう》・産業《さんぎょう》革命《かくめい》）' },
+  { id: 'taisho',     ch: 12, title: '大正《たいしょう》〜昭和《しょうわ》（戦前《せんぜん》・戦中《せんちゅう》）' },
+  { id: 'gendai',     ch: 13, title: '戦後《せんご》〜現代《げんだい》' }
 ];
 
 /* ---------- 小道具 ---------- */
@@ -759,7 +761,7 @@ function storageWarn() {
 }
 function howToGet(def) {
   if (def.stage === 'reward') {
-    if (ERA.boss.reward === def.id) return `6つのステージをクリアして、ボス「${ERA.boss.title}」に勝《か》つと手《て》に入《はい》る。`;
+    if (ERA.boss.reward === def.id) return `${ERA.stages.length}つのステージをクリアして、ボス「${ERA.boss.title}」に勝《か》つと手《て》に入《はい》る。`;
     const c = ERA.cpu.find(x => x.reward === def.id);
     if (c) return `CPU「${c.name}」に初《はじ》めて勝《か》つと手《て》に入《はい》る。`;
   }
@@ -831,7 +833,7 @@ SCREENS.stages = () => {
   const bossOwn = d.owned[ERA.boss.reward];
   const boss = `<button class="stile boss ${allClear ? '' : 'lock'}" data-act="boss"><div class="ic">${allClear ? ERA.boss.icon : '🔒'}</div><div class="f1">
       <div class="no">BOSS</div><div class="tt">${esc(ERA.boss.title)}</div>
-      <div class="sub" style="font-size:13px">${allClear ? esc(ERA.boss.text) : '6つのステージをすべてクリアするとあらわれる'}</div>
+      <div class="sub" style="font-size:13px">${allClear ? esc(ERA.boss.text) : `${ERA.stages.length}つのステージをすべてクリアするとあらわれる`}</div>
       ${er.boss.clear ? '<span class="badge b-perfect">🏆 撃破《げきは》ずみ</span>' : ''}</div>
       ${cardHTML(ERA_MAP[ERA.boss.reward], bossOwn ? { size: 'xs', star: starOf(bossOwn.ok) } : { size: 'xs', locked: true })}</button>`;
   return topbar('まなぶ・クイズ', 'go', 'home') + `<p class="sub" style="margin:0 0 12px">ポイントを読《よ》んでからクイズに挑戦《ちょうせん》！ 正解《せいかい》した問題《もんだい》のカードが手《て》に入《はい》るよ。</p><div class="stage-list">${tiles}${boss}</div>`;
@@ -860,7 +862,7 @@ function startStageQuiz(sid) {
 }
 function startBoss() {
   const d = Store.get(), er = eraRec(d);
-  if (!ERA.stages.every(s => (er.stages[s.id] || {}).clear)) return toast('6つのステージをすべてクリアすると挑戦《ちょうせん》できる！');
+  if (!ERA.stages.every(s => (er.stages[s.id] || {}).clear)) return toast(`${ERA.stages.length}つのステージをすべてクリアすると挑戦《ちょうせん》できる！`);
   Q = { kind: 'boss', pool: shuffle(STAGE_CARDS), list: [], i: 0, correct: 0, news: [], ups: [], answered: null, bossHp: ERA.boss.hp, hearts: ERA.boss.hearts };
   Q.list.push(nextBossQ());
   go('quiz');
@@ -1431,7 +1433,7 @@ function rulesHTML() {
     <li>ステージの「まなぶポイント」を読《よ》んでから、クイズに挑戦《ちょうせん》。</li>
     <li>正解《せいかい》した問題《もんだい》のカードが手《て》に入《はい》る！ 答《こた》えたあとに豆《まめ》知識《ちしき》も読《よ》めるよ。</li>
     <li>同《おな》じカードの問題《もんだい》に何《なん》度《ど》も正解《せいかい》すると★が上《あ》がる（正解《せいかい》3回《かい》で★2、6回《かい》で★3）。★が上《あ》がると、バトルでたいりょくやこうげきが上《あ》がる。</li>
-    <li>6つのステージをクリアすると、ボス「${esc(ERA.boss.title)}」があらわれる。</li></ul>
+    <li>${ERA.stages.length}つのステージをクリアすると、ボス「${esc(ERA.boss.title)}」があらわれる。</li></ul>
   <h4>🧩 デッキ</h4><ul class="info-list">
     <li>${DECK_MIN}〜${DECK_MAX}枚《まい》で組《く》む。ほかの時代《じだい》のアプリで手《て》に入《い》れたカードも入《い》れられる。</li></ul>
   <h4>⚔️ バトル</h4><ul class="info-list">
