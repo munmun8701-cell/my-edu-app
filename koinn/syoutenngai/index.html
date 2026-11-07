@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>むん商店街｜お店を経営して街を発展させるゲーム｜むん先生の学習クエスト</title>
+  <meta name="description" content="お店を建て、人を雇い、仕事を割りふって商店街を発展させる「むん商店街」。売上・原価・人件費・利益のしくみを、毎日の決算で楽しく学べます。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/shotengai/index.html">
+  <meta name="theme-color" content="#140a10">
+  <!-- ※ゲーム画面には、まちがってタップしやすいので広告を入れていません -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+  <style>
+    :root {
+      --bg: #140a10; --card: rgba(28,14,22,.82); --solid: #0b1222; --accent: #fb923c; --purple: #a855f7; --pink: #ec4899; --gold: #fbbf24; --green: #10b981; --red: #ef4444;
+      --text: #94a3b8; --bright: #fff; --soft: rgba(148,163,184,.08); --soft2: rgba(148,163,184,.16); --line: rgba(148,163,184,.16); --bc: rgba(251,146,60,.2);
+      --glow: 0 0 15px rgba(251,146,60,.4); --mono: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Meiryo", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none; background-image: linear-gradient(to right, rgba(251,146,60,.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(251,146,60,.04) 1px, transparent 1px); background-size: 60px 60px; -webkit-mask-image: linear-gradient(#000, transparent 85%); mask-image: linear-gradient(#000, transparent 85%); }
+    body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(700px 500px at 0% 0%, rgba(251,146,60,.1), transparent 70%), radial-gradient(800px 600px at 100% 60%, rgba(250,204,21,.07), transparent 70%); }
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--accent); }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    i.mi { display: inline-flex; align-items: center; justify-content: center; height: 1em; line-height: 1; vertical-align: -.125em; font-style: normal; }
+    i.mi svg { display: block; height: 1em; fill: currentColor; overflow: visible; }
+    .wrap { max-width: 1360px; margin: 0 auto; padding: 0 18px; }
+    .muted { color: var(--text); }
+    .small { font-size: .82rem; }
+
+    /* ヘッダー */
+    .site-header { position: sticky; top: 0; z-index: 50; height: 62px; background: rgba(20,10,16,.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .site-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), #facc15, transparent); opacity: .6; }
+    .site-header .wrap { height: 100%; display: flex; align-items: center; gap: 14px; }
+    .back { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 12px; background: var(--soft); border: 1px solid var(--soft2); color: var(--bright); text-decoration: none; font-weight: 800; font-size: .88rem; white-space: nowrap; transition: .2s; }
+    .back:hover { border-color: var(--accent); color: var(--accent); }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--bright); }
+    .brand-mark { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 1.2rem; color: #fff; background: linear-gradient(135deg, #fb923c, #e11d48); box-shadow: var(--glow); }
+    .brand-name { display: block; font-weight: 900; line-height: 1.1; }
+    .brand-sub { display: block; font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; color: var(--accent); font-weight: 700; }
+    .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 13px; border-radius: 12px; background: var(--soft); border: 1px solid var(--soft2); color: var(--bright); font-weight: 800; font-size: .88rem; white-space: nowrap; }
+    .chip.coin { color: var(--gold); border-color: rgba(251,191,36,.35); font-family: var(--mono); }
+    .chip.rank i { color: var(--accent); }
+    .icon-btn { width: 40px; height: 40px; border-radius: 12px; display: inline-grid; place-items: center; background: var(--soft); border: 1px solid var(--soft2); color: var(--bright); transition: .2s; flex: none; }
+    .icon-btn:hover, .icon-btn.is-on { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow); }
+    .icon-btn.sm { width: 32px; height: 32px; border-radius: 9px; font-size: .8rem; }
+    @media (max-width: 640px) { .brand-text, .chip.rank, .back span { display: none; } .back { padding: 0 12px; } }
+
+    .event-ribbon { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 10px 16px; border-radius: 14px; color: var(--bright); font-weight: 800; font-size: .88rem; background: linear-gradient(90deg, color-mix(in srgb, var(--e1) 22%, transparent), color-mix(in srgb, var(--e2) 22%, transparent)); border: 1px solid color-mix(in srgb, var(--e1) 55%, transparent); }
+    .event-ribbon > i { color: var(--e1); font-size: 1.1rem; }
+    .event-ribbon b { color: var(--e1); }
+    .event-ribbon span { flex: 1 1 260px; font-weight: 700; }
+    .event-ribbon em { font-style: normal; font-family: var(--mono); padding: 2px 10px; border-radius: 999px; background: var(--e1); color: #1a0d00; font-size: .78rem; }
+
+    /* ゾーン */
+    .zone-tabs { display: flex; gap: 10px; margin: 16px 0 14px; overflow-x: auto; scrollbar-width: none; }
+    .zone-tabs::-webkit-scrollbar { display: none; }
+    .zone-tab { flex: 1 0 auto; min-width: 170px; display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 16px; text-align: left; background: var(--card); border: 1px solid var(--line); color: var(--bright); transition: .2s; }
+    .zone-tab i { width: 38px; height: 38px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--zc) 30%, transparent); color: #fff; font-size: 1rem; }
+    .zone-tab b { display: block; font-weight: 900; }
+    .zone-tab small { display: block; font-size: .76rem; color: var(--text); font-weight: 700; }
+    .zone-tab:hover { border-color: var(--accent); }
+    .zone-tab.on { border-color: var(--accent); box-shadow: var(--glow); background: linear-gradient(135deg, color-mix(in srgb, var(--zc) 25%, transparent), var(--card)); }
+    .zone-tab.locked { opacity: .75; }
+    .zone-tab.locked i { background: var(--soft2); color: var(--text); }
+
+    .zoo-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
+    @media (max-width: 1080px) { .zoo-grid { grid-template-columns: minmax(0, 1fr); } }
+
+    /* 水そう */
+    .zoo { position: relative; border-radius: 22px; overflow: hidden; border: 2px solid rgba(251,146,60,.35); box-shadow: 0 0 0 4px rgba(251,146,60,.05), 0 20px 50px -10px rgba(0,0,0,.7), var(--glow); background: #1a0e14; }
+    #zoo-canvas { display: block; width: 100%; touch-action: manipulation; }
+    .zoo-hud { position: absolute; z-index: 2; pointer-events: none; padding: 8px 12px; border-radius: 12px; background: rgba(20,10,16,.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.1); color: var(--bright); }
+    .zoo-hud.tl { left: 12px; top: 12px; }
+    .zoo-hud.tl b { display: block; font-weight: 900; font-size: .95rem; }
+    .zoo-hud.tl span { font-size: .72rem; color: #cbd5e1; font-weight: 700; }
+    .zoo-hud.tr { right: 12px; top: 12px; width: 190px; }
+    .meter { display: grid; grid-template-columns: 1fr; gap: 2px; margin: 2px 0 5px; }
+    .meter span { font-size: .7rem; font-weight: 800; color: #cbd5e1; display: flex; gap: 6px; align-items: center; }
+    .bar, .track { height: 7px; border-radius: 5px; background: rgba(255,255,255,.12); overflow: hidden; }
+    .bar > div, .track > div { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #fb923c, #facc15); transition: width .6s; }
+    .bar > div.warn, .track > div.warn { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .bar > div.bad, .track > div.bad { background: linear-gradient(90deg, #f87171, #ef4444); }
+    .track.big { height: 10px; margin: 10px 0 4px; }
+    .zoo-msg { position: absolute; z-index: 2; left: 50%; bottom: 18%; transform: translateX(-50%); padding: 10px 16px; border-radius: 999px; background: rgba(20,10,16,.75); border: 1px solid var(--bc); color: var(--bright); font-weight: 800; font-size: .88rem; white-space: nowrap; max-width: 92%; overflow: hidden; text-overflow: ellipsis; }
+    .zoo-msg i { color: var(--accent); }
+    .link { background: none; border: 0; color: var(--accent); text-decoration: underline; font-weight: 900; }
+    .edit-hint { position: absolute; z-index: 2; left: 50%; top: 18%; transform: translateX(-50%); padding: 8px 14px; border-radius: 999px; background: rgba(251,146,60,.18); border: 1px solid var(--accent); color: var(--bright); font-weight: 800; font-size: .84rem; pointer-events: none; }
+    @media (max-width: 640px) { .zoo-hud.tr { width: 112px; padding: 5px 7px; } .meter { margin: 0 0 3px; } .meter span { font-size: .58rem; } .bar { height: 5px; } .zoo-hud.tl { padding: 6px 8px; } .zoo-hud.tl b { font-size: .82rem; } .zoo-hud.tl span { display: none; } .zoo-msg { font-size: .78rem; white-space: normal; text-align: center; border-radius: 14px; } }
+
+    .zoo-actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 14px; }
+    @media (max-width: 640px) { .zoo-actions { grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); gap: 8px; } .act { font-size: .74rem; padding: 10px 4px 8px; } .act > i { font-size: 1.15rem; } }
+    .act { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px 10px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); color: var(--bright); font-weight: 900; font-size: .86rem; transition: .2s; }
+    .act > i { font-size: 1.35rem; color: var(--accent); }
+    .act small { font-family: var(--mono); font-weight: 700; color: var(--gold); font-size: .74rem; }
+    .act:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+    .act.on { border-color: var(--accent); background: rgba(251,146,60,.1); }
+    .act.danger { border-color: rgba(239,68,68,.6); animation: pulse 1.4s infinite; }
+    .act.danger > i { color: var(--red); }
+    @keyframes pulse { 50% { box-shadow: 0 0 18px rgba(239,68,68,.45); } }
+    .tip { margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); font-size: .84rem; font-weight: 700; color: #cbd5e1; }
+    .tip i { color: var(--gold); margin-right: 6px; }
+
+    /* サイドパネル */
+    .side { position: sticky; top: 76px; border-radius: 22px; background: var(--card); border: 1px solid var(--bc); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 50px -10px rgba(0,0,0,.5); display: flex; flex-direction: column; max-height: calc(100vh - 92px); }
+    @media (max-width: 1080px) { .side { position: static; max-height: none; } }
+    .side-tabs { display: flex; gap: 4px; padding: 8px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+    .side-tabs::-webkit-scrollbar { display: none; }
+    .side-tabs button { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 10px; border-radius: 12px; border: 0; background: transparent; color: var(--text); font-weight: 800; font-size: .76rem; transition: .2s; }
+    .side-tabs button i { font-size: 1.05rem; }
+    .side-tabs button.on { background: rgba(251,146,60,.12); color: var(--accent); }
+    .side-body { padding: 16px; overflow-y: auto; }
+    .sec-h { display: flex; justify-content: space-between; align-items: baseline; margin: 4px 0 10px; color: var(--bright); }
+    .sec-h b { font-weight: 900; display: flex; gap: 8px; align-items: center; }
+    .sec-h b i { color: var(--accent); }
+    .sec-h span { font-family: var(--mono); font-size: .8rem; color: var(--text); }
+    .empty { text-align: center; padding: 24px 10px; color: var(--text); }
+    .empty i { font-size: 2rem; color: var(--accent); display: block; margin-bottom: 8px; }
+    .empty p { margin-bottom: 10px; }
+    .mine-list { display: flex; flex-direction: column; gap: 8px; }
+    .mine-item { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); text-align: left; transition: .2s; }
+    .mine-item:hover { border-color: var(--accent); }
+    .mine-item.sick { border-color: rgba(239,68,68,.6); }
+    .mine-item img { width: 64px; height: 40px; object-fit: contain; border-radius: 8px; background: linear-gradient(#5aa8e0 0%, #cfeaf5 62%, #b8ae9c 62%, #4a4e56 100%); flex: none; }
+    .mi-text { flex: 1; min-width: 0; }
+    .mi-text b { display: block; color: var(--bright); font-weight: 800; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mi-text small { display: block; font-size: .72rem; }
+    .mini { display: block; height: 4px; border-radius: 3px; background: rgba(255,255,255,.1); margin-top: 3px; overflow: hidden; }
+    .mini i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+    .mini.h i { background: var(--green); }
+    .mini i.bad { background: var(--red); }
+    .mine-item em { position: absolute; top: 6px; right: 8px; font-style: normal; font-size: .66rem; font-weight: 900; color: #fff; background: var(--red); padding: 1px 7px; border-radius: 999px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 3px 0 8px; }
+    .dot.y { background: var(--gold); } .dot.g { background: var(--green); }
+    .decor-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .decor-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); font-size: .76rem; font-weight: 700; color: var(--bright); }
+    .decor-item img { width: 40px; height: 26px; object-fit: contain; flex: none; }
+    .decor-item span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .shop-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+    .shop-tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--text); font-weight: 800; font-size: .76rem; }
+    .shop-tabs button.on { border-color: var(--accent); color: var(--accent); background: rgba(251,146,60,.1); }
+    .shop-note { margin-bottom: 10px; }
+    .shop-note b { color: var(--gold); font-family: var(--mono); }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (max-width: 1080px) and (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    .item-card { display: flex; flex-direction: column; gap: 3px; padding: 8px; border-radius: 16px; background: var(--soft); border: 1px solid var(--line); text-align: left; color: var(--bright); transition: .2s; }
+    .item-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+    .item-card.blocked { opacity: .55; }
+    .item-card.blocked:hover { transform: none; box-shadow: none; }
+    .item-card.limited { border-color: rgba(251,146,60,.6); }
+    .ic-thumb { position: relative; display: grid; place-items: center; height: 84px; border-radius: 11px; background: linear-gradient(#5aa8e0 0%, #cfeaf5 62%, #b8ae9c 62%, #4a4e56 100%); overflow: hidden; }
+    .ic-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .ic-thumb > i { font-size: 2rem; color: var(--accent); filter: drop-shadow(0 0 10px rgba(251,146,60,.6)); }
+    .ic-thumb em { position: absolute; font-style: normal; font-size: .62rem; font-weight: 900; padding: 1px 7px; border-radius: 999px; }
+    .ic-thumb .ltd { top: 6px; left: 6px; background: #fb923c; color: #1a0d00; }
+    .ic-thumb .lv { top: 6px; right: 6px; background: rgba(0,0,0,.5); color: var(--accent); font-family: var(--mono); }
+    .ic-name { font-weight: 900; font-size: .9rem; line-height: 1.3; }
+    .ic-sub { font-size: .7rem; color: var(--text); font-weight: 700; min-height: 1.4em; }
+    .ic-price { font-family: var(--mono); font-weight: 700; color: var(--gold); font-size: .9rem; }
+    .ic-price.short { color: #fca5a5; }
+    .tank-now { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: rgba(251,146,60,.06); border: 1px solid var(--bc); margin-bottom: 12px; color: var(--bright); }
+    .tank-now > i { font-size: 1.6rem; color: var(--accent); }
+    .tank-now small { display: block; color: var(--text); font-size: .74rem; }
+
+    .dex-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; color: var(--bright); }
+    .dex-head b { font-family: var(--mono); font-size: 2rem; color: var(--accent); line-height: 1; }
+    .dex-head .track { width: 100%; }
+    .dex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .dex-card { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); color: var(--bright); font-size: .72rem; font-weight: 800; transition: .2s; }
+    .dex-card img { width: 100%; height: 56px; object-fit: contain; border-radius: 8px; background: linear-gradient(#5aa8e0 0%, #cfeaf5 62%, #b8ae9c 62%, #4a4e56 100%); }
+    .dex-card.unknown { color: var(--text); }
+    .dex-card.unknown img { background: radial-gradient(circle at 50% 30%, #3a1c2a, #1a0a12 80%); }
+    .dex-card:hover { border-color: var(--accent); }
+
+    .coral-hero { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--bc); }
+    #coral-pv { display: block; width: 100%; }
+    .coral-info { position: absolute; left: 10px; top: 10px; padding: 6px 12px; border-radius: 12px; background: rgba(20,10,16,.6); color: var(--bright); }
+    .coral-info small { display: block; font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; color: var(--accent); }
+    .coral-info b { display: block; font-weight: 900; }
+    .coral-info span { font-size: .72rem; }
+    .donate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+    .donate-grid .btn:last-child { grid-column: 1 / -1; }
+    .lead { color: #cbd5e1; margin: 8px 0; }
+    .rank-hero { display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, rgba(251,146,60,.12), rgba(168,85,247,.12)); border: 1px solid var(--bc); color: var(--bright); }
+    .rank-hero > i { font-size: 2.2rem; color: var(--gold); filter: drop-shadow(0 0 10px rgba(251,191,36,.5)); }
+    .rank-hero small { display: block; font-family: var(--mono); letter-spacing: .16em; color: var(--accent); font-size: .68rem; }
+    .rank-hero b { font-size: 1.25rem; font-weight: 900; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .stat-grid div { padding: 10px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); text-align: center; }
+    .stat-grid b { display: block; font-family: var(--mono); color: var(--bright); font-size: 1.2rem; }
+    .stat-grid span { font-size: .7rem; font-weight: 800; }
+    .rank-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .rank-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--soft); font-weight: 800; font-size: .86rem; }
+    .rank-list li span { flex: 1; }
+    .rank-list li small { font-family: var(--mono); font-size: .74rem; }
+    .rank-list li.got { color: var(--bright); }
+    .rank-list li.got i { color: var(--green); }
+
+    .about { margin: 28px 0 60px; padding: 26px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); }
+    .about h2 { color: var(--bright); font-size: 1.15rem; font-weight: 900; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .about h2 i { color: var(--accent); }
+    .about p { color: #cbd5e1; font-size: .92rem; margin-top: 6px; }
+    .about ul { margin: 8px 0 0 1.2em; color: #cbd5e1; font-size: .92rem; }
+    .about li::marker { color: var(--accent); }
+
+    /* ボタン・モーダル */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; border-radius: 13px; border: 1px solid transparent; font-weight: 900; background: linear-gradient(135deg, var(--accent), #ea580c); color: #2a0e00; box-shadow: var(--glow); transition: .2s; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn.ghost { background: var(--soft); color: var(--bright); border-color: var(--soft2); box-shadow: none; }
+    .btn.danger { background: var(--red); color: #fff; box-shadow: 0 0 15px rgba(239,68,68,.35); }
+    .btn.sm { padding: 7px 14px; font-size: .85rem; }
+    .modal { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .25s; }
+    .modal.show { opacity: 1; pointer-events: auto; }
+    .modal-box { position: relative; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 22px; background: rgba(28,14,22,.96); border: 1px solid var(--bc); color: var(--bright); box-shadow: 0 20px 60px rgba(0,0,0,.6), var(--glow); transform: translateY(10px); transition: transform .25s; }
+    .modal.show .modal-box { transform: none; }
+    .modal-close { position: absolute; top: 12px; right: 12px; z-index: 2; }
+    .mh { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+    .mh > i { width: 46px; height: 46px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: rgba(251,146,60,.12); color: var(--accent); font-size: 1.3rem; }
+    .mh small { display: block; font-family: var(--mono); letter-spacing: .16em; font-size: .66rem; color: var(--accent); }
+    .mh h2 { font-size: 1.25rem; font-weight: 900; }
+    .pv { display: block; width: 100%; border-radius: 16px; background: linear-gradient(#5aa8e0 0%, #cfeaf5 62%, #b8ae9c 62%, #4a4e56 100%); margin-bottom: 12px; }
+    .fm-name { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+    .fm-name input { flex: 1 1 180px; min-width: 0; padding: 9px 12px; border-radius: 11px; border: 1px solid var(--bc); background: var(--soft); color: var(--bright); font-weight: 800; font-size: 1.05rem; outline: none; }
+    .fm-name input:focus { border-color: var(--accent); box-shadow: var(--glow); }
+    .fm-name span { font-weight: 800; color: var(--text); font-size: .86rem; }
+    .fm-name em { font-style: normal; font-size: .68rem; background: #fb923c; color: #1a0d00; padding: 1px 7px; border-radius: 999px; margin-left: 4px; }
+    .mood { font-weight: 800; color: var(--green); margin: 4px 0 10px; }
+    .mood.bad { color: #fca5a5; }
+    .mood.warn { color: #fbbf24; }
+    .sbar { display: grid; grid-template-columns: 96px 1fr 34px; gap: 8px; align-items: center; margin: 6px 0; font-size: .8rem; font-weight: 800; }
+    .sbar span { display: flex; gap: 6px; align-items: center; color: #cbd5e1; }
+    .sbar b { font-family: var(--mono); text-align: right; }
+    .sbar .track > div { background: linear-gradient(90deg, #fb923c, #facc15); }
+    .fact { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.3); }
+    .fact b { color: var(--gold); font-size: .86rem; display: flex; gap: 6px; align-items: center; }
+    .fact p { color: #e2e8f0; font-size: .9rem; margin-top: 4px; }
+    .fact.care { background: rgba(16,185,129,.07); border-color: rgba(16,185,129,.35); }
+    .fact.care b { color: var(--green); }
+    .dex-dl { display: grid; grid-template-columns: 7em 1fr; gap: 6px 12px; font-size: .9rem; margin-top: 6px; }
+    .dex-dl dt { color: var(--accent); font-weight: 800; }
+    .dex-dl dd { color: #e2e8f0; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+    .buy-img { display: grid; place-items: center; height: 150px; border-radius: 16px; background: linear-gradient(#5aa8e0 0%, #cfeaf5 62%, #b8ae9c 62%, #4a4e56 100%); margin-bottom: 12px; }
+    .buy-img img { max-width: 100%; max-height: 100%; }
+    .buy-img > i { font-size: 3.4rem; color: var(--accent); filter: drop-shadow(0 0 14px rgba(251,146,60,.6)); }
+    .buy-name { font-size: 1.3rem; font-weight: 900; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: var(--soft); font-weight: 800; }
+    .price-row b { color: var(--gold); font-family: var(--mono); font-size: 1.15rem; }
+    .price-row.sub { background: none; padding-top: 0; font-size: .82rem; color: var(--text); }
+    .warn-line { margin-top: 10px; color: #fca5a5; font-weight: 800; font-size: .88rem; }
+    .howto { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .howto li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--soft); font-size: .88rem; color: #e2e8f0; }
+    .howto li > i { color: var(--accent); margin-top: 3px; }
+    #toast-container { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: max-content; max-width: calc(100vw - 24px); }
+    .toast { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 14px; background: rgba(28,14,22,.95); border: 1px solid rgba(251,146,60,.4); border-left: 4px solid var(--accent); color: #fff; font-weight: 800; font-size: .9rem; box-shadow: 0 10px 30px rgba(0,0,0,.5); animation: tin .35s ease; transition: opacity .4s, transform .4s; }
+    .toast i { color: var(--accent); font-size: 1.15rem; }
+    .toast.out { opacity: 0; transform: translateY(8px); }
+    @keyframes tin { from { opacity: 0; transform: translateY(10px); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    .ic-thumb.noimg, .buy-img.noimg { background: radial-gradient(circle at 50% 20%, #5a2a1c, #1d0a12 78%); }
+    .ic-thumb > i, .buy-img > i { color: var(--accent); }
+    .zone-tab i { color: #fff; }
+    .zoo-actions { grid-template-columns: repeat(5, 1fr); }
+    .money-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,.12); }
+    .money-row i { color: var(--gold); }
+    .money-row b { font-family: var(--mono); font-size: 1.15rem; color: var(--gold); }
+    .money-row b.minus { color: #f87171; }
+    .zoo-hud.tl small { font-size: .72rem; color: #e2e8f0; font-weight: 800; margin-left: 6px; }
+    .zoo-msg { bottom: 8px; pointer-events: none; }
+    @media (max-width: 640px) { .zoo-hud.tr { width: 150px; padding: 6px 8px; } .zoo-hud.tr .meter { margin: 0 0 3px; } .money-row b { font-size: .95rem; } .zoo-msg { bottom: 6px; padding: 5px 10px; font-size: .7rem; max-width: 86%; } .zoo-actions { grid-template-columns: repeat(5, 1fr); gap: 6px; } }
+    .modal-box.wide { max-width: 640px; } .modal-box.report-box { max-width: 520px; }
+    .modal-actions.wrap { flex-wrap: wrap; }
+    .btn.wide { width: 100%; justify-content: center; margin-top: 10px; }
+    .seed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; max-height: 56vh; overflow: auto; padding: 2px; }
+    .seed-card { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); color: var(--text); text-align: left; font-family: inherit; cursor: pointer; transition: border-color .2s, transform .2s; }
+    .seed-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .seed-card img { width: 100%; aspect-ratio: 4/3; border-radius: 10px; }
+    .seed-card b { color: var(--bright); font-size: .92rem; } .seed-card small { font-size: .72rem; }
+    .seed-card .row { display: flex; justify-content: space-between; gap: 4px; font-size: .7rem; flex-wrap: wrap; }
+    .seed-card .row b { font-family: var(--mono); font-size: .78rem; color: var(--gold); }
+    .seed-card .row b.earn { color: var(--accent); } .seed-card .row b.short { color: #fca5a5; }
+    .seed-card.blocked { opacity: .5; }
+    .seg { display: flex; gap: 6px; margin: 0 0 10px; }
+    .seg button { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--text); font-weight: 900; font-size: .9rem; font-family: inherit; cursor: pointer; }
+    .seg button small { font-size: .68rem; font-weight: 700; }
+    .seg button.on { border-color: var(--accent); color: var(--accent); background: rgba(251,146,60,.12); }
+    .stars { color: var(--gold); letter-spacing: .05em; }
+    .mh3 { display: flex; gap: 8px; align-items: center; font-size: .95rem; font-weight: 900; color: var(--bright); margin: 14px 0 8px; } .mh3 i { color: var(--accent); }
+    .stat-grid.four { grid-template-columns: repeat(4, 1fr); } .stat-grid.four b { font-size: .95rem; }
+    @media (max-width: 520px) { .stat-grid.four { grid-template-columns: 1fr 1fr; } }
+    .stat-grid b.neg { color: #f87171; }
+    .shop-hero, .staff-hero { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+    .shop-hero img { width: 120px; aspect-ratio: 4/3; border-radius: 12px; flex: none; }
+    .staff-hero img { width: 96px; height: 96px; border-radius: 50%; flex: none; border: 3px solid var(--accent); }
+    .shop-hero small, .staff-hero small { display: block; font-family: var(--mono); font-size: .7rem; color: var(--accent); }
+    .shop-hero h2, .staff-hero h2 { font-size: 1.3rem; font-weight: 900; }
+    .trait { display: inline-flex; gap: 5px; align-items: center; padding: 2px 10px; border-radius: 999px; background: rgba(250,204,21,.12); color: var(--gold); font-size: .74rem; font-weight: 800; }
+    .role-row { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); margin-bottom: 6px; }
+    @media (max-width: 520px) { .role-row { grid-template-columns: 1fr; } }
+    .role-h { display: grid; grid-template-columns: 22px 1fr; column-gap: 6px; align-items: center; }
+    .role-h i { color: var(--accent); } .role-h b { color: var(--bright); font-size: .9rem; } .role-h small { grid-column: 2; font-size: .66rem; line-height: 1.3; }
+    .slots { display: flex; gap: 6px; flex-wrap: wrap; }
+    .slot { position: relative; width: 64px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 12px; border: 2px dashed rgba(255,255,255,.2); background: transparent; color: var(--text); font-family: inherit; font-size: .62rem; font-weight: 800; cursor: pointer; line-height: 1.2; text-align: center; }
+    .slot > i { font-size: 1.1rem; color: var(--accent); padding: 6px 0; }
+    .slot.on { border-style: solid; border-color: rgba(251,146,60,.6); background: rgba(251,146,60,.08); color: var(--bright); }
+    .slot img { width: 40px; height: 40px; border-radius: 50%; }
+    .slot em { position: absolute; top: -6px; right: -4px; font-style: normal; font-size: .58rem; padding: 0 5px; border-radius: 999px; background: #3b82f6; color: #fff; }
+    .slot em.tired { background: var(--red); }
+    .staff-list, .cand-list { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+    .staff-card { display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); color: var(--text); text-align: left; font-family: inherit; cursor: pointer; width: 100%; }
+    button.staff-card { grid-template-columns: 48px 1fr; }
+    .staff-card:hover { border-color: var(--accent); }
+    .staff-card img { width: 48px; height: 48px; border-radius: 50%; }
+    .staff-card > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .staff-card b { color: var(--bright); font-size: .9rem; } .staff-card b small { font-family: var(--mono); color: var(--accent); }
+    .staff-card small { font-size: .72rem; }
+    .staff-card .bars { display: grid; gap: 3px; margin-top: 2px; }
+    .staff-card .bars i { display: block; height: 5px; border-radius: 3px; } .staff-card .bars .e { background: var(--gold); } .staff-card .bars .m { background: var(--green); }
+    .icon-btn.sm.on { background: rgba(59,130,246,.3); color: #93c5fd; border-color: #3b82f6; }
+    .pips { display: inline-flex; gap: 3px; font-style: normal; } .pips b { width: 9px; height: 9px; border-radius: 3px; background: rgba(255,255,255,.15); display: inline-block; } .pips b.on { background: var(--accent); }
+    .skill { display: grid; grid-template-columns: 110px 1fr; gap: 6px; align-items: center; font-size: .74rem; font-weight: 800; margin: 3px 0; }
+    .skill span { display: flex; gap: 6px; align-items: center; color: #cbd5e1; } .skill span i { color: var(--accent); width: 14px; }
+    .cand { display: grid; grid-template-columns: 72px 1fr; gap: 10px; padding: 10px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); }
+    .cand > img { width: 72px; height: 72px; border-radius: 50%; }
+    .cd-body > b { display: block; color: var(--bright); font-size: .95rem; margin-bottom: 2px; }
+    .cd-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: .78rem; font-weight: 800; }
+    .cd-foot b { font-family: var(--mono); color: var(--gold); }
+    .btn[disabled] { opacity: .4; pointer-events: none; }
+    .rp-head { text-align: center; margin-bottom: 10px; }
+    .rp-head small { font-family: var(--mono); letter-spacing: .2em; color: var(--accent); font-size: .7rem; }
+    .rp-head h2 { font-size: 1.4rem; font-weight: 900; }
+    .rec { display: inline-block; margin-top: 4px; padding: 2px 12px; border-radius: 999px; background: linear-gradient(90deg, #facc15, #fb923c); color: #2a1200; font-style: normal; font-weight: 900; font-size: .8rem; animation: coinpop 1s ease infinite alternate; }
+    @keyframes coinpop { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }
+    .rp-calc { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid var(--line); margin: 8px 0; }
+    .rp-calc > div { display: flex; justify-content: space-between; gap: 10px; font-weight: 800; font-size: .88rem; }
+    .rp-calc b { font-family: var(--mono); }
+    .rp-calc .total { border-top: 2px solid rgba(255,255,255,.25); padding-top: 6px; margin-top: 4px; font-size: 1.05rem; color: var(--bright); }
+    .rp-calc .total b { font-size: 1.3rem; }
+    .plus { color: #4ade80; } .minus { color: #f87171; }
+    .rp-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+    .rp-mini div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: var(--soft); font-size: .68rem; font-weight: 800; }
+    .rp-mini i { color: var(--accent); } .rp-mini b { font-family: var(--mono); color: var(--bright); font-size: 1rem; }
+    .rp-bars { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+    .rp-bars div { display: grid; grid-template-columns: 84px 1fr 80px; gap: 8px; align-items: center; font-size: .74rem; font-weight: 800; }
+    .rp-bars i { display: block; height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--accent), #facc15); min-width: 2px; }
+    .rp-bars b { font-family: var(--mono); text-align: right; color: var(--gold); }
+    .lvup { display: flex; gap: 12px; align-items: center; padding: 12px; margin-top: 10px; border-radius: 14px; background: linear-gradient(135deg, rgba(251,146,60,.25), rgba(225,29,72,.2)); border: 1px solid var(--accent); }
+    .lvup > i { font-size: 2rem; color: var(--gold); }
+    .lvup small { display: block; font-family: var(--mono); color: var(--accent); font-size: .68rem; letter-spacing: .15em; }
+    .lvup b { display: block; font-size: 1.15rem; color: var(--bright); } .lvup span { font-size: .78rem; }
+    #chart { display: block; width: 100%; border-radius: 10px; }
+    .hist { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+    .hist-row { display: grid; grid-template-columns: 1fr auto 90px; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--soft); border: 1px solid var(--line); color: var(--text); font-family: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; text-align: left; }
+    .hist-row span:nth-child(2) { font-family: var(--mono); color: var(--gold); } .hist-row b { font-family: var(--mono); text-align: right; }
+    .mine-item img { background: none; width: 72px; height: 54px; object-fit: cover; }
+    .mine-item .mi-text small .stars { font-size: .7rem; }
+    .modal-actions.wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .modal-actions.wrap .btn { justify-content: center; }
+    @media (max-width: 640px) { .zoo-hud.tr { width: auto; } .zoo-hud.tr .meter { display: none; } .money-row { margin: 0; padding: 0; border: 0; } .zoo-hud.tl b { font-size: .8rem; } .zoo-hud.tl span { font-size: .64rem; } }
+    @media (max-width: 640px) { .zoo-hud.tl span { display: block !important; } .zoo-actions .act span { white-space: nowrap; font-size: .68rem; } }
+
+    .seg { display: flex; gap: 6px; margin: 0 0 10px; }
+    .seg button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0; padding: 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--text); font-weight: 900; font-size: .9rem; }
+    .seg button small { font-size: .68rem; font-weight: 700; }
+    .seg button.on { border-color: var(--accent); color: var(--accent); background: rgba(251,146,60,.12); }
+    .stars { color: var(--gold); letter-spacing: .05em; }
+    .part-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
+    .part-list li { display: flex; gap: 6px; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--soft); font-weight: 800; font-size: .84rem; color: var(--text); }
+    .part-list li.got { color: var(--bright); } .part-list li.got i { color: var(--green); }
+    .part-list small { color: #fca5a5; }
+    .modal-box.dig { max-width: 580px; }
+    .dig-top { display: grid; grid-template-columns: auto 1fr 34px; gap: 10px; align-items: center; margin: 6px 0 10px; font-weight: 800; font-size: .84rem; }
+    .dig-top span { color: var(--gold); display: flex; gap: 6px; align-items: center; }
+    .dig-top b { font-family: var(--mono); text-align: right; }
+    #dig-cv { display: block; width: 100%; border-radius: 12px; touch-action: manipulation; cursor: crosshair; margin-bottom: 10px; box-shadow: inset 0 0 0 2px rgba(0,0,0,.3); }
+    .dig-found { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .dig-found span { display: inline-flex; gap: 5px; align-items: center; padding: 4px 10px; border-radius: 999px; background: var(--soft); font-size: .78rem; font-weight: 800; color: var(--text); }
+    .dig-found span.got { color: var(--bright); border: 1px solid rgba(250,204,21,.5); } .dig-found span.got i { color: var(--gold); }
+    .dig-found em { font-style: normal; color: #fca5a5; }
+    .buy-img.dig { background: linear-gradient(#d8c49c, #a8875c); }
+    .pdots { display: inline-flex; gap: 3px; vertical-align: middle; } .pdots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.18); display: inline-block; } .pdots i.on { background: var(--gold); }
+    .item-card.ready { border-color: rgba(250,204,21,.8); box-shadow: 0 0 14px rgba(250,204,21,.25); }
+    .ic-thumb .lv.ok { background: var(--gold); color: #1a0d00; font-family: inherit; }
+    .shop-tabs.three { grid-template-columns: repeat(3, 1fr); }
+    .find-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .find-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); color: var(--bright); font-size: .74rem; font-weight: 800; }
+    .find-item i { width: 26px; height: 18px; border-radius: 50%; display: block; }
+    .find-item b { font-family: var(--mono); color: var(--gold); }
+    .find-item.unknown { color: var(--text); }
+    .side-tabs button { padding: 8px 6px; }
+  </style>
+</head>
+<body>
+  <script>
+    /* Icons: Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com  License: https://fontawesome.com/license/free (Icons: CC BY 4.0) */
+    const ICONS = {"archway":[512,"M32 32C14.3 32 0 46.3 0 64S14.3 96 32 96H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zm0 384c-17.7 0-32 14.3-32 32s14.3 32 32 32H96h64V352c0-53 43-96 96-96s96 43 96 96V480h64 64c17.7 0 32-14.3 32-32s-14.3-32-32-32V128H32V416z"],"arrow-left":[448,"M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"],"arrow-right-arrow-left":[448,"M438.6 150.6c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.7 96 32 96C14.3 96 0 110.3 0 128s14.3 32 32 32l306.7 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l96-96zm-333.3 352c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 416 416 416c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96z"],"arrow-trend-up":[576,"M384 160c-17.7 0-32-14.3-32-32s14.3-32 32-32H544c17.7 0 32 14.3 32 32V288c0 17.7-14.3 32-32 32s-32-14.3-32-32V205.3L342.6 374.6c-12.5 12.5-32.8 12.5-45.3 0L192 269.3 54.6 406.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l160-160c12.5-12.5 32.8-12.5 45.3 0L320 306.7 466.7 160H384z"],"arrow-up":[384,"M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"],"bed":[640,"M32 32c17.7 0 32 14.3 32 32V320H288V160c0-17.7 14.3-32 32-32H544c53 0 96 43 96 96V448c0 17.7-14.3 32-32 32s-32-14.3-32-32V416H352 320 64v32c0 17.7-14.3 32-32 32s-32-14.3-32-32V64C0 46.3 14.3 32 32 32zm144 96a80 80 0 1 1 0 160 80 80 0 1 1 0-160z"],"bolt":[448,"M349.4 44.6c5.9-13.7 1.5-29.7-10.6-38.5s-28.6-8-39.9 1.8l-256 224c-10 8.8-13.6 22.9-8.9 35.3S50.7 288 64 288H175.5L98.6 467.4c-5.9 13.7-1.5 29.7 10.6 38.5s28.6 8 39.9-1.8l256-224c10-8.8 13.6-22.9 8.9-35.3s-16.6-20.7-30-20.7H272.5L349.4 44.6z"],"boxes-stacked":[576,"M248 0H208c-26.5 0-48 21.5-48 48V160c0 35.3 28.7 64 64 64H352c35.3 0 64-28.7 64-64V48c0-26.5-21.5-48-48-48H328V80c0 8.8-7.2 16-16 16H264c-8.8 0-16-7.2-16-16V0zM64 256c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H224c35.3 0 64-28.7 64-64V320c0-35.3-28.7-64-64-64H184v80c0 8.8-7.2 16-16 16H120c-8.8 0-16-7.2-16-16V256H64zM352 512H512c35.3 0 64-28.7 64-64V320c0-35.3-28.7-64-64-64H472v80c0 8.8-7.2 16-16 16H408c-8.8 0-16-7.2-16-16V256H352c-15 0-28.8 5.1-39.7 13.8c4.9 10.4 7.7 22 7.7 34.2V464c0 12.2-2.8 23.8-7.7 34.2C323.2 506.9 337 512 352 512z"],"building":[384,"M48 0C21.5 0 0 21.5 0 48V464c0 26.5 21.5 48 48 48h96V432c0-26.5 21.5-48 48-48s48 21.5 48 48v80h96c26.5 0 48-21.5 48-48V48c0-26.5-21.5-48-48-48H48zM64 240c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V240zm112-16h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H176c-8.8 0-16-7.2-16-16V240c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H272c-8.8 0-16-7.2-16-16V240zM80 96h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H176c-8.8 0-16-7.2-16-16V112zM272 96h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H272c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16z"],"bullhorn":[512,"M480 32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9L381.7 53c-48 48-113.1 75-181 75H192 160 64c-35.3 0-64 28.7-64 64v96c0 35.3 28.7 64 64 64l0 128c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V352l8.7 0c67.9 0 133 27 181 75l43.6 43.6c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6V300.4c18.6-8.8 32-32.5 32-60.4s-13.4-51.6-32-60.4V32zm-64 76.7V240 371.3C357.2 317.8 280.5 288 200.7 288H192V192h8.7c79.8 0 156.5-29.8 215.3-83.3z"],"cash-register":[512,"M64 0C46.3 0 32 14.3 32 32V96c0 17.7 14.3 32 32 32h80v32H87c-31.6 0-58.5 23.1-63.3 54.4L1.1 364.1C.4 368.8 0 373.6 0 378.4V448c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V378.4c0-4.8-.4-9.6-1.1-14.4L488.2 214.4C483.5 183.1 456.6 160 425 160H208V128h80c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H64zM96 48H256c8.8 0 16 7.2 16 16s-7.2 16-16 16H96c-8.8 0-16-7.2-16-16s7.2-16 16-16zM64 432c0-8.8 7.2-16 16-16H432c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16zm48-168a24 24 0 1 1 0-48 24 24 0 1 1 0 48zm120-24a24 24 0 1 1 -48 0 24 24 0 1 1 48 0zM160 344a24 24 0 1 1 0-48 24 24 0 1 1 0 48zM328 240a24 24 0 1 1 -48 0 24 24 0 1 1 48 0zM256 344a24 24 0 1 1 0-48 24 24 0 1 1 0 48zM424 240a24 24 0 1 1 -48 0 24 24 0 1 1 48 0zM352 344a24 24 0 1 1 0-48 24 24 0 1 1 0 48z"],"chart-column":[512,"M32 32c17.7 0 32 14.3 32 32V400c0 8.8 7.2 16 16 16H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H80c-44.2 0-80-35.8-80-80V64C0 46.3 14.3 32 32 32zM160 224c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32s-32-14.3-32-32V256c0-17.7 14.3-32 32-32zm128-64V320c0 17.7-14.3 32-32 32s-32-14.3-32-32V160c0-17.7 14.3-32 32-32s32 14.3 32 32zm64 32c17.7 0 32 14.3 32 32v96c0 17.7-14.3 32-32 32s-32-14.3-32-32V224c0-17.7 14.3-32 32-32zM480 96V320c0 17.7-14.3 32-32 32s-32-14.3-32-32V96c0-17.7 14.3-32 32-32s32 14.3 32 32z"],"check":[448,"M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"],"circle":[512,"M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"],"circle-check":[512,"M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"],"circle-info":[512,"M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"],"city":[640,"M480 48c0-26.5-21.5-48-48-48H336c-26.5 0-48 21.5-48 48V96H224V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V96H112V24c0-13.3-10.7-24-24-24S64 10.7 64 24V96H48C21.5 96 0 117.5 0 144v96V464c0 26.5 21.5 48 48 48H304h32 96H592c26.5 0 48-21.5 48-48V240c0-26.5-21.5-48-48-48H480V48zm96 320v32c0 8.8-7.2 16-16 16H528c-8.8 0-16-7.2-16-16V368c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16zM240 416H208c-8.8 0-16-7.2-16-16V368c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16zM128 400c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V368c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32zM560 256c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H528c-8.8 0-16-7.2-16-16V272c0-8.8 7.2-16 16-16h32zM256 176v32c0 8.8-7.2 16-16 16H208c-8.8 0-16-7.2-16-16V176c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16zM112 160c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V176c0-8.8 7.2-16 16-16h32zM256 304c0 8.8-7.2 16-16 16H208c-8.8 0-16-7.2-16-16V272c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32zM112 320H80c-8.8 0-16-7.2-16-16V272c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16zm304-48v32c0 8.8-7.2 16-16 16H368c-8.8 0-16-7.2-16-16V272c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16zM400 64c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H368c-8.8 0-16-7.2-16-16V80c0-8.8 7.2-16 16-16h32zm16 112v32c0 8.8-7.2 16-16 16H368c-8.8 0-16-7.2-16-16V176c0-8.8 7.2-16 16-16h32c8.8 0 16 7.2 16 16z"],"clock":[512,"M256 0a256 256 0 1 1 0 512A256 256 0 1 1 256 0zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"],"cloud":[640,"M0 336c0 79.5 64.5 144 144 144H512c70.7 0 128-57.3 128-128c0-61.9-44-113.6-102.4-125.4c4.1-10.7 6.4-22.4 6.4-34.6c0-53-43-96-96-96c-19.7 0-38.1 6-53.3 16.2C367 64.2 315.3 32 256 32C167.6 32 96 103.6 96 192c0 2.7 .1 5.4 .2 8.1C40.2 219.8 0 273.2 0 336z"],"cloud-rain":[512,"M96 320c-53 0-96-43-96-96c0-42.5 27.6-78.6 65.9-91.2C64.7 126.1 64 119.1 64 112C64 50.1 114.1 0 176 0c43.1 0 80.5 24.3 99.2 60c14.7-17.1 36.5-28 60.8-28c44.2 0 80 35.8 80 80c0 5.5-.6 10.8-1.6 16c.5 0 1.1 0 1.6 0c53 0 96 43 96 96s-43 96-96 96H96zm-6.8 52c1.3-2.5 3.9-4 6.8-4s5.4 1.5 6.8 4l35.1 64.6c4.1 7.5 6.2 15.8 6.2 24.3v3c0 26.5-21.5 48-48 48s-48-21.5-48-48v-3c0-8.5 2.1-16.9 6.2-24.3L89.2 372zm160 0c1.3-2.5 3.9-4 6.8-4s5.4 1.5 6.8 4l35.1 64.6c4.1 7.5 6.2 15.8 6.2 24.3v3c0 26.5-21.5 48-48 48s-48-21.5-48-48v-3c0-8.5 2.1-16.9 6.2-24.3L249.2 372zm124.9 64.6L409.2 372c1.3-2.5 3.9-4 6.8-4s5.4 1.5 6.8 4l35.1 64.6c4.1 7.5 6.2 15.8 6.2 24.3v3c0 26.5-21.5 48-48 48s-48-21.5-48-48v-3c0-8.5 2.1-16.9 6.2-24.3z"],"coins":[512,"M512 80c0 18-14.3 34.6-38.4 48c-29.1 16.1-72.5 27.5-122.3 30.9c-3.7-1.8-7.4-3.5-11.3-5C300.6 137.4 248.2 128 192 128c-8.3 0-16.4 .2-24.5 .6l-1.1-.6C142.3 114.6 128 98 128 80c0-44.2 86-80 192-80S512 35.8 512 80zM160.7 161.1c10.2-.7 20.7-1.1 31.3-1.1c62.2 0 117.4 12.3 152.5 31.4C369.3 204.9 384 221.7 384 240c0 4-.7 7.9-2.1 11.7c-4.6 13.2-17 25.3-35 35.5c0 0 0 0 0 0c-.1 .1-.3 .1-.4 .2l0 0 0 0c-.3 .2-.6 .3-.9 .5c-35 19.4-90.8 32-153.6 32c-59.6 0-112.9-11.3-148.2-29.1c-1.9-.9-3.7-1.9-5.5-2.9C14.3 274.6 0 258 0 240c0-34.8 53.4-64.5 128-75.4c10.5-1.5 21.4-2.7 32.7-3.5zM416 240c0-21.9-10.6-39.9-24.1-53.4c28.3-4.4 54.2-11.4 76.2-20.5c16.3-6.8 31.5-15.2 43.9-25.5V176c0 19.3-16.5 37.1-43.8 50.9c-14.6 7.4-32.4 13.7-52.4 18.5c.1-1.8 .2-3.5 .2-5.3zm-32 96c0 18-14.3 34.6-38.4 48c-1.8 1-3.6 1.9-5.5 2.9C304.9 404.7 251.6 416 192 416c-62.8 0-118.6-12.6-153.6-32C14.3 370.6 0 354 0 336V300.6c12.5 10.3 27.6 18.7 43.9 25.5C83.4 342.6 135.8 352 192 352s108.6-9.4 148.1-25.9c7.8-3.2 15.3-6.9 22.4-10.9c6.1-3.4 11.8-7.2 17.2-11.2c1.5-1.1 2.9-2.3 4.3-3.4V304v5.7V336zm32 0V304 278.1c19-4.2 36.5-9.5 52.1-16c16.3-6.8 31.5-15.2 43.9-25.5V272c0 10.5-5 21-14.9 30.9c-16.3 16.3-45 29.7-81.3 38.4c.1-1.7 .2-3.5 .2-5.3zM192 448c56.2 0 108.6-9.4 148.1-25.9c16.3-6.8 31.5-15.2 43.9-25.5V432c0 44.2-86 80-192 80S0 476.2 0 432V396.6c12.5 10.3 27.6 18.7 43.9 25.5C83.4 438.6 135.8 448 192 448z"],"crown":[576,"M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6H426.6c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"],"dharmachakra":[512,"M337.8 205.7l48.6-42.5c13.8 19.3 23.4 41.9 27.4 66.2l-64.4 4.3c-2.4-10.1-6.4-19.5-11.6-28zm140.1 19.5c-5.3-38.8-20.6-74.5-43.2-104.3l.8-.7C449 108.4 449.7 87.6 437 75s-33.4-12-45.2 1.5l-.7 .8c-29.8-22.6-65.5-37.9-104.3-43.2l.1-1.1c1.2-17.9-13-33-30.9-33s-32.1 15.2-30.9 33l.1 1.1c-38.8 5.3-74.5 20.6-104.3 43.2l-.7-.8C108.4 63 87.6 62.3 75 75s-12 33.4 1.5 45.2l.8 .7c-22.6 29.8-37.9 65.5-43.2 104.3l-1.1-.1c-17.9-1.2-33 13-33 30.9s15.2 32.1 33 30.9l1.1-.1c5.3 38.8 20.6 74.5 43.2 104.3l-.8 .7C63 403.6 62.3 424.4 75 437s33.4 12 45.2-1.5l.7-.8c29.8 22.6 65.5 37.9 104.3 43.2l-.1 1.1c-1.2 17.9 13 33 30.9 33s32.1-15.2 30.9-33l-.1-1.1c38.8-5.3 74.5-20.6 104.3-43.2l.7 .8c11.8 13.5 32.5 14.2 45.2 1.5s12-33.4-1.5-45.2l-.8-.7c22.6-29.8 37.9-65.5 43.2-104.3l1.1 .1c17.9 1.2 33-13 33-30.9s-15.2-32.1-33-30.9l-1.1 .1zM163.2 125.6c19.3-13.8 41.9-23.4 66.2-27.5l4.3 64.4c-10 2.4-19.5 6.4-28 11.6l-42.5-48.6zm-65 103.8c4.1-24.4 13.7-46.9 27.5-66.2l48.6 42.5c-5.3 8.5-9.2 18-11.6 28l-64.4-4.3zm27.5 119.4c-13.8-19.3-23.4-41.9-27.5-66.2l64.4-4.3c2.4 10 6.4 19.5 11.6 28l-48.6 42.5zm103.8 65c-24.4-4.1-46.9-13.7-66.2-27.4l42.5-48.6c8.5 5.3 18 9.2 28 11.6l-4.3 64.4zm119.4-27.4c-19.3 13.8-41.9 23.4-66.2 27.4l-4.3-64.4c10-2.4 19.5-6.4 28-11.6l42.5 48.6zm65-103.8c-4.1 24.4-13.7 46.9-27.4 66.2l-48.6-42.5c5.3-8.5 9.2-18 11.6-28l64.4 4.3zm-65-156.9l-42.5 48.6c-8.5-5.3-18-9.2-28-11.6l4.3-64.4c24.4 4.1 46.9 13.7 66.2 27.5zM256 224a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"],"droplet":[384,"M192 512C86 512 0 426 0 320C0 228.8 130.2 57.7 166.6 11.7C172.6 4.2 181.5 0 191.1 0h1.8c9.6 0 18.5 4.2 24.5 11.7C253.8 57.7 384 228.8 384 320c0 106-86 192-192 192zM96 336c0-8.8-7.2-16-16-16s-16 7.2-16 16c0 61.9 50.1 112 112 112c8.8 0 16-7.2 16-16s-7.2-16-16-16c-44.2 0-80-35.8-80-80z"],"face-laugh-beam":[512,"M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM96.8 314.1c-3.8-13.7 7.4-26.1 21.6-26.1H393.6c14.2 0 25.5 12.4 21.6 26.1C396.2 382 332.1 432 256 432s-140.2-50-159.2-117.9zM217.6 212.8l0 0 0 0-.2-.2c-.2-.2-.4-.5-.7-.9c-.6-.8-1.6-2-2.8-3.4c-2.5-2.8-6-6.6-10.2-10.3c-8.8-7.8-18.8-14-27.7-14s-18.9 6.2-27.7 14c-4.2 3.7-7.7 7.5-10.2 10.3c-1.2 1.4-2.2 2.6-2.8 3.4c-.3 .4-.6 .7-.7 .9l-.2 .2 0 0 0 0 0 0c-2.1 2.8-5.7 3.9-8.9 2.8s-5.5-4.1-5.5-7.6c0-17.9 6.7-35.6 16.6-48.8c9.8-13 23.9-23.2 39.4-23.2s29.6 10.2 39.4 23.2c9.9 13.2 16.6 30.9 16.6 48.8c0 3.4-2.2 6.5-5.5 7.6s-6.9 0-8.9-2.8l0 0 0 0zm160 0l0 0-.2-.2c-.2-.2-.4-.5-.7-.9c-.6-.8-1.6-2-2.8-3.4c-2.5-2.8-6-6.6-10.2-10.3c-8.8-7.8-18.8-14-27.7-14s-18.9 6.2-27.7 14c-4.2 3.7-7.7 7.5-10.2 10.3c-1.2 1.4-2.2 2.6-2.8 3.4c-.3 .4-.6 .7-.7 .9l-.2 .2 0 0 0 0 0 0c-2.1 2.8-5.7 3.9-8.9 2.8s-5.5-4.1-5.5-7.6c0-17.9 6.7-35.6 16.6-48.8c9.8-13 23.9-23.2 39.4-23.2s29.6 10.2 39.4 23.2c9.9 13.2 16.6 30.9 16.6 48.8c0 3.4-2.2 6.5-5.5 7.6s-6.9 0-8.9-2.8l0 0 0 0 0 0z"],"face-meh":[512,"M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM176.4 176a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm128 32a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM160 336H352c8.8 0 16 7.2 16 16s-7.2 16-16 16H160c-8.8 0-16-7.2-16-16s7.2-16 16-16z"],"face-sad-tear":[512,"M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zm240 80c0-8.8 7.2-16 16-16c45 0 85.6 20.5 115.7 53.1c6 6.5 5.6 16.6-.9 22.6s-16.6 5.6-22.6-.9c-25-27.1-57.4-42.9-92.3-42.9c-8.8 0-16-7.2-16-16zm-80 80c-26.5 0-48-21-48-47c0-20 28.6-60.4 41.6-77.7c3.2-4.4 9.6-4.4 12.8 0C179.6 308.6 208 349 208 369c0 26-21.5 47-48 47zM367.6 208a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm-192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"],"face-smile":[512,"M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM164.1 325.5C182 346.2 212.6 368 256 368s74-21.8 91.9-42.5c5.8-6.7 15.9-7.4 22.6-1.6s7.4 15.9 1.6 22.6C349.8 372.1 311.1 400 256 400s-93.8-27.9-116.1-53.5c-5.8-6.7-5.1-16.8 1.6-22.6s16.8-5.1 22.6 1.6zM144.4 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"],"forward":[512,"M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4L224 214.3V256v41.7L52.5 440.6zM256 352V256 128 96c0-12.4 7.2-23.7 18.4-29s24.5-3.6 34.1 4.4l192 160c7.3 6.1 11.5 15.1 11.5 24.6s-4.2 18.5-11.5 24.6l-192 160c-9.5 7.9-22.8 9.7-34.1 4.4s-18.4-16.6-18.4-29V352z"],"ghost":[384,"M40.1 467.1l-11.2 9c-3.2 2.5-7.1 3.9-11.1 3.9C8 480 0 472 0 462.2V192C0 86 86 0 192 0S384 86 384 192V462.2c0 9.8-8 17.8-17.8 17.8c-4 0-7.9-1.4-11.1-3.9l-11.2-9c-13.4-10.7-32.8-9-44.1 3.9L269.3 506c-3.3 3.8-8.2 6-13.3 6s-9.9-2.2-13.3-6l-26.6-30.5c-12.7-14.6-35.4-14.6-48.2 0L141.3 506c-3.3 3.8-8.2 6-13.3 6s-9.9-2.2-13.3-6L84.2 471c-11.3-12.9-30.7-14.6-44.1-3.9zM160 192a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"],"gift":[512,"M190.5 68.8L225.3 128H224 152c-22.1 0-40-17.9-40-40s17.9-40 40-40h2.2c14.9 0 28.8 7.9 36.3 20.8zM64 88c0 14.4 3.5 28 9.6 40H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32H480c17.7 0 32-14.3 32-32V160c0-17.7-14.3-32-32-32H438.4c6.1-12 9.6-25.6 9.6-40c0-48.6-39.4-88-88-88h-2.2c-31.9 0-61.5 16.9-77.7 44.4L256 85.5l-24.1-41C215.7 16.9 186.1 0 154.2 0H152C103.4 0 64 39.4 64 88zm336 0c0 22.1-17.9 40-40 40H288h-1.3l34.8-59.2C329.1 55.9 342.9 48 357.8 48H360c22.1 0 40 17.9 40 40zM32 288V464c0 26.5 21.5 48 48 48H224V288H32zM288 512H432c26.5 0 48-21.5 48-48V288H288V512z"],"hammer":[576,"M413.5 237.5c-28.2 4.8-58.2-3.6-80-25.4l-38.1-38.1C280.4 159 272 138.8 272 117.6V105.5L192.3 62c-5.3-2.9-8.6-8.6-8.3-14.7s3.9-11.5 9.5-14l47.2-21C259.1 4.2 279 0 299.2 0h18.1c36.7 0 72 14 98.7 39.1l44.6 42c24.2 22.8 33.2 55.7 26.6 86L503 183l8-8c9.4-9.4 24.6-9.4 33.9 0l24 24c9.4 9.4 9.4 24.6 0 33.9l-88 88c-9.4 9.4-24.6 9.4-33.9 0l-24-24c-9.4-9.4-9.4-24.6 0-33.9l8-8-17.5-17.5zM27.4 377.1L260.9 182.6c3.5 4.9 7.5 9.6 11.8 14l38.1 38.1c6 6 12.4 11.2 19.2 15.7L134.9 484.6c-14.5 17.4-36 27.4-58.6 27.4C34.1 512 0 477.8 0 435.7c0-22.6 10.1-44.1 27.4-58.6z"],"hand-holding-dollar":[576,"M312 24V34.5c6.4 1.2 12.6 2.7 18.2 4.2c12.8 3.4 20.4 16.6 17 29.4s-16.6 20.4-29.4 17c-10.9-2.9-21.1-4.9-30.2-5c-7.3-.1-14.7 1.7-19.4 4.4c-2.1 1.3-3.1 2.4-3.5 3c-.3 .5-.7 1.2-.7 2.8c0 .3 0 .5 0 .6c.2 .2 .9 1.2 3.3 2.6c5.8 3.5 14.4 6.2 27.4 10.1l.9 .3c11.1 3.3 25.9 7.8 37.9 15.3c13.7 8.6 26.1 22.9 26.4 44.9c.3 22.5-11.4 38.9-26.7 48.5c-6.7 4.1-13.9 7-21.3 8.8V232c0 13.3-10.7 24-24 24s-24-10.7-24-24V220.6c-9.5-2.3-18.2-5.3-25.6-7.8c-2.1-.7-4.1-1.4-6-2c-12.6-4.2-19.4-17.8-15.2-30.4s17.8-19.4 30.4-15.2c2.6 .9 5 1.7 7.3 2.5c13.6 4.6 23.4 7.9 33.9 8.3c8 .3 15.1-1.6 19.2-4.1c1.9-1.2 2.8-2.2 3.2-2.9c.4-.6 .9-1.8 .8-4.1l0-.2c0-1 0-2.1-4-4.6c-5.7-3.6-14.3-6.4-27.1-10.3l-1.9-.6c-10.8-3.2-25-7.5-36.4-14.4c-13.5-8.1-26.5-22-26.6-44.1c-.1-22.9 12.9-38.6 27.7-47.4c6.4-3.8 13.3-6.4 20.2-8.2V24c0-13.3 10.7-24 24-24s24 10.7 24 24zM568.2 336.3c13.1 17.8 9.3 42.8-8.5 55.9L433.1 485.5c-23.4 17.2-51.6 26.5-80.7 26.5H192 32c-17.7 0-32-14.3-32-32V416c0-17.7 14.3-32 32-32H68.8l44.9-36c22.7-18.2 50.9-28 80-28H272h16 64c17.7 0 32 14.3 32 32s-14.3 32-32 32H288 272c-8.8 0-16 7.2-16 16s7.2 16 16 16H392.6l119.7-88.2c17.8-13.1 42.8-9.3 55.9 8.5zM193.6 384l0 0-.9 0c.3 0 .6 0 .9 0z"],"handshake":[640,"M323.4 85.2l-96.8 78.4c-16.1 13-19.2 36.4-7 53.1c12.9 17.8 38 21.3 55.3 7.8l99.3-77.2c7-5.4 17-4.2 22.5 2.8s4.2 17-2.8 22.5l-20.9 16.2L512 316.8V128h-.7l-3.9-2.5L434.8 79c-15.3-9.8-33.2-15-51.4-15c-21.8 0-43 7.5-60 21.2zm22.8 124.4l-51.7 40.2C263 274.4 217.3 268 193.7 235.6c-22.2-30.5-16.6-73.1 12.7-96.8l83.2-67.3c-11.6-4.9-24.1-7.4-36.8-7.4C234 64 215.7 69.6 200 80l-72 48V352h28.2l91.4 83.4c19.6 17.9 49.9 16.5 67.8-3.1c5.5-6.1 9.2-13.2 11.1-20.6l17 15.6c19.5 17.9 49.9 16.6 67.8-2.9c4.5-4.9 7.8-10.6 9.9-16.5c19.4 13 45.8 10.3 62.1-7.5c17.9-19.5 16.6-49.9-2.9-67.8l-134.2-123zM16 128c-8.8 0-16 7.2-16 16V352c0 17.7 14.3 32 32 32H64c17.7 0 32-14.3 32-32V128H16zM48 320a16 16 0 1 1 0 32 16 16 0 1 1 0-32zM544 128V352c0 17.7 14.3 32 32 32h32c17.7 0 32-14.3 32-32V144c0-8.8-7.2-16-16-16H544zm32 208a16 16 0 1 1 32 0 16 16 0 1 1 -32 0z"],"heart":[512,"M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"],"heart-pulse":[512,"M228.3 469.1L47.6 300.4c-4.2-3.9-8.2-8.1-11.9-12.4h87c22.6 0 43-13.6 51.7-34.5l10.5-25.2 49.3 109.5c3.8 8.5 12.1 14 21.4 14.1s17.8-5 22-13.3L320 253.7l1.7 3.4c9.5 19 28.9 31 50.1 31H476.3c-3.7 4.3-7.7 8.5-11.9 12.4L283.7 469.1c-7.5 7-17.4 10.9-27.7 10.9s-20.2-3.9-27.7-10.9zM503.7 240h-132c-3 0-5.8-1.7-7.2-4.4l-23.2-46.3c-4.1-8.1-12.4-13.3-21.5-13.3s-17.4 5.1-21.5 13.3l-41.4 82.8L205.9 158.2c-3.9-8.7-12.7-14.3-22.2-14.1s-18.1 5.9-21.8 14.8l-31.8 76.3c-1.2 3-4.2 4.9-7.4 4.9H16c-2.6 0-5 .4-7.3 1.1C3 225.2 0 208.2 0 190.9v-5.8c0-69.9 50.5-129.5 119.4-141C165 36.5 211.4 51.4 244 84l12 12 12-12c32.6-32.6 79-47.5 124.6-39.9C461.5 55.6 512 115.2 512 185.1v5.8c0 16.9-2.8 33.5-8.3 49.1z"],"kitchen-set":[576,"M240 144A96 96 0 1 0 48 144a96 96 0 1 0 192 0zm44.4 32C269.9 240.1 212.5 288 144 288C64.5 288 0 223.5 0 144S64.5 0 144 0c68.5 0 125.9 47.9 140.4 112h71.8c8.8-9.8 21.6-16 35.8-16H496c26.5 0 48 21.5 48 48s-21.5 48-48 48H392c-14.2 0-27-6.2-35.8-16H284.4zM144 80a64 64 0 1 1 0 128 64 64 0 1 1 0-128zM400 240c13.3 0 24 10.7 24 24v8h96c13.3 0 24 10.7 24 24s-10.7 24-24 24H280c-13.3 0-24-10.7-24-24s10.7-24 24-24h96v-8c0-13.3 10.7-24 24-24zM288 464V352H512V464c0 26.5-21.5 48-48 48H336c-26.5 0-48-21.5-48-48zM48 320h80 16 32c26.5 0 48 21.5 48 48s-21.5 48-48 48H160c0 17.7-14.3 32-32 32H64c-17.7 0-32-14.3-32-32V336c0-8.8 7.2-16 16-16zm128 64c8.8 0 16-7.2 16-16s-7.2-16-16-16H160v32h16zM24 464H200c13.3 0 24 10.7 24 24s-10.7 24-24 24H24c-13.3 0-24-10.7-24-24s10.7-24 24-24z"],"landmark":[512,"M240.1 4.2c9.8-5.6 21.9-5.6 31.8 0l171.8 98.1L448 104l0 .9 47.9 27.4c12.6 7.2 18.8 22 15.1 36s-16.4 23.8-30.9 23.8H32c-14.5 0-27.2-9.8-30.9-23.8s2.5-28.8 15.1-36L64 104.9V104l4.4-1.6L240.1 4.2zM64 224h64V416h40V224h64V416h48V224h64V416h40V224h64V420.3c.6 .3 1.2 .7 1.8 1.1l48 32c11.7 7.8 17 22.4 12.9 35.9S494.1 512 480 512H32c-14.1 0-26.5-9.2-30.6-22.7s1.1-28.1 12.9-35.9l48-32c.6-.4 1.2-.7 1.8-1.1V224z"],"lightbulb":[384,"M272 384c9.6-31.9 29.5-59.1 49.2-86.2l0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4l0 0c19.8 27.1 39.7 54.4 49.2 86.2H272zM192 512c44.2 0 80-35.8 80-80V416H112v16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"],"lock":[448,"M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"],"moon":[384,"M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"],"newspaper":[512,"M96 96c0-35.3 28.7-64 64-64H448c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H80c-44.2 0-80-35.8-80-80V128c0-17.7 14.3-32 32-32s32 14.3 32 32V400c0 8.8 7.2 16 16 16s16-7.2 16-16V96zm64 24v80c0 13.3 10.7 24 24 24H296c13.3 0 24-10.7 24-24V120c0-13.3-10.7-24-24-24H184c-13.3 0-24 10.7-24 24zm208-8c0 8.8 7.2 16 16 16h48c8.8 0 16-7.2 16-16s-7.2-16-16-16H384c-8.8 0-16 7.2-16 16zm0 96c0 8.8 7.2 16 16 16h48c8.8 0 16-7.2 16-16s-7.2-16-16-16H384c-8.8 0-16 7.2-16 16zM160 304c0 8.8 7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H176c-8.8 0-16 7.2-16 16zm0 96c0 8.8 7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H176c-8.8 0-16 7.2-16 16z"],"pause":[320,"M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"],"people-roof":[640,"M335.5 4l288 160c15.4 8.6 21 28.1 12.4 43.5s-28.1 21-43.5 12.4L320 68.6 47.5 220c-15.4 8.6-34.9 3-43.5-12.4s-3-34.9 12.4-43.5L304.5 4c9.7-5.4 21.4-5.4 31.1 0zM320 160a40 40 0 1 1 0 80 40 40 0 1 1 0-80zM144 256a40 40 0 1 1 0 80 40 40 0 1 1 0-80zm312 40a40 40 0 1 1 80 0 40 40 0 1 1 -80 0zM226.9 491.4L200 441.5V480c0 17.7-14.3 32-32 32H120c-17.7 0-32-14.3-32-32V441.5L61.1 491.4c-6.3 11.7-20.8 16-32.5 9.8s-16-20.8-9.8-32.5l37.9-70.3c15.3-28.5 45.1-46.3 77.5-46.3h19.5c16.3 0 31.9 4.5 45.4 12.6l33.6-62.3c15.3-28.5 45.1-46.3 77.5-46.3h19.5c32.4 0 62.1 17.8 77.5 46.3l33.6 62.3c13.5-8.1 29.1-12.6 45.4-12.6h19.5c32.4 0 62.1 17.8 77.5 46.3l37.9 70.3c6.3 11.7 1.9 26.2-9.8 32.5s-26.2 1.9-32.5-9.8L552 441.5V480c0 17.7-14.3 32-32 32H472c-17.7 0-32-14.3-32-32V441.5l-26.9 49.9c-6.3 11.7-20.8 16-32.5 9.8s-16-20.8-9.8-32.5l36.3-67.5c-1.7-1.7-3.2-3.6-4.3-5.8L376 345.5V400c0 17.7-14.3 32-32 32H296c-17.7 0-32-14.3-32-32V345.5l-26.9 49.9c-1.2 2.2-2.6 4.1-4.3 5.8l36.3 67.5c6.3 11.7 1.9 26.2-9.8 32.5s-26.2 1.9-32.5-9.8z"],"person-walking-arrow-right":[640,"M208 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM123.7 200.5c1-.4 1.9-.8 2.9-1.2l-16.9 63.5c-5.6 21.1-.1 43.6 14.7 59.7l70.7 77.1 22 88.1c4.3 17.1 21.7 27.6 38.8 23.3s27.6-21.7 23.3-38.8l-23-92.1c-1.9-7.8-5.8-14.9-11.2-20.8l-49.5-54 19.3-65.5 9.6 23c4.4 10.6 12.5 19.3 22.8 24.5l26.7 13.3c15.8 7.9 35 1.5 42.9-14.3s1.5-35-14.3-42.9L281 232.7l-15.3-36.8C248.5 154.8 208.3 128 163.7 128c-22.8 0-45.3 4.8-66.1 14l-8 3.5c-32.9 14.6-58.1 42.4-69.4 76.5l-2.6 7.8c-5.6 16.8 3.5 34.9 20.2 40.5s34.9-3.5 40.5-20.2l2.6-7.8c5.7-17.1 18.3-30.9 34.7-38.2l8-3.5zm-30 135.1L68.7 398 9.4 457.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L116.3 441c4.6-4.6 8.2-10.1 10.6-16.1l14.5-36.2-40.7-44.4c-2.5-2.7-4.8-5.6-7-8.6zM550.6 153.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L530.7 224H384c-17.7 0-32 14.3-32 32s14.3 32 32 32H530.7l-25.4 25.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l80-80c12.5-12.5 12.5-32.8 0-45.3l-80-80z"],"person-walking-luggage":[576,"M432 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM347.7 200.5c1-.4 1.9-.8 2.9-1.2l-16.9 63.5c-5.6 21.1-.1 43.6 14.7 59.7l70.7 77.1 22 88.1c4.3 17.1 21.7 27.6 38.8 23.3s27.6-21.7 23.3-38.8l-23-92.1c-1.9-7.8-5.8-14.9-11.2-20.8l-49.5-54 19.3-65.5 9.6 23c4.4 10.6 12.5 19.3 22.8 24.5l26.7 13.3c15.8 7.9 35 1.5 42.9-14.3s1.5-35-14.3-42.9L505 232.7l-15.3-36.8C472.5 154.8 432.3 128 387.7 128c-22.8 0-45.3 4.8-66.1 14l-8 3.5c-32.9 14.6-58.1 42.4-69.4 76.5l-2.6 7.8c-5.6 16.8 3.5 34.9 20.2 40.5s34.9-3.5 40.5-20.2l2.6-7.8c5.7-17.1 18.3-30.9 34.7-38.2l8-3.5zm-30 135.1l-25 62.4-59.4 59.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L340.3 441c4.6-4.6 8.2-10.1 10.6-16.1l14.5-36.2-40.7-44.4c-2.5-2.7-4.8-5.6-7-8.6zM256 274.1c-7.7-4.4-17.4-1.8-21.9 5.9l-32 55.4L147.7 304c-15.3-8.8-34.9-3.6-43.7 11.7L40 426.6c-8.8 15.3-3.6 34.9 11.7 43.7l55.4 32c15.3 8.8 34.9 3.6 43.7-11.7l64-110.9c1.5-2.6 2.6-5.2 3.3-8L261.9 296c4.4-7.7 1.8-17.4-5.9-21.9z"],"play":[384,"M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"],"plus":[448,"M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"],"road":[576,"M256 32H181.2c-27.1 0-51.3 17.1-60.3 42.6L3.1 407.2C1.1 413 0 419.2 0 425.4C0 455.5 24.5 480 54.6 480H256V416c0-17.7 14.3-32 32-32s32 14.3 32 32v64H521.4c30.2 0 54.6-24.5 54.6-54.6c0-6.2-1.1-12.4-3.1-18.2L455.1 74.6C446 49.1 421.9 32 394.8 32H320V96c0 17.7-14.3 32-32 32s-32-14.3-32-32V32zm64 192v64c0 17.7-14.3 32-32 32s-32-14.3-32-32V224c0-17.7 14.3-32 32-32s32 14.3 32 32z"],"rotate":[512,"M142.9 142.9c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5c0 0 0 0 0 0H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5c7.7-21.8 20.2-42.3 37.8-59.8zM16 312v7.6 .7V440c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l41.6-41.6c87.6 86.5 228.7 86.2 315.8-1c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.2 62.2-162.7 62.5-225.3 1L185 329c6.9-6.9 8.9-17.2 5.2-26.2s-12.5-14.8-22.2-14.8H48.4h-.7H40c-13.3 0-24 10.7-24 24z"],"sack-dollar":[512,"M320 96H192L144.6 24.9C137.5 14.2 145.1 0 157.9 0H354.1c12.8 0 20.4 14.2 13.3 24.9L320 96zM192 128H320c3.8 2.5 8.1 5.3 13 8.4C389.7 172.7 512 250.9 512 416c0 53-43 96-96 96H96c-53 0-96-43-96-96C0 250.9 122.3 172.7 179 136.4l0 0 0 0c4.8-3.1 9.2-5.9 13-8.4zm84 88c0-11-9-20-20-20s-20 9-20 20v14c-7.6 1.7-15.2 4.4-22.2 8.5c-13.9 8.3-25.9 22.8-25.8 43.9c.1 20.3 12 33.1 24.7 40.7c11 6.6 24.7 10.8 35.6 14l1.7 .5c12.6 3.8 21.8 6.8 28 10.7c5.1 3.2 5.8 5.4 5.9 8.2c.1 5-1.8 8-5.9 10.5c-5 3.1-12.9 5-21.4 4.7c-11.1-.4-21.5-3.9-35.1-8.5c-2.3-.8-4.7-1.6-7.2-2.4c-10.5-3.5-21.8 2.2-25.3 12.6s2.2 21.8 12.6 25.3c1.9 .6 4 1.3 6.1 2.1l0 0 0 0c8.3 2.9 17.9 6.2 28.2 8.4V424c0 11 9 20 20 20s20-9 20-20V410.2c8-1.7 16-4.5 23.2-9c14.3-8.9 25.1-24.1 24.8-45c-.3-20.3-11.7-33.4-24.6-41.6c-11.5-7.2-25.9-11.6-37.1-15l0 0-.7-.2c-12.8-3.9-21.9-6.7-28.3-10.5c-5.2-3.1-5.3-4.9-5.3-6.7c0-3.7 1.4-6.5 6.2-9.3c5.4-3.2 13.6-5.1 21.5-5c9.6 .1 20.2 2.2 31.2 5.2c10.7 2.8 21.6-3.5 24.5-14.2s-3.5-21.6-14.2-24.5c-6.5-1.7-13.7-3.4-21.1-4.7V216z"],"scale-balanced":[640,"M384 32H512c17.7 0 32 14.3 32 32s-14.3 32-32 32H398.4c-5.2 25.8-22.9 47.1-46.4 57.3V448H512c17.7 0 32 14.3 32 32s-14.3 32-32 32H320 128c-17.7 0-32-14.3-32-32s14.3-32 32-32H288V153.3c-23.5-10.3-41.2-31.6-46.4-57.3H128c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c14.6-19.4 37.8-32 64-32s49.4 12.6 64 32zm55.6 288H584.4L512 195.8 439.6 320zM512 416c-62.9 0-115.2-34-126-78.9c-2.6-11 1-22.3 6.7-32.1l95.2-163.2c5-8.6 14.2-13.8 24.1-13.8s19.1 5.3 24.1 13.8l95.2 163.2c5.7 9.8 9.3 21.1 6.7 32.1C627.2 382 574.9 416 512 416zM126.8 195.8L54.4 320H199.3L126.8 195.8zM.9 337.1c-2.6-11 1-22.3 6.7-32.1l95.2-163.2c5-8.6 14.2-13.8 24.1-13.8s19.1 5.3 24.1 13.8l95.2 163.2c5.7 9.8 9.3 21.1 6.7 32.1C242 382 189.7 416 126.8 416S11.7 382 .9 337.1z"],"seedling":[512,"M512 32c0 113.6-84.6 207.5-194.2 222c-7.1-53.4-30.6-101.6-65.3-139.3C290.8 46.3 364 0 448 0h32c17.7 0 32 14.3 32 32zM0 96C0 78.3 14.3 64 32 64H64c123.7 0 224 100.3 224 224v32V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V320C100.3 320 0 219.7 0 96z"],"shop":[640,"M36.8 192H603.2c20.3 0 36.8-16.5 36.8-36.8c0-7.3-2.2-14.4-6.2-20.4L558.2 21.4C549.3 8 534.4 0 518.3 0H121.7c-16 0-31 8-39.9 21.4L6.2 134.7c-4 6.1-6.2 13.2-6.2 20.4C0 175.5 16.5 192 36.8 192zM64 224V384v80c0 26.5 21.5 48 48 48H336c26.5 0 48-21.5 48-48V384 224H320V384H128V224H64zm448 0V480c0 17.7 14.3 32 32 32s32-14.3 32-32V224H512z"],"star":[576,"M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"],"store":[576,"M547.6 103.8L490.3 13.1C485.2 5 476.1 0 466.4 0H109.6C99.9 0 90.8 5 85.7 13.1L28.3 103.8c-29.6 46.8-3.4 111.9 51.9 119.4c4 .5 8.1 .8 12.1 .8c26.1 0 49.3-11.4 65.2-29c15.9 17.6 39.1 29 65.2 29c26.1 0 49.3-11.4 65.2-29c15.9 17.6 39.1 29 65.2 29c26.2 0 49.3-11.4 65.2-29c16 17.6 39.1 29 65.2 29c4.1 0 8.1-.3 12.1-.8c55.5-7.4 81.8-72.5 52.1-119.4zM499.7 254.9l-.1 0c-5.3 .7-10.7 1.1-16.2 1.1c-12.4 0-24.3-1.9-35.4-5.3V384H128V250.6c-11.2 3.5-23.2 5.4-35.6 5.4c-5.5 0-11-.4-16.3-1.1l-.1 0c-4.1-.6-8.1-1.3-12-2.3V384v64c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V384 252.6c-4 1-8 1.8-12.3 2.3z"],"sun":[512,"M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"],"tag":[448,"M0 80V229.5c0 17 6.7 33.3 18.7 45.3l176 176c25 25 65.5 25 90.5 0L418.7 317.3c25-25 25-65.5 0-90.5l-176-176c-12-12-28.3-18.7-45.3-18.7H48C21.5 32 0 53.5 0 80zm112 32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"],"tags":[512,"M345 39.1L472.8 168.4c52.4 53 52.4 138.2 0 191.2L360.8 472.9c-9.3 9.4-24.5 9.5-33.9 .2s-9.5-24.5-.2-33.9L438.6 325.9c33.9-34.3 33.9-89.4 0-123.7L310.9 72.9c-9.3-9.4-9.2-24.6 .2-33.9s24.6-9.2 33.9 .2zM0 229.5V80C0 53.5 21.5 32 48 32H197.5c17 0 33.3 6.7 45.3 18.7l168 168c25 25 25 65.5 0 90.5L277.3 442.7c-25 25-65.5 25-90.5 0l-168-168C6.7 262.7 0 246.5 0 229.5zM144 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"],"train":[448,"M96 0C43 0 0 43 0 96V352c0 48 35.2 87.7 81.1 94.9l-46 46C28.1 499.9 33.1 512 43 512H82.7c8.5 0 16.6-3.4 22.6-9.4L160 448H288l54.6 54.6c6 6 14.1 9.4 22.6 9.4H405c10 0 15-12.1 7.9-19.1l-46-46c46-7.1 81.1-46.9 81.1-94.9V96c0-53-43-96-96-96H96zM64 96c0-17.7 14.3-32 32-32H352c17.7 0 32 14.3 32 32v96c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V96zM224 288a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"],"trash-can":[448,"M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"],"tree":[448,"M210.6 5.9L62 169.4c-3.9 4.2-6 9.8-6 15.5C56 197.7 66.3 208 79.1 208H104L30.6 281.4c-4.2 4.2-6.6 10-6.6 16C24 309.9 34.1 320 46.6 320H80L5.4 409.5C1.9 413.7 0 419 0 424.5c0 13 10.5 23.5 23.5 23.5H192v32c0 17.7 14.3 32 32 32s32-14.3 32-32V448H424.5c13 0 23.5-10.5 23.5-23.5c0-5.5-1.9-10.8-5.4-15L368 320h33.4c12.5 0 22.6-10.1 22.6-22.6c0-6-2.4-11.8-6.6-16L344 208h24.9c12.7 0 23.1-10.3 23.1-23.1c0-5.7-2.1-11.3-6-15.5L237.4 5.9C234 2.1 229.1 0 224 0s-10 2.1-13.4 5.9z"],"triangle-exclamation":[512,"M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"],"user-check":[640,"M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM625 177L497 305c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L591 143c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"],"user-minus":[640,"M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM472 200H616c13.3 0 24 10.7 24 24s-10.7 24-24 24H472c-13.3 0-24-10.7-24-24s10.7-24 24-24z"],"user-plus":[640,"M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM504 312V248H440c-13.3 0-24-10.7-24-24s10.7-24 24-24h64V136c0-13.3 10.7-24 24-24s24 10.7 24 24v64h64c13.3 0 24 10.7 24 24s-10.7 24-24 24H552v64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"],"user-tie":[448,"M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7H162.5c0 0 0 0 .1 0H168 280h5.5c0 0 0 0 .1 0H417.3c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2H224 204.3c-12.4 0-20.1 13.6-13.7 24.2z"],"user-xmark":[640,"M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM471 143c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"],"users":[640,"M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192h42.7c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0H21.3C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7h42.7C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3H405.3zM224 224a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zM128 485.3C128 411.7 187.7 352 261.3 352H378.7C452.3 352 512 411.7 512 485.3c0 14.7-11.9 26.7-26.7 26.7H154.7c-14.7 0-26.7-11.9-26.7-26.7z"],"video":[576,"M0 128C0 92.7 28.7 64 64 64H320c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2V384c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1V320 192 174.9l14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"],"volume-high":[640,"M533.6 32.5C598.5 85.2 640 165.8 640 256s-41.5 170.7-106.4 223.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C557.5 398.2 592 331.2 592 256s-34.5-142.2-88.7-186.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM473.1 107c43.2 35.2 70.9 88.9 70.9 149s-27.7 113.8-70.9 149c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C475.3 341.3 496 301.1 496 256s-20.7-85.3-53.2-111.8c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zm-60.5 74.5C434.1 199.1 448 225.9 448 256s-13.9 56.9-35.4 74.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C393.1 284.4 400 271 400 256s-6.9-28.4-17.7-37.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM301.1 34.8C312.6 40 320 51.4 320 64V448c0 12.6-7.4 24-18.9 29.2s-25 3.1-34.4-5.3L131.8 352H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h67.8L266.7 40.1c9.4-8.4 22.9-10.4 34.4-5.3z"],"volume-xmark":[576,"M301.1 34.8C312.6 40 320 51.4 320 64V448c0 12.6-7.4 24-18.9 29.2s-25 3.1-34.4-5.3L131.8 352H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h67.8L266.7 40.1c9.4-8.4 22.9-10.4 34.4-5.3zM425 167l55 55 55-55c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-55 55 55 55c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-55-55-55 55c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l55-55-55-55c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0z"],"xmark":[384,"M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"]};
+        (function () {
+      const SKIP = /^fa-(solid|regular|brands|fw|spin|spin-pulse|pulse|beat|beat-fade|bounce|fade|flip|shake|border|inverse|li|ul|stack|stack-1x|stack-2x|xs|sm|lg|xl|2xs|2xl|\dx|10x|rotate-\d+|rotate-by|flip-horizontal|flip-vertical|flip-both)$/;
+      function paint(el) {
+        if (!el.className || typeof el.className !== 'string' || el.className.indexOf('fa-') < 0) return;
+        let name = null;
+        el.classList.forEach(c => { if (c.startsWith('fa-') && !SKIP.test(c)) name = c.slice(3); });
+        if (!name) return;
+        const key = (el.classList.contains('fa-regular') && ICONS['r:' + name]) ? 'r:' + name : name;
+        const d = ICONS[key];
+        if (!d) { if (el.dataset.i) { delete el.dataset.i; el.classList.remove('mi'); el.textContent = ''; } return; }
+        if (el.dataset.i === key && el.firstChild) { if (!el.classList.contains('mi')) el.classList.add('mi'); return; }
+        el.dataset.i = key;
+        if (!el.classList.contains('mi')) el.classList.add('mi');
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML = '<svg viewBox="0 0 ' + d[0] + ' 512" style="width:' + (d[0] / 512).toFixed(3) + 'em"><path d="' + d[1] + '"/></svg>';
+      }
+      function scan(root) {
+        if (root.nodeType !== 1) return;
+        if (root.tagName === 'I') paint(root);
+        root.querySelectorAll && root.querySelectorAll('i[class*="fa-"]').forEach(paint);
+      }
+      new MutationObserver(list => {
+        for (const m of list) {
+          if (m.type === 'attributes') { if (m.target.tagName === 'I') paint(m.target); }
+          else m.addedNodes.forEach(scan);
+        }
+      }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+      window.paintIcons = () => scan(document.body);
+    })();
+  </script>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="back" href="../index.html"><i class="fa-solid fa-arrow-left"></i><span>ポータルへ</span></a>
+      <div class="brand"><span class="brand-mark"><i class="fa-solid fa-store"></i></span><span class="brand-text"><span class="brand-name">むん商店街</span><span class="brand-sub">MUN SHOPPING STREET</span></span></div>
+      <div class="header-actions">
+        <span class="chip rank"><i class="fa-solid fa-city"></i><span id="rank-name">小さな商店街</span></span>
+        <span class="chip coin" title="もっているコイン"><i class="fa-solid fa-coins"></i><span id="coin">0</span></span>
+        <button class="icon-btn" id="sfx" aria-label="効果音のオン・オフ"><i class="fa-solid fa-volume-xmark"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="event-ribbon" id="event-ribbon" hidden></div>
+    <h1 class="sr-only" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">むん商店街</h1>
+    <div class="zone-tabs" id="zone-tabs"></div>
+
+    <div class="zoo-grid">
+      <section>
+        <div class="zoo" id="zoo">
+          <canvas id="zoo-canvas" aria-label="商店街。空き地をタップするとお店を建てられ、お店をタップすると仕事の割りふりができます"></canvas>
+          <div class="zoo-hud tl"><b id="zone-title">1丁目</b><span id="zone-cap"></span></div>
+          <div class="zoo-hud tr">
+            <div class="money-row"><i class="fa-solid fa-sack-dollar"></i><b id="money">¥0</b></div>
+            <div class="meter"><span><i class="fa-solid fa-star"></i>評判</span><div class="bar"><div id="m-rep"></div></div></div>
+            <div class="meter"><span><i class="fa-solid fa-city"></i>街の発展</span><div class="bar"><div id="m-pop"></div></div></div>
+            <div class="meter"><span><i class="fa-solid fa-bolt"></i>スタッフの元気</span><div class="bar"><div id="m-hp"></div></div></div>
+          </div>
+          <div class="zoo-msg" id="zoo-msg" hidden></div>
+        </div>
+        <div class="zoo-actions">
+          <button class="act" id="btn-play"><i class="fa-solid fa-pause"></i><span>ストップ</span></button>
+          <button class="act" id="btn-speed"><i class="fa-solid fa-forward"></i><span>はやさ</span><small>×1</small></button>
+          <button class="act" id="btn-flyer"><i class="fa-solid fa-newspaper"></i><span>チラシ</span><small></small></button>
+          <button class="act" id="btn-hire"><i class="fa-solid fa-user-plus"></i><span>求人</span></button>
+          <button class="act" id="btn-report"><i class="fa-solid fa-chart-column"></i><span>決算</span><small id="today-sales">¥0</small></button>
+        </div>
+        <p class="tip" id="tip"><i class="fa-solid fa-circle-info"></i><span></span></p>
+      </section>
+
+      <aside class="side" id="side">
+        <div class="side-tabs" id="side-tabs">
+          <button data-tab="shops" class="on"><i class="fa-solid fa-store"></i>お店</button>
+          <button data-tab="staff"><i class="fa-solid fa-users"></i>スタッフ</button>
+          <button data-tab="hire"><i class="fa-solid fa-user-plus"></i>求人</button>
+          <button data-tab="report"><i class="fa-solid fa-chart-column"></i>決算</button>
+          <button data-tab="town"><i class="fa-solid fa-city"></i>街</button>
+        </div>
+        <div class="side-body" id="side-body"></div>
+      </aside>
+    </div>
+
+    <section class="about">
+      <h2><i class="fa-solid fa-people-roof"></i> 保護者・先生の方へ</h2>
+      <p>「むん商店街」は、お店を建て、人を雇い、仕事を割りふりながら商店街を発展させる経営シミュレーションです。売上から材料・仕入れの費用（原価）と給料（人件費）を引いたものが「利益」になる、というお店のしくみを、毎日の決算で体験できます。</p>
+      <ul>
+        <li>売上・原価・人件費・利益の関係（毎日20時に決算書が出ます）</li>
+        <li>お客さんの多い時間帯、天気、値段によって売れ方が変わる</li>
+        <li>作りすぎると売れのこり（食品ロス）、人手が足りないとお客さんが帰ってしまう</li>
+        <li>働く人には休みが必要。給料・休み・ボーナスでやる気が変わる。解雇には予告や手当がいる（実際の法律にもとづく説明つき）</li>
+        <li>お店がふえて評判が上がると、人が集まり街が発展する</li>
+      </ul>
+      <p>商店街の中のお金は「円」で、サイトのコインとは別です（売上がコインになることはありません）。学習でためたコインは「出資」や「ランドマーク」に使えます。コインはこのサイトの中だけのポイントで、お金で買ったり、お金や景品に交換したりすることはできません。アプリをとじていても最大3日分まで営業が進みます。データはこの端末の中だけに保存されます。</p>
+    </section>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-box"><button class="icon-btn modal-close" data-close aria-label="とじる"><i class="fa-solid fa-xmark"></i></button><div id="modal-content"></div></div>
+  </div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script>
+    /* =========================================================
+       季節イベント（日付で自動的に切りかわります）
+       ・期間を変えたいときは from / to（[月, 日]）を書きかえてください
+       ・URLの最後に ?event=halloween のように付けると、期間外でも見た目だけ試せます
+         （例：?event=christmas / newyear / valentine / sakura / tanabata / summer / none）
+       ・期間限定アイテムが買えるのは、本当の期間中だけです
+    ========================================================= */
+    const MUN_EVENTS = [
+      { id: 'newyear',   name: 'お正月',       from: [12, 31], to: [1, 7],   icon: 'fa-sun',      c1: '#fbbf24', c2: '#ef4444', c3: '#fde68a', msg: 'あけましておめでとう！ 今年もいっしょにレベルアップしよう！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' },
+      { id: 'valentine', name: 'バレンタイン', from: [2, 7],   to: [2, 14],  icon: 'fa-heart',    c1: '#f472b6', c2: '#ef4444', c3: '#fbcfe8', msg: 'バレンタインイベント開催中！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' },
+      { id: 'sakura',    name: 'お花見',       from: [3, 25],  to: [4, 12],  icon: 'fa-seedling', c1: '#f9a8d4', c2: '#a3e635', c3: '#fce7f3', msg: 'さくらの季節！ 新しい学年もいっしょにがんばろう！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' },
+      { id: 'tanabata',  name: '七夕',         from: [7, 1],   to: [7, 7],   icon: 'fa-star',     c1: '#fde047', c2: '#60a5fa', c3: '#e0e7ff', msg: '七夕イベント：夜空に流れ星が流れるよ。ねがいごとを考えてみよう！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' },
+      { id: 'summer',    name: '夏休み',       from: [7, 20],  to: [8, 31],  icon: 'fa-sun',      c1: '#38bdf8', c2: '#f97316', c3: '#fde047', msg: '夏休みイベント：毎日コツコツ、花火みたいにかがやこう！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' },
+      { id: 'halloween', name: 'ハロウィン',   from: [10, 15], to: [10, 31], icon: 'fa-ghost',    c1: '#fb923c', c2: '#a855f7', c3: '#fde68a', msg: 'ハロウィンイベント開催中！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' },
+      { id: 'christmas', name: 'クリスマス',   from: [12, 1],  to: [12, 25], icon: 'fa-tree',     c1: '#22c55e', c2: '#ef4444', c3: '#fde047', msg: 'クリスマスイベント開催中！', item: '商店街が季節のかざりつけでにぎわい、お客さんがふえるよ！' }
+    ];
+    function munEventInRange(e, d) {
+      const md = (d.getMonth() + 1) * 100 + d.getDate();
+      const f = e.from[0] * 100 + e.from[1], t = e.to[0] * 100 + e.to[1];
+      return f <= t ? (md >= f && md <= t) : (md >= f || md <= t);
+    }
+    /* 本当の日付でのイベント（期間限定アイテムの判定に使用） */
+    function munEventReal(d = new Date()) { return MUN_EVENTS.find(e => munEventInRange(e, d)) || null; }
+    /* 見た目に使うイベント（?event= の試し見をふくむ） */
+    function munEventVisual(d = new Date()) {
+      let q = null;
+      try { q = new URLSearchParams(location.search).get('event'); } catch (e) {}
+      if (q) return q === 'none' ? null : (MUN_EVENTS.find(e => e.id === q) || munEventReal(d));
+      return munEventReal(d);
+    }
+    /* イベント終了日までの日数 */
+    function munEventDaysLeft(e, d = new Date()) {
+      let y = d.getFullYear();
+      if (e.from[0] > e.to[0] && d.getMonth() + 1 >= e.from[0]) y += 1;
+      const end = new Date(y, e.to[0] - 1, e.to[1]);
+      const today = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      return Math.max(0, Math.round((end - today) / 86400000));
+    }
+
+    /* =========================================================
+       むん商店街 データ
+       ・商店街の中のお金は「円」（サイトのコインとは別）
+       ・サイトのコイン（mun_coins）は、「出資」して円にかえたり、ランドマークを建てたりするのに使います
+       ・COIN_RATE … 1コインを何円にかえるか（変えたいときはここを書きかえてください）
+       ・時間：お店は 8:00〜20:00。ふつうの速さで、ゲームの1時間 ＝ 本物の12秒
+    ========================================================= */
+    const COIN_RATE = 100;
+    const START_MONEY = 100000;
+    const SEC_PER_HOUR = 12;
+    const OPEN_H = 8, CLOSE_H = 20;
+
+    /* 丁目（となりどうしの通り） */
+    const ZONES = {
+      c1: { name: '1丁目', en: 'BLOCK 1', icon: 'fa-store', unlockLv: 0, price: 0, tab: '#e0662a', sky: ['#7cc4ec', '#cfeaf5'] },
+      c2: { name: '2丁目', en: 'BLOCK 2', icon: 'fa-shop', unlockLv: 1, price: 150000, tab: '#2a8ae0', sky: ['#82c0f0', '#d6ecf8'] },
+      c3: { name: '3丁目', en: 'BLOCK 3', icon: 'fa-building', unlockLv: 3, price: 500000, tab: '#9a3ae0', sky: ['#8ab8f0', '#dae8f8'] },
+      c4: { name: '4丁目', en: 'BLOCK 4', icon: 'fa-city', unlockLv: 5, price: 1500000, tab: '#e03a7a', sky: ['#94b4f0', '#e0e6f8'] }
+    };
+    const ZONE_ORDER = ['c1', 'c2', 'c3', 'c4'];
+    const LOTS = 4;
+
+    /* 仕事（役わり） */
+    const ROLES = {
+      boss: { name: '店長', icon: 'fa-user-tie', desc: 'お店のまとめ役。いるとみんなの力が少し上がり、評判も上がりやすくなります。' },
+      sell: { name: '接客', icon: 'fa-cash-register', desc: 'レジや注文をうけるよ。接客の人がいないとお店は開けられません。' },
+      make: { name: '作る', icon: 'fa-kitchen-set', desc: '商品を作るよ。作った数しか売れません。' },
+      stock: { name: '品出し', icon: 'fa-boxes-stacked', desc: '商品をたなにならべるよ。たながからっぽだと売れません。' },
+      ad: { name: '宣伝', icon: 'fa-bullhorn', desc: 'チラシやポスターでお店を知ってもらうよ。お客さんがふえます。' }
+    };
+    /* お店のレベルごとの人数のわく */
+    const SLOTS = [{ boss: 1, sell: 1, work: 1, ad: 1 }, { boss: 1, sell: 2, work: 2, ad: 1 }, { boss: 1, sell: 3, work: 3, ad: 2 }];
+
+    /* お店の種類
+       ・kind … make（作って売る）/ stock（仕入れて売る）
+       ・price … ふつうの値段（1人あたり）  cost … 原価の割合  demand … お客さんの多さ  peak … お客さんが多い時間帯 */
+    const SHOPS = {
+      yaoya: { name: '八百屋', kind: 'stock', lv: 0, build: 30000, price: 400, cost: .55, demand: 9, peak: [[9, 11], [16, 18]], col: '#3a8a3a', sign: '#f2c230', item: 'veg',
+        fact: '野菜や果物を売るお店。市場（いちば）から毎朝、新鮮な野菜を仕入れてきます。' },
+      pan: { name: 'パン屋', kind: 'make', lv: 0, build: 40000, price: 350, cost: .35, demand: 10, peak: [[8, 10], [12, 13]], col: '#c07a3a', sign: '#fff2d8', item: 'bread',
+        fact: 'パン屋さんは、朝早くから生地をこねて焼きます。朝ごはん用に、朝いちばんにお客さんが来ます。' },
+      bungu: { name: '文房具屋', kind: 'stock', lv: 0, build: 30000, price: 300, cost: .5, demand: 8, peak: [[15, 17]], col: '#2a6ab0', sign: '#ffffff', item: 'pencil',
+        fact: 'えんぴつやノートを売るお店。学校が終わった放課後に、子どもたちがたくさん来ます。' },
+      hana: { name: '花屋', kind: 'stock', lv: 1, build: 50000, price: 900, cost: .45, demand: 5, peak: [[11, 13], [17, 19]], col: '#e05a8a', sign: '#ffffff', item: 'flower',
+        fact: '花はすぐにしおれてしまうので、水かえや温度の管理がとても大切です。母の日はいちばんいそがしい日の一つです。' },
+      hon: { name: '本屋', kind: 'stock', lv: 1, build: 60000, price: 1000, cost: .75, demand: 5, peak: [[12, 14], [17, 19]], col: '#6a4a2a', sign: '#f2e2c0', item: 'book',
+        fact: '日本では、本は出版社が決めた値段で売るきまり（再販制度）があり、どの本屋さんでも同じ値段で売られています。' },
+      cake: { name: 'ケーキ屋', kind: 'make', lv: 2, build: 80000, price: 600, cost: .35, demand: 6, peak: [[14, 16], [18, 19]], col: '#f0a0b8', sign: '#7a3a4a', item: 'cake',
+        fact: 'ケーキは生クリームを使うので、作ったその日のうちに売り切ることが大切です。クリスマスは1年でいちばんいそがしい日です。' },
+      ramen: { name: 'ラーメン屋', kind: 'make', lv: 2, build: 90000, price: 850, cost: .32, demand: 7, peak: [[11, 13], [18, 20]], col: '#c03a2a', sign: '#ffe08a', item: 'ramen',
+        fact: 'スープは、骨や野菜を何時間もにこんで作ります。お昼と夜ごはんの時間にお客さんが集まります。' },
+      fuku: { name: '服屋', kind: 'stock', lv: 3, build: 120000, price: 2800, cost: .5, demand: 3, peak: [[13, 17]], col: '#3a3a5a', sign: '#ffffff', item: 'shirt',
+        fact: '季節が変わる前に、次の季節の服をならべます。売れ残った季節の服は、セールで安くして売ります。' },
+      omocha: { name: 'おもちゃ屋', kind: 'stock', lv: 3, build: 120000, price: 1800, cost: .6, demand: 4, peak: [[15, 18]], col: '#f2b630', sign: '#d03a2a', item: 'toy',
+        fact: '新しいおもちゃが発売される日や、クリスマス・お正月の前に、お客さんがぐんとふえます。' },
+      cafe: { name: 'カフェ', kind: 'make', lv: 4, build: 150000, price: 650, cost: .3, demand: 8, peak: [[10, 12], [14, 17]], col: '#5a3a2a', sign: '#f2e6d2', item: 'cup',
+        fact: 'コーヒー豆は、焼いて（焙煎）から日がたつと香りがへっていくので、新鮮なうちに使います。' },
+      sushi: { name: 'すし屋', kind: 'make', lv: 5, build: 250000, price: 2500, cost: .45, demand: 4, peak: [[12, 13], [18, 20]], col: '#2a3a4a', sign: '#ffffff', item: 'sushi',
+        fact: 'すし職人は、魚のさばき方やシャリ（ごはん）のにぎり方を、何年もかけて身につけます。' },
+      denki: { name: '電器屋', kind: 'stock', lv: 6, build: 400000, price: 9000, cost: .7, demand: 1.6, peak: [[13, 18]], col: '#1a5ab0', sign: '#ffe600', item: 'tv',
+        fact: 'テレビや冷蔵庫など、高い商品を売るお店。くわしく説明できる店員さんがいると、安心して買えます。' }
+    };
+    const UPGRADE = [0, 1.2, 2.5];   // 改装にかかる金額（建てた金額の何倍か）
+
+    /* 街の発展（人口でレベルが上がる） */
+    const TOWN = [
+      [0, '小さな商店街'], [500, 'にぎやかな商店街'], [1200, '町の名物商店街'], [2500, 'となり町からも人が来る商店街'],
+      [5000, 'テレビで話題の商店街'], [9000, '有名な商店街'], [15000, '日本一の商店街'], [25000, '伝説の商店街']
+    ];
+    const STAFF_MAX = lv => 3 + lv * 2;
+
+    /* ランドマーク（サイトのコインで建てる） */
+    const LANDMARKS = {
+      gaito: { name: 'おしゃれな街灯', price: 300, pop: 40, desc: '夜の商店街を明るくてらします。夜もお客さんが来やすくなります。' },
+      hana: { name: '花のプランター', price: 200, pop: 30, desc: '通りに花をかざって、歩くのが楽しい道に。' },
+      funsui: { name: '噴水広場', price: 800, pop: 120, desc: '待ち合わせ場所にぴったりの広場。人が集まってきます。' },
+      tokei: { name: '時計台', price: 1500, pop: 200, desc: '商店街のシンボル。遠くからでも見えるよ。' },
+      arcade: { name: 'アーケード', price: 3000, pop: 350, desc: '通りに屋根をつけます。雨の日でもお客さんがへりにくくなります。' },
+      eki: { name: '駅', price: 8000, pop: 800, desc: '電車が止まるようになり、たくさんの人がやってきます。' },
+      kanransha: { name: '観覧車', price: 20000, pop: 2000, desc: '街のどこからでも見える大きな観覧車。商店街の大人気スポットに！' }
+    };
+
+    const WEATHER = [{ k: 'sun', name: '晴れ', icon: 'fa-sun', mul: 1 }, { k: 'cloud', name: 'くもり', icon: 'fa-cloud', mul: .92 }, { k: 'rain', name: '雨', icon: 'fa-cloud-rain', mul: .72 }];
+    const HAPPEN = [
+      { k: 'matsuri', name: '商店街のお祭り', icon: 'fa-dharmachakra', mul: 1.6, text: 'お祭りの日！ 商店街にたくさんの人がやってくるよ' },
+      { k: 'tv', name: 'テレビの取材', icon: 'fa-video', mul: 1, text: 'テレビ局が取材にやってきた！ 1つのお店に、お客さんが大集合するよ', tv: 1 },
+      { k: 'sale', name: '商店街の大売り出し', icon: 'fa-tags', mul: 1.3, text: '大売り出しの日。いつもよりお客さんが多いよ' }
+    ];
+
+    /* スタッフの名前（ゲームのオリジナル） */
+    const FAMILY = ['さとう', 'すずき', 'たかはし', 'たなか', 'わたなべ', 'いとう', 'やまもと', 'なかむら', 'こばやし', 'かとう', 'よしだ', 'やまだ', 'ささき', 'まつもと', 'いのうえ', 'きむら', 'はやし', 'しみず', 'もり', 'あべ', 'いけだ', 'はしもと', 'おがわ', 'ふじた'];
+    const GIVEN = ['はると', 'そうた', 'ゆい', 'ひな', 'めい', 'りく', 'あおい', 'さくら', 'けんた', 'ゆうき', 'みお', 'こはる', 'だいち', 'つむぎ', 'れん', 'ほのか', 'たくみ', 'あかり', 'しょう', 'なな', 'こうき', 'まなみ', 'ゆうと', 'ちひろ'];
+    const TRAITS = [
+      { k: 'egao', name: '笑顔がすてき', sk: 'sell', text: '接客が とくい' },
+      { k: 'kiyou', name: '手先が器用', sk: 'make', text: '作るのが とくい' },
+      { k: 'idea', name: 'アイデアマン', sk: 'ad', text: '宣伝が とくい' },
+      { k: 'genki', name: '元気いっぱい', sk: 'hp', text: '体力が ある' },
+      { k: 'majime', name: 'まじめ', sk: 'all', text: 'こつこつ成長する' },
+      { k: 'lead', name: 'たよれる', sk: 'boss', text: '店長に向いている' }
+    ];
+
+    const RANKS = TOWN;
+    const TIPS = [
+      '「利益」＝「売上」−「費用（原価や給料など）」。売上が多くても、費用が多いと利益は少なくなるよ。',
+      '値段を下げるとお客さんはふえやすいけれど、1つあたりのもうけは少なくなる。ちょうどいい値段を考えよう。',
+      'パン屋さんは朝、ラーメン屋さんはお昼と夜…。お店によって、お客さんが多い時間帯がちがうよ。',
+      '作りすぎて売れのこった食べものは、すてることになる。これを「食品ロス」というよ。',
+      '働く人には休みが必要。日本の法律では、少なくとも1週間に1日（または4週間で4日）の休日をあたえることになっているよ。',
+      '本物の会社では、働く人をやめさせる（解雇する）には、きちんとした理由と、30日前の予告などのルールがあるよ。',
+      '口コミや評判がよいお店には、遠くからもお客さんが来るよ。',
+      'チラシやポスターでお店を知ってもらうことを「宣伝（広告）」というよ。',
+      '商店街は、いろいろなお店が集まることで、たくさんの人が来る場所になるんだ。',
+      'お店で働く人に払うお金を「人件費」というよ。お店のいちばん大きな費用になることも多いんだ。'
+    ];
+
+    /* =========================================================
+       描画エンジン（商店街）
+       ※すべてプログラムで描いているので、画像ファイルは不要です
+    ========================================================= */
+    const TAU = Math.PI * 2;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+    function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+    function smoothClosed(p, pts) {
+      const n = pts.length;
+      p.moveTo((pts[n - 1][0] + pts[0][0]) / 2, (pts[n - 1][1] + pts[0][1]) / 2);
+      for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; p.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); }
+      p.closePath();
+    }
+    function circle(c, x, y, r) { c.beginPath(); c.arc(x, y, Math.max(.1, r), 0, TAU); }
+    function ell(c, x, y, rx, ry, rot = 0) { c.beginPath(); c.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), rot, 0, TAU); }
+    const RGB = {};
+    function hexRgb(h) { if (RGB[h]) return RGB[h]; let s = h.replace('#', ''); if (s.length === 3) s = s.split('').map(ch => ch + ch).join(''); const n = parseInt(s, 16); return (RGB[h] = [n >> 16 & 255, n >> 8 & 255, n & 255]); }
+    /* k < 0 で暗く、k > 0 で明るく */
+    function shade(h, k, a = 1) { if (h[0] !== '#') return h; const [r, g, b] = hexRgb(h), f = k < 0 ? 0 : 255, t = Math.abs(k); return `rgba(${Math.round(lerp(r, f, t))},${Math.round(lerp(g, f, t))},${Math.round(lerp(b, f, t))},${a})`; }
+    const rot = (x, y, a) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)];
+    /* 線を太さつきの形にする（首・しっぽ・足など） */
+    function tube(c, pts, w0, w1) {
+      const n = pts.length, L = [], R = [];
+      for (let i = 0; i < n; i++) {
+        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, w = lerp(w0, w1, i / (n - 1)) / 2;
+        L.push([pts[i][0] - dy / d * w, pts[i][1] + dx / d * w]); R.push([pts[i][0] + dy / d * w, pts[i][1] - dx / d * w]);
+      }
+      const p = new Path2D(); p.moveTo(L[0][0], L[0][1]);
+      for (let i = 1; i < n; i++) p.lineTo(L[i][0], L[i][1]);
+      const e = pts[n - 1], s0 = pts[0];
+      p.arc(e[0], e[1], Math.max(.1, w1 / 2), Math.atan2(L[n - 1][1] - e[1], L[n - 1][0] - e[0]), Math.atan2(R[n - 1][1] - e[1], R[n - 1][0] - e[0]), true);
+      for (let i = n - 1; i >= 0; i--) p.lineTo(R[i][0], R[i][1]);
+      p.arc(s0[0], s0[1], Math.max(.1, w0 / 2), Math.atan2(R[0][1] - s0[1], R[0][0] - s0[0]), Math.atan2(L[0][1] - s0[1], L[0][0] - s0[0]), true);
+      p.closePath(); return p;
+    }
+    function bez(p0, p1, p2, n = 10) { const o = []; for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; o.push([u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]]); } return o; }
+    const OUT = 'rgba(30,20,12,.55)';
+
+    /* ---------- 商品のアイコン ---------- */
+    function drawItem(c, k, r) {
+      c.save();
+      switch (k) {
+        case 'veg': c.fillStyle = '#7cc44a'; circle(c, -r * .3, 0, r * .55); c.fill(); c.fillStyle = '#a8dc7a'; circle(c, -r * .35, -r * .1, r * .3); c.fill(); c.fillStyle = '#f07a1a'; c.beginPath(); c.moveTo(r * .2, -r * .4); c.lineTo(r * .65, -r * .4); c.lineTo(r * .42, r * .7); c.fill(); c.fillStyle = '#3f8a2c'; c.fillRect(r * .35, -r * .7, r * .12, r * .3); c.fillStyle = '#e53935'; circle(c, r * .05, r * .35, r * .28); c.fill(); break;
+        case 'bread': c.fillStyle = '#c8873a'; ell(c, 0, 0, r * .9, r * .5); c.fill(); c.strokeStyle = '#f2d29a'; c.lineWidth = r * .1; for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(i * r * .35 - r * .1, -r * .3); c.lineTo(i * r * .35 + r * .1, r * .1); c.stroke(); } break;
+        case 'pencil': c.rotate(-.6); c.fillStyle = '#f2c230'; c.fillRect(-r * .8, -r * .15, r * 1.3, r * .3); c.fillStyle = '#f2d8b0'; c.beginPath(); c.moveTo(r * .5, -r * .15); c.lineTo(r * .85, 0); c.lineTo(r * .5, r * .15); c.fill(); c.fillStyle = '#333'; c.beginPath(); c.moveTo(r * .72, -r * .06); c.lineTo(r * .85, 0); c.lineTo(r * .72, r * .06); c.fill(); c.fillStyle = '#f48aa0'; c.fillRect(-r * .95, -r * .15, r * .18, r * .3); break;
+        case 'flower': c.strokeStyle = '#3f8a2c'; c.lineWidth = r * .1; c.beginPath(); c.moveTo(0, r * .9); c.lineTo(0, 0); c.stroke(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; c.fillStyle = '#f43f5e'; circle(c, Math.cos(a) * r * .32, -r * .1 + Math.sin(a) * r * .32, r * .26); c.fill(); } c.fillStyle = '#fde047'; circle(c, 0, -r * .1, r * .2); c.fill(); break;
+        case 'book': c.fillStyle = '#2a6ab0'; c.fillRect(-r * .7, -r * .8, r * .45, r * 1.6); c.fillStyle = '#e53935'; c.fillRect(-r * .2, -r * .65, r * .4, r * 1.45); c.fillStyle = '#3a8a3a'; c.save(); c.translate(r * .5, r * .05); c.rotate(.2); c.fillRect(-r * .2, -r * .75, r * .4, r * 1.5); c.restore(); c.fillStyle = 'rgba(255,255,255,.7)'; c.fillRect(-r * .65, -r * .4, r * .35, r * .08); c.fillRect(-r * .15, -r * .3, r * .3, r * .08); break;
+        case 'cake': c.fillStyle = '#fff6ec'; c.beginPath(); c.moveTo(-r * .8, r * .6); c.lineTo(r * .8, r * .6); c.lineTo(r * .8, -r * .1); c.lineTo(-r * .8, -r * .1); c.fill(); c.fillStyle = '#f8c8d8'; c.fillRect(-r * .8, r * .15, r * 1.6, r * .15); c.fillStyle = '#fff'; for (let i = 0; i < 5; i++) { circle(c, -r * .6 + i * r * .3, -r * .15, r * .15); c.fill(); } c.fillStyle = '#e8283c'; circle(c, 0, -r * .45, r * .22); c.fill(); break;
+        case 'ramen': c.fillStyle = '#e8d8b0'; c.beginPath(); c.arc(0, 0, r * .9, 0, Math.PI); c.fill(); c.fillStyle = '#c03a2a'; c.fillRect(-r * .9, -r * .05, r * 1.8, r * .12); c.fillStyle = '#f2c86a'; ell(c, 0, -r * .05, r * .85, r * .2); c.fill(); c.strokeStyle = '#3a2a1a'; c.lineWidth = r * .08; c.beginPath(); c.moveTo(r * .2, -r * .2); c.lineTo(r * .9, -r * 1); c.moveTo(r * .35, -r * .15); c.lineTo(r * 1.05, -r * .9); c.stroke(); c.fillStyle = '#fff'; circle(c, -r * .3, -r * .15, r * .18); c.fill(); c.fillStyle = '#f2b630'; circle(c, -r * .3, -r * .15, r * .09); c.fill(); break;
+        case 'shirt': c.fillStyle = '#3a8ae0'; c.beginPath(); c.moveTo(-r * .4, -r * .7); c.lineTo(-r * .9, -r * .35); c.lineTo(-r * .65, 0); c.lineTo(-r * .45, -r * .15); c.lineTo(-r * .45, r * .8); c.lineTo(r * .45, r * .8); c.lineTo(r * .45, -r * .15); c.lineTo(r * .65, 0); c.lineTo(r * .9, -r * .35); c.lineTo(r * .4, -r * .7); c.quadraticCurveTo(0, -r * .4, -r * .4, -r * .7); c.fill(); break;
+        case 'toy': c.fillStyle = '#c8873a'; circle(c, 0, r * .3, r * .5); c.fill(); circle(c, 0, -r * .35, r * .4); c.fill(); circle(c, -r * .32, -r * .65, r * .15); c.fill(); circle(c, r * .32, -r * .65, r * .15); c.fill(); c.fillStyle = '#f2d29a'; ell(c, 0, -r * .25, r * .18, r * .13); c.fill(); c.fillStyle = '#222'; circle(c, -r * .14, -r * .42, r * .05); c.fill(); circle(c, r * .14, -r * .42, r * .05); c.fill(); c.fillStyle = '#e53935'; c.beginPath(); c.moveTo(-r * .2, -r * .02); c.lineTo(r * .2, -r * .02); c.lineTo(0, r * .1); c.fill(); break;
+        case 'cup': c.fillStyle = '#fff'; c.beginPath(); c.moveTo(-r * .6, -r * .4); c.lineTo(r * .5, -r * .4); c.lineTo(r * .4, r * .6); c.lineTo(-r * .5, r * .6); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = r * .12; c.beginPath(); c.arc(r * .55, r * .05, r * .22, -1.4, 1.4); c.stroke(); c.fillStyle = '#6a3a1a'; ell(c, -r * .05, -r * .4, r * .55, r * .1); c.fill(); c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = r * .06; c.beginPath(); c.moveTo(-r * .2, -r * .6); c.quadraticCurveTo(-r * .05, -r * .8, -r * .2, -r * 1); c.stroke(); break;
+        case 'sushi': c.fillStyle = '#fff'; ell(c, 0, r * .2, r * .8, r * .3); c.fill(); c.fillStyle = '#f07a5a'; ell(c, 0, -r * .05, r * .85, r * .28); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = r * .07; for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(i * r * .35 - r * .1, -r * .25); c.lineTo(i * r * .35 + r * .1, r * .15); c.stroke(); } break;
+        case 'tv': c.fillStyle = '#222'; c.fillRect(-r * .9, -r * .65, r * 1.8, r * 1.15); c.fillStyle = '#5ab0e8'; c.fillRect(-r * .78, -r * .53, r * 1.56, r * .9); c.fillStyle = '#7cc44a'; c.beginPath(); c.moveTo(-r * .78, r * .37); c.lineTo(-r * .2, -r * .1); c.lineTo(r * .3, r * .2); c.lineTo(r * .78, -r * .2); c.lineTo(r * .78, r * .37); c.fill(); c.fillStyle = '#444'; c.fillRect(-r * .3, r * .5, r * .6, r * .15); break;
+      }
+      c.restore();
+    }
+
+    /* ---------- スタッフの顔（正面） ---------- */
+    const SKIN = ['#f6d6b8', '#f2c9a0', '#e8b890', '#d8a070'];
+    function drawFace(c, x, y, r, look, opt = {}) {
+      const hair = HAIR_COL[look.hc % HAIR_COL.length], skin = SKIN[look.sk % SKIN.length];
+      c.save(); c.translate(x, y);
+      // 体
+      c.fillStyle = opt.shirt || look.shirt || '#3a8ae0'; c.beginPath(); c.moveTo(-r * 1.15, r * 2.1); c.quadraticCurveTo(-r * 1.1, r * .95, 0, r * .9); c.quadraticCurveTo(r * 1.1, r * .95, r * 1.15, r * 2.1); c.fill();
+      if (opt.apron) { c.fillStyle = opt.apron; c.beginPath(); c.moveTo(-r * .55, r * 1.05); c.lineTo(r * .55, r * 1.05); c.lineTo(r * .7, r * 2.1); c.lineTo(-r * .7, r * 2.1); c.fill(); c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(-r * .25, r * 1.4, r * .5, r * .22); }
+      // うしろ髪
+      c.fillStyle = hair;
+      if (look.hs === 2 || look.hs === 4) { c.beginPath(); c.ellipse(0, r * .2, r * 1.08, r * 1.15, 0, 0, Math.PI); c.fill(); }
+      // 顔
+      c.fillStyle = skin; circle(c, 0, 0, r); c.fill();
+      c.fillStyle = 'rgba(240,120,120,.35)'; circle(c, -r * .52, r * .3, r * .18); c.fill(); circle(c, r * .52, r * .3, r * .18); c.fill();
+      // 前髪
+      c.fillStyle = hair;
+      if (look.hs === 0) { c.beginPath(); c.arc(0, -r * .1, r * 1.04, Math.PI * 1.02, Math.PI * 1.98); c.quadraticCurveTo(r * .4, -r * .35, 0, -r * .45); c.quadraticCurveTo(-r * .5, -r * .3, -r * 1.02, -r * .12); c.fill(); }
+      else if (look.hs === 1) { c.beginPath(); c.arc(0, -r * .05, r * 1.06, Math.PI, TAU); c.lineTo(r * 1.0, -r * .15); for (let i = 0; i < 6; i++) c.lineTo(r * (.8 - i * .33), -r * (.42 + (i % 2) * .15)); c.closePath(); c.fill(); }
+      else if (look.hs === 2) { c.beginPath(); c.arc(0, -r * .1, r * 1.06, Math.PI, TAU); c.quadraticCurveTo(r * .2, -r * .2, -r * .2, -r * .55); c.quadraticCurveTo(-r * .6, -r * .3, -r * 1.06, -r * .1); c.fill(); }
+      else if (look.hs === 3) { c.beginPath(); c.arc(0, -r * .1, r * 1.05, Math.PI * 1.05, Math.PI * 1.95); c.closePath(); c.fill(); c.beginPath(); c.arc(0, -r * .1, r * .95, Math.PI * 1.1, Math.PI * 1.9); c.lineTo(0, -r * .5); c.fill(); }
+      else { c.beginPath(); c.arc(0, -r * .1, r * 1.06, Math.PI, TAU); c.lineTo(r * .9, -r * .2); c.quadraticCurveTo(0, -r * .65, -r * .9, -r * .2); c.fill(); circle(c, 0, -r * 1.15, r * .38); c.fill(); }
+      // 目・口
+      const blink = opt.t != null && (Math.sin(opt.t * 1.3 + look.sk * 3) > .97);
+      c.fillStyle = '#2a1a12';
+      if (blink || opt.sleep) { c.fillRect(-r * .45, r * .05, r * .25, r * .06); c.fillRect(r * .2, r * .05, r * .25, r * .06); }
+      else { ell(c, -r * .33, r * .05, r * .11, r * .15); c.fill(); ell(c, r * .33, r * .05, r * .11, r * .15); c.fill(); c.fillStyle = '#fff'; circle(c, -r * .3, 0, r * .04); c.fill(); circle(c, r * .36, 0, r * .04); c.fill(); }
+      c.strokeStyle = '#8a3a2a'; c.lineWidth = Math.max(.8, r * .08); c.lineCap = 'round'; c.beginPath();
+      if (opt.mood === 'sad') c.arc(0, r * .62, r * .2, Math.PI * 1.15, Math.PI * 1.85); else c.arc(0, r * .35, r * .22, .2, Math.PI - .2);
+      c.stroke();
+      if (look.gl) { c.strokeStyle = '#333'; c.lineWidth = Math.max(.6, r * .06); circle(c, -r * .33, r * .05, r * .22); c.stroke(); circle(c, r * .33, r * .05, r * .22); c.stroke(); c.beginPath(); c.moveTo(-r * .11, r * .05); c.lineTo(r * .11, r * .05); c.stroke(); }
+      if (opt.boss) { c.fillStyle = '#facc15'; c.beginPath(); c.moveTo(-r * .5, -r * 1.05); c.lineTo(-r * .5, -r * 1.45); c.lineTo(-r * .25, -r * 1.25); c.lineTo(0, -r * 1.55); c.lineTo(r * .25, -r * 1.25); c.lineTo(r * .5, -r * 1.45); c.lineTo(r * .5, -r * 1.05); c.fill(); }
+      c.restore();
+    }
+
+    /* ---------- 歩いている人 ---------- */
+    const PEOPLE_COL = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#ec4899', '#14b8a6', '#64748b', '#f97316'];
+    const HAIR_COL = ['#1f1a17', '#3a2a1e', '#5a3a22', '#2a2a2e', '#8a6a4a', '#b0703a'];
+    function drawWalker(c, h, p, t) {
+      const walk = p.walk, ph = p.ph, kid = p.kid, f = p.face;
+      const head = h * (kid ? .2 : .15), legL = h * .42, bodyH = h * .36, by = -legL - bodyH;
+      c.lineCap = 'round';
+      for (const o of [1, 0]) { const a = Math.sin(ph + (o ? Math.PI : 0)) * .45 * walk; c.strokeStyle = o ? '#2a2c34' : '#3a3c46'; c.lineWidth = h * .09; c.beginPath(); c.moveTo(0, -legL); c.lineTo(Math.sin(a) * legL, 0); c.stroke(); }
+      c.fillStyle = p.col; c.beginPath(); c.roundRect ? c.roundRect(-h * .12, by, h * .24, bodyH + h * .04, h * .07) : c.rect(-h * .12, by, h * .24, bodyH + h * .04); c.fill();
+      if (p.umb) { c.strokeStyle = '#333'; c.lineWidth = h * .025; c.beginPath(); c.moveTo(h * .05 * f, by + h * .1); c.lineTo(h * .05 * f, by - head * 2.6); c.stroke(); c.fillStyle = p.umb; c.beginPath(); c.arc(h * .05 * f, by - head * 2.4, h * .32, Math.PI, 0); c.fill(); }
+      c.strokeStyle = shade(p.col, -.2); c.lineWidth = h * .07; const arm = Math.sin(ph) * .4 * walk;
+      c.beginPath(); c.moveTo(h * .02, by + h * .05); c.lineTo(h * .02 + Math.sin(arm + .2) * h * .3 * f, by + h * .05 + Math.cos(arm + .2) * h * .3); c.stroke();
+      if (p.bag) { const bx = h * .02 + Math.sin(arm + .2) * h * .3 * f, byy = by + h * .05 + Math.cos(arm + .2) * h * .3; c.fillStyle = p.bag; c.fillRect(bx - h * .08, byy, h * .16, h * .16); c.strokeStyle = shade(p.bag, -.3); c.lineWidth = h * .02; c.beginPath(); c.arc(bx, byy, h * .05, Math.PI, 0); c.stroke(); }
+      c.fillStyle = SKIN[p.sk % SKIN.length]; circle(c, 0, by - head * .9, head); c.fill();
+      c.fillStyle = p.hair; c.beginPath(); c.arc(0, by - head * .95, head * 1.02, Math.PI, TAU); c.fill();
+      if (p.cap) { c.fillStyle = p.cap; c.beginPath(); c.arc(0, by - head * 1.1, head * 1.05, Math.PI, TAU); c.fill(); c.fillRect(0, by - head * 1.15, head * 1.4 * f, head * .25); }
+      c.fillStyle = '#1a1210'; circle(c, head * .45 * f, by - head * .95, Math.max(.6, head * .14)); c.fill();
+    }
+
+    /* ---------- お店の建物 ---------- */
+    function drawShop(c, x, base, w, H, sh, st) {
+      const def = SHOPS[sh.type], lv = sh.lv || 0, floors = lv >= 1 ? 2 : 1, fh = H * .2, bh = fh * floors + (lv >= 2 ? fh * .35 : 0);
+      const L = x + w * .04, R = x + w * .96, bw = R - L, top = base - bh, night = st.night;
+      // 建物
+      const wallCol = shade(def.col, .75);
+      c.fillStyle = wallCol; c.fillRect(L, top, bw, bh);
+      c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(L, top, bw * .06, bh); c.fillRect(R - bw * .06, top, bw * .06, bh);
+      if (floors >= 2) { for (let i = 0; i < 2; i++) { const wx = L + bw * (.18 + i * .42), wy = top + (lv >= 2 ? fh * .35 : 0) + fh * .2, ww = bw * .22, wh = fh * .5; c.fillStyle = '#5a4a3a'; c.fillRect(wx - 2, wy - 2, ww + 4, wh + 4); c.fillStyle = night ? '#ffe9a8' : '#a8d4ee'; c.fillRect(wx, wy, ww, wh); c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(wx, wy, ww * .3, wh); if (night) GLOWS.push([wx + ww / 2, wy + wh / 2, ww, 'rgba(255,220,140,.25)']); c.fillStyle = def.col; c.fillRect(wx - 3, wy + wh, ww + 6, 3); } }
+      if (lv >= 2) { c.fillStyle = def.sign; c.fillRect(L + bw * .1, top - fh * .05, bw * .8, fh * .32); c.fillStyle = def.col; c.font = `900 ${Math.max(8, fh * .2)}px "M PLUS Rounded 1c", sans-serif`; c.textAlign = 'center'; c.fillText('★' + def.name + '★', x + w / 2, top + fh * .2); if (night) GLOWS.push([x + w / 2, top + fh * .1, bw * .6, 'rgba(255,240,180,.3)']); }
+      // 1階：看板
+      const gTop = base - fh, sy = gTop - fh * .02;
+      c.fillStyle = def.col; c.fillRect(L - 2, sy - fh * .26, bw + 4, fh * .26);
+      c.fillStyle = def.sign; c.font = `900 ${Math.max(8, Math.min(fh * .17, bw / (def.name.length + 1.5)))}px "M PLUS Rounded 1c", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(def.name, x + w / 2, sy - fh * .13); c.textBaseline = 'alphabetic';
+      if (night) GLOWS.push([x + w / 2, sy - fh * .13, bw * .55, 'rgba(255,235,170,.3)']);
+      // ガラス窓（店の中）
+      const winL = L + bw * .06, winR = L + bw * .62, winT = gTop + fh * .2, winB = base - fh * .08;
+      c.fillStyle = night ? '#fff0c8' : '#f6efe0'; c.fillRect(winL, winT, winR - winL, winB - winT);
+      c.fillStyle = shade(def.col, .55); c.fillRect(winL, winB - (winB - winT) * .35, winR - winL, (winB - winT) * .35);
+      // スタッフ（窓の中）
+      const staff = st.staff || [];
+      const sr = Math.min((winB - winT) * .2, (winR - winL) / 7);
+      staff.slice(0, 3).forEach((s, i) => { const sx = winL + (winR - winL) * (.22 + i * .28), syy = winB - (winB - winT) * .55; c.save(); c.beginPath(); c.rect(winL, winT, winR - winL, winB - winT); c.clip(); drawFace(c, sx, syy + Math.sin(st.t * 2 + i) * 1, sr, s.look, { apron: def.col, shirt: '#ffffff', t: st.t, boss: s.role === 'boss', sleep: s.energy < 20 }); c.restore(); });
+      // 商品
+      for (let i = 0; i < 3; i++) { const ix = winL + (winR - winL) * (.2 + i * .3), iy = winB - (winB - winT) * .15; if (st.soldOut) continue; c.save(); c.translate(ix, iy); drawItem(c, def.item, Math.min(fh * .1, (winR - winL) * .1)); c.restore(); }
+      c.fillStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.moveTo(winL, winT); c.lineTo(winL + (winR - winL) * .25, winT); c.lineTo(winL, winT + (winB - winT) * .6); c.fill();
+      c.strokeStyle = '#4a3a2a'; c.lineWidth = 2; c.strokeRect(winL, winT, winR - winL, winB - winT);
+      if (night && st.open) GLOWS.push([(winL + winR) / 2, (winT + winB) / 2, bw * .5, 'rgba(255,230,160,.35)']);
+      // ドア
+      const dL = L + bw * .68, dR = L + bw * .92, dT = gTop + fh * .16;
+      c.fillStyle = '#6b4a2e'; c.fillRect(dL, dT, dR - dL, base - dT);
+      c.fillStyle = night ? '#ffe9a8' : '#c8e4f4'; c.fillRect(dL + (dR - dL) * .15, dT + fh * .08, (dR - dL) * .7, fh * .3);
+      c.fillStyle = '#f2c230'; circle(c, dR - (dR - dL) * .2, base - fh * .38, Math.max(1, fh * .025)); c.fill();
+      // 開店・閉店の札
+      const tag = st.building ? null : st.open ? (st.soldOut ? '売り切れ' : '営業中') : '準備中';
+      if (tag) { const tw = (dR - dL) * .95, th = fh * .14, tx = (dL + dR) / 2, ty = dT + fh * .48; c.fillStyle = st.open ? (st.soldOut ? '#f59e0b' : '#16a34a') : '#6b7280'; c.fillRect(tx - tw / 2, ty, tw, th); c.fillStyle = '#fff'; c.font = `900 ${Math.max(6, th * .62)}px "M PLUS Rounded 1c", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, tx, ty + th / 2 + .5); c.textBaseline = 'alphabetic'; }
+      // ひさし（日よけ）
+      const aT = gTop, aB = gTop + fh * .16, n = 7;
+      for (let i = 0; i < n; i++) { const ax0 = L + bw * i / n, ax1 = L + bw * (i + 1) / n; c.fillStyle = i % 2 ? '#ffffff' : def.col; c.beginPath(); c.moveTo(ax0, aT); c.lineTo(ax1, aT); c.lineTo(ax1 + bw * .01, aB); c.quadraticCurveTo((ax0 + ax1) / 2, aB + fh * .06, ax0 - bw * .01, aB); c.fill(); }
+      // 工事中
+      if (st.building) {
+        c.fillStyle = 'rgba(240,200,80,.25)'; c.fillRect(L, top - fh * .2, bw, bh + fh * .2);
+        c.strokeStyle = '#8a6a44'; c.lineWidth = 2; for (let i = 0; i <= 4; i++) { const xx = L + bw * i / 4; c.beginPath(); c.moveTo(xx, base); c.lineTo(xx, top - fh * .2); c.stroke(); } for (let j = 0; j <= floors * 2; j++) { const yy = base - (bh + fh * .2) * j / (floors * 2); c.beginPath(); c.moveTo(L, yy); c.lineTo(R, yy); c.stroke(); }
+        c.fillStyle = '#f2c230'; c.fillRect(x + w * .3, base - fh * .5, w * .4, fh * .22); c.fillStyle = '#222'; c.font = `900 ${Math.max(8, fh * .14)}px "M PLUS Rounded 1c", sans-serif`; c.textAlign = 'center'; c.fillText('工事中', x + w / 2, base - fh * .34);
+        const k = (st.t * 2) % 1; c.fillStyle = '#ff9a3a'; circle(c, x + w * (.2 + k * .6), top - fh * .1, fh * .04); c.fill();
+      }
+    }
+    function drawEmptyLot(c, x, base, w, H, st) {
+      const fh = H * .2, L = x + w * .04, R = x + w * .96;
+      c.fillStyle = '#8cc45a'; c.fillRect(L, base - fh * .12, R - L, fh * .12);
+      c.strokeStyle = '#c8b08a'; c.lineWidth = 2; c.beginPath(); c.moveTo(L, base - fh * .3); c.lineTo(R, base - fh * .3); c.stroke(); for (let i = 0; i <= 6; i++) { const xx = lerp(L, R, i / 6); c.beginPath(); c.moveTo(xx, base); c.lineTo(xx, base - fh * .38); c.stroke(); }
+      const b = Math.sin(st.t * 3) * 2;
+      c.fillStyle = '#6b4a2e'; c.fillRect(x + w / 2 - 2, base - fh * 1.0, 4, fh * .9);
+      c.fillStyle = st.locked ? '#6b7280' : '#f2c230'; c.fillRect(x + w * .18, base - fh * 1.15 + b, w * .64, fh * .42);
+      c.fillStyle = '#222'; c.font = `900 ${Math.max(8, fh * .14)}px "M PLUS Rounded 1c", sans-serif`; c.textAlign = 'center';
+      c.fillText('空き地', x + w / 2, base - fh * .96 + b); c.font = `800 ${Math.max(7, fh * .1)}px "M PLUS Rounded 1c", sans-serif`; c.fillText(st.locked ? 'まだ買えない' : 'タップで建てる！', x + w / 2, base - fh * .8 + b);
+    }
+
+    /* ---------- ランドマーク ---------- */
+    function drawLandmarksBack(c, W, H, base, L, t, night) {
+      if (L.kanransha) { const cx = W * .82, cy = H * .2, R = H * .2; c.strokeStyle = night ? '#9aa8c8' : '#c8d0e0'; c.lineWidth = 2; circle(c, cx, cy, R); c.stroke(); for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + t * .05; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); c.stroke(); c.fillStyle = ['#ef4444', '#facc15', '#3b82f6', '#22c55e'][i % 4]; c.fillRect(cx + Math.cos(a) * R - 4, cy + Math.sin(a) * R, 8, 7); if (night) GLOWS.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R, 10, 'rgba(255,220,120,.6)']); } c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx - R * .5, base); c.moveTo(cx, cy); c.lineTo(cx + R * .5, base); c.stroke(); }
+      if (L.tokei) { const x = W * .35, w = W * .04; c.fillStyle = '#b8a888'; c.fillRect(x - w / 2, H * .08, w, base - H * .08); c.fillStyle = '#8a3a2a'; c.beginPath(); c.moveTo(x - w * .7, H * .08); c.lineTo(x, H * .02); c.lineTo(x + w * .7, H * .08); c.fill(); c.fillStyle = '#fff'; circle(c, x, H * .12, w * .38); c.fill(); c.strokeStyle = '#222'; c.lineWidth = 1.5; const hr = (new Date().getHours() % 12) / 12 * TAU, mn = new Date().getMinutes() / 60 * TAU; c.beginPath(); c.moveTo(x, H * .12); c.lineTo(x + Math.sin(hr) * w * .2, H * .12 - Math.cos(hr) * w * .2); c.moveTo(x, H * .12); c.lineTo(x + Math.sin(mn) * w * .3, H * .12 - Math.cos(mn) * w * .3); c.stroke(); }
+      if (L.eki) { const x = W * .06, y = base - H * .3; c.fillStyle = '#d8d0c0'; c.fillRect(x - W * .06, y, W * .12, H * .1); c.fillStyle = '#3a5a8a'; c.fillRect(x - W * .07, y - H * .02, W * .14, H * .025); c.fillStyle = '#fff'; c.font = `bold ${Math.max(8, W * .012)}px sans-serif`; c.textAlign = 'center'; c.fillText('むん駅', x, y + H * .045); const tx = ((t * W * .08) % (W * 2.2)) - W * .6; c.fillStyle = '#e8e8ec'; c.fillRect(tx, y - H * .085, W * .45, H * .05); c.fillStyle = '#16a34a'; c.fillRect(tx, y - H * .06, W * .45, H * .01); c.fillStyle = '#9fd2f0'; for (let i = 0; i < 9; i++) c.fillRect(tx + W * .01 + i * W * .05, y - H * .08, W * .03, H * .015); }
+    }
+    function drawLandmarksFront(c, W, H, base, L, t, night, rain) {
+      const sw = base + H * .06;
+      if (L.gaito) for (let i = 0; i < 5; i++) { const x = W * (.1 + i * .2), y = sw; c.fillStyle = '#2a2f36'; c.fillRect(x - 1.5, y - H * .2, 3, H * .2); c.beginPath(); c.arc(x, y - H * .2, W * .012, Math.PI, 0); c.fill(); c.fillStyle = night ? '#fff3c4' : '#d8dee6'; ell(c, x, y - H * .195, W * .009, H * .012); c.fill(); if (night) GLOWS.push([x, y - H * .19, W * .08, 'rgba(255,220,140,.45)']); }
+      if (L.hana) for (let i = 0; i < 4; i++) { const x = W * (.2 + i * .2), y = sw + H * .005; c.fillStyle = '#8a6a44'; c.fillRect(x - W * .025, y - H * .025, W * .05, H * .025); for (let j = 0; j < 5; j++) { c.fillStyle = ['#f43f5e', '#facc15', '#a855f7', '#fb923c', '#fff'][j]; circle(c, x - W * .02 + j * W * .01, y - H * .032, W * .006); c.fill(); } }
+      if (L.funsui) { const x = W * .5, y = H * .985; c.fillStyle = '#b8c0c8'; ell(c, x, y, W * .08, H * .02); c.fill(); c.fillStyle = '#7cc8e8'; ell(c, x, y - 2, W * .065, H * .013); c.fill(); for (let i = 0; i < 7; i++) { const k = ((t * .8 + i / 7) % 1); c.fillStyle = `rgba(200,235,255,${1 - k})`; circle(c, x + (i - 3) * W * .006 * k * 3, y - H * .06 * Math.sin(k * Math.PI), 2); c.fill(); } }
+      if (L.arcade) { const top = H * .03; c.fillStyle = 'rgba(220,235,250,.22)'; c.fillRect(0, top, W, H * .05); c.strokeStyle = 'rgba(160,180,200,.8)'; c.lineWidth = 2; for (let i = 0; i <= 8; i++) { const x = W * i / 8; c.beginPath(); c.moveTo(x, top); c.lineTo(x, sw - H * .02); c.stroke(); c.beginPath(); c.arc(x + W / 16, top + H * .05, W / 16, Math.PI, 0); c.stroke(); } c.fillStyle = '#e0662a'; c.fillRect(W * .38, top + H * .005, W * .24, H * .035); c.fillStyle = '#fff'; c.font = `900 ${Math.max(8, H * .025)}px "M PLUS Rounded 1c", sans-serif`; c.textAlign = 'center'; c.fillText('むん商店街', W * .5, top + H * .031); }
+    }
+
+    /* =========================================================
+       むん商店街 ゲーム本体
+       ・保存名 mun_shoten … 商店街のデータ
+       ・サイトのコイン（mun_coins）は「出資」と「ランドマーク」で使います（商店街の売上はコインになりません）
+    ========================================================= */
+    const LS = {
+      get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+      set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+    };
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const fmt = n => Number(Math.round(n)).toLocaleString('ja-JP');
+    const yen = n => (n < 0 ? '−¥' : '¥') + fmt(Math.abs(n));
+    const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const todayStr = () => new Date().toDateString();
+    const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const EVT = munEventVisual(), EVT_REAL = munEventReal();
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const pick = a => a[Math.floor(Math.random() * a.length)];
+
+    /* ---------- 保存データ ---------- */
+    function emptyDay() { return { sales: 0, cost: 0, wage: 0, cust: 0, lost: 0, waste: 0, fire: 0, ad: 0 }; }
+    function defaultState() {
+      const z = {}; ZONE_ORDER.forEach(k => z[k] = { open: k === 'c1', shops: Array(LOTS).fill(null) });
+      return { v: 1, money: START_MONEY, day: 1, hour: OPEN_H, zones: z, staff: [], cands: [], history: [], best: 0, pop: 300, landmarks: {}, today: emptyDay(),
+        weather: 'sun', happen: null, tvShop: null, flyer: 0, last: Date.now(), careDay: '', cur: 'c1', invested: 0, coinSpent: 0, totalSales: 0, totalProfit: 0, totalCust: 0, nid: 1, townLv: 0 };
+    }
+    let isNew = false;
+    function loadState() {
+      let s = null;
+      try { s = JSON.parse(LS.get('mun_shoten')); } catch (e) {}
+      if (!s || typeof s !== 'object' || !s.zones) { isNew = true; return defaultState(); }
+      const d = defaultState();
+      for (const k of ZONE_ORDER) { s.zones[k] = Object.assign(d.zones[k], s.zones[k] || {}); s.zones[k].shops = (s.zones[k].shops || []).slice(0, LOTS).map(x => x && SHOPS[x.type] ? x : null); while (s.zones[k].shops.length < LOTS) s.zones[k].shops.push(null); }
+      return Object.assign(d, s);
+    }
+    let S = loadState();
+    let saveTimer = null;
+    function save() { S.last = Date.now(); LS.set('mun_shoten', JSON.stringify(S)); }
+    function dirtySave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 800); }
+
+    /* ---------- コイン（サイト共通） ---------- */
+    function coins() { return Math.max(0, parseInt(LS.get('mun_coins')) || 0); }
+    function spendCoins(n) {
+      const c = coins();
+      if (c < n) { toast(`コインが ${fmt(n - c)} C たりないよ`, 'fa-coins'); sfx('no'); return false; }
+      LS.set('mun_coins', c - n); S.coinSpent += n; save(); updateCoins(); sfx('coin'); return true;
+    }
+    function spendYen(n, what) {
+      if (S.money < n) { toast(`お金が ${yen(n - S.money)} たりないよ`, 'fa-sack-dollar'); sfx('no'); return false; }
+      S.money -= n; sfx('coin'); return true;
+    }
+    function updateCoins() { $('#coin').textContent = fmt(coins()); $('#rank-name').textContent = TOWN[townLv()][1]; }
+    function addExp(n) {
+      const e = (parseInt(LS.get('mun_exp')) || 0) + n; LS.set('mun_exp', e);
+      let log = {}; try { log = JSON.parse(LS.get('mun_daily_exp')) || {}; } catch (er) {}
+      const k = todayStr(); log[k] = (log[k] || 0) + n; LS.set('mun_daily_exp', JSON.stringify(log));
+    }
+    function dailyCare() { if (S.careDay !== todayStr()) { S.careDay = todayStr(); addExp(10); setTimeout(() => toast('今日のはじめての経営！ +10 EXP', 'fa-star'), 600); } }
+    window.addEventListener('storage', e => { if (e.key === 'mun_coins') updateCoins(); });
+
+    /* ---------- 便利な計算 ---------- */
+    const townLv = () => { let i = 0; TOWN.forEach((r, k) => { if (S.pop >= r[0]) i = k; }); return i; };
+    function allShops() { const a = []; for (const z of ZONE_ORDER) S.zones[z].shops.forEach((sh, i) => { if (sh) a.push({ z, i, sh }); }); return a; }
+    const shopById = id => allShops().find(x => x.sh.id === id);
+    const staffOf = sh => S.staff.filter(s => s.shop === sh.id);
+    const working = (sh, role) => S.staff.filter(s => s.shop === sh.id && (role ? s.role === role : true) && !s.rest && s.energy > 0);
+    const workRole = sh => SHOPS[sh.type].kind === 'make' ? 'make' : 'stock';
+    const slotsOf = (sh, role) => { const t = SLOTS[sh.lv || 0]; return role === 'boss' ? t.boss : role === 'sell' ? t.sell : role === 'ad' ? t.ad : t.work; };
+    const isOpenHour = () => S.hour >= OPEN_H && S.hour < CLOSE_H;
+    const hhmm = h => { const hh = Math.floor(h) % 24, mm = Math.floor((h % 1) * 60 / 10) * 10; return `${hh}:${String(mm).padStart(2, '0')}`; };
+    const priceMul = p => p < 0 ? .8 : p > 0 ? 1.25 : 1;
+    const demandPriceMul = p => p < 0 ? 1.35 : p > 0 ? .72 : 1;
+    const shelfMax = sh => 18 + (sh.lv || 0) * 14;
+    function expectWage(s) { return Math.round((2500 + (s.sk.sell + s.sk.make + s.sk.ad + s.sk.hp) * 400 + (s.lv - 1) * 300) / 100) * 100; }
+    function eff(s, skill, sh) {
+      let v = s.sk[skill] || 1;
+      if (s.energy < 25) v *= .5;
+      v *= .85 + s.morale / 400;
+      if (sh && working(sh, 'boss').length && s.role !== 'boss') v *= 1.15;
+      return v;
+    }
+
+    /* ---------- スタッフ ---------- */
+    function newCandidate() {
+      const tr = pick(TRAITS), sk = { sell: 1 + Math.floor(Math.random() * 3), make: 1 + Math.floor(Math.random() * 3), ad: 1 + Math.floor(Math.random() * 2), hp: 1 + Math.floor(Math.random() * 3) };
+      if (tr.sk === 'sell' || tr.sk === 'make' || tr.sk === 'ad' || tr.sk === 'hp') sk[tr.sk] = Math.min(5, sk[tr.sk] + 2);
+      if (tr.sk === 'boss') { sk.sell++; sk.make++; }
+      const lvBoost = Math.min(3, Math.floor(townLv() / 2)); for (let i = 0; i < lvBoost; i++) { const k = pick(['sell', 'make', 'ad', 'hp']); sk[k] = Math.min(5, sk[k] + 1); }
+      const s = { id: 's' + (S.nid++), name: pick(FAMILY) + ' ' + pick(GIVEN), look: { hs: Math.floor(Math.random() * 5), hc: Math.floor(Math.random() * 6), sk: Math.floor(Math.random() * 4), gl: Math.random() < .2 ? 1 : 0, shirt: pick(PEOPLE_COL) }, sk, trait: tr.k, lv: 1, exp: 0, energy: 100, morale: 70, shop: null, role: null, rest: false, days: 0, streak: 0, todayCust: 0 };
+      s.wage = expectWage(s);
+      return s;
+    }
+    const traitOf = s => TRAITS.find(t => t.k === s.trait) || TRAITS[0];
+    function refillCands(n = 3) { while (S.cands.length < 6 && n-- > 0) S.cands.push(newCandidate()); }
+
+    /* =========================================================
+       お店の1時間（ここが経営のしくみの中心）
+    ========================================================= */
+    function curve(def, h) { let v = .5; for (const [a, b] of def.peak) if (h >= a && h < b + 1) v = 1.15; if (h >= CLOSE_H - 1) v *= .7; return v; }
+    function shopHour(z, sh, h, live) {
+      const def = SHOPS[sh.type], t = sh.today || (sh.today = { sales: 0, cust: 0, lost: 0, made: 0, waste: 0 });
+      if (sh.build > 0) { sh.build -= 1; if (sh.build <= 0) { sh.shelf = Math.max(sh.shelf || 0, shelfMax(sh) * .6); sh.today = t; } if (sh.build <= 0 && live) { toast(`${def.name}が完成した！ スタッフを割りふって開店しよう`, 'fa-hammer'); sfx('fanfare'); if (z === cur) burstAt(sh); } return 0; }
+      const sellers = working(sh, 'sell');
+      if (!sellers.length) return 0;
+      const lvF = 1 + (sh.lv || 0) * .25, wk = workRole(sh);
+      const cap = sellers.reduce((a, s) => a + eff(s, 'sell', sh), 0) * 4 * lvF;
+      let avail;
+      if (def.kind === 'make') { const made = Math.min(working(sh, 'work').reduce((a, s) => a + eff(s, 'make', sh), 0) * 5 * lvF, Math.max(0, shelfMax(sh) - (sh.stock || 0))); sh.stock = (sh.stock || 0) + made; t.made += made; S.today.cost += made * def.price * def.cost; S.money -= made * def.price * def.cost; avail = sh.stock; }
+      else { const refill = working(sh, 'work').reduce((a, s) => a + eff(s, 'make', sh), 0) * 6 * lvF; sh.shelf = Math.min(shelfMax(sh), (sh.shelf ?? shelfMax(sh) * .6) + refill); avail = sh.shelf; }
+      const W = WEATHER.find(w => w.k === S.weather) || WEATHER[0];
+      const rainF = S.weather === 'rain' && S.landmarks.arcade ? .95 : W.mul;
+      const hap = S.happen ? HAPPEN.find(x => x.k === S.happen) : null;
+      const adF = 1 + working(sh, 'ad').reduce((a, s) => a + eff(s, 'ad', sh), 0) * .07 + (S.flyer === S.day ? .25 : 0);
+      const evF = EVT_REAL ? 1.15 : 1, tvF = S.tvShop === sh.id ? 3 : 1;
+      const repF = .5 + (sh.rep ?? 3) / 5;
+      let demand = def.demand * curve(def, h) * Math.pow(S.pop / 280, .8) * repF * demandPriceMul(sh.price || 0) * rainF * (hap ? hap.mul : 1) * adF * (1 + (sh.lv || 0) * .3) * evF * tvF * rnd(.85, 1.15);
+      sh.frac = (sh.frac || 0) + Math.min(demand, cap, avail);
+      const cust = Math.floor(sh.frac); sh.frac -= cust;
+      const lost = Math.max(0, demand - cust);
+      const price = Math.round(def.price * priceMul(sh.price || 0)), rev = cust * price;
+      if (def.kind === 'make') sh.stock -= cust; else { sh.shelf -= cust; S.today.cost += cust * def.price * def.cost; S.money -= cust * def.price * def.cost; }
+      t.sales += rev; t.cust += cust; t.lost += lost; S.today.sales += rev; S.today.cust += cust; S.today.lost += lost; S.money += rev;
+      sh.totalSales = (sh.totalSales || 0) + rev;
+      const ratio = demand > .5 ? lost / demand : 0;
+      sh.rep = clamp((sh.rep ?? 3) + (ratio < .15 ? .012 : -.04 * ratio) + (working(sh, 'boss').length ? .004 : 0) + ((sh.price || 0) < 0 ? .003 : (sh.price || 0) > 0 ? -.003 : 0), .5, 5);
+      const team = staffOf(sh).filter(s => !s.rest && s.energy > 0);
+      for (const s of team) { s.hw = (s.hw || 0) + 1; s.energy = Math.max(0, s.energy - (6.5 - s.sk.hp * .7) * (cust > 0 ? 1 : .6)); s.exp += cust / team.length + 1; s.todayCust += cust / team.length; levelCheck(s, live); }
+      if (live && z === cur && cust > 0) scheduleCustomers(sh, cust, price);
+      return rev;
+    }
+    function levelCheck(s, live) {
+      const need = s.lv * 100;
+      if (s.exp >= need) { s.exp -= need; s.lv++; const tr = traitOf(s), k = (tr.sk === 'sell' || tr.sk === 'make' || tr.sk === 'ad' || tr.sk === 'hp') && Math.random() < .6 ? tr.sk : pick(['sell', 'make', 'ad', 'hp']); if (s.sk[k] < 9) s.sk[k]++; if (s.trait === 'majime') { const k2 = pick(['sell', 'make', 'ad']); if (s.sk[k2] < 9) s.sk[k2]++; } if (live) { toast(`${s.name}さんが レベル${s.lv} になった！（${({ sell: '接客', make: '作る', ad: '宣伝', hp: '体力' })[k]}アップ）`, 'fa-arrow-up'); sfx('level'); } }
+    }
+    function openDay() {
+      for (const { sh } of allShops()) { sh.today = { sales: 0, cust: 0, lost: 0, made: 0, waste: 0 }; sh.stock = 0; sh.shelf = shelfMax(sh) * .6; }
+      for (const s of S.staff) s.todayCust = 0;
+    }
+    /* 1日のおわり（決算） */
+    function closeDay(live) {
+      const T0 = S.today;
+      let wage = 0; for (const s of S.staff) { s.paid = s.rest && !s.hw ? 0 : Math.round(s.wage * Math.max(.5, Math.min(1, (s.hw || 0) / (CLOSE_H - OPEN_H - 1))) / 10) * 10; wage += s.paid; s.hw = 0; }
+      let waste = 0; for (const { sh } of allShops()) if (SHOPS[sh.type].kind === 'make' && sh.stock > 0) { const w = Math.floor(sh.stock); waste += w; sh.today.waste = w; sh.stock = 0; }
+      S.money -= wage; T0.wage = wage; T0.waste = waste;
+      const profit = T0.sales - T0.cost - wage - T0.fire - T0.ad;
+      // スタッフ
+      const quit = [];
+      for (const s of S.staff) {
+        if (s.rest) { s.energy = 100; s.morale = Math.min(100, s.morale + 6); s.streak = 0; }
+        else if (s.shop) { s.days++; s.streak++; s.morale += 2; if (s.energy < 20) s.morale -= 6; if (s.streak >= 6) s.morale -= 6; s.energy = Math.min(100, s.energy + 60 + s.sk.hp * 8); }
+        else s.energy = 100;
+        if (s.wage < expectWage(s) * .8) s.morale -= 4;
+        s.morale = clamp(s.morale, 0, 100);
+        if (s.morale < 8) quit.push(s);
+        s.rest = false;
+      }
+      for (const s of quit) { S.staff = S.staff.filter(x => x !== s); }
+      const sad = S.staff.filter(s => s.morale < 30).map(s => s.name);
+      // 街の人口
+      let target = 300; for (const { sh } of allShops()) if (!(sh.build > 0)) target += 60 * (1 + (sh.lv || 0) * .6) * ((sh.rep ?? 3) / 3);
+      for (const k in S.landmarks) if (S.landmarks[k] && LANDMARKS[k]) target += LANDMARKS[k].pop;
+      const lvBefore = townLv();
+      S.pop = Math.round(S.pop + (target - S.pop) * .25 + (profit > 0 ? 5 : 0));
+      const lvAfter = townLv();
+      const rec = { day: S.day, sales: Math.round(T0.sales), cost: Math.round(T0.cost), wage, other: T0.fire + T0.ad, profit: Math.round(profit), cust: T0.cust, lost: Math.round(T0.lost), waste, weather: S.weather, happen: S.happen,
+        shops: allShops().map(({ sh }) => ({ type: sh.type, sales: Math.round(sh.today.sales), cust: sh.today.cust })), mvp: S.staff.slice().sort((a, b) => b.todayCust - a.todayCust)[0]?.name || null, quit: quit.map(s => s.name), sad, newRecord: T0.sales > S.best && T0.sales > 0 };
+      if (rec.newRecord) S.best = T0.sales;
+      S.history.push(rec); if (S.history.length > 30) S.history.shift();
+      S.totalSales += T0.sales; S.totalProfit += profit; S.totalCust += T0.cust;
+      // つぎの日
+      S.day++; S.today = emptyDay();
+      const r = Math.random(); S.weather = r < .2 ? 'rain' : r < .5 ? 'cloud' : 'sun';
+      S.happen = null; S.tvShop = null;
+      if (Math.random() < .18 && allShops().length) { const h = pick(HAPPEN); S.happen = h.k; if (h.tv) S.tvShop = pick(allShops()).sh.id; }
+      refillCands(2);
+      openDay();
+      if (live) { showReport(rec, lvAfter > lvBefore ? lvAfter : 0); }
+      return rec;
+    }
+
+    /* 時間を進める（h：ゲームの時間） */
+    function advance(hours, live) {
+      while (hours > 0) {
+        if (isOpenHour()) {
+          const next = Math.min(Math.floor(S.hour) + 1, CLOSE_H), step = Math.min(hours, next - S.hour);
+          S.hour += step; hours -= step;
+          if (S.hour >= Math.floor(S.hour) && Math.abs(S.hour - Math.round(S.hour)) < 1e-9) { const h = Math.round(S.hour) - 1; for (const { z, sh } of allShops()) shopHour(z, sh, h, live); }
+          if (S.hour >= CLOSE_H - 1e-9) { S.hour = CLOSE_H; const rec = closeDay(live); if (live) return rec; }
+        } else {
+          const toOpen = S.hour >= CLOSE_H ? 24 - S.hour + OPEN_H : OPEN_H - S.hour;
+          const step = Math.min(hours, toOpen); S.hour += step; hours -= step; if (S.hour >= 24) S.hour -= 24;
+          if (Math.abs(S.hour - OPEN_H) < 1e-9) { S.hour = OPEN_H; if (live) { toast(`${S.day}日目の朝！ 開店の時間だよ`, 'fa-sun'); sfx('bell'); if (S.happen) { const hp = HAPPEN.find(x => x.k === S.happen); setTimeout(() => toast(hp.text, hp.icon), 900); } } }
+        }
+      }
+    }
+    /* 留守のあいだ */
+    function offline() {
+      const sec = (Date.now() - (S.last || Date.now())) / 1000; if (sec < 30) return null;
+      const dayReal = (CLOSE_H - OPEN_H) * SEC_PER_HOUR + 8, days = Math.min(3, sec / dayReal);
+      const before = { money: S.money, day: S.day, sales: S.totalSales };
+      let hours = days * 24, recs = [];
+      while (hours > 0) { const d0 = S.day; const step = Math.min(hours, 1); advance(step, false); hours -= step; if (S.day !== d0) recs.push(S.history[S.history.length - 1]); }
+      return { days: S.day - before.day, money: S.money - before.money, sales: S.totalSales - before.sales, recs };
+    }
+
+    /* =========================================================
+       商店街の描画
+    ========================================================= */
+    const cv = $('#zoo-canvas'), ctx = cv.getContext('2d');
+    let W = 300, H = 200, DPR = 1, T = 0, lastFrame = performance.now();
+    let GLOWS = [], walkers = [], pops = [], parts = [], cars = [], moneyShown = S.money;
+    let cur = (S.cur && S.zones[S.cur] && S.zones[S.cur].open) ? S.cur : 'c1';
+    let paused = false, speed = 1;
+    const BASE = () => H * .74;
+    function resize() { const box = $('#zoo'), w = Math.max(240, box.clientWidth), h = Math.round(w * (w < 640 ? .8 : .56)); DPR = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR); cv.style.height = h + 'px'; W = w; H = h; }
+    const lotX = i => W * i / LOTS, lotW = () => W / LOTS;
+    function doorX(i) { return lotX(i) + lotW() * .8; }
+    function burstAt(sh) { const z = S.zones[cur], i = z.shops.indexOf(sh); if (i < 0) return; for (let k = 0; k < 40; k++) parts.push({ k: 'conf', x: lotX(i) + lotW() / 2, y: BASE() - H * .25, vx: rnd(-1, 1) * W * .15, vy: rnd(-1.2, -.3) * H * .5, t: 0, life: 1.6, col: pick(['#ef4444', '#facc15', '#3b82f6', '#22c55e', '#ec4899']) }); }
+    function scheduleCustomers(sh, cust, price) {
+      const z = S.zones[cur], i = z.shops.indexOf(sh); if (i < 0) return;
+      const n = Math.min(6, cust), per = Math.round(cust * price / n);
+      for (let k = 0; k < n; k++) { const side = Math.random() < .5 ? -1 : 1; walkers.push(mkWalker({ x: side < 0 ? -W * .03 : W * 1.03, face: -side, target: doorX(i), lot: i, amount: per, delay: k * SEC_PER_HOUR / n / speed * rnd(.6, 1) })); }
+    }
+    function mkWalker(o) { return Object.assign({ walk: 1, ph: Math.random() * 6, kid: Math.random() < .35, col: pick(PEOPLE_COL), hair: pick(HAIR_COL), sk: Math.floor(Math.random() * 4), cap: Math.random() < .2 ? pick(['#facc15', '#ef4444', '#3b82f6']) : null, d: rnd(.2, 1), mode: 'go', bag: null }, o); }
+    function update(dt) {
+      T += dt;
+      if (!paused && !$('#modal').classList.contains('show')) {
+        const rate = isOpenHour() ? 1 / SEC_PER_HOUR : 12 / 6;
+        advance(dt * rate * speed, true);
+      }
+      moneyShown += (S.money - moneyShown) * Math.min(1, dt * 4);
+      // 通行人
+      const open = isOpenHour(), passers = walkers.filter(w => !w.target).length, wantP = open ? Math.min(14, 2 + S.pop / 250) * (S.weather === 'rain' && !S.landmarks.arcade ? .6 : 1) : 1;
+      if (passers < wantP && Math.random() < dt * 1.2) { const side = Math.random() < .5 ? -1 : 1; walkers.push(mkWalker({ x: side < 0 ? -W * .03 : W * 1.03, face: -side, umb: S.weather === 'rain' && !S.landmarks.arcade ? pick(['#ef4444', '#3b82f6', '#facc15', '#22c55e']) : null })); }
+      for (const w of walkers) {
+        if (w.delay > 0) { w.delay -= dt; continue; }
+        const spd = W * (w.kid ? .07 : .055);
+        if (w.mode === 'go') { if (w.target != null) { const dx = w.target - w.x; if (Math.abs(dx) < 4) { w.mode = 'in'; w.t = 0; pops.push({ x: w.target, y: BASE() - H * .18, text: '+' + yen(w.amount), t: 0 }); sfx('register'); } else { w.face = Math.sign(dx); w.x += w.face * spd * dt; w.ph += dt * 9; } } else { w.x += w.face * spd * dt; w.ph += dt * 9; if (w.x < -W * .06 || w.x > W * 1.06) w.gone = true; } }
+        else if (w.mode === 'in') { w.t += dt; if (w.t > rnd(1.5, 3)) { w.mode = 'go'; w.target = null; w.bag = pick(['#f2c9a0', '#fff', '#f8c8d8', '#c8e6c9']); w.face = Math.random() < .5 ? -1 : 1; } }
+      }
+      walkers = walkers.filter(w => !w.gone);
+      for (const p of pops) p.t += dt; pops = pops.filter(p => p.t < 1.4);
+      for (const p of parts) { p.t += dt; if (p.k === 'conf') { p.vy += H * .8 * dt; p.x += p.vx * dt; p.y += p.vy * dt; } if (p.k === 'rain') { p.y += H * 1.5 * dt; p.x -= W * .05 * dt; } }
+      parts = parts.filter(p => p.t < p.life && p.y < H);
+      if (S.weather === 'rain' && !S.landmarks.arcade) for (let i = 0; i < 3; i++) parts.push({ k: 'rain', x: Math.random() * W * 1.1, y: -10, t: 0, life: 2 });
+      if (Math.random() < dt * .25) cars.push({ x: Math.random() < .5 ? -W * .2 : W * 1.2, dir: 0, col: pick(['#ef4444', '#3b82f6', '#f8fafc', '#facc15', '#22c55e']), lane: Math.random() < .5 ? 0 : 1 });
+      for (const c of cars) { if (!c.dir) c.dir = c.x < 0 ? 1 : -1; c.x += c.dir * W * .25 * dt; }
+      cars = cars.filter(c => c.x > -W * .3 && c.x < W * 1.3);
+    }
+    function skyFor(h) {
+      if (h >= 8 && h < 16) return { top: '#5aa8e0', bot: '#cfeaf5', dark: 0 };
+      if (h >= 16 && h < 18.5) return { top: '#6a7ac8', bot: '#f8b07a', dark: .15 };
+      if (h >= 18.5 && h < 20) return { top: '#2a3a7a', bot: '#c87a8a', dark: .35 };
+      if (h >= 6 && h < 8) return { top: '#4a6ab0', bot: '#f8c8a0', dark: .25 };
+      return { top: '#0a1230', bot: '#1a2a5a', dark: .6 };
+    }
+    function draw() {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      GLOWS = [];
+      const h = S.hour, sky = skyFor(h), night = sky.dark >= .35, base = BASE(), Z = S.zones[cur];
+      const g = ctx.createLinearGradient(0, 0, 0, base); g.addColorStop(0, S.weather === 'rain' ? shade(sky.top, -.3) : sky.top); g.addColorStop(1, S.weather === 'rain' ? shade(sky.bot, -.3) : sky.bot); ctx.fillStyle = g; ctx.fillRect(0, 0, W, base);
+      if (sky.dark >= .5) { const r = rng(5); for (let i = 0; i < 40; i++) { ctx.fillStyle = `rgba(255,255,255,${.3 + .5 * Math.abs(Math.sin(T + i))})`; circle(ctx, r() * W, r() * base * .5, r() + .3); ctx.fill(); } }
+      else if (S.weather === 'sun') { const u = clamp((h - 6) / 14, 0, 1); GLOWS.push([W * (.1 + u * .8), H * (.22 - Math.sin(u * Math.PI) * .16), H * .15, 'rgba(255,240,180,.5)']); }
+      for (let i = 0; i < 3; i++) { const x = ((T * W * .01 * (1 + i * .3) + i * W * .4) % (W * 1.4)) - W * .2, y = H * (.05 + i * .05), s = W * (.045 + (i % 2) * .02); ctx.fillStyle = night ? 'rgba(80,90,130,.5)' : S.weather === 'sun' ? 'rgba(255,255,255,.85)' : 'rgba(200,205,215,.9)'; for (const [dx, dy, rr] of [[0, 0, 1], [.8, .15, .75], [-.8, .2, .7], [.3, -.35, .7]]) { circle(ctx, x + dx * s, y + dy * s, rr * s * .55); ctx.fill(); } }
+      // 遠くのビル
+      const r = rng(hashStr(cur)); for (let i = 0; i < 14; i++) { const bw = W * (.05 + r() * .06), bh = H * (.12 + r() * .2) * (1 + townLv() * .08), x = r() * W; ctx.fillStyle = night ? '#1a2240' : shade('#9aa8c0', r() * .2); ctx.fillRect(x, base - bh, bw, bh); if (night) { ctx.fillStyle = 'rgba(255,220,140,.6)'; for (let j = 0; j < 6; j++) if (r() < .5) ctx.fillRect(x + bw * (.15 + (j % 2) * .45), base - bh + bh * (.1 + Math.floor(j / 2) * .25), bw * .2, bh * .08); } }
+      drawLandmarksBack(ctx, W, H, base, S.landmarks, T, night);
+      // お店
+      Z.shops.forEach((sh, i) => {
+        const x = lotX(i), w = lotW();
+        if (sh) { const def = SHOPS[sh.type], st = staffOf(sh).filter(s => !s.rest), openNow = isOpenHour() && !(sh.build > 0) && working(sh, 'sell').length > 0, soldOut = openNow && (def.kind === 'make' ? (sh.stock || 0) < 1 && working(sh, 'work').length === 0 && h > OPEN_H + .5 : (sh.shelf ?? 1) < 1);
+          drawShop(ctx, x, base, w, H, sh, { night, t: T, staff: openNow ? st.slice().sort((a, b) => (a.role === 'boss' ? -1 : 0) - (b.role === 'boss' ? -1 : 0)) : [], open: openNow, soldOut, building: sh.build > 0 });
+          if (!isOpenHour() && !(sh.build > 0)) { const fh = H * .2, L = x + w * .04, bw = w * .92; ctx.fillStyle = 'rgba(120,125,135,.95)'; ctx.fillRect(L + bw * .06, base - fh * .8, bw * .88, fh * .72); ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1; for (let k = 1; k < 8; k++) { ctx.beginPath(); ctx.moveTo(L + bw * .06, base - fh * .8 + k * fh * .09); ctx.lineTo(L + bw * .94, base - fh * .8 + k * fh * .09); ctx.stroke(); } }
+          if (S.tvShop === sh.id && isOpenHour()) { ctx.fillStyle = '#e11d48'; ctx.font = `900 ${Math.max(9, W * .013)}px "M PLUS Rounded 1c", sans-serif`; ctx.textAlign = 'center'; ctx.fillText('📺 テレビ取材中！', x + w / 2, base - H * .47 + Math.sin(T * 3) * 3); }
+          // 評判の星
+          const rep = sh.rep ?? 3; ctx.fillStyle = '#facc15'; ctx.font = `900 ${Math.max(8, W * .011)}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText('★'.repeat(Math.round(rep)) + '☆'.repeat(5 - Math.round(rep)), x + w / 2, base + H * .035);
+        } else drawEmptyLot(ctx, x, base, w, H, { t: T });
+      });
+      // 歩道・道路
+      ctx.fillStyle = '#c8c0b0'; ctx.fillRect(0, base, W, H * .08); ctx.strokeStyle = 'rgba(0,0,0,.08)'; for (let x = 0; x < W; x += W * .04) { ctx.beginPath(); ctx.moveTo(x, base); ctx.lineTo(x, base + H * .08); ctx.stroke(); }
+      ctx.fillStyle = '#4a4e56'; ctx.fillRect(0, base + H * .08, W, H * .2); ctx.fillStyle = '#e8e8e8'; for (let x = (T * 0) % 1; x < W; x += W * .08) ctx.fillRect(x, base + H * .17, W * .04, H * .006);
+      if (S.weather === 'rain') { ctx.fillStyle = 'rgba(160,190,220,.15)'; ctx.fillRect(0, base, W, H * .28); }
+      // 車
+      for (const c of cars) { const y = base + H * (c.lane ? .2 : .13), s = W * .06; ctx.save(); ctx.translate(c.x, y); ctx.scale(c.dir, 1); ctx.fillStyle = c.col; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-s, -s * .35, s * 2, s * .35, s * .1) : ctx.rect(-s, -s * .35, s * 2, s * .35); ctx.fill(); ctx.fillRect(-s * .5, -s * .6, s * 1.1, s * .3); ctx.fillStyle = '#9fd2f0'; ctx.fillRect(-s * .4, -s * .55, s * .4, s * .2); ctx.fillRect(s * .05, -s * .55, s * .45, s * .2); ctx.fillStyle = '#222'; circle(ctx, -s * .55, 0, s * .17); ctx.fill(); circle(ctx, s * .55, 0, s * .17); ctx.fill(); if (night) GLOWS.push([s * 1.05 * c.dir + c.x, y - s * .2, s * .8, 'rgba(255,240,180,.5)']); ctx.restore(); }
+      // 人
+      const ws = walkers.filter(w => w.delay <= 0 && w.mode !== 'in').sort((a, b) => a.d - b.d);
+      for (const w of ws) { const y = base + H * (.015 + w.d * .05), hh = H * (w.kid ? .08 : .11); ctx.fillStyle = 'rgba(0,0,0,.15)'; ell(ctx, w.x, y, hh * .2, hh * .05); ctx.fill(); ctx.save(); ctx.translate(w.x, y); drawWalker(ctx, hh, w, T); ctx.restore(); }
+      drawLandmarksFront(ctx, W, H, base, S.landmarks, T, night, S.weather === 'rain');
+      // 季節のかざり
+      if (EVT && (EVT.id === 'christmas' || EVT.id === 'halloween' || EVT.id === 'newyear' || S.happen === 'matsuri')) { const cols = S.happen === 'matsuri' || EVT?.id === 'newyear' ? ['#ef4444', '#fff1c4'] : EVT.id === 'halloween' ? ['#fb923c', '#a855f7'] : ['#ef4444', '#22c55e', '#facc15', '#3b82f6']; ctx.strokeStyle = 'rgba(40,40,40,.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); for (let x = 0; x <= W; x += 8) ctx.lineTo(x, H * .09 + Math.sin(x / W * Math.PI * 8) * H * .02 + H * .02); ctx.stroke(); for (let i = 0; i < 16; i++) { const x = W * (i + .5) / 16, y = H * .09 + Math.sin(x / W * Math.PI * 8) * H * .02 + H * .03, col = cols[(i + Math.floor(T * 2)) % cols.length]; ctx.fillStyle = col; if (S.happen === 'matsuri') { ell(ctx, x, y + 4, W * .008, H * .02); ctx.fill(); } else { circle(ctx, x, y, 3); ctx.fill(); } GLOWS.push([x, y, W * .02, col.length === 7 ? col + '99' : col]); } }
+      // 雨
+      if (parts.some(p => p.k === 'rain')) { ctx.strokeStyle = 'rgba(200,220,255,.55)'; ctx.lineWidth = 1; ctx.beginPath(); for (const p of parts) if (p.k === 'rain') { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 3, p.y + 10); } ctx.stroke(); }
+      // 夜
+      if (sky.dark) { ctx.fillStyle = `rgba(6,10,36,${sky.dark * .75})`; ctx.fillRect(0, 0, W, H); }
+      if (GLOWS.length) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const [x, y, rr, col] of GLOWS) { const gg = ctx.createRadialGradient(x, y, 0, x, y, rr); gg.addColorStop(0, col); gg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gg; ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2); } ctx.restore(); }
+      // 売上のポップ
+      for (const p of pops) { const k = p.t / 1.4; ctx.globalAlpha = 1 - k; ctx.fillStyle = '#facc15'; ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 3; ctx.font = `900 ${Math.max(11, W * .016)}px "M PLUS Rounded 1c", sans-serif`; ctx.textAlign = 'center'; ctx.strokeText(p.text, p.x, p.y - k * 30); ctx.fillText(p.text, p.x, p.y - k * 30); ctx.globalAlpha = 1; }
+      for (const p of parts) if (p.k === 'conf') { ctx.fillStyle = p.col; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.t * 8); ctx.fillRect(-3, -2, 6, 4); ctx.restore(); }
+      const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .5, W / 2, H / 2, Math.max(W, H) * .78); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.2)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    }
+    let hudAcc = 0;
+    function frame(now) {
+      const dt = Math.min(.05, (now - lastFrame) / 1000); lastFrame = now;
+      if (!document.hidden) { update(reduceMotion ? dt * .5 : dt); draw(); hudAcc += dt; if (hudAcc > .25) { hudAcc = 0; renderHud(); } }
+      requestAnimationFrame(frame);
+    }
+    cv.addEventListener('pointerdown', e => {
+      initAudio();
+      const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+      if (y > BASE() + H * .05) return;
+      const i = Math.floor(x / lotW()); if (i < 0 || i >= LOTS) return;
+      const sh = S.zones[cur].shops[i];
+      if (sh) openShopModal(cur, i); else openBuild(cur, i);
+    });
+    cv.addEventListener('pointermove', e => { const r = cv.getBoundingClientRect(); cv.style.cursor = (e.clientY - r.top) < BASE() + H * .05 ? 'pointer' : 'default'; });
+
+    /* =========================================================
+       サウンド
+    ========================================================= */
+    let audioCtx = null, sfxOn = LS.get('mun_sfx') === 'true';
+    function initAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} }
+    function tone(wave, f0, f1, dur, vol, delay = 0) { const o = audioCtx.createOscillator(), g = audioCtx.createGain(), n = audioCtx.currentTime + delay; o.connect(g); g.connect(audioCtx.destination); o.type = wave; o.frequency.setValueAtTime(f0, n); o.frequency.exponentialRampToValueAtTime(f1, n + dur); g.gain.setValueAtTime(vol, n); g.gain.exponentialRampToValueAtTime(.001, n + dur); o.start(n); o.stop(n + dur); }
+    let lastReg = 0;
+    function sfx(type) {
+      if (!sfxOn || !audioCtx) return;
+      if (type === 'register') { if (performance.now() - lastReg < 120) return; lastReg = performance.now(); tone('square', 1800, 2400, .06, .025); tone('square', 2400, 2600, .08, .02, .06); }
+      else if (type === 'coin') tone('square', 900, 1700, .18, .04);
+      else if (type === 'fanfare') { [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, .18, .06, i * .12)); }
+      else if (type === 'level') { tone('sine', 700, 1400, .25, .06); }
+      else if (type === 'bell') { tone('sine', 1200, 1180, .5, .05); tone('sine', 900, 880, .6, .04, .2); }
+      else if (type === 'no') tone('sawtooth', 220, 140, .2, .04);
+      else tone('sine', 500, 800, .1, .04);
+    }
+    function renderSfx() { const b = $('#sfx'); b.classList.toggle('is-on', sfxOn); b.innerHTML = `<i class="fa-solid ${sfxOn ? 'fa-volume-high' : 'fa-volume-xmark'}"></i>`; }
+    $('#sfx').addEventListener('click', () => { initAudio(); sfxOn = !sfxOn; LS.set('mun_sfx', sfxOn); renderSfx(); sfx('bell'); });
+
+    /* =========================================================
+       画面（ボタン・パネル）
+    ========================================================= */
+    function toast(msg, icon = 'fa-check') {
+      const t = document.createElement('div'); t.className = 'toast';
+      t.innerHTML = `<i class="fa-solid ${icon}"></i><span>${esc(msg)}</span>`;
+      $('#toast-container').appendChild(t);
+      while ($('#toast-container').children.length > (innerWidth < 640 ? 2 : 4)) $('#toast-container').firstChild.remove();
+      setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 400); }, 3200);
+    }
+    function openModal(html, cls = '') { const m = $('#modal'); $('#modal-content').innerHTML = html; m.querySelector('.modal-box').className = 'modal-box ' + cls; m.classList.add('show'); if (window.paintIcons) paintIcons(); }
+    function closeModal() { $('#modal').classList.remove('show'); renderAll(); }
+    $('#modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.closest('[data-close]')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    const faceCache = {};
+    function faceImg(s, size = 96, opt = {}) {
+      const key = s.id + JSON.stringify(opt) + size; if (faceCache[key]) return faceCache[key];
+      const c = document.createElement('canvas'); c.width = size * 2; c.height = size * 2; const x = c.getContext('2d'); x.scale(2, 2);
+      const g = x.createRadialGradient(size / 2, size * .4, 0, size / 2, size / 2, size * .7); g.addColorStop(0, '#fff7e0'); g.addColorStop(1, '#ffd9a8'); x.fillStyle = g; x.fillRect(0, 0, size, size);
+      drawFace(x, size / 2, size * .42, size * .24, s.look, opt);
+      return (faceCache[key] = c.toDataURL());
+    }
+    function shopThumb(type, lv = 0) {
+      const key = 'shop:' + type + lv; if (faceCache[key]) return faceCache[key];
+      const w = 200, h = 150, c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; const x = c.getContext('2d'); x.scale(2, 2);
+      const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#a8d8f0'); g.addColorStop(1, '#e6f4fb'); x.fillStyle = g; x.fillRect(0, 0, w, h); x.fillStyle = '#c8c0b0'; x.fillRect(0, h * .9, w, h * .1);
+      GLOWS = []; drawShop(x, w * .05, h * .9, w * .9, h * 2.6, { type, lv }, { night: false, t: 1, staff: [], open: true });
+      return (faceCache[key] = c.toDataURL());
+    }
+    const stars = (n, max = 5) => `<span class="stars">${'★'.repeat(Math.round(n))}${'☆'.repeat(Math.max(0, max - Math.round(n)))}</span>`;
+    function skillBars(s) { return ['sell', 'make', 'ad', 'hp'].map(k => `<div class="skill"><span><i class="fa-solid ${({ sell: 'fa-cash-register', make: 'fa-kitchen-set', ad: 'fa-bullhorn', hp: 'fa-heart-pulse' })[k]}"></i>${({ sell: '接客', make: '作る・品出し', ad: '宣伝', hp: '体力' })[k]}</span><i class="pips">${Array.from({ length: Math.max(5, s.sk[k]) }, (_, i) => `<b class="${i < s.sk[k] ? 'on' : ''}"></b>`).join('')}</i></div>`).join(''); }
+    const moodIcon = m => m >= 70 ? 'fa-face-laugh-beam' : m >= 40 ? 'fa-face-smile' : m >= 20 ? 'fa-face-meh' : 'fa-face-sad-tear';
+    function assignText(s) { if (!s.shop) return 'まだ仕事がない'; const x = shopById(s.shop); if (!x) return 'まだ仕事がない'; return `${ZONES[x.z].name} ${SHOPS[x.sh.type].name}・${ROLES[s.role === 'work' ? workRole(x.sh) : s.role].name}`; }
+
+    /* ---------- 上の表示 ---------- */
+    function renderZoneTabs() {
+      const lv = townLv();
+      $('#zone-tabs').innerHTML = ZONE_ORDER.map(z => { const zd = ZONES[z], Z = S.zones[z], n = Z.shops.filter(Boolean).length;
+        return `<button class="zone-tab ${z === cur ? 'on' : ''} ${Z.open ? '' : 'locked'}" data-zone="${z}" style="--zc:${zd.tab}"><i class="fa-solid ${Z.open ? zd.icon : 'fa-lock'}"></i><span><b>${zd.name}</b><small>${Z.open ? `お店 ${n} / ${LOTS}` : lv >= zd.unlockLv ? yen(zd.price) + ' で開く' : `街レベル${zd.unlockLv + 1}から`}</small></span></button>`; }).join('');
+    }
+    $('#zone-tabs').addEventListener('click', e => { const b = e.target.closest('[data-zone]'); if (!b) return; const z = b.dataset.zone, zd = ZONES[z]; if (!S.zones[z].open) { if (townLv() < zd.unlockLv) { toast(`街がもっと発展すると開けるよ（街レベル${zd.unlockLv + 1}「${TOWN[zd.unlockLv][1]}」から）`, 'fa-lock'); return; }
+      openModal(`<div class="mh"><i class="fa-solid ${zd.icon}"></i><div><small>NEW BLOCK</small><h2>${zd.name}をひらく</h2></div></div><p class="lead">新しい通りに、お店を4けん建てられるようになります。</p><div class="price-row"><span>ひつようなお金</span><b>${yen(zd.price)}</b></div><div class="modal-actions"><button class="btn ghost" data-close>やめる</button><button class="btn" id="do-z">${yen(zd.price)} で ひらく</button></div>`);
+      $('#do-z').onclick = () => { if (!spendYen(zd.price)) return; S.zones[z].open = true; save(); closeModal(); cur = z; S.cur = z; walkers = []; toast(`${zd.name}がひらいた！`, 'fa-road'); sfx('fanfare'); renderAll(); }; return; }
+      cur = z; S.cur = z; walkers = []; save(); renderAll(); });
+    function renderHud() {
+      const w = WEATHER.find(x => x.k === S.weather) || WEATHER[0];
+      $('#zone-title').innerHTML = `${ZONES[cur].name} <small><i class="fa-solid ${w.icon}"></i> ${w.name}</small>`;
+      $('#zone-cap').innerHTML = `<b>${S.day}日目 ${hhmm(S.hour)}</b> ${isOpenHour() ? "<i class=\"fa-solid fa-store\"></i> 営業中" : "<i class=\"fa-solid fa-moon\"></i> 閉店中"}`;
+      $('#money').textContent = yen(moneyShown); $('#money').classList.toggle('minus', S.money < 0);
+      const shops = allShops(), setM = (id, v) => { const el = $(id); el.style.width = clamp(v, 0, 100) + '%'; el.className = v < 30 ? 'bad' : v < 60 ? 'warn' : ''; };
+      setM('#m-rep', shops.length ? shops.reduce((a, x) => a + (x.sh.rep ?? 3), 0) / shops.length * 20 : 60);
+      const lv = townLv(), next = TOWN[lv + 1]; setM('#m-pop', next ? (S.pop - TOWN[lv][0]) / (next[0] - TOWN[lv][0]) * 100 : 100);
+      const wk = S.staff.filter(s => s.shop); setM('#m-hp', wk.length ? wk.reduce((a, s) => a + s.energy, 0) / wk.length : 100);
+      $('#btn-play i').className = 'fa-solid ' + (paused ? 'fa-play' : 'fa-pause'); $('#btn-play span').textContent = paused ? 'すすめる' : 'ストップ';
+      $('#btn-speed small').textContent = '×' + speed;
+      $('#btn-flyer small').textContent = S.flyer === S.day ? '配布ずみ' : yen(flyerCost());
+      $('#today-sales').textContent = yen(S.today.sales);
+      const msg = $('#zoo-msg'); const shopsHere = S.zones[cur].shops.filter(Boolean);
+      const noSell = allShops().filter(x => !(x.sh.build > 0) && !staffOf(x.sh).some(s => s.role === 'sell'));
+      if (!allShops().length) { msg.hidden = false; msg.innerHTML = '<i class="fa-solid fa-hammer"></i> 空き地をタップして、お店を建てよう！'; }
+      else if (!S.staff.length) { msg.hidden = false; msg.innerHTML = '<i class="fa-solid fa-user-plus"></i> 「求人」でスタッフを雇おう！'; }
+      else if (noSell.length) { msg.hidden = false; msg.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${esc(SHOPS[noSell[0].sh.type].name)}に「接客」の人がいないよ。お店をタップして割りふろう`; }
+      else if (S.money < 0) { msg.hidden = false; msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 赤字だよ！ 費用を見直そう'; }
+      else msg.hidden = true;
+    }
+    function flyerCost() { return 3000 + allShops().length * 1000; }
+    $('#btn-play').addEventListener('click', () => { initAudio(); paused = !paused; renderHud(); });
+    $('#btn-speed').addEventListener('click', () => { initAudio(); speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; toast(`はやさ ×${speed}`, 'fa-forward'); renderHud(); });
+    $('#btn-flyer').addEventListener('click', () => { initAudio(); if (S.flyer === S.day) { toast('今日はもうチラシを配ったよ', 'fa-newspaper'); return; } const c = flyerCost(); if (!allShops().length) { toast('まずはお店を建てよう', 'fa-store'); return; } if (!spendYen(c)) return; S.flyer = S.day; S.today.ad += c; for (let k = 0; k < 24; k++) parts.push({ k: 'conf', x: W / 2, y: H * .3, vx: rnd(-1, 1) * W * .3, vy: rnd(-1, 0) * H * .4, t: 0, life: 1.8, col: '#ffffff' }); toast('チラシを配った！ 今日はお客さんが25%ふえるよ', 'fa-newspaper'); dailyCare(); save(); });
+    $('#btn-hire').addEventListener('click', () => { sideTab = 'hire'; renderSide(); $('#side').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    $('#btn-report').addEventListener('click', () => { sideTab = 'report'; renderSide(); $('#side').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+
+    /* ---------- お店を建てる ---------- */
+    function openBuild(z, i) {
+      const lv = townLv();
+      const list = Object.keys(SHOPS);
+      openModal(`<div class="mh"><i class="fa-solid fa-hammer"></i><div><small>${ZONES[z].name} ・ ${i + 1}番地</small><h2>どんなお店を建てる？</h2></div></div>
+        <p class="small muted">お金：<b style="color:var(--gold)">${yen(S.money)}</b>　「作って売る」お店には「作る」係、「仕入れて売る」お店には「品出し」係がいるよ。</p>
+        <div class="seed-grid">${list.map(k => { const d = SHOPS[k], lock = lv < d.lv, peak = d.peak.map(p => `${p[0]}〜${p[1] + 1}時`).join('・');
+          return `<button class="seed-card ${lock ? 'blocked' : ''}" data-build="${k}"><img src="${shopThumb(k)}" alt=""><b>${d.name}</b><small>${lock ? `<i class="fa-solid fa-lock"></i> 街レベル${d.lv + 1}から` : `${d.kind === 'make' ? '作って売る' : '仕入れて売る'} ・ 多い時間 ${peak}`}</small><span class="row"><span>ねだん <b class="earn">${yen(d.price)}</b></span><span>建てる <b class="${d.build > S.money ? 'short' : ''}">${yen(d.build)}</b></span></span></button>`; }).join('')}</div>
+        <div class="modal-actions"><button class="btn ghost" data-close>やめる</button></div>`, 'wide');
+      $('.seed-grid').onclick = e => { const b = e.target.closest('[data-build]'); if (!b) return; const k = b.dataset.build, d = SHOPS[k]; if (lv < d.lv) { toast(`街がもっと発展すると建てられるよ（街レベル${d.lv + 1}から）`, 'fa-lock'); return; } if (!spendYen(d.build)) return;
+        S.zones[z].shops[i] = { id: 'h' + (S.nid++), type: k, lv: 0, price: 0, rep: 3, build: 2, stock: 0, shelf: 0, today: { sales: 0, cust: 0, lost: 0, made: 0, waste: 0 }, totalSales: 0, opened: S.day };
+        closeModal(); toast(`${d.name}の工事がはじまった！（2時間で完成）`, 'fa-hammer'); sfx('bell'); dailyCare(); save(); renderAll(); };
+    }
+
+    /* ---------- お店の画面 ---------- */
+    function openShopModal(z, i) {
+      const sh = S.zones[z].shops[i]; if (!sh) return; const def = SHOPS[sh.type], wr = workRole(sh), t = sh.today || {};
+      const slotRow = role => { const r = role === 'work' ? wr : role, n = slotsOf(sh, role), list = S.staff.filter(s => s.shop === sh.id && s.role === role);
+        return `<div class="role-row"><div class="role-h"><i class="fa-solid ${ROLES[r].icon}"></i><b>${ROLES[r].name}</b><small>${ROLES[r].desc}</small></div><div class="slots">${Array.from({ length: n }, (_, k) => { const s = list[k]; return s ? `<button class="slot on" data-staff="${s.id}"><img src="${faceImg(s, 64)}" alt=""><span>${esc(s.name.split(' ')[1])}</span>${s.rest ? '<em>休み</em>' : s.energy < 25 ? '<em class="tired">へとへと</em>' : ''}</button>` : `<button class="slot" data-assign="${role}"><i class="fa-solid fa-plus"></i><span>だれかを<br>割りふる</span></button>`; }).join('')}</div></div>`; };
+      const up = UPGRADE[(sh.lv || 0) + 1], upCost = up ? Math.round(def.build * up) : 0;
+      openModal(`<div class="shop-hero"><img src="${shopThumb(sh.type, sh.lv || 0)}" alt=""><div><small>${ZONES[z].name} ・ ${i + 1}番地 ・ Lv.${(sh.lv || 0) + 1}</small><h2>${def.name}</h2>${stars(sh.rep ?? 3)} <span class="small muted">評判</span></div></div>
+        ${sh.build > 0 ? '<p class="warn-line"><i class="fa-solid fa-hammer"></i> 工事中…もうすぐ完成するよ</p>' : ''}
+        <div class="stat-grid four"><div><b>${yen(t.sales || 0)}</b><span>今日の売上</span></div><div><b>${fmt(t.cust || 0)}人</b><span>今日のお客さん</span></div><div><b>${fmt(t.lost || 0)}人</b><span>帰ってしまった人</span></div><div><b>${yen(sh.totalSales || 0)}</b><span>これまでの売上</span></div></div>
+        ${t.lost > (t.cust || 0) * .3 && t.lost > 3 ? `<p class="small" style="color:#fca5a5"><i class="fa-solid fa-person-walking-arrow-right"></i> 人手や商品が足りなくて、帰ってしまったお客さんが多いよ。${def.kind === 'make' ? '「作る」' : '「品出し」'}や「接客」の人をふやそう</p>` : ''}
+        <h3 class="mh3"><i class="fa-solid fa-users"></i> 仕事の割りふり</h3>
+        ${slotRow('boss')}${slotRow('sell')}${slotRow('work')}${slotRow('ad')}
+        <h3 class="mh3"><i class="fa-solid fa-tag"></i> 値段</h3>
+        <div class="seg" id="price-seg">${[[-1, '安め', '×0.8・お客さん多め'], [0, 'ふつう', yen(def.price)], [1, '高め', '×1.25・お客さん少なめ']].map(([v, a, b]) => `<button data-price="${v}" class="${(sh.price || 0) === v ? 'on' : ''}">${a}<small>${b}</small></button>`).join('')}</div>
+        <div class="fact"><b><i class="fa-solid fa-lightbulb"></i> お店のひみつ</b><p>${esc(def.fact)}</p></div>
+        <div class="modal-actions">${up ? `<button class="btn" id="do-up"><i class="fa-solid fa-arrow-up"></i> 改装 Lv.${(sh.lv || 0) + 2}（${yen(upCost)}）</button>` : ''}<button class="btn ghost" id="do-break"><i class="fa-solid fa-trash-can"></i> とりこわす</button><button class="btn ghost" data-close>とじる</button></div>`, 'wide');
+      $('#price-seg').onclick = e => { const b = e.target.closest('[data-price]'); if (!b) return; sh.price = +b.dataset.price; save(); openShopModal(z, i); };
+      $$('[data-assign]').forEach(b => b.onclick = () => pickStaff(z, i, b.dataset.assign));
+      $$('.slot[data-staff]').forEach(b => b.onclick = () => openStaffModal(b.dataset.staff, () => openShopModal(z, i)));
+      if ($('#do-up')) $('#do-up').onclick = () => { if (!spendYen(upCost)) return; sh.lv = (sh.lv || 0) + 1; sh.build = 2; faceCache['shop:' + sh.type + sh.lv] = null; save(); closeModal(); toast(`${def.name}を改装中！ 2時間後にパワーアップ`, 'fa-hammer'); };
+      $('#do-break').onclick = () => { openModal(`<div class="mh"><i class="fa-solid fa-trash-can"></i><div><small>CONFIRM</small><h2>${def.name}をとりこわしますか？</h2></div></div><p class="lead">建てたお金の30%（${yen(def.build * .3)}）がもどります。働いていた人は「仕事なし」になります。</p><div class="modal-actions"><button class="btn ghost" data-close>やめる</button><button class="btn danger" id="yes">とりこわす</button></div>`); $('#yes').onclick = () => { S.money += Math.round(def.build * .3); for (const s of staffOf(sh)) { s.shop = null; s.role = null; } S.zones[z].shops[i] = null; save(); closeModal(); toast('空き地になったよ', 'fa-trash-can'); }; };
+    }
+    function pickStaff(z, i, role) {
+      const sh = S.zones[z].shops[i], r = role === 'work' ? workRole(sh) : role, skill = r === 'sell' || r === 'boss' ? 'sell' : r === 'ad' ? 'ad' : 'make';
+      const list = S.staff.slice().sort((a, b) => (a.shop ? 1 : 0) - (b.shop ? 1 : 0) || b.sk[skill] - a.sk[skill]);
+      openModal(`<div class="mh"><i class="fa-solid ${ROLES[r].icon}"></i><div><small>${SHOPS[sh.type].name}</small><h2>「${ROLES[r].name}」をだれにする？</h2></div></div>
+        ${list.length ? `<div class="staff-list">${list.map(s => `<button class="staff-card" data-pick="${s.id}"><img src="${faceImg(s, 64)}" alt=""><span><b>${esc(s.name)} <small>Lv.${s.lv}</small></b><small>${s.shop ? '<i class="fa-solid fa-arrow-right-arrow-left"></i> ' + esc(assignText(s)) + 'から移動' : '<span style="color:var(--accent)">仕事なし</span>'}</small><i class="pips">${Array.from({ length: Math.max(5, s.sk[skill]) }, (_, k) => `<b class="${k < s.sk[skill] ? 'on' : ''}"></b>`).join('')}</i></span></button>`).join('')}</div>` : '<p class="lead">まだスタッフがいません。「求人」で雇おう！</p>'}
+        <div class="modal-actions"><button class="btn ghost" id="pk-back">もどる</button>${list.length ? '' : '<button class="btn" id="pk-hire">求人を見る</button>'}</div>`);
+      $('#pk-back').onclick = () => openShopModal(z, i);
+      if ($('#pk-hire')) $('#pk-hire').onclick = () => { closeModal(); sideTab = 'hire'; renderSide(); };
+      $$('[data-pick]').forEach(b => b.onclick = () => { const s = S.staff.find(x => x.id === b.dataset.pick); const cnt = S.staff.filter(x => x.shop === sh.id && x.role === role && x !== s).length; if (cnt >= slotsOf(sh, role)) { toast('この仕事はもういっぱい', 'fa-circle-info'); return; } s.shop = sh.id; s.role = role; save(); sfx('level'); toast(`${s.name}さんを${SHOPS[sh.type].name}の「${ROLES[r].name}」にしたよ`, 'fa-user-check'); dailyCare(); openShopModal(z, i); });
+    }
+
+    /* ---------- スタッフの画面 ---------- */
+    function openStaffModal(id, back) {
+      const s = S.staff.find(x => x.id === id); if (!s) return; const tr = traitOf(s), exp = expectWage(s);
+      openModal(`<div class="staff-hero"><img src="${faceImg(s, 120, { t: 0 })}" alt=""><div><small>Lv.${s.lv} ・ はたらいた日 ${s.days}日</small><h2>${esc(s.name)}</h2><span class="trait"><i class="fa-solid fa-star"></i> ${tr.name}（${tr.text}）</span></div></div>
+        <div class="track"><div style="width:${s.exp / (s.lv * 100) * 100}%"></div></div><p class="small muted">つぎのレベルまで ${Math.ceil(s.lv * 100 - s.exp)}（お客さんが来るほど成長するよ）</p>
+        ${skillBars(s)}
+        <div class="sbar"><span><i class="fa-solid fa-bolt"></i>元気</span><div class="track"><div class="${s.energy < 30 ? 'bad' : s.energy < 60 ? 'warn' : ''}" style="width:${s.energy}%"></div></div><b>${Math.round(s.energy)}</b></div>
+        <div class="sbar"><span><i class="fa-solid ${moodIcon(s.morale)}"></i>やる気</span><div class="track"><div class="${s.morale < 30 ? 'bad' : s.morale < 60 ? 'warn' : ''}" style="width:${s.morale}%"></div></div><b>${Math.round(s.morale)}</b></div>
+        <p class="small">いまの仕事：<b>${esc(assignText(s))}</b>${s.streak >= 5 ? ` ・ <span style="color:#fca5a5">${s.streak}日れんぞくで働いているよ。休ませてあげよう</span>` : ''}</p>
+        <p class="small">給料：<b>${yen(s.wage)} / 日</b>${s.wage < exp * .8 ? ` <span style="color:#fca5a5">（ちょっと安いかも…）</span>` : ''}</p>
+        <div class="modal-actions wrap">
+          <button class="btn ${s.rest ? '' : 'ghost'}" id="st-rest"><i class="fa-solid fa-bed"></i> ${s.rest ? '休みをやめる' : '今日は休み'}</button>
+          ${s.shop ? '<button class="btn ghost" id="st-free"><i class="fa-solid fa-user-minus"></i> 仕事からはずす</button>' : ''}
+          <button class="btn ghost" id="st-bonus"><i class="fa-solid fa-gift"></i> ボーナス ${yen(s.wage)}</button>
+          <button class="btn ghost" id="st-raise"><i class="fa-solid fa-arrow-trend-up"></i> 昇給 +10%</button>
+          <button class="btn danger" id="st-fire"><i class="fa-solid fa-user-xmark"></i> 解雇</button>
+          <button class="btn" id="st-back">${back ? 'もどる' : 'とじる'}</button></div>`);
+      const reopen = () => openStaffModal(id, back);
+      $('#st-back').onclick = () => back ? back() : closeModal();
+      $('#st-rest').onclick = () => { s.rest = !s.rest; save(); toast(s.rest ? `${s.name}さんは今日はお休み。元気とやる気が回復するよ` : `${s.name}さんは今日も働くよ`, 'fa-bed'); reopen(); };
+      if ($('#st-free')) $('#st-free').onclick = () => { s.shop = null; s.role = null; save(); reopen(); };
+      $('#st-bonus').onclick = () => { if (!spendYen(s.wage)) return; s.morale = Math.min(100, s.morale + 20); S.today.ad += s.wage; save(); toast(`${s.name}さん「ありがとうございます！がんばります！」`, 'fa-gift'); reopen(); };
+      $('#st-raise').onclick = () => { s.wage = Math.round(s.wage * 1.1 / 100) * 100; s.morale = Math.min(100, s.morale + 12); save(); toast(`${s.name}さんの給料を ${yen(s.wage)} にしたよ。やる気アップ！`, 'fa-arrow-trend-up'); reopen(); };
+      $('#st-fire').onclick = () => { const pay = s.wage * 5;
+        openModal(`<div class="mh"><img class="mh-img face" src="${faceImg(s, 64, { mood: 'sad' })}" alt=""><div><small>解雇</small><h2>${esc(s.name)}さんを解雇しますか？</h2></div></div>
+          <p class="lead">解雇すると、${esc(s.name)}さんはお店をやめます。予告のかわりの手当として <b>${yen(pay)}</b>（給料5日分）を払います。</p>
+          <div class="fact"><b><i class="fa-solid fa-scale-balanced"></i> 本物の会社では</b><p>働く人をやめさせる（解雇する）には、きちんとした理由が必要です。また、30日前に予告するか、そのかわりに30日分以上の給料（解雇予告手当）を払うきまりがあります。</p></div>
+          <div class="modal-actions"><button class="btn ghost" id="f-no">やめておく</button><button class="btn danger" id="f-yes">解雇する</button></div>`);
+        $('#f-no').onclick = reopen;
+        $('#f-yes').onclick = () => { S.money -= pay; S.today.fire += pay; S.staff = S.staff.filter(x => x !== s); save(); closeModal(); toast(`${s.name}さんが お店をやめました`, 'fa-user-xmark'); }; };
+    }
+
+    /* ---------- 日報（1日のおわり） ---------- */
+    function showReport(r, lvUp) {
+      const best = r.shops.slice().sort((a, b) => b.sales - a.sales)[0];
+      const maxS = Math.max(1, ...r.shops.map(x => x.sales));
+      openModal(`<div class="report"><div class="rp-head"><small>DAY ${r.day} REPORT</small><h2>${r.day}日目の決算</h2>${r.newRecord ? '<em class="rec">🎉 売上 過去最高！</em>' : ''}</div>
+        <div class="rp-calc">
+          <div><span>売上</span><b class="plus">${yen(r.sales)}</b></div>
+          <div><span>− 原価（材料・仕入れ）</span><b class="minus">${yen(r.cost)}</b></div>
+          <div><span>− 給料（人件費）</span><b class="minus">${yen(r.wage)}</b></div>
+          ${r.other ? `<div><span>− そのほか（チラシ・手当など）</span><b class="minus">${yen(r.other)}</b></div>` : ''}
+          <div class="total"><span>＝ 利益</span><b class="${r.profit >= 0 ? 'plus' : 'minus'}">${yen(r.profit)}</b></div></div>
+        <div class="rp-mini"><div><i class="fa-solid fa-users"></i><b>${fmt(r.cust)}人</b><span>お客さん</span></div><div><i class="fa-solid fa-person-walking-arrow-right"></i><b>${fmt(r.lost)}人</b><span>帰った人</span></div><div><i class="fa-solid fa-trash-can"></i><b>${fmt(r.waste)}こ</b><span>売れのこり</span></div></div>
+        ${r.shops.length ? `<div class="rp-bars">${r.shops.map(x => `<div><span>${SHOPS[x.type].name}</span><i style="width:${x.sales / maxS * 100}%"></i><b>${yen(x.sales)}</b></div>`).join('')}</div>` : ''}
+        ${best && best.sales ? `<p class="small"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> 今日いちばん売れたお店：<b>${SHOPS[best.type].name}</b>${r.mvp ? ` ・ MVP：<b>${esc(r.mvp)}</b>さん` : ''}</p>` : ''}
+        ${r.waste ? '<p class="small muted">作りすぎて売れのこった食べものは、すてることになったよ（食品ロス）。作る人数を調整してみよう。</p>' : ''}
+        ${r.quit.length ? `<p class="small" style="color:#fca5a5"><i class="fa-solid fa-person-walking-luggage"></i> ${r.quit.map(esc).join('・')}さんが、つかれてやめてしまった…。休みや給料を見直そう</p>` : ''}
+        ${r.sad && r.sad.length ? `<p class="small" style="color:#fcd34d"><i class="fa-solid fa-face-sad-tear"></i> ${r.sad.map(esc).join('・')}さんのやる気が下がっているよ。休み・昇給・ボーナスで元気づけよう（このままだと、やめてしまうかも）</p>` : ''}
+        ${lvUp ? `<div class="lvup"><i class="fa-solid fa-city"></i><div><small>TOWN LEVEL UP!</small><b>${TOWN[lvUp][1]}</b><span>新しいお店${ZONE_ORDER.some(z => ZONES[z].unlockLv === lvUp) ? 'や新しい通り' : ''}が建てられるようになったよ！</span></div></div>` : ''}</div>
+        <div class="modal-actions"><button class="btn" data-close><i class="fa-solid fa-sun"></i> つぎの日へ</button></div>`, 'report-box');
+      if (r.newRecord || lvUp) { sfx('fanfare'); for (let k = 0; k < 60; k++) parts.push({ k: 'conf', x: W / 2, y: H * .2, vx: rnd(-1, 1) * W * .4, vy: rnd(-1.2, -.2) * H * .5, t: 0, life: 2, col: pick(['#ef4444', '#facc15', '#3b82f6', '#22c55e', '#ec4899']) }); }
+      else sfx('bell');
+      dirtySave();
+    }
+
+    /* ---------- サイドパネル ---------- */
+    let sideTab = 'shops';
+    $('#side-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; sideTab = b.dataset.tab; renderSide(); });
+    function renderSide() {
+      $$('#side-tabs [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === sideTab));
+      const el = $('#side-body'), y = el.scrollTop;
+      el.innerHTML = sideTab === 'shops' ? sideShops() : sideTab === 'staff' ? sideStaff() : sideTab === 'hire' ? sideHire() : sideTab === 'report' ? sideReport() : sideTown();
+      if (window.paintIcons) paintIcons();
+      if (sideTab === 'report') drawChart();
+      el.scrollTop = y;
+    }
+    function sideShops() {
+      const list = allShops();
+      let h = `<div class="sec-h"><b>商店街のお店</b><span>${list.length}けん</span></div>`;
+      if (!list.length) return h + '<div class="empty"><i class="fa-solid fa-hammer"></i><p>まだお店がありません。通りの空き地をタップして建てよう！</p></div>';
+      h += '<div class="mine-list">' + list.map(({ z, i, sh }) => { const def = SHOPS[sh.type], st = staffOf(sh), noSell = !st.some(s => s.role === 'sell');
+        return `<button class="mine-item ${noSell && !(sh.build > 0) ? 'sick' : ''}" data-shop="${z}:${i}"><img src="${shopThumb(sh.type, sh.lv || 0)}" alt=""><span class="mi-text"><b>${def.name} <small>Lv.${(sh.lv || 0) + 1}</small></b><small>${ZONES[z].name} ・ ${stars(sh.rep ?? 3)} ・ スタッフ ${st.length}人</small><small>今日 ${yen(sh.today?.sales || 0)}（${fmt(sh.today?.cust || 0)}人）</small></span>${sh.build > 0 ? '<em>工事中</em>' : noSell ? '<em>接客なし</em>' : ''}</button>`; }).join('') + '</div>';
+      return h;
+    }
+    function sideStaff() {
+      const max = STAFF_MAX(townLv());
+      let h = `<div class="sec-h"><b>スタッフ</b><span>${S.staff.length} / ${max}人</span></div>`;
+      if (!S.staff.length) return h + '<div class="empty"><i class="fa-solid fa-user-plus"></i><p>まだスタッフがいません。</p><button class="btn sm" data-gotab="hire">求人を見る</button></div>';
+      const wage = S.staff.reduce((a, s) => a + s.wage, 0);
+      h += `<p class="small muted">1日の給料の合計（人件費）：<b style="color:var(--gold)">${yen(wage)}</b></p>`;
+      h += '<div class="staff-list">' + S.staff.map(s => `<div class="staff-card"><img src="${faceImg(s, 64)}" alt="" data-st="${s.id}"><span data-st="${s.id}"><b>${esc(s.name)} <small>Lv.${s.lv}</small></b><small>${esc(assignText(s))}</small><span class="bars"><i class="e" style="width:${s.energy}%"></i><i class="m" style="width:${s.morale}%"></i></span></span><button class="icon-btn sm ${s.rest ? 'on' : ''}" data-rest="${s.id}" title="休み" aria-label="休み"><i class="fa-solid fa-bed"></i></button></div>`).join('') + '</div>';
+      h += '<p class="small muted"><span class="dot y"></span>元気 <span class="dot g"></span>やる気　・　<i class="fa-solid fa-bed"></i> を押すと、その日はお休み（元気が全回復・その日の給料はなし）。仕事がない人にも給料の半分がかかるよ</p>';
+      return h;
+    }
+    function sideHire() {
+      const max = STAFF_MAX(townLv()), full = S.staff.length >= max;
+      let h = `<div class="sec-h"><b>求人（はたらきたい人）</b><span>スタッフ ${S.staff.length} / ${max}人</span></div>`;
+      if (full) h += '<p class="warn-line"><i class="fa-solid fa-lock"></i> スタッフがいっぱい。街が発展すると、もっと雇えるようになるよ</p>';
+      if (!S.cands.length) h += '<p class="small muted">いまは、はたらきたい人がいないみたい。</p>';
+      h += '<div class="cand-list">' + S.cands.map(s => { const tr = traitOf(s); return `<div class="cand"><img src="${faceImg(s, 72)}" alt=""><div class="cd-body"><b>${esc(s.name)}</b><span class="trait"><i class="fa-solid fa-star"></i> ${tr.name}</span>${skillBars(s)}<div class="cd-foot"><span>給料 <b>${yen(s.wage)}</b>/日</span><button class="btn sm" data-hire="${s.id}" ${full ? 'disabled' : ''}><i class="fa-solid fa-handshake"></i> 雇う</button></div></div></div>`; }).join('') + '</div>';
+      h += `<button class="btn ghost wide" id="re-cand"><i class="fa-solid fa-rotate"></i> 求人広告を出しなおす（${yen(2000)}）</button>`;
+      h += '<p class="small muted" style="margin-top:10px;">毎日、新しい人が少しずつやってくるよ。スキルが高い人ほど、給料も高めです。</p>';
+      return h;
+    }
+    function sideReport() {
+      const t = S.today, est = t.sales - t.cost - S.staff.reduce((a, s) => a + s.wage, 0) - t.fire - t.ad;
+      let h = `<div class="sec-h"><b>今日（${S.day}日目）のようす</b><span>${hhmm(S.hour)}</span></div>
+        <div class="stat-grid"><div><b>${yen(t.sales)}</b><span>売上</span></div><div><b>${fmt(t.cust)}人</b><span>お客さん</span></div><div><b>${yen(t.cost)}</b><span>原価</span></div><div><b class="${est >= 0 ? '' : 'neg'}">${yen(est)}</b><span>利益の見こみ（給料をひいた後）</span></div></div>`;
+      h += `<div class="sec-h" style="margin-top:14px;"><b>売上と利益のグラフ</b><span>最近${Math.min(14, S.history.length)}日</span></div><canvas id="chart"></canvas><p class="small muted"><span class="dot y"></span>売上 <span class="dot g"></span>利益</p>`;
+      if (S.history.length) h += '<div class="hist">' + S.history.slice().reverse().slice(0, 10).map(r => `<button class="hist-row" data-hist="${r.day}"><span>${r.day}日目 <i class="fa-solid ${(WEATHER.find(w => w.k === r.weather) || WEATHER[0]).icon}"></i></span><span>${yen(r.sales)}</span><b class="${r.profit >= 0 ? 'plus' : 'minus'}">${yen(r.profit)}</b></button>`).join('') + '</div>';
+      h += `<div class="stat-grid" style="margin-top:12px;"><div><b>${yen(S.totalSales)}</b><span>これまでの売上</span></div><div><b>${yen(S.totalProfit)}</b><span>これまでの利益</span></div><div><b>${fmt(S.totalCust)}人</b><span>これまでのお客さん</span></div><div><b>${yen(S.best)}</b><span>1日の売上 最高記録</span></div></div>`;
+      return h;
+    }
+    function drawChart() {
+      const c = $('#chart'); if (!c) return; const w = c.clientWidth || 300, h = 150; c.width = w * 2; c.height = h * 2; c.style.height = h + 'px'; const x = c.getContext('2d'); x.scale(2, 2);
+      const d = S.history.slice(-14); x.fillStyle = 'rgba(255,255,255,.04)'; x.fillRect(0, 0, w, h);
+      if (!d.length) { x.fillStyle = '#9aa'; x.font = '12px sans-serif'; x.textAlign = 'center'; x.fillText('1日目がおわると、ここにグラフが出るよ', w / 2, h / 2); return; }
+      const mx = Math.max(1, ...d.map(r => r.sales)), mn = Math.min(0, ...d.map(r => r.profit)), rng0 = mx - mn, y0 = h - 18 - (-mn) / rng0 * (h - 30), bw = (w - 20) / d.length;
+      x.strokeStyle = 'rgba(255,255,255,.25)'; x.beginPath(); x.moveTo(10, y0); x.lineTo(w - 10, y0); x.stroke();
+      d.forEach((r, i) => { const bx = 10 + i * bw, sh = r.sales / rng0 * (h - 30), ph = r.profit / rng0 * (h - 30); x.fillStyle = '#facc15'; x.fillRect(bx + bw * .12, y0 - sh, bw * .36, sh); x.fillStyle = r.profit >= 0 ? '#4ade80' : '#f87171'; x.fillRect(bx + bw * .52, r.profit >= 0 ? y0 - ph : y0, bw * .36, Math.abs(ph)); x.fillStyle = '#9aa'; x.font = '9px sans-serif'; x.textAlign = 'center'; x.fillText(r.day, bx + bw / 2, h - 4); });
+    }
+    function sideTown() {
+      const lv = townLv(), next = TOWN[lv + 1];
+      let h = `<div class="rank-hero"><i class="fa-solid fa-city"></i><div><small>TOWN LEVEL ${lv + 1}</small><b>${TOWN[lv][1]}</b></div></div>
+        <p class="small">街の人口：<b style="color:var(--gold)">${fmt(S.pop)}人</b></p>`;
+      if (next) h += `<div class="track big"><div style="width:${Math.min(100, (S.pop - TOWN[lv][0]) / (next[0] - TOWN[lv][0]) * 100)}%"></div></div><p class="small muted">つぎのレベル「${next[1]}」まで あと ${fmt(next[0] - S.pop)}人。お店をふやし、評判を上げると人が集まるよ。</p>`;
+      h += `<div class="sec-h" style="margin-top:14px;"><b><i class="fa-solid fa-landmark"></i> ランドマーク（コインで建てる）</b></div><div class="grid">` + Object.keys(LANDMARKS).map(k => { const d = LANDMARKS[k], has = S.landmarks[k]; return `<button class="item-card ${has ? 'blocked' : ''}" data-lm="${k}"><span class="ic-thumb noimg"><i class="fa-solid ${({ gaito: 'fa-lightbulb', hana: 'fa-seedling', funsui: 'fa-droplet', tokei: 'fa-clock', arcade: 'fa-archway', eki: 'fa-train', kanransha: 'fa-dharmachakra' })[k]}"></i></span><span class="ic-name">${d.name}</span><span class="ic-sub">人口 +${fmt(d.pop)}</span><span class="ic-price ${!has && d.price > coins() ? 'short' : ''}">${has ? '<i class="fa-solid fa-check"></i> 建てた' : `<i class="fa-solid fa-coins"></i> ${fmt(d.price)}`}</span></button>`; }).join('') + '</div>';
+      h += `<div class="sec-h" style="margin-top:14px;"><b><i class="fa-solid fa-hand-holding-dollar"></i> 出資（コイン → 商店街のお金）</b></div><p class="small muted">学習でためたコインを出して、商店街の資金にできるよ（1 C ＝ ${fmt(COIN_RATE)}円）。</p>
+        <div class="donate-grid">${[50, 100, 500, 1000, 5000].map(v => `<button class="btn ${v > coins() ? 'ghost' : ''}" data-invest="${v}"><i class="fa-solid fa-coins"></i> ${fmt(v)} C → ${yen(v * COIN_RATE)}</button>`).join('')}</div>
+        <div class="stat-grid" style="margin-top:12px;"><div><b>${fmt(S.invested)} C</b><span>出資したコイン</span></div><div><b>${fmt(S.coinSpent)} C</b><span>商店街に使ったコイン</span></div></div>
+        <ol class="rank-list" style="margin-top:12px;">${TOWN.map((r, k) => `<li class="${k <= lv ? 'got' : ''}"><i class="fa-solid ${k <= lv ? 'fa-circle-check' : 'fa-circle'}"></i><span>${r[1]}</span><small>人口 ${fmt(r[0])}〜</small></li>`).join('')}</ol>`;
+      return h;
+    }
+    $('#side-body').addEventListener('click', e => {
+      const sp = e.target.closest('[data-shop]'); if (sp) { const [z, i] = sp.dataset.shop.split(':'); openShopModal(z, +i); return; }
+      const gt = e.target.closest('[data-gotab]'); if (gt) { sideTab = gt.dataset.gotab; renderSide(); return; }
+      const rs = e.target.closest('[data-rest]'); if (rs) { const s = S.staff.find(x => x.id === rs.dataset.rest); s.rest = !s.rest; save(); toast(s.rest ? `${s.name}さんは今日はお休み` : `${s.name}さんは今日も働くよ`, 'fa-bed'); renderSide(); return; }
+      const st = e.target.closest('[data-st]'); if (st) { openStaffModal(st.dataset.st); return; }
+      const hi = e.target.closest('[data-hire]'); if (hi) { const s = S.cands.find(x => x.id === hi.dataset.hire); if (!s) return; if (S.staff.length >= STAFF_MAX(townLv())) { toast('スタッフがいっぱい', 'fa-lock'); return; } S.cands = S.cands.filter(x => x !== s); S.staff.push(s); save(); sfx('fanfare'); toast(`${s.name}さんを雇った！ お店をタップして仕事を割りふろう`, 'fa-handshake'); dailyCare(); renderSide(); return; }
+      if (e.target.closest('#re-cand')) { if (!spendYen(2000)) return; S.today.ad += 2000; S.cands = []; refillCands(4); save(); toast('新しい人が来てくれたよ', 'fa-rotate'); renderSide(); return; }
+      const hr = e.target.closest('[data-hist]'); if (hr) { const r = S.history.find(x => x.day === +hr.dataset.hist); if (r) showReport(r, 0); return; }
+      const lm = e.target.closest('[data-lm]'); if (lm) { const k = lm.dataset.lm, d = LANDMARKS[k]; if (S.landmarks[k]) return;
+        openModal(`<div class="mh"><i class="fa-solid fa-landmark"></i><div><small>LANDMARK</small><h2>${d.name}</h2></div></div><p class="lead">${esc(d.desc)}</p><div class="price-row"><span>ねだん</span><b><i class="fa-solid fa-coins"></i> ${fmt(d.price)} C</b></div><div class="price-row sub"><span>もっているコイン</span><span>${fmt(coins())} C</span></div><div class="modal-actions"><button class="btn ghost" data-close>やめる</button><button class="btn" id="lm-yes">${fmt(d.price)} C で建てる</button></div>`, 'buy');
+        $('#lm-yes').onclick = () => { if (!spendCoins(d.price)) return; S.landmarks[k] = 1; S.pop += Math.round(d.pop * .5); save(); closeModal(); sfx('fanfare'); for (let q = 0; q < 50; q++) parts.push({ k: 'conf', x: W / 2, y: H * .3, vx: rnd(-1, 1) * W * .4, vy: rnd(-1.2, -.2) * H * .5, t: 0, life: 2, col: pick(['#ef4444', '#facc15', '#3b82f6', '#22c55e']) }); toast(`${d.name}ができた！ 人が集まってくるよ`, 'fa-landmark'); }; return; }
+      const iv = e.target.closest('[data-invest]'); if (iv) { const v = +iv.dataset.invest; if (!spendCoins(v)) return; S.money += v * COIN_RATE; S.invested += v; save(); toast(`${fmt(v)} C を出資して ${yen(v * COIN_RATE)} になったよ`, 'fa-hand-holding-dollar'); renderSide(); return; }
+    });
+
+    function renderTip() { $('#tip span').textContent = TIPS[Math.floor(Date.now() / 9000) % TIPS.length]; }
+    function renderAll() { renderZoneTabs(); renderHud(); renderSide(); updateCoins(); }
+
+    (function () {
+      const rb = $('#event-ribbon'); if (!EVT) return;
+      rb.hidden = false; rb.style.setProperty('--e1', EVT.c1); rb.style.setProperty('--e2', EVT.c2);
+      const left = munEventDaysLeft(EVT);
+      rb.innerHTML = `<i class="fa-solid ${EVT.icon}"></i><b>${EVT.name}イベント</b><span>${EVT_REAL && EVT_REAL.id === EVT.id ? esc(EVT.item) : '（試し見表示中：お客さんがふえるのは本当の期間中だけ）'}</span><em>${!(EVT_REAL && EVT_REAL.id === EVT.id) ? '試し見' : left === 0 ? '今日まで' : `あと${left}日`}</em>`;
+    })();
+
+    function welcome() {
+      refillCands(4);
+      const s = newCandidate(); s.name = 'むん ハルト'; s.sk = { sell: 3, make: 3, ad: 2, hp: 3 }; s.trait = 'lead'; s.wage = 5300; s.look = { hs: 1, hc: 0, sk: 0, gl: 0, shirt: '#3b82f6' }; S.staff.push(s);
+      save(); renderAll();
+      openModal(`<div class="mh"><i class="fa-solid fa-store"></i><div><small>WELCOME</small><h2>むん商店街へようこそ！</h2></div></div>
+        <p class="lead">あなたは商店街の社長です！ お店を建てて、人を雇い、売上を上げて、街を大きくしよう。<br>はじめの資金は <b>${yen(START_MONEY)}</b>。最初のスタッフ <b>むん ハルト</b>さんも来てくれたよ。</p>
+        <ul class="howto"><li><i class="fa-solid fa-hammer"></i><span><b>建てる</b>：空き地をタップしてお店を建てよう（2時間で完成）</span></li>
+        <li><i class="fa-solid fa-users"></i><span><b>割りふる</b>：お店をタップして、「接客」「作る・品出し」「宣伝」「店長」に人を割りふる</span></li>
+        <li><i class="fa-solid fa-user-plus"></i><span><b>雇う・休ませる</b>：求人で人をふやそう。つかれた人は休ませてあげてね</span></li>
+        <li><i class="fa-solid fa-chart-column"></i><span><b>決算</b>：毎日20時に、売上・費用・利益がわかるよ</span></li></ul>
+        <p class="small muted">商店街の中のお金は「円」。サイトのコインは「街」タブの「出資」やランドマークに使えます。</p>
+        <div class="modal-actions"><button class="btn" data-close>はじめる！</button></div>`);
+    }
+
+    /* ---------- 起動 ---------- */
+    renderSfx(); resize();
+    new ResizeObserver(() => resize()).observe($('#zoo'));
+    if (!S.cands.length) refillCands(4);
+    const away = isNew ? null : offline();
+    moneyShown = S.money;
+    renderAll(); renderTip();
+    setInterval(renderTip, 9000);
+    setInterval(() => { save(); if (sideTab !== 'hire' && !$('#modal').classList.contains('show')) renderSide(); }, 4000);
+    window.addEventListener('beforeunload', save);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else { const a = offline(); if (a && a.days) toast(`留守のあいだに ${a.days}日たったよ（売上 ${yen(a.sales)}）`, 'fa-clock'); updateCoins(); renderAll(); } });
+    if (isNew) welcome();
+    else if (away && away.days) openModal(`<div class="mh"><i class="fa-solid fa-clock"></i><div><small>WELCOME BACK</small><h2>おかえりなさい、社長！</h2></div></div><p class="lead">留守のあいだも、スタッフががんばってくれたよ。</p><div class="rp-calc"><div><span>すぎた日数</span><b>${away.days}日</b></div><div><span>売上</span><b class="plus">${yen(away.sales)}</b></div><div class="total"><span>お金の変化</span><b class="${away.money >= 0 ? 'plus' : 'minus'}">${yen(away.money)}</b></div></div><div class="modal-actions"><button class="btn" data-close>営業をつづける</button></div>`);
+    requestAnimationFrame(frame);
+    window.__shop = { S, renderAll, advance, openShopModal, openStaffModal, newCandidate, closeDay, setSpeed: v => { speed = v; } };
+
+  </script>
+</body>
+</html>
