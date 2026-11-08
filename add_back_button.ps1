@@ -61,7 +61,9 @@ function Add-Tag([string]$file, [string]$name) {
     if ($text.Length -gt 0 -and $text[0] -eq [char]0xFEFF) { $text = $text.Substring(1) }
     if ($text -match 'mun-link\.js') { Write-Host ('  ・' + $name + ' : もう入っています') -ForegroundColor DarkGray; $script:skipped++; return }
     $nl = "`n"; if ($text.Contains("`r`n")) { $nl = "`r`n" }
-    $i = $text.LastIndexOf('</body>', [System.StringComparison]::OrdinalIgnoreCase)
+    # プログラム（script）やコメントの中にある </body> は数えない（アプリをこわさないため）
+    $clean = [regex]::Replace($text, '(?is)<script\b.*?</script>|<!--.*?-->', { param($m) ' ' * $m.Value.Length })
+    $i = $clean.LastIndexOf('</body>', [System.StringComparison]::OrdinalIgnoreCase)
     if ($i -ge 0) { $text = $text.Insert($i, $tag + $nl) } else { $text = $text + $nl + $tag + $nl }
     [System.IO.File]::WriteAllText($file, $text, (New-Object System.Text.UTF8Encoding($bom)))
     Write-Host ('  ○ ' + $name + ' : 追加しました') -ForegroundColor Green; $script:added++
