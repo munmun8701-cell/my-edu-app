@@ -18,7 +18,10 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
@@ -67,6 +70,28 @@
   .tile .st { margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--line); font-size: .78rem; font-weight: 800; color: var(--bright); display: flex; align-items: center; gap: 6px; }
   .tile .st i { color: var(--c); }
   .tile .new { position: absolute; right: 12px; top: 12px; font-size: .62rem; font-weight: 900; padding: 2px 8px; border-radius: 6px; background: var(--pink); color: #fff; }
+  .season-card { position: relative; }
+  .sr-pill { position: absolute; right: 12px; top: 10px; display: inline-flex; gap: 5px; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .68rem; font-weight: 900; background: var(--gold); color: #1f1300; animation: srp 1.6s ease-in-out infinite; }
+  @keyframes srp { 50% { box-shadow: 0 0 14px rgba(251,191,36,.8); } }
+  @media (prefers-reduced-motion: reduce) { .sr-pill { animation: none; } }
+  .mis { margin-top: 18px; border-color: rgba(52,211,153,.35); background: linear-gradient(160deg, rgba(52,211,153,.08), rgba(10,15,30,.9)); }
+  .mis-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 12px; }
+  .mis-days { display: flex; gap: 6px; align-items: center; font-size: .78rem; font-weight: 800; color: var(--dim); }
+  .mis-days i { color: #34d399; }
+  .mis-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .mi { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; background: var(--soft); border: 1px solid var(--line); color: inherit; text-decoration: none; min-width: 0; transition: border-color .2s, transform .2s; }
+  .mi:hover { border-color: #34d399; transform: translateY(-2px); }
+  .mi .mic { width: 42px; height: 42px; flex: none; border-radius: 12px; display: grid; place-items: center; font-size: 1.1rem; color: #34d399; background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.4); }
+  .mi .mt { flex: 1; min-width: 0; }
+  .mi b { display: block; color: #fff; font-size: .9rem; line-height: 1.4; }
+  .mi .bar { margin-top: 6px; }
+  .mi .mn { font-family: var(--mono); font-size: .72rem; color: var(--dim); font-weight: 700; margin-top: 3px; }
+  .mi.done { border-color: rgba(52,211,153,.6); background: rgba(52,211,153,.1); }
+  .mi.done .mic { background: #34d399; color: #04121a; }
+  .mis-foot { margin-top: 10px; font-size: .8rem; color: var(--dim); font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+  .mis-foot .all { color: #34d399; }
+  .weakchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.45); color: #fecaca; text-decoration: none; }
+  @media (max-width: 860px) { .mis-list { grid-template-columns: minmax(0, 1fr); } }
   .tile-ad { background: linear-gradient(135deg, rgba(251,191,36,.1), rgba(12,19,38,.86)); }
   .adults { margin-top: 22px; scroll-margin-top: 80px; }
   .ad-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -92,6 +117,12 @@
     </div>
   </section>
 
+  <section class="panel mis" id="mis" aria-labelledby="mis-h">
+    <div class="mis-head"><div class="h2" style="--c:#34d399;margin:0"><i class="fa-solid fa-list-check"></i><span id="mis-h">今日のミッション</span><small id="mis-sub"></small></div><div class="mis-days" id="mis-days"></div></div>
+    <div class="mis-list" id="mis-list"></div>
+    <div class="mis-foot" id="mis-foot"></div>
+  </section>
+
   <section class="hub-today">
     <a class="zt" href="./zatsugaku.html" style="text-decoration:none;color:inherit;" id="hub-zt"></a>
     <a class="ev" href="./event.html" style="text-decoration:none;color:inherit;" id="hub-ev"></a>
@@ -104,7 +135,7 @@
     <div class="ad-grid">
       <div><b><i class="fa-solid fa-user-shield"></i> 通信しない・個人情報なし</b><p>ランク・トロフィー・アバターなどの記録は、この端末のブラウザの中だけに保存されます。名前やメールアドレスの入力はなく、記録を外部へ送信することもありません。別の端末には引きつがれません。</p></div>
       <div><b><i class="fa-solid fa-scale-balanced"></i> 学習が中心・遊びすぎない</b><p>コインとEXPは、問題に答えたり、アプリで学習したりすると増えます。むんラボで1日にもらえるコイン・EXPには上限があり、ゲームだけを続けても増えすぎないしくみです。</p></div>
-      <div><b><i class="fa-solid fa-chalkboard-user"></i> 授業での使い方</b><p>「週替わりボス戦」のクラスモードは、大画面に問題を映し、全員で考えてから答えを出す使い方ができます。朝学習や授業の最初の5分におすすめです。「ロボットプログラミング」は、順次・くりかえしを学ぶプログラミング教育の入門に使えます。</p></div>
+      <div><b><i class="fa-solid fa-chalkboard-user"></i> 授業での使い方</b><p>「週替わりボス戦」のクラスモードは、大画面に問題を映し、全員で考えてから答えを出す使い方ができます。朝学習や授業の最初の5分におすすめです。「授業ツール」には、大画面タイマー・番号くじ・チーム対戦があります（児童の名前は使いません）。「にがて特訓」は、子どもがまちがえた単元を自動で記録し、復習問題を出します。「ロボットプログラミング」は、順次・くりかえしを学ぶプログラミング教育の入門に使えます。</p></div>
       <div><b><i class="fa-solid fa-pen-ruler"></i> 問題クリエイターについて</b><p>子どもが作った問題は、リンクやQRコードの中にだけ入っていて、サーバーには保存されません。むん先生がチェックしたものではないため、名前・学校名などを書かないこと、人がいやな気持ちになる問題を作らないことを、声かけしてください。</p></div>
     </div>
     <p class="note" style="margin:14px 0 0">学校・施設でのご利用は <a href="../gakkou.html" style="color:var(--cyan)">学校・施設での利用ガイド</a> と <a href="../kiyaku.html" style="color:var(--cyan)">利用規約</a> をご確認ください。</p>
@@ -115,10 +146,21 @@
   const { $, esc, get, season, BADGE, TROPHIES, today, weekNo } = LAB;
   const D = LAB_DATA, lab = get(), s = season();
   $('#hub-season').innerHTML = `${BADGE(s.tier, 64)}<div class="info"><small>SEASON ${s.key.replace('-', '.')} // シーズンランク</small><b>${esc(s.label)}</b><div class="bar"><i style="width:${Math.round(s.prog * 100)}%"></i></div><div class="meta"><span>今月 ${s.pts.toLocaleString()} pt</span><span>${s.next ? `次の「${esc(s.nextLabel)}」まで ${(s.next - s.pts).toLocaleString()} pt` : '最高ランク！'}</span><span>のこり ${s.daysLeft} 日</span></div></div>`;
+  { const sr = LAB.seasonReward(); if (sr && !sr.paid) $('#hub-season').insertAdjacentHTML('beforeend', `<span class="sr-pill"><i class="fa-solid fa-gift"></i>${sr.month}月の報酬あり</span>`); }
   const troN = () => { $('#hub-tro').textContent = `${Object.keys(get().trophies).length}/${TROPHIES.length}`; };
   troN(); addEventListener('lab:trophy', troN);
   $('#hub-room').textContent = (lab.room.owned || []).length + 'こ';
   if (window.LAB_AVATAR) $('#hub-av').innerHTML = LAB_AVATAR.svg(lab.room.avatar || LAB_AVATAR.DEF);
+  // 今日のミッション
+  function missions() {
+    const m = LAB.missionState(), n = m.list.filter(x => x.done).length;
+    $('#mis-sub').textContent = m.all ? 'コンプリート！ また明日' : `${n} / 3 達成`;
+    $('#mis-days').innerHTML = `<i class="fa-solid fa-calendar-check"></i>コンプリート ${m.days} 日`;
+    $('#mis-list').innerHTML = m.list.map(x => `<a class="mi ${x.done ? 'done' : ''}" href="./${x.href}"><span class="mic"><i class="fa-solid ${x.done ? 'fa-check' : x.ic}"></i></span><span class="mt"><b>${esc(x.t)}</b><div class="bar"><i style="width:${Math.round(x.cur / x.n * 100)}%"></i></div><div class="mn">${x.done ? 'クリア！ +200 C' : `${x.cur} / ${x.n}`}</div></span></a>`).join('');
+    const w = LAB.weakUnits();
+    $('#mis-foot').innerHTML = `<span class="${m.all ? 'all' : ''}"><i class="fa-solid fa-gift"></i> 1つ +200 C、3つぜんぶで ボーナス +500 C</span>` + (w.length ? `<a class="weakchip" href="./drill.html"><i class="fa-solid fa-dumbbell"></i>にがて単元 ${w.length}こ →「にがて特訓」で復習</a>` : '');
+  }
+  missions(); addEventListener('lab:mission', missions); addEventListener('pageshow', missions);
   // 今日の雑学
   const d = today(), dayNo = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
   const z = D.ZATSU[((dayNo % D.ZATSU.length) + D.ZATSU.length) % D.ZATSU.length];
@@ -130,7 +172,8 @@
   // タイル（トロフィーをとったら、数字をかきなおす）
   function tiles() {
   const lab = get();
-  const open = Math.max(1, Math.min(6, Math.floor((today() - D.NAZO_START) / 604800000) + 1));
+  const open = Math.max(1, Math.min(24, Math.floor((today() - D.NAZO_START) / 604800000) + 1));
+  const dm = Object.values(lab.drill || {}).filter(x => x && x.best >= 10).length;
   const boss = D.BOSSES[((weekNo() % D.BOSSES.length) + D.BOSSES.length) % D.BOSSES.length];
   const bw = lab.boss[LAB.weekKey()] || {};
   const nzc = Object.values(lab.nazo).filter(r => r && r.cleared).length;
@@ -138,15 +181,17 @@
   const rbc = Object.values(lab.robot).filter(v => v > 0).length;
   const T = [
     ['skilltree', 'fa-diagram-project', '#00e5ff', 'スキルツリー', 'SKILL TREE', '単元がつながった「学びの地図」。クリアした単元が光り、次の道がのびていく。', `クリア ${lab.skillCleared || 0} 単元`],
-    ['nazo', 'fa-door-closed', '#f472b6', 'むん研究所からの脱出', 'ESCAPE ROOM', '算数・漢字・歴史・理科の知識で解く脱出ゲーム。毎週月曜日に新しい部屋が開く。', `公開中 ${open} 部屋 ／ 脱出 ${nzc}`],
+    ['nazo', 'fa-door-closed', '#f472b6', 'むん研究所からの脱出', 'ESCAPE ROOM', '算数・漢字・歴史・理科の知識で解く脱出ゲーム。全4章24部屋、毎週月曜日に新しい部屋が開く。', `公開中 ${open} 部屋 ／ 脱出 ${nzc}`],
     ['boss', 'fa-dragon', boss.c, '週替わりボス戦', 'WEEKLY BOSS', `今週のボスは「${boss.name}」。正解でダメージ！ 大画面でクラス全員でも戦える。`, bw.defeated ? '今週のボスをたおした！' : `ボスのHP ${Math.max(0, boss.hp - (bw.dmg || 0)).toLocaleString()} / ${boss.hp.toLocaleString()}`],
-    ['ghost', 'fa-ghost', '#a78bfa', 'ゴーストレース', 'TIME ATTACK', '前の自分の記録（ゴースト）と競争するタイムアタック。くらべる相手は自分だけ。', `記録のあるコース ${gb} / 6`],
+    ['ghost', 'fa-ghost', '#a78bfa', 'ゴーストレース', 'TIME ATTACK', '前の自分の記録（ゴースト）と競争するタイムアタック。13コース。くらべる相手は自分だけ。', `記録のあるコース ${gb} / 13`],
     ['season', 'fa-medal', s.tier.color, 'シーズンランク', 'SEASON RANK', '1か月ごとのランク戦。学習でためたEXPでランクアップ。月が変わるとリセット。', `今月：${s.label}`],
     ['trophy', 'fa-trophy', '#f472b6', '実績トロフィー', 'ACHIEVEMENTS', 'ちょっとひねった実績を集めよう。レアなトロフィーほど、もらえるコインも多い。', `${Object.keys(lab.trophies).length} / ${TROPHIES.length} 獲得`],
     ['creator', 'fa-pen-ruler', '#34d399', '問題クリエイター', 'QUIZ CREATOR', '自分で問題を作って、リンクやQRで友だちに出題。解く側から作る側へ。', `作った問題 ${lab.creator.made || 0} セット`],
-    ['robot', 'fa-robot', '#38bdf8', 'ロボットプログラミング', 'CODING PUZZLE', '命令ブロックを組み合わせて、ロボットをゴールへ。くりかえしも使いこなそう。', `クリア ${rbc} ステージ`],
+    ['robot', 'fa-robot', '#38bdf8', 'ロボットプログラミング', 'CODING PUZZLE', '命令ブロックを組み合わせて、ロボットをゴールへ。くりかえし、二重ループまで全36ステージ。', `クリア ${rbc} / 36 ステージ`],
+    ['drill', 'fa-bullseye', '#f87171', 'にがて特訓・ミニテスト', 'DRILL', '学年と単元を選んで10問のミニテスト。まちがえた単元は「にがて」として自動で記録され、復習できる。', `★3の単元 ${dm} こ`],
     ['room', 'fa-couch', '#fb923c', 'マイルーム・アバター', 'MY ROOM', 'コインで、ドット絵のアバターと部屋を自分好みにカスタマイズ。', `アイテム ${(lab.room.owned || []).length} こ`],
     ['event', 'fa-calendar-days', '#f97316', '季節イベント', 'SEASONAL EVENT', '書き初め、おみくじ、アドベントカレンダー…期間限定のイベント。', evNow.now ? `開催中：${evNow.now.name}` : `次：${evNow.next.name}`],
+    ['tools', 'fa-chalkboard-user', '#22d3ee', '授業ツール', 'CLASS TOOLS', '先生向け。大画面タイマー・番号くじ・大画面クイズ・ボス戦チーム対戦。通信なしで使える。', '電子黒板・テレビで'],
     ['zatsugaku', 'fa-lightbulb', '#fbbf24', '今日の雑学カード', 'TRIVIA CARDS', '1日1枚、「知ってた？」がとどく。集めたカードは図鑑に保存。', `図鑑 ${(lab.zatsu.seen || []).length} / ${D.ZATSU.length}`]
   ];
   $('#tiles').innerHTML = T.map(([href, ic, c, name, en, p, st]) => `<a class="tile" href="./${href}.html" style="--c:${c}"><div class="top"><span class="ti"><i class="fa-solid ${ic}"></i></span><b><small>${en}</small>${esc(name)}</b></div><p>${esc(p)}</p><div class="st"><i class="fa-solid fa-signal"></i>${esc(st)}</div></a>`).join('')

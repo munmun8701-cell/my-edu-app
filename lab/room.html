@@ -18,7 +18,10 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
@@ -79,14 +82,14 @@
     if (coins() < price) { toast(`コインが ${(price - coins()).toLocaleString()} 足りません`, 'fa-coins'); return false; }
     if (!confirmBuy(name, price)) return false;
     spend(price); update(d => { d.room.owned = [...new Set([...(d.room.owned || []), id])]; });
-    toast(`「${name}」を手に入れた！（−${price.toLocaleString()} C）`, 'fa-bag-shopping'); checkTrophies(); return true;
+    LAB.FX().play('buy'); toast(`「${name}」を手に入れた！（−${price.toLocaleString()} C）`, 'fa-bag-shopping'); checkTrophies(); return true;
   }
   function confirmBuy(name, price) { return window.__labConfirm ? window.__labConfirm(name, price) : confirm(`「${name}」を ${price.toLocaleString()} コインで買いますか？`); }
 
   /* ---------- アバター ---------- */
   function avaUI() {
     const sw = (key, arr) => `<div class="opts">${arr.map((c, i) => `<button type="button" class="sw ${cfg[key] === i ? 'on' : ''}" style="background:${c}" data-k="${key}" data-v="${i}" aria-label="${key} ${i + 1}"></button>`).join('')}</div>`;
-    const ops = (key, list, names) => `<div class="opts">${list.map(v => { const prem = A.SKINS[v]; const has = !prem || own('av:' + v); return `<button type="button" class="op ${cfg[key] === v ? 'on' : ''} ${has ? '' : 'lock'}" data-k="${key}" data-s="${v}">${esc(names[v] || (prem && prem.name) || v)}${has ? '' : `<span class="pr"><i class="fa-solid fa-coins"></i> ${prem.price.toLocaleString()}</span>`}</button>`; }).join('')}</div>`;
+    const ops = (key, list, names) => `<div class="opts">${list.map(v => { const prem = A.SKINS[v]; const has = !prem || own('av:' + v); return `<button type="button" class="op ${cfg[key] === v ? 'on' : ''} ${has ? '' : 'lock'}" data-k="${key}" data-s="${v}">${esc(names[v] || (A.NAMES && A.NAMES[v]) || (prem && prem.name) || v)}${has ? '' : `<span class="pr"><i class="fa-solid fa-coins"></i> ${prem.price.toLocaleString()}</span>`}</button>`; }).join('')}</div>`;
     $('#tab-ava').innerHTML =
       `<div class="opt-h"><i class="fa-solid fa-hand"></i>はだの色</div>${sw('skin', A.SKIN)}` +
       `<div class="opt-h"><i class="fa-solid fa-scissors"></i>かみがた</div>${ops('hair', A.HAIR, { short: 'ショート', spiky: 'ツンツン', bob: 'ボブ', long: 'ロング', pony: 'ポニーテール', buzz: 'ぼうず' })}` +
@@ -105,7 +108,7 @@
   $('#rm-save').addEventListener('click', () => { update(d => { d.room.avatar = Object.assign({}, cfg); }); toast('アバターを保存しました', 'fa-user-astronaut'); checkTrophies(); render(); });
 
   /* ---------- 部屋 ---------- */
-  const SLOTS = [['wall', 'かべ', 'fa-border-all'], ['floor', 'ゆか', 'fa-table-cells'], ['window', 'まど', 'fa-window-maximize'], ['desk', 'つくえ', 'fa-chair'], ['pc', 'パソコン', 'fa-computer'], ['shelf', 'たな', 'fa-book'], ['bed', 'ベッド', 'fa-bed'], ['poster', 'ポスター', 'fa-image'], ['lamp', 'ネオン', 'fa-lightbulb'], ['lamp2', 'ランプ', 'fa-lightbulb'], ['plant', 'つくえの上', 'fa-seedling'], ['floorleft', '観葉植物', 'fa-leaf'], ['rug', 'ラグ', 'fa-circle'], ['pet', 'ペット', 'fa-cat'], ['pet2', '水そう', 'fa-fish']];
+  const SLOTS = [['wall', 'かべ', 'fa-border-all'], ['floor', 'ゆか', 'fa-table-cells'], ['window', 'まど', 'fa-window-maximize'], ['desk', 'つくえ', 'fa-chair'], ['pc', 'パソコン', 'fa-computer'], ['shelf', 'たな', 'fa-book'], ['bed', 'ベッド', 'fa-bed'], ['poster', 'ポスター', 'fa-image'], ['lamp', 'かべのライト', 'fa-lightbulb'], ['lamp2', 'ランプ', 'fa-lightbulb'], ['plant', 'つくえの上', 'fa-seedling'], ['floorleft', '観葉植物・地球儀', 'fa-leaf'], ['deco', 'かざり', 'fa-star'], ['rug', 'ラグ', 'fa-circle'], ['pet', 'ペット', 'fa-cat'], ['pet2', '水そう・ケージ', 'fa-fish']];
   function itemsFor(slot) {
     if (slot === 'wall') return Object.entries(A.WALLS).map(([id, [n, p]]) => ({ id, n, p }));
     if (slot === 'floor') return Object.entries(A.FLOORS).map(([id, [n, p]]) => ({ id, n, p }));

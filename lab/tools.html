@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授業ツール｜むんラボ｜むん先生の学習クエスト</title>
+  <meta name="description" content="クラスの大画面で使えるタイマー・番号くじ・大画面クイズ・ボス戦チーム対戦。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/lab/tools.html">
+  <meta name="theme-color" content="#050914">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta property="og:title" content="授業ツール｜むんラボ｜むん先生の学習クエスト">
+  <meta property="og:description" content="クラスの大画面で使えるタイマー・番号くじ・大画面クイズ・ボス戦チーム対戦。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./lab.css">
+  <script src="./lab-cards.js"></script>
+  <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
+  <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
+  <script src="./lab-core.js"></script>
+</head>
+<body>
+<script>LAB.header({ sub: "CLASS TOOLS" });</script>
+<style>
+  .tool-tabs { margin-bottom: 14px; }
+  .tpanel[hidden] { display: none !important; }
+  .timer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+  .ring { position: relative; width: min(420px, 100%); aspect-ratio: 1; margin: 0 auto; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring .bg { fill: none; stroke: rgba(148,163,184,.15); stroke-width: 14; }
+  .ring .fg { fill: none; stroke: url(#tg); stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
+  .ring .num { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .ring .num b { font-family: var(--mono); font-size: clamp(3rem, 11vw, 6.5rem); color: #fff; line-height: 1; letter-spacing: .02em; }
+  .ring .num small { display: block; color: var(--dim); font-weight: 800; margin-top: 6px; }
+  .ring.end .num b { color: #fbbf24; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .presets button, .adj button { padding: 14px 6px; border-radius: 14px; border: 1px solid var(--line); background: var(--card2); color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
+  .presets button:hover, .adj button:hover { border-color: var(--cyan); }
+  .adj { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+  .lot { text-align: center; }
+  .lot .slot { font-family: var(--mono); font-size: clamp(5rem, 20vw, 11rem); font-weight: 700; color: #fff; line-height: 1.1; text-shadow: 0 0 30px rgba(0,229,255,.6); min-height: 1.2em; }
+  .lot .slot.spin { color: var(--cyan); }
+  .hist { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+  .hist span { padding: 4px 10px; border-radius: 10px; background: var(--soft); font-family: var(--mono); font-weight: 700; }
+  .rng { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin: 10px 0; }
+  .rng input { width: 90px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: #020617; color: #fff; font: inherit; font-weight: 900; font-size: 1.1rem; text-align: center; }
+  .qz .q-text { font-size: clamp(1.6rem, 4.4vw, 3rem); }
+  .qz .choice { font-size: clamp(1.1rem, 2.6vw, 1.8rem); min-height: 84px; }
+  .qz .ex { font-size: 1.1rem; }
+  body.big-tool .page-title { display: none; }
+  body.big-tool .wrap { max-width: 1500px; }
+  @media (max-width: 820px) { .timer { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<main class="wrap">
+  <div class="page-title" style="--c:#fbbf24"><span class="ic"><i class="fa-solid fa-chalkboard-user"></i></span><h1><small>CLASS TOOLS // 授業ツール</small>授業ツール</h1><p>教室の大画面（電子黒板・テレビ）で使える道具です。タイマー・番号くじ・大画面クイズのほか、「ボス戦」のチーム対戦も使えます。どれも通信せず、児童の名前などは使いません。</p></div>
+  <div class="btns tool-tabs"><div class="seg" id="ttabs" style="--c:#fbbf24"><button type="button" class="on" data-t="timer"><i class="fa-solid fa-stopwatch"></i> タイマー</button><button type="button" data-t="lot"><i class="fa-solid fa-dice"></i> 番号くじ</button><button type="button" data-t="quiz"><i class="fa-solid fa-display"></i> 大画面クイズ</button></div><a class="btn ghost sm" href="./boss.html"><i class="fa-solid fa-flag"></i> ボス戦チーム対戦へ</a><button class="btn ghost sm" type="button" id="fs"><i class="fa-solid fa-expand"></i> 全画面</button></div>
+
+  <section class="panel tpanel" id="p-timer">
+    <div class="timer">
+      <div class="ring" id="ring"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#00e5ff"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><circle class="bg" cx="100" cy="100" r="88"/><circle class="fg" id="arc" cx="100" cy="100" r="88"/></svg><div class="num"><div><b id="tm">03:00</b><small id="tm-s">スタートでカウントダウン</small></div></div></div>
+      <div>
+        <div class="presets" id="pre"></div>
+        <div class="adj"><button type="button" data-a="-60">−1分</button><button type="button" data-a="-10">−10秒</button><button type="button" data-a="10">＋10秒</button><button type="button" data-a="60">＋1分</button></div>
+        <div class="btns" style="margin-top:14px"><button class="btn lg" type="button" id="t-go"><i class="fa-solid fa-play"></i> スタート</button><button class="btn ghost" type="button" id="t-rs"><i class="fa-solid fa-rotate-left"></i> リセット</button></div>
+        <p class="note">のこり10秒から音でお知らせ、0になるとチャイムが鳴ります（右上のボタンで音をオフにできます）。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel tpanel" id="p-lot" hidden>
+    <div class="lot">
+      <div class="rng"><span class="note" style="margin:0">番号</span><input type="number" id="lo" value="1" min="1" max="99" aria-label="さいしょの番号"><span>〜</span><input type="number" id="hi" value="35" min="2" max="200" aria-label="さいごの番号"><label class="note" style="margin:0"><input type="checkbox" id="norep" checked> 同じ番号は出さない</label></div>
+      <div class="slot" id="slot">？</div>
+      <div class="btns" style="justify-content:center"><button class="btn lg gold" type="button" id="draw"><i class="fa-solid fa-dice"></i> 引く</button><button class="btn ghost" type="button" id="lreset"><i class="fa-solid fa-rotate-left"></i> 最初から</button></div>
+      <p class="note" id="left"></p>
+      <div class="hist" id="hist"></div>
+    </div>
+  </section>
+
+  <section class="panel tpanel qz" id="p-quiz" hidden>
+    <div class="btns" style="margin-bottom:12px"><div class="seg" id="qg" style="--c:#00e5ff"></div><div class="seg" id="qs" style="--c:#a78bfa"></div></div>
+    <div id="qbox"></div>
+    <div class="btns" style="justify-content:center;margin-top:14px" id="qctl"></div>
+    <p class="note" style="text-align:center">自分たちで作った問題を出したいときは、<a href="./creator.html" style="color:var(--cyan)">問題クリエイター</a>の「大画面で出題」を使います。</p>
+  </section>
+</main>
+<script>
+(function () {
+  const { $, $$, esc, question, myGrade, FX, update, checkTrophies } = LAB;
+  // ---- タブ
+  $$('#ttabs button').forEach(b => b.addEventListener('click', () => { $$('#ttabs button').forEach(x => x.classList.toggle('on', x === b)); $$('.tpanel').forEach(p => { p.hidden = p.id !== 'p-' + b.dataset.t; }); FX().play('tap'); if (b.dataset.t === 'quiz' && !$('#qbox').innerHTML) qnext(); }));
+  $('#fs').addEventListener('click', () => { document.body.classList.toggle('big-tool'); FX().fullscreen(); });
+  addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) document.body.classList.remove('big-tool'); });
+  /* ===== タイマー ===== */
+  const C = 2 * Math.PI * 88; let total = 180, left = 180, run = null, endAt = 0, lock = null;
+  $('#arc').style.strokeDasharray = C;
+  $('#pre').innerHTML = [[60, '1分'], [180, '3分'], [300, '5分'], [600, '10分'], [30, '30秒'], [120, '2分'], [900, '15分'], [1200, '20分']].map(([s, n]) => `<button type="button" data-s="${s}">${n}</button>`).join('');
+  function draw() { const s = Math.ceil(left); $('#tm').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; $('#arc').style.strokeDashoffset = C * (1 - left / Math.max(1, total)); }
+  function set(s) { if (run) return; total = left = Math.max(5, Math.min(3600, s)); $('#ring').classList.remove('end'); $('#tm-s').textContent = 'スタートでカウントダウン'; draw(); }
+  $$('#pre button').forEach(b => b.addEventListener('click', () => { FX().play('tap'); set(+b.dataset.s); }));
+  $$('.adj button').forEach(b => b.addEventListener('click', () => { FX().play('tap'); if (run) { endAt += +b.dataset.a * 1000; total = Math.max(total, (endAt - Date.now()) / 1000); } else set(left + +b.dataset.a); }));
+  async function wake(on) { try { if (on && 'wakeLock' in navigator) lock = await navigator.wakeLock.request('screen'); else if (lock) { await lock.release(); lock = null; } } catch (e) {} }
+  let lastSec = null;
+  $('#t-go').addEventListener('click', () => {
+    if (run) { clearInterval(run); run = null; $('#t-go').innerHTML = '<i class="fa-solid fa-play"></i> 再開'; $('#tm-s').textContent = '一時停止中'; wake(false); return; }
+    if (left <= 0) set(total);
+    endAt = Date.now() + left * 1000; FX().play('go'); wake(true);
+    $('#t-go').innerHTML = '<i class="fa-solid fa-pause"></i> 一時停止'; $('#tm-s').textContent = 'カウントダウン中';
+    run = setInterval(() => {
+      left = Math.max(0, (endAt - Date.now()) / 1000); draw();
+      const s = Math.ceil(left); if (s !== lastSec) { lastSec = s; if (s <= 10 && s > 0) FX().play('tick'); }
+      if (left <= 0) { clearInterval(run); run = null; FX().play('chime'); $('#ring').classList.add('end'); $('#tm').textContent = '00:00'; $('#tm-s').textContent = 'じかんです！'; $('#t-go').innerHTML = '<i class="fa-solid fa-play"></i> スタート'; wake(false); update(d => { d.timerUsed = (d.timerUsed || 0) + 1; }); checkTrophies(); }
+    }, 200);
+  });
+  $('#t-rs').addEventListener('click', () => { clearInterval(run); run = null; wake(false); $('#t-go').innerHTML = '<i class="fa-solid fa-play"></i> スタート'; set(total); });
+  draw();
+  /* ===== 番号くじ ===== */
+  let used = [];
+  const range = () => { const a = Math.max(1, Math.min(199, parseInt($('#lo').value) || 1)), b = Math.max(a + 1, Math.min(200, parseInt($('#hi').value) || 35)); return [a, b]; };
+  const leftNums = () => { const [a, b] = range(), out = []; for (let i = a; i <= b; i++) if (!$('#norep').checked || !used.includes(i)) out.push(i); return out; };
+  function lotUI() { const l = leftNums(); $('#left').textContent = $('#norep').checked ? `のこり ${l.length} 人` : ''; $('#hist').innerHTML = used.map(n => `<span>${n}</span>`).join(''); }
+  ['#lo', '#hi', '#norep'].forEach(s => $(s).addEventListener('change', lotUI));
+  $('#draw').addEventListener('click', () => {
+    const l = leftNums(); if (!l.length) { $('#slot').textContent = '終了'; return; }
+    const pick = l[Math.floor(Math.random() * l.length)], sl = $('#slot'); let k = 0; sl.classList.add('spin'); $('#draw').disabled = true;
+    const iv = setInterval(() => { sl.textContent = l[Math.floor(Math.random() * l.length)]; FX().play('draw'); if (++k > 16) { clearInterval(iv); sl.textContent = pick; sl.classList.remove('spin'); FX().play('win'); used.push(pick); lotUI(); $('#draw').disabled = false; } }, 60 + k * 4);
+  });
+  $('#lreset').addEventListener('click', () => { used = []; $('#slot').textContent = '？'; lotUI(); });
+  lotUI();
+  /* ===== 大画面クイズ ===== */
+  let qg = 'mix', qsub = null, cur = null, n = 0;
+  $('#qg').innerHTML = [['mix', myGrade() ? `${myGrade()}年（設定）` : 'ミックス'], 1, 2, 3, 4, 5, 6].map(x => Array.isArray(x) ? `<button type="button" class="on" data-g="mix">${x[1]}</button>` : `<button type="button" data-g="${x}">${x}年</button>`).join('');
+  $$('#qg button').forEach(b => b.addEventListener('click', () => { qg = b.dataset.g === 'mix' ? 'mix' : +b.dataset.g; $$('#qg button').forEach(x => x.classList.toggle('on', x === b)); qnext(); }));
+  $('#qs').innerHTML = [['', 'ぜんぶ'], ...LAB_Q.SUBJ.map(s => [s, s])].map(([s, nm]) => `<button type="button" data-s="${s}" class="${!s ? 'on' : ''}">${nm}</button>`).join('');
+  $$('#qs button').forEach(b => b.addEventListener('click', () => { qsub = b.dataset.s ? [b.dataset.s] : null; $$('#qs button').forEach(x => x.classList.toggle('on', x === b)); qnext(); }));
+  function qnext() {
+    cur = question(qg, { choice: true, subj: qsub }); n++;
+    $('#qbox').innerHTML = `<div class="q-box"><span class="q-tag">第${n}問 ／ ${esc(cur.s)}・${cur.g}年${cur.un ? `<em>${esc(cur.un)}</em>` : ''}</span><div class="q-text">${esc(cur.q)}</div><div class="choices">${cur.choices.map((c, i) => `<div class="choice" data-v="${esc(c)}"><span class="k">${'ABCD'[i]}</span>${esc(c)}</div>`).join('')}</div><div class="feedback" id="qfb"></div></div>`;
+    $('#qctl').innerHTML = `<button class="btn gold lg" type="button" id="qrev"><i class="fa-solid fa-eye"></i> 答え</button><button class="btn ghost" type="button" id="qskip">別の問題</button>`;
+    $('#qrev').addEventListener('click', reveal); $('#qskip').addEventListener('click', () => { n--; qnext(); });
+  }
+  function reveal() {
+    $$('#qbox .choice').forEach(x => { if (LAB.check(cur, x.dataset.v)) x.classList.add('ok'); }); FX().play('ok');
+    $('#qfb').innerHTML = `<span style="color:#34d399">答え：${esc(cur.a)}</span>${cur.e ? `<span class="ex">${esc(cur.e)}</span>` : ''}`;
+    update(d => { d.classQ = (d.classQ || 0) + 1; });
+    $('#qctl').innerHTML = `<button class="btn lg" type="button" id="qnx"><i class="fa-solid fa-forward"></i> 次の問題</button>`; $('#qnx').addEventListener('click', qnext);
+  }
+  addEventListener('keydown', e => { if (e.target.closest('input')) return; if ($('#p-quiz').hidden) return; if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); const b = $('#qrev') || $('#qnx'); b && b.click(); } });
+})();
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8da24e49b08544cead394c557a53b918"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

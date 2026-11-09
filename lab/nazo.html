@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>むん研究所からの脱出｜むんラボ｜むん先生の学習クエスト</title>
-  <meta name="description" content="算数・漢字・歴史・理科の知識で解く、脱出ゲーム形式の謎解き。毎週新しい部屋が開きます。">
+  <meta name="description" content="算数・漢字・歴史・理科の知識で解く、脱出ゲーム形式の謎解き。毎週新しい部屋が開きます（全24部屋）。">
   <link rel="canonical" href="https://www.munmungstudymax.com/lab/nazo.html">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="../icons/icon-192.png">
   <link rel="manifest" href="../manifest.webmanifest">
   <meta property="og:title" content="むん研究所からの脱出｜むんラボ｜むん先生の学習クエスト">
-  <meta property="og:description" content="算数・漢字・歴史・理科の知識で解く、脱出ゲーム形式の謎解き。毎週新しい部屋が開きます。">
+  <meta property="og:description" content="算数・漢字・歴史・理科の知識で解く、脱出ゲーム形式の謎解き。毎週新しい部屋が開きます（全24部屋）。">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
@@ -18,12 +18,18 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
+  <script src="./nazo-rooms.js"></script>
 </head>
 <body>
 <script>LAB.header({ sub: "ESCAPE ROOM" });</script>
 <style>
+  .chaps { margin-bottom: 10px; flex-wrap: wrap; }
+  .chaps small { opacity: .75; margin-left: 4px; }
   .rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 18px; }
   .rcard { position: relative; padding: 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
   .rcard:hover:not(:disabled), .rcard.on { border-color: #f472b6; box-shadow: 0 0 16px rgba(244,114,182,.25); }
@@ -54,13 +60,14 @@
   .hint { margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: rgba(251,191,36,.08); border: 1px dashed rgba(251,191,36,.45); color: #fde68a; font-weight: 700; font-size: .9rem; text-align: left; }
 </style>
 <main class="wrap">
-  <div class="page-title" style="--c:#f472b6"><span class="ic"><i class="fa-solid fa-door-closed"></i></span><h1><small>ESCAPE ROOM // 謎解き</small>むん研究所からの脱出</h1><p>研究所に閉じこめられた！ 4つのなぞを解いて「鍵の数字」を集め、ドアの暗証番号を入力しよう。毎週月曜日に新しい部屋が開きます。家族や友だちといっしょに解くのもおすすめ。</p></div>
+  <div class="page-title" style="--c:#f472b6"><span class="ic"><i class="fa-solid fa-door-closed"></i></span><h1><small>ESCAPE ROOM // 謎解き</small>むん研究所からの脱出</h1><p>研究所に閉じこめられた！ 4つのなぞを解いて「鍵の数字」を集め、ドアの暗証番号を入力しよう。毎週月曜日に新しい部屋が開きます（研究所・深海ラボ・宇宙ステーション・時空ラボの全4章・24部屋）。家族や友だちといっしょに解くのもおすすめ。</p></div>
+  <div class="seg chaps" id="chaps" style="--c:#f472b6"></div>
   <div class="rooms" id="rooms"></div>
   <div class="panel" id="room"></div>
 </main>
 <script>
 (function () {
-  const { $, $$, esc, get, update, reward, toast, N, answered, checkTrophies, today } = LAB;
+  const { $, $$, esc, get, update, reward, toast, N, answered, checkTrophies, today, FX } = LAB;
   const COL = { '赤': '#ef4444', '青': '#3b82f6', '緑': '#22c55e', '黄': '#fbbf24' };
   const ROOMS = [
     { title: 'エントランス', lv: 1, story: '研究所に入ったとたん、ドアがしまってしまった！ 研究所のAI「MUN-OS」の声がひびく。「4つのなぞを解けば、ドアのロックを解除します」', order: ['黄', '赤', '緑', '青'], p: [
@@ -100,14 +107,23 @@
       { s: 'ひらめき', ic: 'fa-rocket', q: '起動テスト4：行き先の文字がバラバラに。\n「ち・う・ゅ・う」\nならびかえて、ポッドの行き先を答えよ。（ひらがな4文字。空のずっと上）', t: 'text', a: ['うちゅう', '宇宙'], h: ['星や惑星がある場所。', '「う」から始まるよ。', 'う・ち・ゅ・う'], e: '行き先は「うちゅう（宇宙）」！ 脱出成功まであと少し。', k: [4, '緑'] }
     ] }
   ];
+  ROOMS.push(...(window.NAZO_ROOMS2 || []));
+  const CHS = window.NAZO_CHAPTERS || [{ name: 'むん研究所', ic: 'fa-flask', from: 0, to: ROOMS.length }];
   const D = LAB_DATA;
   const openCount = () => Math.max(1, Math.min(ROOMS.length, Math.floor((today() - D.NAZO_START) / 604800000) + 1));
   const opensAt = i => { const d = new Date(D.NAZO_START); d.setDate(d.getDate() + 7 * i); return `${d.getMonth() + 1}月${d.getDate()}日`; };
   let cur = Math.min(openCount() - 1, Math.max(0, (get().nazoLast || 0)));
   const rec = i => (get().nazo['r' + (i + 1)] || { solved: [], hints: {} });
-  function rooms() {
+  let chap = CHS.findIndex(c => cur >= c.from && cur < c.to); if (chap < 0) chap = 0;
+  function chapters() {
     const oc = openCount();
-    $('#rooms').innerHTML = ROOMS.map((r, i) => { const done = rec(i).cleared; return `<button type="button" class="rcard ${i === cur ? 'on' : ''}" data-i="${i}" ${i >= oc ? 'disabled' : ''}><small>ROOM ${i + 1}</small><b>${i >= oc ? '？？？' : esc(r.title)}</b><span class="lv">${'★'.repeat(r.lv)}${'☆'.repeat(4 - r.lv)}</span><br><span class="note">${i >= oc ? `${opensAt(i)}（月）にOPEN` : done ? '脱出ずみ' : '挑戦できる'}</span>${done ? '<i class="fa-solid fa-circle-check done"></i>' : ''}</button>`; }).join('');
+    $('#chaps').innerHTML = CHS.map((c, k) => { const open = oc > c.from, done = ROOMS.slice(c.from, c.to).filter((_, j) => rec(c.from + j).cleared).length; return `<button type="button" class="${k === chap ? 'on' : ''}" data-k="${k}" ${open ? '' : 'disabled'}><i class="fa-solid ${open ? c.ic : 'fa-lock'}"></i> 第${k + 1}章 ${open ? esc(c.name) : `？？？（${opensAt(c.from)}公開）`} <small>${done}/${c.to - c.from}</small></button>`; }).join('');
+    $$('#chaps button').forEach(b => b.addEventListener('click', () => { chap = +b.dataset.k; FX().play('tap'); chapters(); rooms(); }));
+  }
+  function rooms() {
+    const oc = openCount(), c = CHS[chap];
+    chapters();
+    $('#rooms').innerHTML = ROOMS.slice(c.from, c.to).map((r, j) => { const i = c.from + j; const done = rec(i).cleared; return `<button type="button" class="rcard ${i === cur ? 'on' : ''}" data-i="${i}" ${i >= oc ? 'disabled' : ''}><small>ROOM ${i + 1}</small><b>${i >= oc ? '？？？' : esc(r.title)}</b><span class="lv">${'★'.repeat(r.lv)}${'☆'.repeat(4 - r.lv)}</span><br><span class="note">${i >= oc ? `${opensAt(i)}（月）にOPEN` : done ? '脱出ずみ' : '挑戦できる'}</span>${done ? '<i class="fa-solid fa-circle-check done"></i>' : ''}</button>`; }).join('');
     $$('#rooms .rcard').forEach(b => b.addEventListener('click', () => { cur = +b.dataset.i; update(d => { d.nazoLast = cur; }); rooms(); room(); }));
   }
   function room() {
@@ -127,11 +143,13 @@
     ins.forEach((inp, i) => { inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(-1); if (inp.value && ins[i + 1]) ins[i + 1].focus(); }); inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !inp.value && ins[i - 1]) ins[i - 1].focus(); if (e.key === 'Enter') $('#unlock').click(); }); });
     $('#unlock').addEventListener('click', () => {
       const code = ins.map(x => x.value).join(''), want = r.order.map(c => r.p.find(p => p.k[1] === c).k[0]).join('');
-      if (code !== want) { $('#door-fb').className = 'feedback ng'; $('#door-fb').textContent = 'ブブー！ 番号がちがいます。色の順番をよく見て。'; ins.forEach(x => { x.classList.add('ng'); setTimeout(() => x.classList.remove('ng'), 400); }); return; }
+      if (code !== want) { $('#door-fb').className = 'feedback ng'; $('#door-fb').textContent = 'ブブー！ 番号がちがいます。色の順番をよく見て。'; FX().play('ng'); FX().shake($('#door')); ins.forEach(x => { x.classList.add('ng'); setTimeout(() => x.classList.remove('ng'), 400); }); return; }
       const first = !rec(cur).cleared, noHint = !Object.keys(rec(cur).hints || {}).length;
       update(d => { const x = d.nazo['r' + (cur + 1)] || { solved: [], hints: {} }; x.cleared = x.cleared || ymdNow(); x.hintUsed = !noHint; d.nazo['r' + (cur + 1)] = x; const oc = openCount(); d.nazoAllOpen = oc >= 3 && ROOMS.slice(0, oc).every((_, i) => d.nazo['r' + (i + 1)] && d.nazo['r' + (i + 1)].cleared); });
-      $('#door').classList.add('escape');
-      $('#door').innerHTML = `<h3 style="font-size:1.5rem"><i class="fa-solid fa-door-open" style="color:#34d399"></i> 脱出成功！</h3><p>MUN-OS「おみごと。ロックを解除しました。${cur < ROOMS.length - 1 ? '次の部屋で、また会いましょう。' : 'あなたは研究所から脱出しました！'}」</p>${noHint ? '<p class="pill" style="color:#fbbf24">ノーヒントボーナス！</p>' : ''}`;
+      $('#door').classList.add('escape'); FX().play('door');
+      if (first && r.end) setTimeout(() => FX().celebrate({ kicker: 'ALL CLEAR', title: '全24部屋から脱出！', sub: esc(r.end), icon: 'fa-door-open', color: '#f472b6', big: true }), 900);
+      else if (first && CHS.some(c => c.to === cur + 1)) setTimeout(() => FX().celebrate({ kicker: 'CHAPTER CLEAR', title: `第${CHS.findIndex(c => c.to === cur + 1) + 1}章「${esc(CHS.find(c => c.to === cur + 1).name)}」クリア！`, sub: '次の章のなぞが待っている。', icon: 'fa-key', color: '#f472b6' }), 900);
+      $('#door').innerHTML = `<h3 style="font-size:1.5rem"><i class="fa-solid fa-door-open" style="color:#34d399"></i> 脱出成功！</h3><p>MUN-OS「おみごと。ロックを解除しました。${r.end ? esc(r.end) : CHS.some(c => c.to === cur + 1) ? 'この章は脱出成功！ 次の章で、また会いましょう。' : '次の部屋で、また会いましょう。'}」</p>${noHint ? '<p class="pill" style="color:#fbbf24">ノーヒントボーナス！</p>' : ''}`;
       if (first) reward({ coins: 600 + (noHint ? 400 : 0), exp: 30 + (noHint ? 20 : 0), reason: '脱出成功！' });
       checkTrophies(); rooms();
     });
@@ -152,11 +170,11 @@
     const close = () => { m.remove(); room(); };
     m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-x]')) close(); });
     const ok = () => {
-      update(d => { const x = d.nazo['r' + (cur + 1)] || { solved: [], hints: {} }; x.solved = [...new Set([...(x.solved || []), i])]; d.nazo['r' + (cur + 1)] = x; });
-      answered(true); toast(`なぞ${i + 1} 解けた！ 鍵の数字「${p.k[0]}」（${p.k[1]}）`, 'fa-key');
+      update(d => { const x = d.nazo['r' + (cur + 1)] || { solved: [], hints: {} }; x.solved = [...new Set([...(x.solved || []), i])]; d.nazo['r' + (cur + 1)] = x; }); LAB.track('nazo');
+      answered(true); FX().play('key'); toast(`なぞ${i + 1} 解けた！ 鍵の数字「${p.k[0]}」（${p.k[1]}）`, 'fa-key');
       setTimeout(close, 900);
     };
-    const ng = () => { answered(false); const fb = $('#pz-fb', m); fb.className = 'feedback ng'; fb.textContent = 'ちがうみたい…。ヒントも使ってみよう。'; };
+    const ng = () => { answered(false); FX().play('ng'); const fb = $('#pz-fb', m); fb.className = 'feedback ng'; fb.textContent = 'ちがうみたい…。ヒントも使ってみよう。'; };
     $$('.choice', m).forEach(b => b.addEventListener('click', () => { if (p.a.some(a => N(a) === N(b.dataset.v))) { b.classList.add('ok'); ok(); } else { b.classList.add('ng'); ng(); } }));
     const inp = $('#pz-in', m);
     if (inp) { inp.focus(); const go = () => { const v = N(inp.value); if (!v) return; if (p.a.some(a => N(a) === v || (p.t === 'num' && Number(a) === Number(v.replace(/^\./, '0.'))))) ok(); else { inp.classList.add('ng'); setTimeout(() => inp.classList.remove('ng'), 400); ng(); } }; $('#pz-ok', m).addEventListener('click', go); inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); }); }

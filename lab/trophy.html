@@ -18,7 +18,10 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
@@ -37,12 +40,15 @@
   .tr.got { border-color: color-mix(in srgb, var(--rc) 60%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--rc) 20%, transparent); }
   .tr.got .ti { color: #0b1020; background: radial-gradient(circle at 35% 30%, #fff, var(--rc)); border: 2px solid var(--rc); box-shadow: 0 0 14px var(--rc); }
   .tr.got b { color: #fff; }
+  @media print { .tr { break-inside: avoid; } }
 </style>
 <main class="wrap">
   <div class="page-title" style="--c:#f472b6"><span class="ic"><i class="fa-solid fa-trophy"></i></span><h1><small>ACHIEVEMENTS // 実績</small>実績トロフィー</h1><p>学習やむんラボでの「ちょっとすごい」をトロフィーとして記録します。レアなトロフィーほど、もらえるコインが多くなります（ブロンズ300・シルバー800・ゴールド2,000・プラチナ5,000）。</p></div>
   <div class="tr-sum" id="tr-sum"></div>
   <section class="panel"><div class="h2"><i class="fa-solid fa-book-open"></i>学習のトロフィー</div><div class="tr-grid" id="g1"></div></section>
   <section class="panel"><div class="h2"><i class="fa-solid fa-flask"></i>むんラボのトロフィー</div><div class="tr-grid" id="g2"></div></section>
+  <section class="panel"><div class="h2"><i class="fa-solid fa-user-secret"></i>ひみつのトロフィー<small>とるまで、条件はひみつ</small></div><div class="tr-grid" id="g3"></div></section>
+  <div class="btns" style="justify-content:center"><button class="btn ghost" type="button" id="tr-print"><i class="fa-solid fa-print"></i> トロフィー一覧を印刷</button></div>
 </main>
 <script>
 (function () {
@@ -52,10 +58,12 @@
     const got = get().trophies;
     const cnt = r => TROPHIES.filter(t => t.r === r && got[t.id]).length + ' / ' + TROPHIES.filter(t => t.r === r).length;
     $('#tr-sum').innerHTML = `<div><b>${Object.keys(got).length} / ${TROPHIES.length}</b><span>ぜんぶ</span></div>` + Object.entries(RAR).map(([k, v]) => `<div style="--rc:${v.c}"><b>${cnt(k)}</b><span>${v.n}</span></div>`).join('');
-    const card = t => { const g = got[t.id], r = RAR[t.r]; return `<div class="tr ${g ? 'got' : ''}" style="--rc:${r.c}"><span class="ti"><i class="fa-solid ${g ? t.ic : 'fa-lock'}"></i></span><div><span class="rr">${r.n}・${r.coin.toLocaleString()} C</span><b>${esc(t.t)}</b><small>${esc(t.d)}${g ? `<br>${g.replace(/-/g, '/')} 獲得` : ''}</small></div></div>`; };
+    const card = t => { const g = got[t.id], r = RAR[t.r], hide = t.h && !g; return `<div class="tr ${g ? 'got' : ''}" style="--rc:${r.c}"><span class="ti"><i class="fa-solid ${g ? t.ic : hide ? 'fa-question' : 'fa-lock'}"></i></span><div><span class="rr">${r.n}・${r.coin.toLocaleString()} C</span><b>${hide ? '？？？' : esc(t.t)}</b><small>${hide ? 'ある条件で手に入る、ひみつのトロフィー' : esc(t.d)}${g ? `<br>${g.replace(/-/g, '/')} 獲得` : ''}</small></div></div>`; };
     $('#g1').innerHTML = TROPHIES.filter(t => t.g === '学習').map(card).join('');
     $('#g2').innerHTML = TROPHIES.filter(t => t.g === 'ラボ').map(card).join('');
+    $('#g3').innerHTML = TROPHIES.filter(t => t.g === 'ひみつ').map(card).join('');
   }
+  $('#tr-print').addEventListener('click', () => print());
   draw(); setTimeout(draw, 3000);
 })();
 </script>

@@ -18,7 +18,10 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
@@ -96,8 +99,8 @@
   /* ---------- ラリー（毎日3問でスタンプ） ---------- */
   function rally(ev, box) {
     const r = rec(ev.key), stamps = r.stamps || {}, n = Object.keys(stamps).length;
-    const icon = { aki: 'fa-leaf', setsubun: 'fa-hand-fist', halloween: 'fa-candy-cane' }[ev.id] || 'fa-star';
-    const word = { aki: 'もみじ', setsubun: '豆', halloween: 'おかし' }[ev.id] || 'スタンプ';
+    const icon = ev.si || { aki: 'fa-leaf', setsubun: 'fa-hand-fist', halloween: 'fa-candy-cane' }[ev.id] || 'fa-star';
+    const word = ev.w || { aki: 'もみじ', setsubun: '豆', halloween: 'おかし' }[ev.id] || 'スタンプ';
     const goals = [5, 10, 15];
     box.innerHTML = `<div class="h2"><i class="fa-solid ${icon}" style="color:${ev.c}"></i>${word}スタンプ ${n} こ<small>1日1回・3問中2問正解でスタンプ</small></div>
       <div class="stamps">${Array.from({ length: 15 }, (_, i) => `<div class="${i < n ? 'on' : ''}">${i < n ? `<i class="fa-solid ${icon}"></i>` : i + 1}</div>`).join('')}</div>
@@ -113,7 +116,7 @@
           if (score >= 2) {
             save(ev.key, x => { x.stamps = Object.assign({}, x.stamps, { [T]: score }); });
             const nn = Object.keys(rec(ev.key).stamps).length, bonus = { 5: 500, 10: 1000, 15: 2000 }[nn] || 0;
-            reward({ coins: 150 + bonus, exp: 10, reason: bonus ? `${word}${nn}こ達成ボーナス！` : `${word}スタンプ ゲット！` });
+            reward({ coins: 150 + bonus, exp: 10, reason: bonus ? `${word}${nn}こ達成ボーナス！` : `${word}スタンプ ゲット！` }); LAB.FX().play('win'); LAB.FX().confetti(bonus ? 120 : 50);
           } else { save(ev.key, x => { x.tries = Object.assign({}, x.tries, { [T]: score }); }); toast(`${score}問正解…。また明日チャレンジしよう！`, 'fa-rotate-right'); }
           checkTrophies(); show();
         }, 900);
@@ -135,7 +138,7 @@
       const q = question('mix', { choice: true });
       renderChoice($('#aq'), Object.assign(q, { s: `${n}日のとびら` }), ok => {
         save(ev.key, x => { x.opened = Object.assign({}, x.opened, { [n]: ok ? 2 : 1 }); });
-        reward({ coins: ok ? 200 : 50, exp: ok ? 5 : 1, reason: ok ? `${n}日のプレゼント！` : `${n}日のとびら` });
+        reward({ coins: ok ? 200 : 50, exp: ok ? 5 : 1, reason: ok ? `${n}日のプレゼント！` : `${n}日のとびら` }); if (ok) LAB.FX().confetti(60);
         $('#aq').insertAdjacentHTML('beforeend', `<div class="empty" style="margin-top:12px"><b style="color:#fff"><i class="fa-solid fa-lightbulb" style="color:#fbbf24"></i> おまけ雑学：${esc(z.t)}</b><br>${esc(z.d)}</div>`);
         checkTrophies(); setTimeout(() => { const keep = $('#aq').innerHTML; show(); $('#aq').innerHTML = keep; }, 1200);
       });
@@ -176,7 +179,7 @@
       const img = s.toDataURL('image/jpeg', .72);
       const already = (rec(ev.key).days || {})[T];
       save(ev.key, x => { x.works = [{ w: word, img, d: T }, ...(x.works || [])].slice(0, 6); x.days = Object.assign({}, x.days, { [T]: 1 }); });
-      if (!already) reward({ coins: 200, exp: 10, reason: `書き初め「${word}」` }); else toast('作品を保存しました', 'fa-image');
+      if (!already) { reward({ coins: 200, exp: 10, reason: `書き初め「${word}」` }); LAB.FX().play('win'); } else toast('作品を保存しました', 'fa-image');
       checkTrophies(); works();
     });
   }
@@ -194,7 +197,7 @@
       const list = LUCK[ok ? 'ok' : 'ng']; let x = Math.random(), l = list[list.length - 1][0]; for (const [n, p] of list) { if (x < p) { l = n; break; } x -= p; }
       const res = { l, s: pick(MSG.study), h: pick(MSG.health), w: pick(MSG.word) };
       save(ev.key, y => { y.days = Object.assign({}, y.days, { [T]: res }); });
-      reward({ coins: l === '大吉' ? 300 : 120, exp: 5, reason: `おみくじ「${l}」` }); checkTrophies();
+      reward({ coins: l === '大吉' ? 300 : 120, exp: 5, reason: `おみくじ「${l}」` }); if (l === '大吉') LAB.FX().celebrate({ kicker: 'OMIKUJI', title: '大吉！', sub: 'すばらしい一年になりそう！', icon: 'fa-torii-gate', color: '#ef4444', auto: 3200 }); else LAB.FX().play('win'); checkTrophies();
       setTimeout(() => { box.innerHTML = `<div class="omi">${paper(res)}</div>`; }, 900);
     });
   }
@@ -208,7 +211,7 @@
       const one = () => { const q = Math.random() < .6 ? LAB.mathQ(g) : LAB.bankQ(g); if (q.kind === 'num') { q.choices = LAB.numChoices(q.a); q.kind = 'choice'; } renderChoice($('#gq'), Object.assign(q, { s: `${g}年のまとめ（${i + 1}/10）` }), ok => { if (ok) score++; setTimeout(() => { i++; if (i < 10) one(); else end(); }, 800); }); };
       const end = () => {
         const perfect = score === 10;
-        if (perfect && !medals[g]) { save(ev.key, x => { x.medals = Object.assign({}, x.medals, { [g]: T }); }); reward({ coins: 800, exp: 30, reason: `${g}年 進級メダル！` }); } else reward({ coins: 50 + score * 10, exp: 2, reason: `${score}/10 正解` });
+        if (perfect && !medals[g]) { save(ev.key, x => { x.medals = Object.assign({}, x.medals, { [g]: T }); }); reward({ coins: 800, exp: 30, reason: `${g}年 進級メダル！` }); LAB.FX().celebrate({ kicker: 'PROMOTION TEST', title: `${g}年 進級メダル`, sub: 'パーフェクト！ この学年の力はばっちり。', icon: 'fa-medal', color: '#fbbf24' }); } else reward({ coins: 50 + score * 10, exp: 2, reason: `${score}/10 正解` });
         checkTrophies();
         $('#gq').innerHTML = `<div class="q-box"><div class="q-text">${score} / 10 正解${perfect ? '！ 進級メダル獲得！' : ''}</div><p class="note">${perfect ? 'つぎの学年でも、この調子！' : 'ぜんぶ正解で「進級メダル」。何度でもチャレンジできます。'}</p></div>`;
         setTimeout(() => grade(ev, box), perfect ? 2500 : 0);

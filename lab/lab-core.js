@@ -24,9 +24,10 @@
   // 日付（テスト用に ?d=2026-12-24 で日付を変えられる）
   const today = () => { const q = new URLSearchParams(location.search).get('d'); if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) { const [y, m, d] = q.split('-').map(Number); return new Date(y, m - 1, d, 12); } return new Date(); };
 
+  const FX = () => window.LAB_FX || { play() {}, celebrate() {}, pop() {}, shake() {}, count(el, v) { if (el) el.textContent = v.toLocaleString(); }, confetti() {}, flash() {} };
   /* ---------- むんラボの記録 ---------- */
   const KEY = 'mun_lab';
-  const blank = () => ({ v: 1, trophies: {}, nazo: {}, ghost: {}, boss: {}, robot: {}, creator: { made: 0, played: 0 }, room: { owned: [], avatar: null, place: {} }, zatsu: { seen: [] }, events: {}, season: { hist: {} }, stats: { correct: 0, streak: 0, best: 0, answered: 0 }, day: { date: '', c: 0, e: 0 } });
+  const blank = () => ({ v: 1, trophies: {}, nazo: {}, ghost: {}, boss: {}, robot: {}, creator: { made: 0, played: 0 }, room: { owned: [], avatar: null, place: {} }, zatsu: { seen: [] }, events: {}, season: { hist: {} }, stats: { correct: 0, streak: 0, best: 0, answered: 0 }, day: { date: '', c: 0, e: 0 }, units: {}, drill: {}, grade: null, teams: 0, classQ: 0 });
   function get() { const d = load(KEY, null); const b = blank(); if (!d || typeof d !== 'object') return b; for (const k in b) if (d[k] == null) d[k] = b[k]; return d; }
   function put(d) { save(KEY, d); }
   function update(fn) { const d = get(); fn(d); put(d); return d; }
@@ -53,6 +54,7 @@
     });
     if (gc) LS.set('mun_coins', coins() + gc);
     if (ge) addExpRaw(ge);
+    if (gc && !o.quiet) FX().play('coin');
     if (!o.silent && (gc || ge || o.reason)) toast(`${o.reason || 'ごほうび'}${gc ? ` +${gc.toLocaleString()} C` : ''}${ge ? ` +${ge} EXP` : ''}${(o.coins && !gc) ? '（今日のラボのコインは上限です）' : ''}`, 'fa-coins');
     refreshHead();
     return { coins: gc, exp: ge };
@@ -70,9 +72,58 @@
   }, 15000);
 
   /* ---------- 正解の連続記録 ---------- */
-  function answered(ok) {
-    update(d => { d.stats.answered++; if (ok) { d.stats.correct++; d.stats.streak++; d.stats.best = Math.max(d.stats.best, d.stats.streak); } else d.stats.streak = 0; });
+  function answered(ok, q) {
+    update(d => {
+      d.stats.answered++; if (ok) { d.stats.correct++; d.stats.streak++; d.stats.best = Math.max(d.stats.best, d.stats.streak); } else d.stats.streak = 0;
+      // 単元ごとの記録（最近10問の正誤）→「にがて」を見つける
+      if (q && q.u) { const u = d.units[q.u] || { a: 0, w: 0, r: '' }; u.a++; if (!ok) u.w++; u.r = (u.r + (ok ? '1' : '0')).slice(-10); u.t = ymd(); d.units[q.u] = u; }
+    });
+    track('answer'); if (ok) { track('correct'); track('combo', get().stats.streak, true); }
     if (ok) checkTrophies();
+  }
+
+  /* ---------- 今日のミッション（毎日3つ。日付で決まるので、だれでも同じ日には同じミッション） ---------- */
+  const MISSIONS = [
+    { id: 'correct', n: 10, ic: 'fa-circle-check', t: '問題に10問正解する', href: 'drill.html', learn: 1 },
+    { id: 'answer', n: 20, ic: 'fa-pen', t: '問題に20問答える', href: 'drill.html', learn: 1 },
+    { id: 'drill', n: 1, ic: 'fa-bullseye', t: '単元ミニテストを1回うける', href: 'drill.html', learn: 1 },
+    { id: 'combo', n: 5, ic: 'fa-fire', t: '5問連続で正解する', href: 'ghost.html', learn: 1 },
+    { id: 'zatsu', n: 1, ic: 'fa-lightbulb', t: '今日の雑学カードを読む', href: 'zatsugaku.html' },
+    { id: 'robot', n: 1, ic: 'fa-robot', t: 'ロボットを1ステージクリア', href: 'robot.html' },
+    { id: 'nazo', n: 2, ic: 'fa-door-closed', t: '謎解きのなぞを2つ解く', href: 'nazo.html' },
+    { id: 'ghost', n: 1, ic: 'fa-ghost', t: 'ゴーストレースを1回走る', href: 'ghost.html' },
+    { id: 'boss', n: 5, ic: 'fa-dragon', t: 'ボスに5回攻撃を当てる', href: 'boss.html' }
+  ];
+  const MIS_EACH = { coins: 200, exp: 5 }, MIS_ALL = { coins: 500, exp: 10 };
+  function seedRand(str) { let h = 2166136261; for (const ch of str) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
+  function todayMissions(d = today()) {
+    const r = seedRand('mis' + ymd(d)), learn = MISSIONS.filter(m => m.learn), other = MISSIONS.filter(m => !m.learn);
+    const a = learn[Math.floor(r() * learn.length)];
+    const rest = MISSIONS.filter(m => m !== a && !(m.learn && a.learn && (m.id === 'answer' || a.id === 'answer') && (m.id === 'correct' || a.id === 'correct')));
+    const b = rest.splice(Math.floor(r() * rest.length), 1)[0];
+    const c = other.filter(m => m !== b)[Math.floor(r() * (other.length - 1))];
+    return [a, b, c];
+  }
+  function missionState() {
+    const d = get(), k = ymd(today());
+    const st = d.mis && d.mis.date === k ? d.mis : { date: k, c: {}, done: [], all: false };
+    return { list: todayMissions().map(m => ({ ...m, cur: Math.min(m.n, st.c[m.id] || 0), done: st.done.includes(m.id) })), all: st.all, days: d.misDays || 0 };
+  }
+  function track(id, n = 1, asMax = false) {
+    const ms = todayMissions(); if (!ms.some(m => m.id === id)) return;
+    const k = ymd(today()); let newly = [], allNow = false;
+    update(d => {
+      if (!d.mis || d.mis.date !== k) d.mis = { date: k, c: {}, done: [], all: false };
+      const c = d.mis.c; c[id] = asMax ? Math.max(c[id] || 0, n) : (c[id] || 0) + n;
+      ms.forEach(m => { if (!d.mis.done.includes(m.id) && (c[m.id] || 0) >= m.n) { d.mis.done.push(m.id); newly.push(m); } });
+      if (!d.mis.all && d.mis.done.length >= ms.length) { d.mis.all = true; d.misDays = (d.misDays || 0) + 1; allNow = true; }
+    });
+    newly.forEach(m => reward({ ...MIS_EACH, reason: `ミッション達成「${m.t}」` }));
+    if (allNow) {
+      reward({ ...MIS_ALL, silent: true });
+      FX().celebrate({ kicker: 'DAILY MISSION // COMPLETE', title: '今日のミッション コンプリート！', sub: `ボーナス +${MIS_ALL.coins} C ・ +${MIS_ALL.exp} EXP<br>また明日も新しいミッションがとどきます。`, icon: 'fa-list-check', color: '#34d399', auto: 4200 });
+    }
+    if (newly.length) dispatchEvent(new CustomEvent('lab:mission'));
   }
 
   /* ---------- シーズン（1か月ごとのランク） ---------- */
@@ -108,6 +159,21 @@
     update(x => { x.season.hist = Object.assign({}, x.season.hist, hist); x.season.bestTier = Math.max(x.season.bestTier || 0, r.tierIndex, ...Object.values(mp).map(v => rankOf(v).tierIndex)); });
     return r;
   }
+  // シーズン報酬：月が変わったら、前の月のランクに合わせてコインを1回だけ受け取れる
+  const SEASON_PAY = [300, 1000, 2000, 3500, 6000];
+  function seasonReward() {
+    const d = today(), pm = new Date(d.getFullYear(), d.getMonth() - 1, 1), key = `${pm.getFullYear()}-${p2(pm.getMonth() + 1)}`;
+    const pts = monthPoints()[key] || 0; if (!pts) return null;
+    const r = rankOf(pts), paid = !!((get().season.paid || {})[key]);
+    return { key, month: pm.getMonth() + 1, label: r.label, tier: r.tier, ti: r.tierIndex, coins: SEASON_PAY[r.tierIndex], paid };
+  }
+  function claimSeason() {
+    const r = seasonReward(); if (!r || r.paid) return null;
+    update(x => { x.season.paid = Object.assign({}, x.season.paid, { [r.key]: r.label }); });
+    reward({ coins: r.coins, exp: 0, silent: true, nocap: true });
+    FX().celebrate({ kicker: `SEASON ${r.key.replace('-', '.')} // REWARD`, title: `${r.month}月のシーズン報酬`, sub: `最終ランク「${esc(r.label)}」<br><b style="color:${r.tier.color}">+${r.coins.toLocaleString()} C</b>`, html: BADGE(r.tier, 84), color: r.tier.color, big: r.ti >= 3 });
+    checkTrophies(); return r;
+  }
   const BADGE = (t, size = 44) => `<svg viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true"><defs><linearGradient id="bg${t.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.color}"/><stop offset="1" stop-color="#1e293b"/></linearGradient></defs><path d="M24 3l17 7v12c0 11-7 19-17 23C14 41 7 33 7 22V10z" fill="url(#bg${t.id})" stroke="${t.color}" stroke-width="2"/><path d="M24 13l3.2 6.6 7.2 1-5.2 5 1.3 7.2L24 29.4l-6.5 3.4 1.3-7.2-5.2-5 7.2-1z" fill="#fff" opacity=".92"/></svg>`;
 
   /* ---------- 実績トロフィー ---------- */
@@ -135,7 +201,13 @@
       bossKills: lab.bossKills || 0, bestCombo: lab.bestCombo || 0,
       made: lab.creator.made || 0, played: lab.creator.played || 0, owned: (lab.room.owned || []).length, avatar: !!lab.room.avatar,
       events: Object.keys(lab.events).length, zatsu: (lab.zatsu.seen || []).length, robotCleared, robotStars, robotTotal: window.ROBOT_LEVELS ? window.ROBOT_LEVELS.length : (lab.robotTotal || 12),
-      bestTier: lab.season.bestTier || 0, bestStreak: lab.stats.best || 0
+      bestTier: lab.season.bestTier || 0, bestStreak: lab.stats.best || 0, answered: lab.stats.answered || 0,
+      drillRuns: lab.drillRuns || 0, drillPerfect: lab.drillPerfect || 0, weakRuns: lab.weakRuns || 0,
+      drillMaster: Object.values(lab.drill || {}).filter(x => x && x.best >= 10).length,
+      unitsTried: Object.keys(lab.units || {}).length,
+      classKills: lab.classKills || 0, teams: lab.teams || 0, classQ: lab.classQ || 0, timerUsed: lab.timerUsed || 0,
+      misDays: lab.misDays || 0, seasonPaid: Object.keys((lab.season || {}).paid || {}).length,
+      hour: new Date().getHours(), dow: new Date().getDay()
     };
   }
   const R = { bronze: { n: 'ブロンズ', c: '#d97706', coin: 300 }, silver: { n: 'シルバー', c: '#cbd5e1', coin: 800 }, gold: { n: 'ゴールド', c: '#fbbf24', coin: 2000 }, platinum: { n: 'プラチナ', c: '#67e8f9', coin: 5000 } };
@@ -178,7 +250,61 @@
     { id: 'rb5', g: 'ラボ', r: 'bronze', ic: 'fa-robot', t: 'プログラマー見習い', d: 'ロボットパズルを5ステージクリア', f: c => c.robotCleared >= 5 },
     { id: 'rball', g: 'ラボ', r: 'platinum', ic: 'fa-microchip', t: 'パーフェクトコード', d: 'ロボットパズル全ステージで★3', f: c => c.robotTotal > 0 && c.robotStars >= c.robotTotal * 3 },
     { id: 'sg', g: 'ラボ', r: 'gold', ic: 'fa-medal', t: 'ゴールドランク', d: 'シーズンでゴールドに上がった', f: c => c.bestTier >= 2 },
-    { id: 'sm', g: 'ラボ', r: 'platinum', ic: 'fa-trophy', t: 'マスターランク', d: 'シーズンでマスターに上がった', f: c => c.bestTier >= 4 }
+    { id: 'sm', g: 'ラボ', r: 'platinum', ic: 'fa-trophy', t: 'マスターランク', d: 'シーズンでマスターに上がった', f: c => c.bestTier >= 4 },
+    // ===== 2026.11.09 追加 =====
+    { id: 'exp60', g: '学習', r: 'gold', ic: 'fa-map-location-dot', t: 'アプリマスター', d: '60種類のアプリをひらいた', f: c => c.visited >= 60 },
+    { id: 'exp100', g: '学習', r: 'platinum', ic: 'fa-globe', t: '学習クエスト制覇', d: '100種類のアプリをひらいた', f: c => c.visited >= 100 },
+    { id: 'lv20', g: '学習', r: 'silver', ic: 'fa-bolt', t: 'レベル20', d: 'レベル20になった', f: c => c.level >= 20 },
+    { id: 'lv100', g: '学習', r: 'platinum', ic: 'fa-crown', t: 'レベル100', d: 'レベル100になった', f: c => c.level >= 100 },
+    { id: 'm180', g: '学習', r: 'silver', ic: 'fa-hourglass-start', t: '3時間の積みかさね', d: '学習時間が合計3時間をこえた', f: c => c.studyMin >= 180 },
+    { id: 'm1800', g: '学習', r: 'platinum', ic: 'fa-business-time', t: '30時間の積みかさね', d: '学習時間が合計30時間をこえた', f: c => c.studyMin >= 1800 },
+    { id: 'st14', g: '学習', r: 'gold', ic: 'fa-fire-flame-curved', t: '2週間連続', d: '14日続けて学習した', f: c => c.streak >= 14 },
+    { id: 'st100', g: '学習', r: 'platinum', ic: 'fa-sun', t: '100日連続', d: '100日続けて学習した', f: c => c.streak >= 100 },
+    { id: 'goal50', g: '学習', r: 'platinum', ic: 'fa-stamp', t: 'はんこ50こ', d: '今日の学習の目標を50日達成した', f: c => c.goals >= 50 },
+    { id: 'c50', g: '学習', r: 'gold', ic: 'fa-link', t: '50問連続正解', d: 'むんラボの問題で50問続けて正解した', f: c => c.bestStreak >= 50 },
+    { id: 'ans500', g: '学習', r: 'silver', ic: 'fa-pen', t: '500問の努力', d: 'むんラボで500問に答えた', f: c => c.answered >= 500 },
+    { id: 'ans2000', g: '学習', r: 'gold', ic: 'fa-pen-fancy', t: '2000問の努力', d: 'むんラボで2000問に答えた', f: c => c.answered >= 2000 },
+    { id: 'dr1', g: 'ラボ', r: 'bronze', ic: 'fa-bullseye', t: 'はじめてのミニテスト', d: '単元ミニテストに挑戦した', f: c => c.drillRuns >= 1 },
+    { id: 'drp', g: 'ラボ', r: 'silver', ic: 'fa-check-double', t: 'パーフェクト', d: 'ミニテストで10問ぜんぶ正解した', f: c => c.drillPerfect >= 1 },
+    { id: 'dr10', g: 'ラボ', r: 'gold', ic: 'fa-graduation-cap', t: '単元マスター10', d: '10の単元で★3（10問正解）をとった', f: c => c.drillMaster >= 10 },
+    { id: 'dr30', g: 'ラボ', r: 'platinum', ic: 'fa-user-graduate', t: '単元マスター30', d: '30の単元で★3をとった', f: c => c.drillMaster >= 30 },
+    { id: 'wk1', g: 'ラボ', r: 'silver', ic: 'fa-dumbbell', t: 'にがてに立ち向かう', d: 'にがてミックスに挑戦した', f: c => c.weakRuns >= 1 },
+    { id: 'un20', g: 'ラボ', r: 'silver', ic: 'fa-layer-group', t: '20単元に挑戦', d: '20の単元の問題に答えた', f: c => c.unitsTried >= 20 },
+    { id: 'un50', g: 'ラボ', r: 'gold', ic: 'fa-cubes', t: '50単元に挑戦', d: '50の単元の問題に答えた', f: c => c.unitsTried >= 50 },
+    { id: 'nz6', g: 'ラボ', r: 'silver', ic: 'fa-flask', t: '研究所から脱出', d: '第1章の6部屋から脱出した', f: c => c.nazoClear >= 6 },
+    { id: 'nz12', g: 'ラボ', r: 'gold', ic: 'fa-water', t: '深海からの生還', d: '12部屋から脱出した', f: c => c.nazoClear >= 12 },
+    { id: 'nz18', g: 'ラボ', r: 'gold', ic: 'fa-satellite', t: '宇宙からの帰還', d: '18部屋から脱出した', f: c => c.nazoClear >= 18 },
+    { id: 'nz24', g: 'ラボ', r: 'platinum', ic: 'fa-hourglass-end', t: '時空の旅人', d: '全24部屋から脱出した', f: c => c.nazoClear >= 24 },
+    { id: 'rb12', g: 'ラボ', r: 'silver', ic: 'fa-robot', t: 'きほんマスター', d: 'ロボットの1〜12ステージをクリア', f: c => c.robotCleared >= 12 },
+    { id: 'rb24', g: 'ラボ', r: 'gold', ic: 'fa-repeat', t: 'くりかえし名人', d: 'ロボットの24ステージをクリア', f: c => c.robotCleared >= 24 },
+    { id: 'rb36', g: 'ラボ', r: 'gold', ic: 'fa-layer-group', t: '二重ループの使い手', d: 'ロボットの全36ステージをクリア', f: c => c.robotCleared >= 36 },
+    { id: 'gh10', g: 'ラボ', r: 'gold', ic: 'fa-flag-checkered', t: '10コース制覇', d: 'ゴーストレースの10コースで記録を出した', f: c => c.ghostModes >= 10 },
+    { id: 'ghw10', g: 'ラボ', r: 'silver', ic: 'fa-ghost', t: 'ゴーストハンター', d: 'ゴーストに10回勝った', f: c => c.ghostWins >= 10 },
+    { id: 'bs5', g: 'ラボ', r: 'gold', ic: 'fa-dragon', t: 'ボスハンター', d: '週替わりボスを5体たおした', f: c => c.bossKills >= 5 },
+    { id: 'bs10', g: 'ラボ', r: 'platinum', ic: 'fa-skull', t: 'ボススレイヤー', d: '週替わりボスを10体たおした', f: c => c.bossKills >= 10 },
+    { id: 'cb20', g: 'ラボ', r: 'platinum', ic: 'fa-burst', t: '20コンボ', d: 'ボス戦で20コンボを決めた', f: c => c.bestCombo >= 20 },
+    { id: 'cl1', g: 'ラボ', r: 'silver', ic: 'fa-people-group', t: 'クラスの力', d: '大画面モードでボスをたおした', f: c => c.classKills >= 1 },
+    { id: 'tm1', g: 'ラボ', r: 'bronze', ic: 'fa-flag', t: 'チーム対戦', d: 'ボス戦のチーム対戦をはじめた', f: c => c.teams >= 1 },
+    { id: 'cq50', g: 'ラボ', r: 'gold', ic: 'fa-display', t: '大画面で50問', d: '大画面モードで50問出題した', f: c => c.classQ >= 50 },
+    { id: 'tmr', g: 'ラボ', r: 'bronze', ic: 'fa-stopwatch', t: 'タイムキーパー', d: '授業ツールのタイマーを最後まで使った', f: c => c.timerUsed >= 1 },
+    { id: 'mk5', g: 'ラボ', r: 'silver', ic: 'fa-pen-ruler', t: '問題作家', d: '問題を5セット作った', f: c => c.made >= 5 },
+    { id: 'mk20', g: 'ラボ', r: 'gold', ic: 'fa-feather-pointed', t: '問題の達人', d: '問題を20セット作った', f: c => c.made >= 20 },
+    { id: 'pl10', g: 'ラボ', r: 'silver', ic: 'fa-people-arrows', t: '挑戦者10', d: 'だれかが作った問題に10回チャレンジした', f: c => c.played >= 10 },
+    { id: 'rm15', g: 'ラボ', r: 'gold', ic: 'fa-couch', t: 'コーディネーター', d: 'マイルームのアイテムを15こ手に入れた', f: c => c.owned >= 15 },
+    { id: 'rm30', g: 'ラボ', r: 'platinum', ic: 'fa-house-chimney', t: 'ルームマスター', d: 'マイルームのアイテムを30こ手に入れた', f: c => c.owned >= 30 },
+    { id: 'zt100', g: 'ラボ', r: 'gold', ic: 'fa-book-bookmark', t: '雑学マスター', d: '雑学カードを100枚あつめた', f: c => c.zatsu >= 100 },
+    { id: 'zt200', g: 'ラボ', r: 'platinum', ic: 'fa-book-atlas', t: '雑学王', d: '雑学カードを200枚あつめた', f: c => c.zatsu >= 200 },
+    { id: 'ev3', g: 'ラボ', r: 'silver', ic: 'fa-calendar-days', t: 'イベントの常連', d: '3つの季節イベントに参加した', f: c => c.events >= 3 },
+    { id: 'ss', g: 'ラボ', r: 'silver', ic: 'fa-medal', t: 'シルバーランク', d: 'シーズンでシルバーに上がった', f: c => c.bestTier >= 1 },
+    { id: 'sp', g: 'ラボ', r: 'platinum', ic: 'fa-gem', t: 'プラチナランク', d: 'シーズンでプラチナに上がった', f: c => c.bestTier >= 3 },
+    { id: 'ms1', g: 'ラボ', r: 'bronze', ic: 'fa-list-check', t: 'ミッションコンプリート', d: '今日のミッションを3つとも達成した', f: c => c.misDays >= 1 },
+    { id: 'ms7', g: 'ラボ', r: 'silver', ic: 'fa-calendar-week', t: 'ミッション7日', d: '今日のミッションを7日コンプリートした', f: c => c.misDays >= 7 },
+    { id: 'ms30', g: 'ラボ', r: 'gold', ic: 'fa-calendar-check', t: 'ミッション30日', d: '今日のミッションを30日コンプリートした', f: c => c.misDays >= 30 },
+    { id: 'sr1', g: 'ラボ', r: 'bronze', ic: 'fa-gift', t: 'シーズン報酬', d: '月が変わって、前のシーズンの報酬を受け取った', f: c => c.seasonPaid >= 1 },
+    // ひみつのトロフィー（とるまで「？？？」）
+    { id: 'hEarly', g: 'ひみつ', r: 'bronze', h: 1, ic: 'fa-cloud-sun', t: '朝の研究員', d: '朝5時〜8時のあいだに、むんラボをひらいた', f: c => c.hour >= 5 && c.hour < 8 },
+    { id: 'hWeek', g: 'ひみつ', r: 'bronze', h: 1, ic: 'fa-umbrella-beach', t: '週末の研究員', d: '土曜日か日曜日に、むんラボをひらいた', f: c => c.dow === 0 || c.dow === 6 },
+    { id: 'hLucky', g: 'ひみつ', r: 'silver', h: 1, ic: 'fa-clover', t: 'ラッキーセブン', d: 'コインの下3けたが「777」になった', f: c => c.coins % 1000 === 777 }
   ];
   let checking = false;
   function checkTrophies(quiet) {
@@ -188,8 +314,8 @@
     if (got.length) {
       update(d => got.forEach(t => { d.trophies[t.id] = ymd(); }));
       got.forEach((t, i) => setTimeout(() => {
-        if (!quiet) toast(`<b>トロフィー獲得！</b>「${esc(t.t)}」<small>${R[t.r].n} ／ ${esc(t.d)}</small>`, t.ic, 'trophy', true);
-        reward({ coins: R[t.r].coin, silent: true, nocap: true });
+        if (!quiet) FX().celebrate({ kicker: `TROPHY // ${R[t.r].n}`, title: `「${esc(t.t)}」`, sub: `${esc(t.d)}<br><b style="color:${R[t.r].c}">ごほうび +${R[t.r].coin.toLocaleString()} C</b>`, icon: t.ic, color: R[t.r].c, sound: 'trophy', auto: t.r === 'bronze' ? 3200 : 0, big: t.r === 'platinum' });
+        reward({ coins: R[t.r].coin, silent: true, nocap: true, quiet: true });
       }, i * 900));
       dispatchEvent(new CustomEvent('lab:trophy', { detail: got.map(t => t.id) }));
     }
@@ -214,10 +340,13 @@
       <nav class="lab-nav" aria-label="むんラボのメニュー">
         <a class="chip link" href="./season.html" title="シーズンランク"><span id="lh-rank"></span></a>
         <span class="chip" title="コイン"><i class="fa-solid fa-coins"></i><span id="lh-coins">0</span></span>
+        <button class="chip link" type="button" id="lh-sfx" aria-pressed="true" title="効果音のオン・オフ"><i class="fa-solid fa-volume-high"></i></button>
         ${inLab ? '' : '<a class="chip link" href="./index.html"><i class="fa-solid fa-flask"></i><span class="lbl">ラボ</span></a>'}
         <a class="chip link" href="../index.html"><i class="fa-solid fa-house"></i><span class="lbl">トップ</span></a>
       </nav></div>`;
     document.body.prepend(h);
+    const sb = h.querySelector('#lh-sfx'), sfxUI = () => { const o = FX().isOn ? FX().isOn() : true; sb.innerHTML = `<i class="fa-solid ${o ? 'fa-volume-high' : 'fa-volume-xmark'}"></i>`; sb.setAttribute('aria-pressed', o); sb.setAttribute('aria-label', o ? '効果音：オン' : '効果音：オフ'); };
+    sb.addEventListener('click', () => { if (window.LAB_FX) LAB_FX.setOn(!LAB_FX.isOn()); sfxUI(); }); sfxUI();
     const f = document.createElement('footer'); f.className = 'lab-foot';
     f.innerHTML = `<p>© むん先生の学習クエスト ／ むんラボの記録は、この端末の中だけに保存されます。<br><a href="../kiyaku.html">利用規約</a> ・ <a href="../privacy.html">プライバシーポリシー</a> ・ <a href="../houkoku.html">うまく動かないとき</a></p>`;
     // ページの本文より下に置く（header() は body の先頭で呼ばれるので、読みこみが終わってから足す）
@@ -225,10 +354,19 @@
     refreshHead();
     setTimeout(() => checkTrophies(), 600);
   }
+  let headInit = false;
   function refreshHead() {
-    const c = $('#lh-coins'); if (c) c.textContent = coins().toLocaleString();
-    const r = $('#lh-rank'); if (r) { const s = season(); r.innerHTML = `${BADGE(s.tier, 18)}<span class="lbl">${esc(s.label)}</span>`; r.style.display = 'inline-flex'; r.style.alignItems = 'center'; r.style.gap = '6px'; }
+    const c = $('#lh-coins'); if (c) { if (headInit) FX().count(c, coins()); else c.textContent = coins().toLocaleString(); }
+    const r = $('#lh-rank'); let s = null; if (r) { s = season(); r.innerHTML = `${BADGE(s.tier, 18)}<span class="lbl">${esc(s.label)}</span>`; r.style.display = 'inline-flex'; r.style.alignItems = 'center'; r.style.gap = '6px'; }
+    headInit = true;
+    // ランクアップ・レベルアップのお祝い（同じ月の中で、前に見たときより上がったとき）
+    if (!s) s = season();
+    const lv = level(), d = get(), rk = s.key + ':' + s.label, flat = rankIndex(s.pts);
+    if (d.seen && d.seen.m === s.key && flat > d.seen.r) FX().celebrate({ kicker: 'RANK UP', title: `${esc(s.label)} にランクアップ！`, sub: `${s.month}月のシーズン。このまま上をめざそう。`, html: BADGE(s.tier, 84), color: s.tier.color, big: true });
+    if (d.seen && d.seen.lv && lv > d.seen.lv) FX().celebrate({ kicker: 'LEVEL UP', title: `レベル ${lv} になった！`, sub: '学習を続けると、どんどん上がるよ。', icon: 'fa-bolt', color: '#00e5ff' });
+    if (!d.seen || d.seen.m !== s.key || d.seen.r !== flat || d.seen.lv !== lv) update(x => { x.seen = { m: s.key, r: flat, lv, k: rk }; });
   }
+  function rankIndex(pts) { let i = -1, k = 0; TIERS.forEach(t => t.steps.forEach(st => { if (pts >= st) i = k; k++; })); return i; }
   addEventListener('storage', e => { if (e.key === 'mun_coins' || e.key === 'mun_daily_exp') refreshHead(); });
 
   /* ---------- 問題バンク ---------- */
@@ -236,63 +374,6 @@
   const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
   const frac = (n, d) => { const g = gcd(n, d); n /= g; d /= g; return d === 1 ? String(n) : `${n}/${d}`; };
   const dec = x => String(Math.round(x * 1000) / 1000);
-  const MATH = {
-    1: [() => { const a = rnd(1, 9), b = rnd(1, 9); return [`${a} ＋ ${b}`, a + b]; }, () => { const a = rnd(10, 18), b = rnd(1, 9); return [`${a} − ${b}`, a - b]; }],
-    2: [() => { const a = rnd(2, 9), b = rnd(2, 9); return [`${a} × ${b}`, a * b]; }, () => { const a = rnd(12, 68), b = rnd(11, 31); return [`${a} ＋ ${b}`, a + b]; }, () => { const a = rnd(40, 99), b = rnd(11, 39); return [`${a} − ${b}`, a - b]; }],
-    3: [() => { const b = rnd(2, 9), q = rnd(2, 9); return [`${b * q} ÷ ${b}`, q]; }, () => { const a = rnd(12, 49), b = rnd(2, 9); return [`${a} × ${b}`, a * b]; }, () => { const a = rnd(120, 680), b = rnd(105, 299); return [`${a} ＋ ${b}`, a + b]; }, () => { const b = rnd(3, 9), q = rnd(2, 9), r = rnd(1, b - 1); return [`${b * q + r} ÷ ${b} のあまり`, r]; }],
-    4: [() => { const b = rnd(2, 6), q = rnd(11, 29); return [`${b * q} ÷ ${b}`, q]; }, () => { const a = rnd(11, 59), b = rnd(11, 39); return [`${a / 10} ＋ ${b / 10}`, dec((a + b) / 10)]; }, () => { const x = rnd(20, 160); return [`一直線は180°。${x}° のとなりの角は何度？`, 180 - x]; }, () => { const a = rnd(21, 89), b = rnd(11, 19); return [`${a} × ${b}`, a * b]; }],
-    5: [() => { const a = rnd(12, 48), b = rnd(2, 9); return [`${a / 10} × ${b}`, dec(a * b / 10)]; }, () => { const ds = pick([[2, 3], [3, 4], [2, 5], [4, 6], [3, 6]]); const a = 1, b = 1; return [`${a}/${ds[0]} ＋ ${b}/${ds[1]}（分数で）`, frac(ds[1] + ds[0], ds[0] * ds[1])]; }, () => { const bse = rnd(3, 12) * 2, h = rnd(3, 12); return [`底辺${bse}cm、高さ${h}cmの三角形の面積（cm²）`, bse * h / 2]; }, () => { const avg = rnd(4, 9), arr = [avg - 2, avg + 1, avg, avg + 1]; return [`${arr.join('、')} の平均`, (arr.reduce((p, q) => p + q, 0)) / 4]; }],
-    6: [() => { const d = pick([3, 4, 5, 7]), n = rnd(1, d - 1), k = rnd(2, 5); return [`${n}/${d} × ${k}（分数で）`, frac(n * k, d)]; }, () => { const g = rnd(2, 6), a = rnd(1, 5), b = rnd(a + 1, 7); if (gcd(a, b) !== 1) return [`${2 * g}:${3 * g} をかんたんな比に`, '2:3']; return [`${a * g}:${b * g} をかんたんな比に`, `${a}:${b}`]; }, () => { const r = rnd(2, 10); return [`半径${r}cmの円の面積（円周率3.14）`, dec(r * r * 3.14)]; }, () => { const v = pick([40, 50, 60, 80]), t = pick([2, 3, 4]); return [`時速${v}kmで${t}時間進むと何km？`, v * t]; }]
-  };
-  // 4択の問題（漢字・歴史・理科・地理・英語）
-  const BANK = [
-    ...[['春', 'はる', 2], ['朝', 'あさ', 2], ['歌', 'うた', 2], ['船', 'ふね', 2], ['雪', 'ゆき', 2], ['湖', 'みずうみ', 3], ['港', 'みなと', 3], ['豆', 'まめ', 3], ['宮', 'みや', 3], ['旅', 'たび', 3], ['鏡', 'かがみ', 4], ['街', 'まち', 4], ['巣', 'す', 4], ['束', 'たば', 4], ['梅', 'うめ', 4], ['志', 'こころざし', 5], ['暴れる', 'あばれる', 5], ['導く', 'みちびく', 5], ['築く', 'きずく', 5], ['険しい', 'けわしい', 5], ['誤る', 'あやまる', 6], ['幼い', 'おさない', 6], ['縦', 'たて', 6], ['宝', 'たから', 6], ['敬う', 'うやまう', 6]]
-      .map(([k, y, g], i, all) => ({ s: '漢字', g, q: `「${k}」の読みは？`, a: y, w: all.filter(x => x[1] !== y && x[1].length === y.length).map(x => x[1]).concat(all.filter(x => x[1] !== y).map(x => x[1])) })),
-    { s: '歴史', g: 6, q: '十七条の憲法を定め、法隆寺を建てたとされる人物は？', a: '聖徳太子', w: ['中大兄皇子', '聖武天皇', '小野妹子'] },
-    { s: '歴史', g: 6, q: '奈良の大仏をつくることを命じた天皇は？', a: '聖武天皇', w: ['天智天皇', '推古天皇', '桓武天皇'] },
-    { s: '歴史', g: 6, q: '『源氏物語』を書いた人物は？', a: '紫式部', w: ['清少納言', '小野小町', '藤原道長'] },
-    { s: '歴史', g: 6, q: '『枕草子』を書いた人物は？', a: '清少納言', w: ['紫式部', '与謝野晶子', '樋口一葉'] },
-    { s: '歴史', g: 6, q: '鎌倉に幕府を開いた人物は？', a: '源頼朝', w: ['足利尊氏', '平清盛', '徳川家康'] },
-    { s: '歴史', g: 6, q: '元（モンゴル）が攻めてきたときの鎌倉幕府の執権は？', a: '北条時宗', w: ['北条政子', '源義経', '足利義満'] },
-    { s: '歴史', g: 6, q: '京都の北山に金閣を建てた将軍は？', a: '足利義満', w: ['足利義政', '足利尊氏', '徳川家光'] },
-    { s: '歴史', g: 6, q: '京都の東山に銀閣を建てた将軍は？', a: '足利義政', w: ['足利義満', '織田信長', '豊臣秀吉'] },
-    { s: '歴史', g: 6, q: '検地と刀狩を行い、全国を統一した人物は？', a: '豊臣秀吉', w: ['織田信長', '徳川家康', '武田信玄'] },
-    { s: '歴史', g: 6, q: '江戸に幕府を開いた人物は？', a: '徳川家康', w: ['徳川家光', '豊臣秀吉', '徳川吉宗'] },
-    { s: '歴史', g: 6, q: '参勤交代を制度として定めた将軍は？', a: '徳川家光', w: ['徳川家康', '徳川綱吉', '徳川慶喜'] },
-    { s: '歴史', g: 6, q: 'オランダ語の医学書をほん訳し『解体新書』を出版した人物は？', a: '杉田玄白', w: ['本居宣長', '伊能忠敬', '野口英世'] },
-    { s: '歴史', g: 6, q: '全国を歩いて測量し、正確な日本地図をつくった人物は？', a: '伊能忠敬', w: ['杉田玄白', '歌川広重', '坂本龍馬'] },
-    { s: '歴史', g: 6, q: '1853年、黒船を率いて浦賀に来航したアメリカの人物は？', a: 'ペリー', w: ['ザビエル', 'ハリス', 'リンカン'] },
-    { s: '歴史', g: 6, q: '『学問のすすめ』を書いた人物は？', a: '福沢諭吉', w: ['大隈重信', '板垣退助', '伊藤博文'] },
-    { s: '歴史', g: 6, q: '1911年、関税自主権の回復に成功した外務大臣は？', a: '小村寿太郎', w: ['陸奥宗光', '伊藤博文', '大久保利通'] },
-    { s: '理科', g: 3, q: 'こん虫の体は、頭・むねと、もう1つは？', a: 'はら', w: ['しっぽ', 'こし', 'せなか'] },
-    { s: '理科', g: 3, q: '方位磁針のN極がさす方位は？', a: '北', w: ['南', '東', '西'] },
-    { s: '理科', g: 3, q: '太陽がしずむのは、どの方位？', a: '西', w: ['東', '南', '北'] },
-    { s: '理科', g: 4, q: '水がふっとうする温度は、およそ何℃？', a: '100℃', w: ['50℃', '80℃', '0℃'] },
-    { s: '理科', g: 4, q: '空気をあたためると、体積はどうなる？', a: '大きくなる', w: ['小さくなる', '変わらない', 'なくなる'] },
-    { s: '理科', g: 4, q: '夏の大三角をつくる星ではないものは？', a: 'ベテルギウス', w: ['ベガ', 'アルタイル', 'デネブ'] },
-    { s: '理科', g: 5, q: 'ふりこが1往復する時間を変えるのは？', a: 'ふりこの長さ', w: ['おもりの重さ', 'ふれはば', '糸の色'] },
-    { s: '理科', g: 5, q: '電磁石を強くする方法は？', a: 'コイルのまき数をふやす', w: ['導線を短く切る', '鉄心をぬく', '電池を1こへらす'] },
-    { s: '理科', g: 6, q: '植物が日光を受けて、でんぷんをつくるはたらきは？', a: '光合成', w: ['呼吸', '蒸散', '発芽'] },
-    { s: '理科', g: 6, q: '石灰水を白くにごらせる気体は？', a: '二酸化炭素', w: ['酸素', 'ちっ素', '水素'] },
-    { s: '理科', g: 6, q: '血液を全身に送り出す臓器は？', a: '心臓', w: ['肺', '胃', 'かん臓'] },
-    { s: '理科', g: 6, q: 'てこで、小さな力で物を持ち上げるには？', a: '力点を支点から遠くする', w: ['力点を支点に近づける', '作用点を支点から遠くする', '支点をなくす'] },
-    ...[['宮城県', '仙台市'], ['石川県', '金沢市'], ['愛媛県', '松山市'], ['兵庫県', '神戸市'], ['神奈川県', '横浜市'], ['愛知県', '名古屋市'], ['香川県', '高松市'], ['岩手県', '盛岡市'], ['栃木県', '宇都宮市'], ['島根県', '松江市']]
-      .map(([p, c], i, all) => ({ s: '地理', g: 4, q: `${p}の県庁所在地は？`, a: c, w: all.filter(x => x[1] !== c).map(x => x[1]) })),
-    { s: '地理', g: 4, q: '日本でいちばん面積が大きい都道府県は？', a: '北海道', w: ['岩手県', '長野県', '新潟県'] },
-    { s: '地理', g: 4, q: '日本でいちばん面積が小さい都道府県は？', a: '香川県', w: ['大阪府', '東京都', '沖縄県'] },
-    { s: '地理', g: 5, q: '日本でいちばん長い川は？', a: '信濃川', w: ['利根川', '石狩川', '最上川'] },
-    { s: '地理', g: 5, q: '日本でいちばん高い山は？', a: '富士山', w: ['北岳', '奥穂高岳', '槍ヶ岳'] },
-    ...[['apple', 'りんご'], ['library', '図書館'], ['Wednesday', '水曜日'], ['summer', '夏'], ['teacher', '先生'], ['river', '川'], ['station', '駅'], ['breakfast', '朝ごはん']]
-      .map(([e, j], i, all) => ({ s: '英語', g: 5, q: `「${e}」の意味は？`, a: j, w: all.filter(x => x[1] !== j).map(x => x[1]) }))
-  ];
-  function mathQ(g) { const f = pick(MATH[g] || MATH[3]); const [q, a] = f(); return { s: '算数', g, q, a: String(a), kind: 'num' }; }
-  function bankQ(g, subj) {
-    let pool = BANK.filter(b => (!subj || subj.includes(b.s)) && (g === 'mix' || b.g <= g));
-    if (!pool.length) pool = BANK;
-    const b = pick(pool);
-    const wrong = shuffle([...new Set(b.w)]).filter(x => x !== b.a).slice(0, 3);
-    return { s: b.s, g: b.g, q: b.q, a: b.a, choices: shuffle([b.a, ...wrong]), kind: 'choice' };
-  }
   function numChoices(a) {
     const s = String(a), out = new Set([s]);
     if (/^\d+:\d+$/.test(s)) { const [x, y] = s.split(':').map(Number); [[y, x], [x + 1, y], [x, y + 1], [x * 2, y * 2]].forEach(([p, q]) => out.add(`${p}:${q}`)); }
@@ -300,29 +381,68 @@
     else { const v = Number(s), isDec = s.includes('.'); const st = isDec ? 0.1 : 1; [v + st, v - st, v + 10 * st, v * 2, v + 2 * st, v - 10 * st].forEach(x => { if (x >= 0) out.add(dec(x)); }); }
     out.delete(s); return shuffle([s, ...shuffle([...out]).slice(0, 3)]);
   }
-  // g: 1〜6 または 'mix'、mode: 'choice'（4択にそろえる）
+  // わたしの学年（ハブで設定。未設定なら全学年から）
+  const myGrade = () => { const g = get().grade; return g >= 1 && g <= 6 ? g : null; };
+  const recentQ = [];
+  // 単元の正答率（最近10問）
+  function unitAcc(id) { const u = get().units[id]; if (!u || !u.r) return null; const r = u.r.split(''); return { n: u.a, acc: r.filter(x => x === '1').length / r.length, recent: r.length }; }
+  function weakUnits(min = 3) { const d = get().units, out = []; for (const id in d) { const u = d[id]; if (!u.r || u.r.length < min || !window.LAB_Q || !LAB_Q.BYID[id]) continue; const acc = u.r.split('').filter(x => x === '1').length / u.r.length; if (acc < .7) out.push({ id, acc, n: u.a, unit: LAB_Q.BYID[id] }); } return out.sort((a, b) => a.acc - b.acc); }
+  function choicesFor(q) {
+    let w = (q.c || []).slice();
+    if (w.length < 3 && !q.only) w = w.concat(numChoices(q.a).filter(x => x !== q.a && !w.includes(x)));
+    w = shuffle([...new Set(w)].filter(x => x !== q.a)).slice(0, q.only ? 3 : 3);
+    return shuffle([q.a, ...w]);
+  }
+  // g: 1〜6 または 'mix'
+  // opt.choice: 4択にそろえる / opt.subj: ['算数','国語',…] / opt.units: 単元idの配列 / opt.weak: にがて優先
   function question(g = 'mix', opt = {}) {
-    const gg = g === 'mix' ? rnd(2, 6) : g;
-    const useMath = opt.subj ? opt.subj.includes('算数') : Math.random() < .55;
-    let q = useMath ? mathQ(gg) : bankQ(g === 'mix' ? 'mix' : gg, opt.subj && opt.subj.filter(x => x !== '算数'));
-    if (opt.choice && q.kind === 'num') { q.choices = numChoices(q.a); q.kind = 'choice'; }
+    if (!window.LAB_Q) return { s: '算数', g: 2, q: '3 × 4', a: '12', kind: 'num', choices: ['12', '7', '13', '16'] };
+    let pool;
+    if (opt.units && opt.units.length) pool = LAB_Q.units({ ids: opt.units });
+    else if (opt.weak) { const w = weakUnits(); pool = w.length ? w.map(x => x.unit) : null; }
+    if (!pool || !pool.length) {
+      const mg = g === 'mix' ? myGrade() : g;
+      if (mg) {
+        // その学年 7割・それより前の学年 3割（ふくしゅう）
+        const cur = LAB_Q.units({ g: mg, subj: opt.subj }), prev = LAB_Q.units({ g: mg - 1, upto: true, subj: opt.subj });
+        pool = (Math.random() < .7 || !prev.length) && cur.length ? cur : prev.length ? prev : cur;
+      } else pool = LAB_Q.units({ subj: opt.subj }).filter(u => g !== 'mix' || u.g >= 2);
+      if (!pool.length) pool = LAB_Q.units({});
+    }
+    // 教科のかたよりをへらす：まず教科を選んでから単元を選ぶ
+    const subs = [...new Set(pool.map(u => u.s))];
+    let q;
+    for (let k = 0; k < 6; k++) {
+      const sub = opt.subj ? pick(subs) : (subs.includes('算数') && Math.random() < .5 ? '算数' : pick(subs));
+      const u = pick(pool.filter(x => x.s === sub));
+      q = LAB_Q.make(u);
+      if (!recentQ.includes(q.q)) break;
+    }
+    recentQ.push(q.q); if (recentQ.length > 30) recentQ.shift();
+    q.kind = q.only ? 'choice' : (/^-?\d+(\.\d+)?$/.test(q.a) ? 'num' : 'text');
+    if (opt.choice || q.only) { q.choices = choicesFor(q); q.kind = 'choice'; }
     return q;
   }
-  const check = (q, v) => N(v) === N(q.a) || (q.kind === 'num' && Number(N(v)) === Number(N(q.a)) && N(v) !== '');
+  const mathQ = g => question(g, { subj: ['算数'] });
+  const bankQ = g => question(g === 'mix' ? 'mix' : g, { subj: ['国語', '社会', '理科', '英語'], choice: true });
+  const check = (q, v) => N(v) === N(q.a) || (/^-?[\d.]+$/.test(N(q.a)) && Number(N(v).replace(/^\./, '0.')) === Number(N(q.a)) && N(v) !== '');
 
   /* ---------- 4択の画面をつくる ---------- */
-  function renderChoice(box, q, onAnswer) {
-    box.innerHTML = `<div class="q-box"><span class="q-tag">${esc(q.s)}${q.g ? `・${q.g}年` : ''}</span><div class="q-text">${esc(q.q)}</div><div class="choices">${q.choices.map((c, i) => `<button type="button" class="choice" data-v="${esc(c)}"><span class="k">${'ABCD'[i]}</span>${esc(c)}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div></div>`;
+  function renderChoice(box, q, onAnswer, o = {}) {
+    if (!q.choices) q.choices = choicesFor(q);
+    box.innerHTML = `<div class="q-box"><span class="q-tag">${esc(q.s)}${q.g ? `・${q.g}年` : ''}${q.un ? `<em>${esc(q.un)}</em>` : ''}</span><div class="q-text">${esc(q.q)}</div><div class="choices ${q.choices.length === 2 ? 'two' : ''}">${q.choices.map((c, i) => `<button type="button" class="choice" data-v="${esc(c)}"><span class="k">${'ABCD'[i]}</span>${esc(c)}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div></div>`;
     let done = false;
     $$('.choice', box).forEach(b => b.addEventListener('click', () => {
       if (done) return; done = true;
       const ok = check(q, b.dataset.v);
-      b.classList.add(ok ? 'ok' : 'ng');
-      if (!ok) $$('.choice', box).forEach(x => { if (check(q, x.dataset.v)) x.classList.add('ok'); });
-      const fb = $('.feedback', box); fb.className = 'feedback ' + (ok ? 'ok' : 'ng'); fb.textContent = ok ? 'せいかい！' : `ざんねん… 答えは「${q.a}」`;
-      answered(ok); onAnswer && onAnswer(ok, q);
+      b.classList.add(ok ? 'ok' : 'ng'); box.querySelector('.q-box').classList.add(ok ? 'is-ok' : 'is-ng');
+      $$('.choice', box).forEach(x => { x.disabled = true; if (!ok && check(q, x.dataset.v)) x.classList.add('ok'); });
+      if (!o.silent) FX().play(ok ? 'ok' : 'ng');
+      const fb = $('.feedback', box); fb.className = 'feedback ' + (ok ? 'ok' : 'ng');
+      fb.innerHTML = ok ? `<b>せいかい！</b>${q.e && o.explainOk ? ` <span class="ex">${esc(q.e)}</span>` : ''}` : `<b>ざんねん…</b> 答えは「${esc(q.a)}」${q.e ? `<span class="ex">${esc(q.e)}</span>` : ''}`;
+      answered(ok, q); onAnswer && onAnswer(ok, q);
     }));
-    const keyH = e => { if (done || !box.isConnected) return removeEventListener('keydown', keyH); const i = 'abcd1234'.indexOf(e.key.toLowerCase()) % 4; if (i >= 0 && e.key.length === 1) { const b = $$('.choice', box)[i]; b && b.click(); } };
+    const keyH = e => { if (done || !box.isConnected) return removeEventListener('keydown', keyH); if (e.target.closest && e.target.closest('input,textarea')) return; const i = 'abcd1234'.indexOf(e.key.toLowerCase()) % 4; if (i >= 0 && e.key.length === 1) { const b = $$('.choice', box)[i]; b && b.click(); } };
     addEventListener('keydown', keyH);
   }
 
@@ -331,5 +451,5 @@
   const weekNo = (d = today()) => Math.round((mondayOf(d) - new Date(2026, 0, 5)) / 604800000);
   const weekKey = (d = today()) => ymd(mondayOf(d));
 
-  window.LAB = { dayKeyParts, mondayOf, weekNo, weekKey, LS, load, save, get, put, update, ymd, p2, esc, $, $$, rnd, pick, shuffle, today, reward, spend, coins, exp, level, season, rankOf, TIERS, BADGE, TROPHIES, RAR: R, checkTrophies, ctx, toast, header, refreshHead, question, mathQ, bankQ, numChoices, check, N, renderChoice, answered, frac, dec };
+  window.LAB = { SEASON_PAY, seasonReward, claimSeason, MISSIONS, todayMissions, missionState, track, seedRand, FX, myGrade, unitAcc, weakUnits, choicesFor, rankIndex, dayKeyParts, mondayOf, weekNo, weekKey, LS, load, save, get, put, update, ymd, p2, esc, $, $$, rnd, pick, shuffle, today, reward, spend, coins, exp, level, season, rankOf, TIERS, BADGE, TROPHIES, RAR: R, checkTrophies, ctx, toast, header, refreshHead, question, mathQ, bankQ, numChoices, check, N, renderChoice, answered, frac, dec };
 })();

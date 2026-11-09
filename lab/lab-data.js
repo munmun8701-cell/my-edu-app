@@ -76,6 +76,12 @@
     { id: 'setsubun', name: '節分 オニたいじ', type: 'rally', from: '01-28', to: '02-03', ic: 'fa-hand-fist', c: '#f59e0b', desc: '問題に答えて豆を投げ、オニをたいじしよう。' },
     { id: 'shinkyu', name: '進級チャレンジ', type: 'grade', from: '03-01', to: '04-07', ic: 'fa-graduation-cap', c: '#a855f7', desc: '今の学年のまとめ10問。ぜんぶ正解で「進級メダル」！' },
     { id: 'natsu', name: '夏休み 自由研究テーマガチャ', type: 'gacha', from: '07-15', to: '08-31', ic: 'fa-flask-vial', c: '#06b6d4', desc: 'ボタンを押すと、自由研究のテーマと進め方が出てくるよ。' },
+    { id: 'sakura', name: '新学期 さくらラリー', type: 'rally', from: '04-08', to: '04-30', ic: 'fa-seedling', c: '#f472b6', si: 'fa-seedling', w: 'さくら', desc: '新しい学年のスタート！ 毎日3問に答えて、さくらスタンプを集めよう。' },
+    { id: 'tsuyu', name: 'つゆ あじさいラリー', type: 'rally', from: '06-01', to: '06-30', ic: 'fa-umbrella', c: '#38bdf8', si: 'fa-umbrella', w: 'あじさい', desc: '雨の日は、おうちで学習。毎日3問であじさいスタンプを集めよう。' },
+    { id: 'tanabata', name: '七夕 ほしあつめ', type: 'rally', from: '07-01', to: '07-07', ic: 'fa-star', c: '#fbbf24', si: 'fa-star', w: 'ほし', desc: '七夕まで毎日3問。星スタンプを集めて、天の川をかがやかせよう。' },
+    { id: 'otsukimi', name: 'お月見 おだんごラリー', type: 'rally', from: '09-10', to: '09-30', ic: 'fa-moon', c: '#fde68a', si: 'fa-moon', w: 'おだんご', desc: '月にうさぎがもちつき？ 毎日3問でおだんごスタンプを集めよう。' },
+    { id: 'undoukai', name: '運動会シーズン メダルラリー', type: 'rally', from: '10-01', to: '10-14', ic: 'fa-flag-checkered', c: '#ef4444', si: 'fa-medal', w: 'メダル', desc: '頭のたいそうも、わすれずに。毎日3問でメダルスタンプを集めよう。' },
+    { id: 'hinamatsuri', name: 'ひなまつり ラリー', type: 'rally', from: '02-20', to: '03-03', ic: 'fa-heart', c: '#f9a8d4', si: 'fa-heart', w: 'ひしもち', desc: '3月3日まで毎日3問。ひしもちスタンプを集めよう。' },
     { id: 'halloween', name: 'ハロウィン ナゾトキ', type: 'rally', from: '10-15', to: '10-31', ic: 'fa-ghost', c: '#f97316', desc: 'おばけが出す3問に答えて、おかしを集めよう。' }
   ];
 

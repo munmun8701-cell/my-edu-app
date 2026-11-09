@@ -18,7 +18,10 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
@@ -46,12 +49,23 @@
   .hist div { padding: 10px 12px; border-radius: 12px; background: var(--card2); border: 1px solid var(--line); font-weight: 800; color: #fff; font-size: .88rem; }
   .hist small { display: block; color: var(--dim); font-family: var(--mono); }
   .how li { margin-bottom: 6px; }
+  .rung .pay { display: block; margin-top: 6px; font-style: normal; font-size: .72rem; font-weight: 900; color: var(--gold); }
+  .pace { margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: rgba(0,229,255,.06); border: 1px dashed rgba(0,229,255,.35); font-size: .86rem; font-weight: 700; color: var(--text); }
+  .pace i { color: var(--cyan); margin-right: 4px; }
+  .pace b { color: #fff; }
+  .paybox { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .paybox > div { flex: 1; min-width: 200px; }
+  .paybox small { display: block; font-family: var(--mono); letter-spacing: .16em; font-size: .68rem; color: var(--tc); font-weight: 700; }
+  .paybox b { display: block; color: #fff; font-size: 1.1rem; margin: 2px 0; }
+  .paybox span { font-size: .84rem; color: var(--dim); font-weight: 700; }
+  #sn-pay { border-color: color-mix(in srgb, var(--tc) 50%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--tc) 12%, transparent), rgba(10,15,30,.9)); }
   @media (max-width: 640px) { .sn-hero { grid-template-columns: 1fr; text-align: center; justify-items: center; } .ladder { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 </style>
 <main class="wrap">
   <div class="page-title" style="--c:#fbbf24"><span class="ic"><i class="fa-solid fa-medal"></i></span><h1><small>SEASON RANK // ランク戦</small>シーズンランク</h1><p>1か月が1シーズン。その月に学習でためたEXPが「シーズンポイント」になり、ブロンズ→シルバー→ゴールド→プラチナ→マスターと上がっていきます。月が変わると、また新しいシーズンがはじまります。</p></div>
   <section class="panel" id="sn-now"></section>
-  <section class="panel"><div class="h2"><i class="fa-solid fa-stairs"></i>ランクの階段<small>MONTHLY POINTS</small></div><div class="ladder" id="ladder"></div></section>
+  <section class="panel" id="sn-pay" hidden></section>
+  <section class="panel"><div class="h2"><i class="fa-solid fa-stairs"></i>ランクの階段とシーズン報酬<small>MONTHLY POINTS</small></div><div class="ladder" id="ladder"></div><p class="note" style="margin:10px 0 0">月が変わると、前の月の最後のランクに合わせて「シーズン報酬」のコインがもらえます（1か月に1回）。</p></section>
   <div class="grid2" style="margin-top:16px">
     <section class="panel" style="margin:0"><div class="h2"><i class="fa-solid fa-chart-column"></i>今月の毎日のポイント</div><div class="days" id="days"></div><div class="days-x"><span>1日</span><span id="dx-end"></span></div></section>
     <section class="panel" style="margin:0"><div class="h2"><i class="fa-solid fa-bolt"></i>ポイントのため方</div><ul class="how note" style="color:var(--text)"><li>アプリで5分学習するごとに <b>+10</b></li><li>アプリの単元をクリア <b>+10</b>（★がふえると追加）</li><li>ログインボーナス・ミッション <b>+30</b> など</li><li>むんラボ：謎解き・ボス・ゴーストレース・イベント</li></ul><p class="note">※ むんラボでもらえるポイントは1日300まで。毎日コツコツが、いちばんの近道です。</p></section>
@@ -64,7 +78,17 @@
   const s = season();
   document.body.style.setProperty('--tc', s.tier.color);
   $('#sn-now').innerHTML = `<div class="sn-hero"><div class="sn-badge">${BADGE(s.tier, 150)}</div><div><small>SEASON ${s.key.replace('-', '.')} // のこり ${s.daysLeft} 日</small><h2>${esc(s.label)}</h2><div>今月のポイント <b style="color:#fff;font-size:1.3rem">${s.pts.toLocaleString()}</b> pt</div><div class="bar"><i style="width:${Math.round(s.prog * 100)}%"></i></div><div class="note">${s.next ? `次の「${esc(s.nextLabel)}」まで、あと <b style="color:#fff">${(s.next - s.pts).toLocaleString()}</b> pt` : 'マスター到達！ 今月の最高ランクです。'}</div></div></div>`;
-  $('#ladder').innerHTML = TIERS.map((t, i) => `<div class="rung ${i === s.tierIndex ? 'now' : i < s.tierIndex ? 'past' : ''}" style="--tc:${t.color}">${BADGE(t, 46)}<b>${t.name}</b><span>${t.steps[0].toLocaleString()} pt〜</span></div>`).join('');
+  $('#ladder').innerHTML = TIERS.map((t, i) => `<div class="rung ${i === s.tierIndex ? 'now' : i < s.tierIndex ? 'past' : ''}" style="--tc:${t.color}">${BADGE(t, 46)}<b>${t.name}</b><span>${t.steps[0].toLocaleString()} pt〜</span><em class="pay"><i class="fa-solid fa-gift"></i> ${LAB.SEASON_PAY[i].toLocaleString()} C</em></div>`).join('');
+  // 目標までのペース
+  if (s.next != null) { const need = s.next - s.pts, per = Math.ceil(need / Math.max(1, s.daysLeft)); $('#sn-now').insertAdjacentHTML('beforeend', `<div class="pace"><i class="fa-solid fa-person-running"></i> 「${esc(s.nextLabel)}」まで あと <b>${need.toLocaleString()} pt</b>。のこり ${s.daysLeft} 日なので、1日 <b>${per.toLocaleString()} pt</b> ずつで届きます。</div>`); }
+  // シーズン報酬
+  function payUI() {
+    const r = LAB.seasonReward(), el = $('#sn-pay'); if (!r) { el.hidden = true; return; }
+    el.hidden = false; el.style.setProperty('--tc', r.tier.color);
+    el.innerHTML = `<div class="paybox">${BADGE(r.tier, 72)}<div><small>SEASON ${r.key.replace('-', '.')} // REWARD</small><b>${r.month}月のシーズン報酬：${esc(r.label)}</b><span>${r.paid ? '受け取りずみ。今月もがんばろう！' : `+${r.coins.toLocaleString()} C を受け取れます`}</span></div>${r.paid ? '<i class="fa-solid fa-circle-check" style="color:#34d399;font-size:1.6rem"></i>' : '<button class="btn" type="button" id="pay-btn"><i class="fa-solid fa-gift"></i> 受け取る</button>'}</div>`;
+    const b = $('#pay-btn'); if (b) b.addEventListener('click', () => { LAB.claimSeason(); payUI(); });
+  }
+  payUI();
   // 今月の毎日
   const d = today(), y = d.getFullYear(), m = d.getMonth(), dim = new Date(y, m + 1, 0).getDate();
   const log = load('mun_daily_exp', {}); const per = {};

@@ -18,12 +18,17 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
 <script>LAB.header({ sub: "SKILL TREE" });</script>
 <style>
+  .lab-link { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding: 10px 12px; border-radius: 14px; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.3); }
+  .lab-link b { width: 100%; color: #fca5a5; font-size: .82rem; }
   .st-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .st-sum button { text-align: left; padding: 12px 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); color: var(--text); font: inherit; cursor: pointer; }
   .st-sum button.on { border-color: var(--c); box-shadow: 0 0 0 1px var(--c) inset, 0 0 18px color-mix(in srgb, var(--c) 25%, transparent); }
@@ -65,6 +70,7 @@
   .detail .row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
   .detail .ni2 { width: 56px; height: 56px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 1.4rem; color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
   @media print { .tree svg.lines path { stroke: #999 !important; filter: none !important; animation: none !important; } .node { break-inside: avoid; } }
+  .st-next{margin:0 0 14px}.st-next .nx{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-radius:16px;border:1px dashed var(--c,#00e5ff);background:color-mix(in srgb,var(--c,#00e5ff) 10%,transparent)}.st-next .nx b{color:var(--c,#00e5ff)}.st-next .nx a{margin-left:auto}
 </style>
 <main class="wrap">
   <div class="page-title" style="--c:#00e5ff"><span class="ic"><i class="fa-solid fa-diagram-project"></i></span><h1><small>SKILL TREE // 学びの地図</small>スキルツリー</h1><p>単元どうしのつながりを1枚の地図にしました。アプリで学習すると単元が光り、次の単元への道がのびていきます。黄色の点線は、学年をこえた「つながり」です。</p></div>
@@ -72,6 +78,7 @@
   <div class="panel">
     <div class="h2" style="--c:#00e5ff"><i class="fa-solid fa-route"></i><span id="st-title">算数</span><small class="no-print"><button class="btn ghost sm" type="button" onclick="window.print()"><i class="fa-solid fa-print"></i> 地図を印刷</button></small></div>
     <div class="legend no-print" style="margin-bottom:14px;"><span><i class="d" style="background:rgba(148,163,184,.3)"></i>まだ</span><span><i class="d" style="background:#00e5ff;opacity:.5"></i>挑戦中（1回）</span><span><i class="d" style="background:#00e5ff"></i>クリア（3回 or 合格）</span><span><i class="d" style="background:#fbbf24"></i>マスター（8回 or ★6）</span></div>
+    <div class="st-next" id="st-next"></div>
     <div class="tree" id="tree"></div>
   </div>
 </main>
@@ -120,6 +127,14 @@
         return `<button type="button" class="node ${s}" data-id="${c.id}" data-g="${gi}" data-i="${i}" aria-label="${esc(c.title)}：${ST[s]}"><span class="ni"><i class="${esc(c.icon)}"></i></span><span class="nt">${esc(c.title)}</span><span class="ns">${ST[s]}</span></button>`;
       }).join('')}</div></div>`;
     }).join('');
+    (function () {
+      let rec = null, why = '';
+      const all = sj.groups.flatMap(g => g.cards);
+      rec = all.find(c => c.st.s === 'try'); if (rec) why = 'いま挑戦中です。あと少しでクリア！';
+      if (!rec) { rec = all.find(c => c.st.s === 'none'); if (rec) why = 'まだやっていない単元です。ここから始めよう。'; }
+      $('#st-next').innerHTML = rec ? `<div class="nx"><i class="fa-solid fa-flag" style="color:var(--c)"></i><span><b>つぎの一歩</b>：${esc(rec.title)}<br><small>${why}</small></span><a class="btn sm" href="${esc(rec.href)}"><i class="fa-solid fa-play"></i> ひらく</a></div>` : `<div class="nx"><i class="fa-solid fa-crown" style="color:var(--c)"></i><span><b>${esc(sj.name)}をコンプリート！</b><br><small>ほかの教科の地図も見てみよう。</small></span></div>`;
+      if (rec) $$('#tree .node').forEach(b => { if (b.dataset.id === rec.id) b.style.outline = '2px dashed var(--c)'; });
+    })();
     $$('#tree .node').forEach(b => b.addEventListener('click', () => detail(C.find(c => c.id === b.dataset.id), sj)));
     requestAnimationFrame(lines);
   }
@@ -153,12 +168,22 @@
     }
     svg.innerHTML = out;
   }
+  // この単元に合う「むんラボのミニテスト」をさがす（学年と単元名の言葉で）
+  const GR = { math1: 1, math3: 3, math4: 4, math5: 5, math6: 6, history: 6 };
+  function labUnits(c) {
+    if (!window.LAB_Q) return [];
+    const g = GR[c.cat] || (/低学年/.test(c.title) ? 2 : /中学年/.test(c.title) ? 4 : /高学年/.test(c.title) ? 6 : null);
+    const subj = /^math/.test(c.cat) ? '算数' : c.cat === 'history' || c.cat === 'social' ? '社会' : c.cat === 'kokugo' ? '国語' : null;
+    if (!subj) return [];
+    return LAB_Q.units({ subj: [subj] }).filter(u => (g == null || u.g === g || (subj === '国語' && Math.abs(u.g - g) <= 1)) && u.kw.some(k => c.title.includes(k))).slice(0, 3);
+  }
   function detail(c, sj) {
     const st = c.st, need = st.s === 'none' ? 'まず1回ひらいてみよう！' : st.s === 'try' ? `あと ${Math.max(1, 3 - st.n)} 回 学習するとクリア！` : st.s === 'clear' ? `あと ${Math.max(1, 8 - st.n)} 回でマスター！` : 'マスター達成！ほかの単元にも挑戦しよう。';
     const m = document.createElement('div'); m.className = 'lab-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
     m.innerHTML = `<div class="box detail" style="--c:${sj.c}"><div class="row"><span class="ni2"><i class="${esc(c.icon)}"></i></span><div><small class="note">${esc(c.label)}</small><h2 style="margin:0">${esc(c.title)}</h2></div></div>
       ${c.unit ? `<p class="pill" style="margin:0 0 8px"><i class="fa-solid fa-book-bookmark"></i>${esc(c.unit)}</p>` : ''}<p>${esc(c.desc)}</p>
       <p class="note">ひらいた回数：${st.n} 回${st.lessons ? ` ／ クリアした回：${st.lessons}（★${st.stars}）` : ''}<br><b style="color:#fff">${need}</b></p>
+      ${(() => { const us = labUnits(c); if (!us.length) return ''; const dr = LAB.get().drill || {}; return `<div class="lab-link"><b><i class="fa-solid fa-bullseye"></i> むんラボのミニテスト</b>${us.map(u => { const b = (dr[u.id] || {}).best || 0, s = b >= 10 ? 3 : b >= 8 ? 2 : b >= 5 ? 1 : 0; return `<a class="btn sm ghost" href="./drill.html?u=${u.id}">${esc(u.name)} <span style="color:var(--gold)">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span></a>`; }).join('')}</div>`; })()}
       <div class="btns" style="justify-content:flex-end"><button class="btn ghost" type="button" data-x>とじる</button><a class="btn" href="../${esc(c.href)}" data-go><i class="fa-solid fa-play"></i> この単元をひらく</a></div></div>`;
     document.body.appendChild(m);
     const close = () => m.remove();

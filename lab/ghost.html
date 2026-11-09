@@ -18,7 +18,10 @@
   <link rel="stylesheet" href="./lab.css">
   <script src="./lab-cards.js"></script>
   <script src="./lab-data.js"></script>
+  <script src="./lab-data2.js"></script>
   <script src="./lab-avatar.js"></script>
+  <script src="./lab-fx.js"></script>
+  <script src="./lab-qbank.js"></script>
   <script src="./lab-core.js"></script>
 </head>
 <body>
@@ -68,8 +71,18 @@
     { id: 'kuku', name: '九九', sub: 'かけ算九九（2年）', gen: () => { const a = rnd(2, 9), b = rnd(2, 9); return [`${a}×${b}`, a * b]; } },
     { id: 'add2', name: '2けたのたし算', sub: '2けた＋2けた（2年）', gen: () => { const a = rnd(11, 69), b = rnd(11, 29); return [`${a}＋${b}`, a + b]; } },
     { id: 'div', name: 'わり算', sub: '九九の逆（3年）', gen: () => { const b = rnd(2, 9), q = rnd(1, 9); return [`${b * q}÷${b}`, q]; } },
-    { id: 'dec', name: '小数のたし算', sub: '小数第一位（4年）', gen: () => { const a = rnd(1, 49), b = rnd(1, 49); return [`${a / 10}＋${b / 10}`, dec((a + b) / 10)]; } }
+    { id: 'dec', name: '小数のたし算', sub: '小数第一位（4年）', gen: () => { const a = rnd(1, 49), b = rnd(1, 49); return [`${a / 10}＋${b / 10}`, dec((a + b) / 10)]; } },
+    { id: 'add1c', name: 'くり上がり', sub: 'くり上がりのたし算（1年）', gen: () => { const a = rnd(2, 9), b = rnd(11 - a, 9); return [`${a}＋${b}`, a + b]; } },
+    { id: 'kukur', name: '九九のぎゃく', sub: '□をもとめる（2年）', gen: () => { const a = rnd(2, 9), b = rnd(2, 9); return [`${a}×□＝${a * b}　□`, b]; } },
+    { id: 'sub2', name: '2けたのひき算', sub: '2けた−2けた（2年）', gen: () => { const a = rnd(30, 99), b = rnd(11, a - 1); return [`${a}−${b}`, a - b]; } },
+    { id: 'rem', name: 'あまり', sub: 'あまりのあるわり算（3年）', gen: () => { const b = rnd(3, 9), q = rnd(1, 9), r = rnd(1, b - 1); return [`${b * q + r}÷${b} のあまり`, r]; } },
+    { id: 'mul21', name: '2けた×1けた', sub: 'かけ算の暗算（3年）', gen: () => { const a = rnd(12, 49), b = rnd(2, 9); return [`${a}×${b}`, a * b]; } },
+    { id: 'order', name: '計算の順じょ', sub: 'かけ算を先に（4年）', gen: () => { const a = rnd(2, 20), b = rnd(2, 9), c = rnd(2, 9); return [`${a}＋${b}×${c}`, a + b * c]; } },
+    { id: 'decm', name: '小数×整数', sub: '小数のかけ算（5年）', gen: () => { const a = rnd(11, 49), b = rnd(2, 9); return [`${dec(a / 10)}×${b}`, dec(a * b / 10)]; } }
   ];
+  const GR = m => +(m.sub.match(/（(\d)年）/) || [0, 9])[1];
+  MODES.sort((a, b) => GR(a) - GR(b));
+  const FX = LAB.FX;
   const fmt = ms => (ms / 1000).toFixed(2) + '秒';
   function sel() {
     const g = get().ghost;
@@ -92,8 +105,8 @@
     $('#g-quit').addEventListener('click', quit);
     $('#g-q').textContent = '…';
     const c = document.createElement('div'); c.className = 'count'; document.body.appendChild(c);
-    let n = 3; c.textContent = n;
-    const iv = setInterval(() => { n--; if (n > 0) c.textContent = n; else { clearInterval(iv); c.textContent = 'GO!'; setTimeout(() => c.remove(), 350); st.t0 = performance.now(); show(); loop(); } }, 650);
+    let n = 3; c.textContent = n; FX().play('tick');
+    const iv = setInterval(() => { n--; if (n > 0) { c.textContent = n; FX().play('tick'); } else { clearInterval(iv); c.textContent = 'GO!'; FX().play('go'); setTimeout(() => c.remove(), 350); st.t0 = performance.now(); show(); loop(); } }, 650);
   }
   function quit() { if (st) cancelAnimationFrame(st.timer); st = null; $('#race').hidden = true; $('#sel').hidden = false; sel(); }
   function show() { $('#g-q').textContent = st.qs[st.i][0] + ' ＝'; $('#g-in').textContent = st.input; $('#g-n').textContent = Math.min(20, st.i + 1); }
@@ -105,11 +118,11 @@
     const ans = String(st.qs[st.i][1]);
     $('#g-in').textContent = st.input;
     if (st.input === ans) {
-      st.splits.push(performance.now() - st.t0); st.i++; st.input = ''; answered(true);
+      st.splits.push(performance.now() - st.t0); st.i++; st.input = ''; answered(true); FX().play('step');
       if (st.i >= 20) return finish();
       show();
     } else if (st.input.length >= ans.length && !ans.startsWith(st.input)) {
-      st.miss++; answered(false); const el = $('#g-in'); el.classList.add('ng'); setTimeout(() => { el.classList.remove('ng'); if (st) { st.input = ''; el.textContent = ''; } }, 280);
+      st.miss++; answered(false); FX().play('ng'); const el = $('#g-in'); el.classList.add('ng'); setTimeout(() => { el.classList.remove('ng'); if (st) { st.input = ''; el.textContent = ''; } }, 280);
     }
   }
   addEventListener('keydown', e => { if (!st) return; if (/^[0-9.]$/.test(e.key) || e.key === 'Backspace') { e.preventDefault(); key(e.key); } });
@@ -129,7 +142,7 @@
     st.timer = requestAnimationFrame(loop);
   }
   function finish() {
-    cancelAnimationFrame(st.timer);
+    cancelAnimationFrame(st.timer); LAB.track('ghost');
     const time = st.splits[19], m = st.mode, prev = st.best, win = prev && time < prev, first = !prev;
     update(d => {
       const g = d.ghost[m.id] || { runs: 0, hist: [] };
@@ -146,6 +159,7 @@
       <div class="btns" style="justify-content:center;margin-top:16px"><button class="btn" type="button" id="again"><i class="fa-solid fa-rotate-right"></i> もう一度</button><button class="btn ghost" type="button" id="back">コースをえらぶ</button></div></div>`;
     const mode = st.mode; st = null;
     $('#again').addEventListener('click', () => start(mode)); $('#back').addEventListener('click', quit);
+    if (win) { FX().celebrate({ kicker: 'NEW RECORD', title: `${esc(m.name)}　${fmt(time)}`, sub: `ゴーストに勝った！ ${((prev - time) / 1000).toFixed(2)}秒 速くなった`, icon: 'fa-ghost', color: '#a78bfa', auto: 3500 }); } else FX().play(first ? 'win' : 'ok');
     if (win) reward({ coins: 200, exp: 10, reason: 'ゴーストに勝った！' }); else if (first) reward({ coins: 100, exp: 5, reason: 'はじめての記録' }); else reward({ coins: 30, exp: 2, reason: '完走ボーナス' });
     checkTrophies();
   }
