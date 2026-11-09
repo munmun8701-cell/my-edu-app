@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マイルーム・アバター｜むんラボ｜むん先生の学習クエスト</title>
+  <meta name="description" content="コインでドット絵のアバターと部屋をカスタマイズ。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/lab/room.html">
+  <meta name="theme-color" content="#050914">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta property="og:title" content="マイルーム・アバター｜むんラボ｜むん先生の学習クエスト">
+  <meta property="og:description" content="コインでドット絵のアバターと部屋をカスタマイズ。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./lab.css">
+  <script src="./lab-cards.js"></script>
+  <script src="./lab-data.js"></script>
+  <script src="./lab-avatar.js"></script>
+  <script src="./lab-core.js"></script>
+</head>
+<body>
+<script>LAB.header({ sub: "MY ROOM" });</script>
+<style>
+  .rm-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .rm-stage { position: sticky; top: 76px; }
+  .rm-view { border-radius: 18px; overflow: hidden; border: 1px solid rgba(251,146,60,.4); box-shadow: 0 0 30px rgba(251,146,60,.15); background: #000; }
+  .rm-ava { display: flex; gap: 14px; align-items: center; margin-top: 12px; }
+  .rm-ava .big { width: 120px; height: 120px; flex: none; border-radius: 18px; background: #0b1222; border: 1px solid var(--line); }
+  .opt-h { margin: 14px 0 6px; font-weight: 900; color: var(--bright); font-size: .9rem; display: flex; align-items: center; gap: 8px; }
+  .opt-h:first-child { margin-top: 0; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sw { width: 34px; height: 34px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
+  .sw.on { border-color: #fff; box-shadow: 0 0 0 2px var(--cyan); }
+  .op { position: relative; padding: 7px 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--soft); color: var(--bright); font: inherit; font-weight: 800; font-size: .82rem; cursor: pointer; }
+  .op.on { background: #fb923c; border-color: #fb923c; color: #1a0a00; }
+  .op .pr { display: block; font-size: .68rem; color: var(--gold); font-weight: 900; }
+  .op.on .pr { color: #1a0a00; }
+  .op.lock { opacity: .85; }
+  .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .it { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); }
+  .it.on { border-color: #fb923c; box-shadow: 0 0 0 1px #fb923c inset; }
+  .it b { color: #fff; font-size: .86rem; }
+  .it small { color: var(--dim); font-size: .72rem; font-weight: 700; }
+  .it .btn { width: 100%; }
+  @media (max-width: 900px) { .rm-grid { grid-template-columns: 1fr; } .rm-stage { position: static; } }
+</style>
+<main class="wrap">
+  <div class="page-title" style="--c:#fb923c"><span class="ic"><i class="fa-solid fa-couch"></i></span><h1><small>MY ROOM // AVATAR</small>マイルーム・アバター</h1><p>学習でためたコインで、ドット絵のアバターと部屋を自分好みにしよう。買ったアイテムは、いつでも置きかえられます。</p></div>
+  <div class="rm-grid">
+    <div class="rm-stage">
+      <div class="rm-view" id="rm-view"></div>
+      <div class="rm-ava"><div class="big" id="rm-ava"></div><div><b style="color:#fff;font-size:1.05rem;">アバター</b><p class="note" style="margin:4px 0 10px;">「アバター」のタブで、はだ・かみ・ふく・アクセサリーをえらんで保存してね。</p><button class="btn gold sm" id="rm-save" type="button"><i class="fa-solid fa-floppy-disk"></i> このアバターにする</button></div></div>
+    </div>
+    <div class="panel">
+      <div class="seg" role="tablist" style="--c:#fb923c;margin-bottom:14px;"><button class="on" data-tab="ava" type="button">アバター</button><button data-tab="room" type="button">部屋</button></div>
+      <div id="tab-ava"></div>
+      <div id="tab-room" hidden></div>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+  const { $, $$, esc, get, update, spend, coins, toast, checkTrophies } = LAB;
+  const A = LAB_AVATAR;
+  let lab = get();
+  let cfg = Object.assign({}, A.DEF, lab.room.avatar || {});
+  const owned = () => new Set(get().room.owned || []);
+  const own = id => owned().has(id);
+  function render() {
+    lab = get();
+    $('#rm-ava').innerHTML = A.svg(cfg);
+    $('#rm-view').innerHTML = A.room(lab.room.place, lab.room.avatar ? cfg : cfg, { trophies: Object.keys(lab.trophies).length });
+  }
+  function buy(id, price, name) {
+    if (own(id)) return true;
+    if (coins() < price) { toast(`コインが ${(price - coins()).toLocaleString()} 足りません`, 'fa-coins'); return false; }
+    if (!confirmBuy(name, price)) return false;
+    spend(price); update(d => { d.room.owned = [...new Set([...(d.room.owned || []), id])]; });
+    toast(`「${name}」を手に入れた！（−${price.toLocaleString()} C）`, 'fa-bag-shopping'); checkTrophies(); return true;
+  }
+  function confirmBuy(name, price) { return window.__labConfirm ? window.__labConfirm(name, price) : confirm(`「${name}」を ${price.toLocaleString()} コインで買いますか？`); }
+
+  /* ---------- アバター ---------- */
+  function avaUI() {
+    const sw = (key, arr) => `<div class="opts">${arr.map((c, i) => `<button type="button" class="sw ${cfg[key] === i ? 'on' : ''}" style="background:${c}" data-k="${key}" data-v="${i}" aria-label="${key} ${i + 1}"></button>`).join('')}</div>`;
+    const ops = (key, list, names) => `<div class="opts">${list.map(v => { const prem = A.SKINS[v]; const has = !prem || own('av:' + v); return `<button type="button" class="op ${cfg[key] === v ? 'on' : ''} ${has ? '' : 'lock'}" data-k="${key}" data-s="${v}">${esc(names[v] || (prem && prem.name) || v)}${has ? '' : `<span class="pr"><i class="fa-solid fa-coins"></i> ${prem.price.toLocaleString()}</span>`}</button>`; }).join('')}</div>`;
+    $('#tab-ava').innerHTML =
+      `<div class="opt-h"><i class="fa-solid fa-hand"></i>はだの色</div>${sw('skin', A.SKIN)}` +
+      `<div class="opt-h"><i class="fa-solid fa-scissors"></i>かみがた</div>${ops('hair', A.HAIR, { short: 'ショート', spiky: 'ツンツン', bob: 'ボブ', long: 'ロング', pony: 'ポニーテール', buzz: 'ぼうず' })}` +
+      `<div class="opt-h"><i class="fa-solid fa-palette"></i>かみの色</div>${sw('hairC', A.HAIRC)}` +
+      `<div class="opt-h"><i class="fa-solid fa-eye"></i>目の色</div>${sw('eye', A.EYE)}` +
+      `<div class="opt-h"><i class="fa-solid fa-shirt"></i>ふく</div>${ops('outfit', A.OUTFITS, { tee: 'Tシャツ' })}` +
+      `<div class="opt-h"><i class="fa-solid fa-fill-drip"></i>ふくの色</div>${sw('shirt', A.SHIRT)}` +
+      `<div class="opt-h"><i class="fa-solid fa-glasses"></i>アクセサリー</div>${ops('acc', A.ACCS, { none: 'なし' })}`;
+    $$('#tab-ava .sw').forEach(b => b.addEventListener('click', () => { cfg[b.dataset.k] = +b.dataset.v; avaUI(); render(); }));
+    $$('#tab-ava .op').forEach(b => b.addEventListener('click', () => {
+      const v = b.dataset.s, prem = A.SKINS[v];
+      if (prem && !own('av:' + v) && !buy('av:' + v, prem.price, prem.name)) return;
+      cfg[b.dataset.k] = v; avaUI(); render();
+    }));
+  }
+  $('#rm-save').addEventListener('click', () => { update(d => { d.room.avatar = Object.assign({}, cfg); }); toast('アバターを保存しました', 'fa-user-astronaut'); checkTrophies(); render(); });
+
+  /* ---------- 部屋 ---------- */
+  const SLOTS = [['wall', 'かべ', 'fa-border-all'], ['floor', 'ゆか', 'fa-table-cells'], ['window', 'まど', 'fa-window-maximize'], ['desk', 'つくえ', 'fa-chair'], ['pc', 'パソコン', 'fa-computer'], ['shelf', 'たな', 'fa-book'], ['bed', 'ベッド', 'fa-bed'], ['poster', 'ポスター', 'fa-image'], ['lamp', 'ネオン', 'fa-lightbulb'], ['lamp2', 'ランプ', 'fa-lightbulb'], ['plant', 'つくえの上', 'fa-seedling'], ['floorleft', '観葉植物', 'fa-leaf'], ['rug', 'ラグ', 'fa-circle'], ['pet', 'ペット', 'fa-cat'], ['pet2', '水そう', 'fa-fish']];
+  function itemsFor(slot) {
+    if (slot === 'wall') return Object.entries(A.WALLS).map(([id, [n, p]]) => ({ id, n, p }));
+    if (slot === 'floor') return Object.entries(A.FLOORS).map(([id, [n, p]]) => ({ id, n, p }));
+    return Object.entries(A.ITEMS).filter(([, v]) => v.slot === slot).map(([id, v]) => ({ id, n: v.name, p: v.price }));
+  }
+  function roomUI() {
+    const place = Object.assign({ wall: 'wall-night', floor: 'floor-wood', window: 'win-city', desk: 'desk-basic' }, get().room.place || {});
+    $('#tab-room').innerHTML = SLOTS.map(([slot, label, ic]) => {
+      const list = itemsFor(slot); if (!list.length) return '';
+      const opt = ['wall', 'floor', 'window', 'desk'].includes(slot) ? '' : `<div class="it ${!place[slot] ? 'on' : ''}"><b>なし</b><small>置かない</small><button class="btn ghost sm" type="button" data-slot="${slot}" data-id="">${!place[slot] ? '使用中' : 'はずす'}</button></div>`;
+      return `<div class="opt-h"><i class="fa-solid ${ic}"></i>${label}</div><div class="items">${list.map(x => { const has = x.p === 0 || own(x.id), on = place[slot] === x.id; return `<div class="it ${on ? 'on' : ''}"><b>${esc(x.n)}</b><small>${x.p ? `<i class="fa-solid fa-coins" style="color:var(--gold)"></i> ${x.p.toLocaleString()}` : '無料'}${has && x.p ? '・持っている' : ''}</small><button class="btn ${on ? 'ghost' : has ? '' : 'gold'} sm" type="button" data-slot="${slot}" data-id="${x.id}" data-p="${x.p}" data-n="${esc(x.n)}">${on ? '使用中' : has ? '置く' : '買う'}</button></div>`; }).join('')}${opt}</div>`;
+    }).join('');
+    $$('#tab-room [data-slot]').forEach(b => b.addEventListener('click', () => {
+      const { slot, id } = b.dataset, p = +b.dataset.p || 0;
+      if (id && p && !own(id) && !buy(id, p, b.dataset.n)) return;
+      update(d => { d.room.place = Object.assign({}, d.room.place || {}); if (id) d.room.place[slot] = id; else delete d.room.place[slot]; });
+      roomUI(); render();
+    }));
+  }
+  $$('.seg [data-tab]').forEach(b => b.addEventListener('click', () => { $$('.seg [data-tab]').forEach(x => x.classList.toggle('on', x === b)); $('#tab-ava').hidden = b.dataset.tab !== 'ava'; $('#tab-room').hidden = b.dataset.tab !== 'room'; }));
+  avaUI(); roomUI(); render();
+})();
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8da24e49b08544cead394c557a53b918"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

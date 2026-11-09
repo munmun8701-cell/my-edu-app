@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050914">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ルールクエスト">
+<meta name="description" content="特別支援学級の子どもたちが、順番待ち・貸し借り・遊びのルール・話す順番を、友だちの気持ちを手がかりに楽しく学べるアプリ。1〜6年生対応。">
+<title>ルール・じゅんばんクエスト｜むん先生の学習クエスト</title>
+<style>
+:root{
+  --fs:18px;
+  --font-goth:"BIZ UDPGothic","BIZ UDPゴシック","Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN W4","Hiragino Sans","Meiryo",system-ui,sans-serif;
+  --font-kyo:"UD Digi Kyokasho NK-B","UD デジタル 教科書体 NK-B","UD Digi Kyokasho NK-R","UD デジタル 教科書体 NK-R","Hiragino Maru Gothic ProN","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+}
+body[data-theme="cyber"]{
+  --bg:#050914;--panel:#0d1834;--panel2:#13244a;--line:#24427d;
+  --text:#eef6ff;--muted:#a3b8da;--accent:#3fe0ff;--accent-ink:#04121f;--accent2:#ffd84d;
+  --ok:#45e39c;--soft:#ff9ec4;--bubble:#f3f8ff;--bubble-ink:#14203a;
+  --glow:0 0 0 1px rgba(63,224,255,.30),0 0 16px rgba(63,224,255,.14);
+  --shadow:0 8px 24px rgba(0,0,0,.45);
+}
+body[data-theme="soft"]{
+  --bg:#fff7ea;--panel:#ffffff;--panel2:#f2f7ff;--line:#d5e1f2;
+  --text:#25303f;--muted:#5d6a82;--accent:#2a7fd4;--accent-ink:#ffffff;--accent2:#e8930c;
+  --ok:#17955c;--soft:#d9476d;--bubble:#ffffff;--bubble-ink:#25303f;
+  --glow:0 0 0 2px #d5e1f2;
+  --shadow:0 4px 14px rgba(40,60,90,.12);
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;font-family:var(--font-goth);background:var(--bg);color:var(--text);line-height:1.7;word-break:keep-all;overflow-wrap:break-word;overflow-wrap:anywhere;line-break:strict}
+.cbtn>span,.bub,.ask h2,.fb-why,.fb-title,.slot>span,.lvbtn>span{min-width:0}
+body[data-font="kyo"]{font-family:var(--font-kyo)}
+body[data-theme="cyber"]{
+  background:
+    radial-gradient(ellipse at 50% -10%,rgba(63,224,255,.13),transparent 60%),
+    linear-gradient(rgba(63,224,255,.045) 1px,transparent 1px) 0 0/34px 34px,
+    linear-gradient(90deg,rgba(63,224,255,.045) 1px,transparent 1px) 0 0/34px 34px,
+    var(--bg);
+  background-attachment:fixed;
+}
+ruby{ruby-position:over}
+rt{font-size:.52em;font-weight:500;letter-spacing:0}
+body.nofuri rt{display:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+button:disabled{cursor:default}
+:focus-visible{outline:3px solid var(--accent2);outline-offset:3px}
+h2[tabindex="-1"]:focus,main:focus{outline:none}
+a{color:var(--accent)}
+.sys{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;color:var(--accent);opacity:.9}
+body[data-theme="soft"] .sys{letter-spacing:.08em}
+
+/* ---------- header */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:.6rem;padding:.55rem max(.9rem,env(safe-area-inset-left)) .55rem max(.9rem,env(safe-area-inset-right));background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.brand{flex:1;min-width:0;line-height:1.25}
+.brand h1{margin:.1rem 0 0;font-size:1.12rem;line-height:1.35}
+@media(max-width:520px){.brand .sys{display:none}.brand h1{font-size:1rem}.tbtn{min-width:56px}}
+.tbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px;min-height:52px;padding:.25rem .5rem;border-radius:14px;border:2px solid var(--line);background:var(--panel);font-size:1.15rem;line-height:1.1}
+.tbtn small{font-size:.58rem;font-weight:700;color:var(--muted);margin-top:.15rem}
+main{max-width:1180px;margin:0 auto;padding:1rem max(.9rem,env(safe-area-inset-left)) 2.5rem max(.9rem,env(safe-area-inset-right))}
+
+/* ---------- common */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:58px;padding:.55rem 1.2rem;border-radius:16px;border:2px solid var(--line);background:var(--panel);font-weight:700;font-size:1.05rem;box-shadow:var(--glow);line-height:1.4}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.big{min-height:68px;font-size:1.2rem;padding:.6rem 1.6rem}
+.btn:active,.cbtn:active,.lvbtn:active,.thbtn:active{transform:translateY(2px)}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:22px;box-shadow:var(--glow)}
+.step{display:flex;align-items:center;gap:.6rem;margin:1.3rem 0 .7rem;font-size:1.3rem}
+.step .tag{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;padding:.15rem .55rem;border-radius:8px;background:var(--accent);color:var(--accent-ink)}
+.note{color:var(--muted);font-size:.92rem;margin:.6rem 0 0}
+.backlink{display:inline-flex;align-items:center;gap:.3rem;min-height:48px;padding:.3rem .9rem;border-radius:12px;border:2px solid var(--line);background:var(--panel);font-weight:700;font-size:.95rem}
+
+/* ---------- home */
+.hero{display:grid;gap:1rem;align-items:center;padding:1rem;overflow:hidden}
+.hero .art{border-radius:16px;overflow:hidden;border:2px solid var(--line);background:#bfe8ff}
+.hero .art svg{display:block;width:100%;height:auto}
+.hero .lead{margin:0;font-size:1.22rem;font-weight:700;line-height:1.9}
+.hero .lead em{font-style:normal;color:var(--accent2)}
+@media(min-width:820px){.hero{grid-template-columns:1.1fr 1fr;padding:1.2rem 1.4rem}}
+.levels{display:grid;gap:.8rem}
+@media(min-width:820px){.levels{grid-template-columns:repeat(3,1fr)}}
+.lvbtn{position:relative;display:flex;align-items:center;gap:.9rem;text-align:left;width:100%;min-height:96px;padding:.9rem 1rem;border-radius:20px;border:2px solid var(--lc);background:var(--panel);box-shadow:0 0 0 1px color-mix(in srgb,var(--lc) 40%,transparent),0 0 18px color-mix(in srgb,var(--lc) 18%,transparent)}
+.lvbtn .num{flex:0 0 auto;width:3.4rem;height:3.4rem;border-radius:16px;display:grid;place-items:center;font-size:1.6rem;font-weight:800;background:var(--lc);color:#05121f;line-height:1}
+.lvbtn .num small{display:block;font-size:.5rem;letter-spacing:.08em;font-family:var(--mono)}
+.lvbtn b{display:block;font-size:1.2rem}
+.lvbtn .d{display:block;font-size:.88rem;color:var(--muted);line-height:1.5}
+.lvbtn .stars{color:var(--lc);letter-spacing:.1em;font-size:.9rem}
+.homefoot{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.4rem;align-items:center}
+.minicard{display:flex;align-items:center;gap:.6rem}
+.portal{margin-top:1.6rem;text-align:center;font-size:.85rem;color:var(--muted)}
+
+/* ---------- themes */
+.themes{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem}
+@media(min-width:820px){.themes{grid-template-columns:repeat(4,1fr)}}
+.thbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem;min-height:150px;padding:1rem .6rem;border-radius:20px;border:2px solid var(--line);background:var(--panel);box-shadow:var(--glow);text-align:center}
+.thbtn .ic{font-size:2.6rem;line-height:1.1}
+.thbtn b{font-size:1.15rem;line-height:1.4}
+.thbtn .d{font-size:.85rem;color:var(--muted);line-height:1.4}
+.thbtn.mix{grid-column:1/-1;flex-direction:row;min-height:84px;gap:.8rem}
+.clear{position:absolute;top:.45rem;right:.45rem;font-size:.7rem;font-weight:800;padding:.05rem .45rem;border-radius:999px;background:var(--ok);color:#04150d}
+.lvchip{display:inline-flex;align-items:center;gap:.3rem;padding:.1rem .7rem;border-radius:999px;font-weight:800;font-size:.85rem;background:var(--lc);color:#05121f}
+
+/* ---------- play */
+.playbar{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;flex-wrap:wrap}
+.dots{display:flex;gap:.35rem;flex:1;justify-content:center}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);display:block}
+.dots i.done{background:var(--accent)}
+.dots i.now{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent)}
+.count{font-family:var(--mono);font-weight:700;color:var(--muted);font-size:.9rem}
+.playgrid{display:grid;gap:1rem}
+@media(min-width:900px){.playgrid{grid-template-columns:1.08fr 1fr;align-items:start}}
+.scene{border-radius:18px;overflow:hidden;border:2px solid var(--accent);box-shadow:var(--glow);background:#bfe8ff}
+body[data-theme="soft"] .scene{border-color:var(--line)}
+.scene svg{display:block;width:100%;height:auto}
+.story{display:flex;flex-direction:column;gap:.55rem;margin-top:.8rem}
+.ln{display:flex;gap:.55rem;align-items:flex-start}
+.ln .ava{flex:0 0 52px;height:52px;border-radius:50%;background:#fff;border:2px solid var(--line);overflow:hidden}
+.ln .ava svg{width:100%;height:100%;display:block}
+.bub{position:relative;flex:1;padding:.55rem .9rem;border-radius:16px;background:var(--bubble);color:var(--bubble-ink);font-size:1.12rem;line-height:2;font-weight:600}
+.bub .who{display:block;font-size:.78rem;font-weight:800;color:#3d5a8a;line-height:1.3}
+.ln.mine .bub{background:#fff6cf}
+.ln.narr .bub{background:transparent;color:var(--text);border:2px dashed var(--line)}
+.ask{display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem}
+.ask h2{flex:1;margin:0;font-size:1.4rem;line-height:1.9}
+.saybtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:.25rem;min-height:56px;padding:.3rem .9rem;border-radius:16px;border:2px solid var(--accent2);background:var(--panel);font-weight:800;font-size:1rem;color:var(--text)}
+.saybtn.speaking,.say-mini.speaking{background:var(--accent2);color:#1d1600}
+body.notts .saybtn,body.notts .say-mini,body.notts .fb-say{display:none!important}
+.answers{display:flex;flex-direction:column;gap:.7rem}
+.choice{display:flex;gap:.5rem;align-items:stretch}
+.say-mini{flex:0 0 52px;border-radius:14px;border:2px solid var(--line);background:var(--panel);font-size:1.15rem}
+.cbtn{flex:1;display:flex;align-items:center;gap:.8rem;text-align:left;min-height:76px;padding:.6rem 1rem;border-radius:18px;border:2px solid var(--line);background:var(--panel);font-size:1.16rem;font-weight:700;line-height:1.95;box-shadow:var(--glow)}
+.cbtn:hover{border-color:var(--accent)}
+.mk{flex:0 0 auto;width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;font-size:1.05rem;font-weight:800;line-height:1;color:#10131c}
+.mk0{background:#ffd84d}.mk1{background:#ff9ec4}.mk2{background:#7beab1}
+.cbtn.off{opacity:.38;filter:grayscale(.7);box-shadow:none}
+.offtag{margin-left:auto;font-size:.72rem;padding:.05rem .5rem;border-radius:999px;border:1px solid var(--muted);color:var(--muted);white-space:nowrap}
+/* line game */
+.ghost{cursor:pointer}
+.ghost .gs{fill:rgba(255,255,255,.62);stroke:#ff4fa0;stroke-width:3;stroke-dasharray:7 5}
+.ghost .gl{font-size:26px;font-weight:800;fill:#c2185b;font-family:var(--font-goth)}
+.ghost:hover .gs,.ghost:focus .gs{fill:#fff3fa}
+.ghost.off{pointer-events:none;opacity:.25}
+.ghost:focus{outline:none}
+@media(prefers-reduced-motion:no-preference){.ghost:not(.off) .gs{animation:breathe 2.2s ease-in-out infinite}}
+@keyframes breathe{50%{fill:rgba(255,230,244,.95)}}
+/* order game */
+.slots{list-style:none;margin:0 0 .9rem;padding:0;display:flex;flex-direction:column;gap:.45rem}
+.slot{display:flex;align-items:center;gap:.7rem;min-height:56px;padding:.35rem .8rem;border-radius:14px;border:2px dashed var(--line);font-weight:700;line-height:1.9}
+.slot .no{flex:0 0 auto;width:2.1rem;height:2.1rem;border-radius:50%;display:grid;place-items:center;background:var(--panel2);font-weight:800;border:2px solid var(--line)}
+.slot.next{border-color:var(--accent2)}
+.slot.next .no{background:var(--accent2);color:#1d1600;border-color:var(--accent2)}
+.slot.done{border-style:solid;border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.slot.done .no{background:var(--ok);color:#04150d;border-color:var(--ok)}
+.slot .q{color:var(--muted)}
+.cbtn.card{font-size:1.08rem}
+.cbtn.hint{border-color:var(--accent2);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent2) 55%,transparent),0 0 20px color-mix(in srgb,var(--accent2) 35%,transparent)}
+.omsg{min-height:1.8em;margin:.2rem 0 .6rem;font-weight:700;color:var(--accent2)}
+@media(prefers-reduced-motion:no-preference){.shake{animation:shake .4s}}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+
+/* ---------- feedback sheet / modal */
+.overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,5,14,.62)}
+@media(min-width:720px){.overlay{align-items:center;padding:1rem}}
+.sheet{width:min(720px,100%);max-height:92vh;overflow:auto;background:var(--panel);border-radius:26px 26px 0 0;padding:1.2rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom));border-top:5px solid var(--accent);box-shadow:var(--shadow)}
+@media(min-width:720px){.sheet{border-radius:26px;border:2px solid var(--line);border-top:5px solid var(--accent)}}
+@media(prefers-reduced-motion:no-preference){.sheet{animation:up .25s ease-out}}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet.ok{border-top-color:var(--ok)}
+.sheet.re{border-top-color:var(--accent2)}
+.fb-top{display:flex;gap:1rem;align-items:center}
+.fb-face{flex:0 0 auto;width:112px;height:112px;border-radius:50%;background:#fff;border:3px solid var(--line);overflow:hidden}
+.fb-face svg{width:100%;height:100%;display:block}
+.fb-title{margin:0;font-size:1.7rem;font-weight:800;line-height:1.4}
+.sheet.ok .fb-title{color:var(--ok)}
+.sheet.re .fb-title{color:var(--accent2)}
+.fb-feel{margin:.3rem 0 0;font-weight:700;font-size:1rem;line-height:2}
+.pill{display:inline-block;padding:0 .8rem;border-radius:999px;background:var(--panel2);border:2px solid var(--line);font-size:1.08rem;margin-left:.2rem}
+.fb-why{margin:1rem 0 .4rem;font-size:1.2rem;font-weight:700;line-height:2.05}
+.fb-sub{margin:.2rem 0 0;color:var(--muted);font-weight:700}
+.fb-stamp{display:flex;align-items:center;gap:.6rem;margin:.8rem 0 0;padding:.5rem .8rem;border-radius:14px;background:var(--panel2);font-weight:800}
+.fb-btns{display:flex;gap:.7rem;margin-top:1.1rem;flex-wrap:wrap}
+.fb-btns .primary{flex:1}
+.stamp{display:inline-grid;place-items:center;width:3rem;height:3rem;border-radius:50%;background:#fff;border:3px solid #ffd84d;font-size:1.6rem;line-height:1}
+@media(prefers-reduced-motion:no-preference){.pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1) both}}
+@keyframes pop{from{transform:scale(.2);opacity:0}}
+.modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--panel);border-radius:24px 24px 0 0;padding:1.2rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom));box-shadow:var(--shadow);border-top:5px solid var(--accent)}
+@media(min-width:720px){.modal{border-radius:24px;border:2px solid var(--line);border-top:5px solid var(--accent)}}
+.modal h2{margin:0 0 .6rem;font-size:1.35rem}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;padding:.65rem 0;border-bottom:1px solid var(--line)}
+.setrow .lbl{font-weight:800}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:14px;overflow:hidden;flex-wrap:wrap}
+.seg button{min-height:48px;min-width:64px;padding:.2rem .8rem;border:0;background:transparent;font-weight:700;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.guide p,.guide li{line-height:1.85;font-size:.98rem}
+.guide h3{margin:1.1rem 0 .3rem;font-size:1.05rem;color:var(--accent)}
+.guide ul{padding-left:1.2rem;margin:.3rem 0}
+.btnrow{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.1rem}
+.btnrow .btn{flex:1 1 180px}
+.danger{border-color:#e06c6c!important;color:#ff9b9b}
+body[data-theme="soft"] .danger{color:#c03434}
+
+/* ---------- result / stamps */
+.result{text-align:center;padding:1.4rem 1rem}
+.result h2{margin:.2rem 0 .4rem;font-size:2rem}
+.gotrow{display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}
+.pointcard{text-align:left;margin:1.2rem auto 0;max-width:640px;padding:1rem 1.1rem;border-radius:18px;border:2px solid var(--accent2);background:var(--panel2)}
+.pointcard .h{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-weight:800;color:var(--accent2)}
+.pointcard p{margin:.4rem 0 0;font-size:1.2rem;font-weight:700;line-height:2.05}
+.medal{margin:.6rem auto 0;display:inline-block;padding:.4rem 1rem;border-radius:999px;background:#ffd84d;color:#2a1f00;font-weight:800}
+.card20{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;max-width:420px;margin:1rem auto}
+.card20 span{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;border:2px dashed var(--line);background:var(--panel2)}
+.card20 span.on{border:3px solid #ffd84d;background:#fff}
+.cleartable{width:100%;max-width:640px;margin:.6rem auto 0;border-collapse:separate;border-spacing:4px;font-size:.88rem}
+.cleartable th,.cleartable td{padding:.35rem .3rem;border-radius:10px;background:var(--panel2);text-align:center;font-weight:700}
+.cleartable th.tn{text-align:left;padding-left:.6rem;width:52%}
+.cleartable th.lvh{white-space:nowrap;border-bottom:3px solid var(--lc)}
+.cleartable td.y{background:color-mix(in srgb,var(--ok) 30%,var(--panel2))}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-theme="cyber" data-font="goth">
+<header class="top">
+  <div class="brand">
+    <div class="sys">MUN-QUEST // LIFE SKILL 20</div>
+    <h1>ルール・じゅんばん クエスト</h1>
+  </div>
+  <button class="tbtn" id="btnGuide" aria-label="先生・おうちの方へ">👪<small>おとなの方へ</small></button>
+  <button class="tbtn" id="btnSet" aria-label="せってい">⚙️<small>せってい</small></button>
+</header>
+<main id="screen" tabindex="-1"></main>
+<div id="layer"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+/* ====== サイト設定（必要なら変更してください） ====== */
+const STORE_KEY='munq_life20_rule_v1';   // この端末の中だけに保存（ほかのアプリのデータには触れません）
+const PORTAL_URL='/';                    // 「サイトへもどる」のリンク先
+
+// ===== 問題データ =====
+// {漢字|よみ} はふりがな付きで表示され、読み上げでは「よみ」が使われます。
+const N=t=>({t});
+const SAY=(who,t)=>({who,t});
+const O=(t,f,fl,w,who)=>({t,ok:true,f,fl,w,who});
+const X=(t,f,fl,w,who)=>({t,ok:false,f,fl,w,who});
+
+const Q=[
+/* ================= じゅんばん ================= */
+// ---- レベル1
+{th:'junban',lv:1,type:'line',who:'sota',
+ sc:{bg:'park',prop:'slide',ch:[['haru','happy'],['saki','normal'],['sota','normal']]},
+ st:[N('すべりだいで あそびたいな。 ともだちが ならんで いるよ。')],
+ q:'あなたは どこに ならぶ？',
+ sp:{front:X('','angry','いやな きもち','まえに はいると、さきに まって いた ともだちが いやな きもちに なるよ。','haru'),
+     end:O('','happy','うれしい','いちばん うしろに ならぶと、みんなが きもちよく あそべるね。','sota')}},
+{th:'junban',lv:1,who:'saki',
+ sc:{bg:'hall',prop:'fountain',ch:[['saki','normal',122],['me','normal',290]]},
+ st:[N('みずを のみたいな。 さきさんが さきに のんで いるよ。')],
+ q:'どうする？',
+ ch:[O('うしろで まつ','happy','うれしい','うしろで まって いると、さきさんは あんしんして のめるね。'),
+     X('おして まえに いく','sad','いたい・かなしい','おすと ころんで けがを するかも。 さきさんは かなしい きもちに なるよ。')]},
+{th:'junban',lv:1,who:'yui',
+ sc:{bg:'class',prop:'lunch',ch:[['sota','normal'],['yui','normal'],['me','normal']]},
+ st:[N('きゅうしょくの じゅんばんを まって いるよ。 おなかが ぺこぺこ！')],
+ q:'どうする？',
+ ch:[O('じぶんの ばんまで まつ','happy','あんしん','じゅんばんを まもると、みんなが あわてずに きゅうしょくを うけとれるね。'),
+     X('「はやく！」と おおきな こえで いう','trouble','こまった','おおきな こえで せかされると、まえの ともだちは あせって こまって しまうよ。')]},
+{th:'junban',lv:1,who:'yui',
+ sc:{bg:'park',prop:'swing',ch:[['yui','happy',70],['me','normal',250]]},
+ st:[N('ブランコに のりたいな。 ゆいさんが のって いるよ。')],
+ q:'どうする？',
+ ch:[O('「つぎ のせて」と いって まつ','happy','うれしい','「つぎ のせて」と つたえて まつと、ゆいさんも「こうたい しよう」と おもえるね。'),
+     X('ブランコを ひっぱって とめる','surprised','こわい','うごいて いる ブランコを とめると あぶないよ。 ゆいさんは こわい きもちに なるよ。')]},
+// ---- レベル2
+{th:'junban',lv:2,type:'line',who:'saki',
+ sc:{bg:'hall',prop:'sink',ch:[['sota','normal'],['haru','normal'],['saki','normal']]},
+ st:[N('{休|やす}み{時間|じかん}のあと。{手|て}あらい{場|ば}に{友|とも}だちが{並|なら}んでいるよ。')],
+ q:'あなたは どこに{並|なら}ぶ？',
+ sp:{front:X('','angry','いやな{気持|きも}ち','{前|まえ}に{入|はい}ると、{先|さき}に{待|ま}っていた{友|とも}だちの{順|じゅん}{番|ばん}が{後|あと}まわしになってしまうよ。','sota'),
+     mid:X('','sad','かなしい','{間|あいだ}に{入|はい}ると、{後|うし}ろの{友|とも}だちの{順|じゅん}{番|ばん}がおそくなってしまうよ。','haru'),
+     end:O('','happy','うれしい','{列|れつ}のいちばん{後|うし}ろに{並|なら}ぶのがルール。みんなが{安心|あんしん}して{待|ま}てるね。','saki')}},
+{th:'junban',lv:2,who:'haru',
+ sc:{bg:'park',prop:'slide',ch:[['saki','normal'],['me','normal'],['sota','normal'],['haru','normal']]},
+ st:[N('すべり{台|だい}の{列|れつ}に{並|なら}んで{待|ま}っていたら…'),SAY('haru','ねえ、ここに{入|い}れて！')],
+ q:'どうする？',
+ ch:[O('「{後|うし}ろに{並|なら}んでね」とやさしく{言|い}う','happy','なっとく','やさしく{伝|つた}えると、はるとさんも「そうだね」と{後|うし}ろに{並|なら}べるね。'),
+     X('「だめ！」と{言|い}って{押|お}しかえす','sad','いたい・かなしい','{押|お}すとけがをすることがあるよ。{言葉|ことば}でやさしく{伝|つた}えよう。'),
+     X('だまって{前|まえ}に{入|い}れてあげる','trouble','こまった','{後|うし}ろで{待|ま}っているそうたさんの{順|じゅん}{番|ばん}がおそくなってしまうよ。{後|うし}ろの{人|ひと}の{気持|きも}ちも{考|かんが}えよう。','sota')]},
+{th:'junban',lv:2,who:'sensei',
+ sc:{bg:'class',item:'📄',ch:[['sensei','normal'],['haru','normal'],['me','normal']]},
+ st:[SAY('sensei','{名前|なまえ}を{呼|よ}ばれた{人|ひと}から、プリントを{取|と}りに{来|き}てね。'),N('まだ{自分|じぶん}の{名前|なまえ}は{呼|よ}ばれていないよ。')],
+ q:'どうする？',
+ ch:[O('{席|せき}にすわって{名前|なまえ}を{待|ま}つ','happy','うれしい','{呼|よ}ばれるまで{待|ま}つと、{先生|せんせい}もみんなも{落|お}ち{着|つ}いて{配|くば}れるね。'),
+     X('{呼|よ}ばれる{前|まえ}に{取|と}りに{行|い}く','trouble','こまった','{順|じゅん}{番|ばん}がわからなくなって、{先生|せんせい}が{困|こま}ってしまうよ。'),
+     X('{友|とも}だちとおしゃべりして{待|ま}つ','trouble','こまった','おしゃべりしていると、{自分|じぶん}の{名前|なまえ}が{聞|き}こえなくなっちゃうよ。')]},
+{th:'junban',lv:2,who:'yui',
+ sc:{bg:'park',prop:'slide',ch:[['yui','trouble'],['me','normal']]},
+ st:[N('すべり{台|だい}の{上|うえ}で、{前|まえ}のゆいさんがなかなかすべらないよ。')],
+ q:'どうする？',
+ ch:[O('「ゆっくりでいいよ」と{声|こえ}をかけて{待|ま}つ','happy','あんしん','やさしい{声|こえ}かけで、ゆいさんは{安心|あんしん}してすべれるね。'),
+     X('{後|うし}ろから{押|お}してすべらせる','sad','こわい','{高|たか}いところで{押|お}すと、{落|お}ちて{大|おお}けがをするかもしれないよ。'),
+     X('{横|よこ}から{先|さき}にすべる','surprised','びっくり','{順|じゅん}{番|ばん}をぬかすと、ぶつかってあぶないよ。')]},
+// ---- レベル3
+{th:'junban',lv:3,type:'order',who:'haru',fl:'うれしい',
+ sc:{bg:'hall',prop:'fountain',ch:[['haru','normal'],['saki','normal'],['me','normal']]},
+ st:[N('{列|れつ}に{並|なら}ぶときは、どんな{順|じゅん}{番|ばん}で{行動|こうどう}するといいかな？')],
+ q:'する{順|じゅん}{番|ばん}に タッチしよう',
+ steps:['{列|れつ}のいちばん{後|うし}ろを{見|み}つける','{後|うし}ろに{並|なら}ぶ','{前|まえ}の{人|ひと}と{少|すこ}し{間|あいだ}をあけて{待|ま}つ','{自分|じぶん}の{番|ばん}が{来|き}たら{進|すす}む'],
+ w:'この{順|じゅん}{番|ばん}を{覚|おぼ}えておくと、どこでも{安心|あんしん}して{並|なら}べるね。'},
+{th:'junban',lv:3,who:'sota',
+ sc:{bg:'class',prop:'lunch',ch:[['haru','normal'],['me','normal'],['sota','normal']]},
+ st:[N('{給食|きゅうしょく}の{列|れつ}に{並|なら}んでいたら、そうたさんが{前|まえ}に{割|わ}り{込|こ}んできた。')],
+ q:'どうする？',
+ ch:[O('「{後|うし}ろからだよ」と{落|お}ち{着|つ}いて{伝|つた}える','happy','なっとく','{落|お}ち{着|つ}いて{言葉|ことば}で{伝|つた}えるのが{大切|たいせつ}。それでもやめないときは、{先生|せんせい}に{相談|そうだん}しよう。'),
+     X('{大|おお}きな{声|こえ}でおこる','angry','いやな{気持|きも}ち','{大|おお}きな{声|こえ}でおこると、けんかになってしまうことがあるよ。'),
+     X('{列|れつ}から{押|お}し{出|だ}す','sad','いたい・かなしい','{押|お}すとけがにつながるよ。{手|て}を{出|だ}さずに{言葉|ことば}で{伝|つた}えよう。')]},
+{th:'junban',lv:3,who:'saki',
+ sc:{bg:'park',item:'🏀',ch:[['haru','normal'],['saki','normal'],['sota','normal'],['me','normal']]},
+ st:[N('{新|あたら}しいボールが{一|ひと}つだけ。{休|やす}み{時間|じかん}に、みんなが{使|つか}いたがっているよ。')],
+ q:'みんなが{使|つか}えるようにするには？',
+ ch:[O('「10{回|かい}ついたら{交代|こうたい}」とルールを{決|き}める','happy','うれしい','{交代|こうたい}のルールを{決|き}めると、みんなが{順|じゅん}{番|ばん}に{使|つか}えるね。'),
+     X('{早|はや}く{来|き}た{人|ひと}がずっと{使|つか}う','sad','かなしい','ずっと{使|つか}う{人|ひと}がいると、ほかの{人|ひと}はいつまでも{使|つか}えないよ。'),
+     X('じゃんけんで{勝|か}った{人|ひと}だけが{使|つか}う','sad','かなしい','{負|ま}けた{人|ひと}はずっと{使|つか}えないね。みんなが{順|じゅん}{番|ばん}に{使|つか}える{方法|ほうほう}を{考|かんが}えよう。')]},
+{th:'junban',lv:3,who:'haru',
+ sc:{bg:'hall',prop:'sink',ch:[['haru','normal'],['me','trouble']]},
+ st:[N('{長|なが}い{列|れつ}で{自分|じぶん}の{番|ばん}を{待|ま}っている。とてもたいくつ…。')],
+ q:'どうやって{待|ま}つ？',
+ ch:[O('{心|こころ}の{中|なか}で{数|かず}をかぞえたり、{次|つぎ}にすることを{考|かんが}えたりする','happy','すっきり','{待|ま}つ{間|あいだ}にできる{工夫|くふう}があると、{気持|きも}ちが{楽|らく}になるね。','me'),
+     X('{列|れつ}からはなれて{遊|あそ}びに{行|い}く','trouble','こまった','{自分|じぶん}の{番|ばん}が{来|き}たときにいないと、みんなを{待|ま}たせてしまうよ。'),
+     X('{前|まえ}の{人|ひと}に「{早|はや}くして」と{何度|なんど}も{言|い}う','angry','いやな{気持|きも}ち','{何度|なんど}もせかされると、{前|まえ}の{人|ひと}はいやな{気持|きも}ちになるよ。')]},
+
+/* ================= かしかり ================= */
+// ---- レベル1
+{th:'kashikari',lv:1,who:'haru',
+ sc:{bg:'class',item:'✏️',ch:[['haru','normal'],['me','normal']]},
+ st:[N('えんぴつを わすれちゃった。 はるとさんの えんぴつを つかいたいな。')],
+ q:'どうする？',
+ ch:[O('「かして」と いう','happy','うれしい','「かして」と いえば、はるとさんも「いいよ」と こたえやすいね。'),
+     X('だまって とる','angry','びっくり・いや','だまって とられると、はるとさんは びっくりして いやな きもちに なるよ。')]},
+{th:'kashikari',lv:1,who:'saki',
+ sc:{bg:'home',item:'🧸',ch:[['saki','normal'],['me','happy']]},
+ st:[N('くまの ぬいぐるみで あそんで いるよ。'),SAY('saki','それ、かして！')],
+ q:'どうする？',
+ ch:[O('「つかいおわったら かすね」と いう','happy','あんしん','いつ かして もらえるか わかると、さきさんも あんしんして まてるね。'),
+     X('「やだ！」と いって かくす','sad','かなしい','かくされると、さきさんは かなしい きもちに なるよ。 すぐに かせない ときは「あとでね」と いおう。')]},
+{th:'kashikari',lv:1,who:'sota',
+ sc:{bg:'class',item:'🖍️',ch:[['sota','normal'],['me','normal']]},
+ st:[SAY('me','クレヨン かして。'),SAY('sota','あとでね。')],
+ q:'どうする？',
+ ch:[O('「わかった」と いって まつ','happy','うれしい','「あとでね」は「あとで かすよ」と いう いみ。 まって いれば かして もらえるよ。'),
+     X('むりやり とる','angry','いやな きもち','むりやり とると、そうたさんは いやな きもちに なるよ。 まって いれば かして もらえるよ。')]},
+{th:'kashikari',lv:1,who:'yui',
+ sc:{bg:'class',item:'📕',ch:[['yui','normal'],['me','happy']]},
+ st:[N('ゆいさんに かりた ほんを よみおわったよ。')],
+ q:'どうする？',
+ ch:[O('「ありがとう」と いって かえす','happy','うれしい','「ありがとう」と いって かえすと、また かしたいなと おもって もらえるね。'),
+     X('じぶんの つくえに しまう','trouble','こまった','かえして もらえないと、ゆいさんは ほんが なくて こまって しまうよ。')]},
+// ---- レベル2
+{th:'kashikari',lv:2,type:'order',who:'saki',fl:'うれしい',
+ sc:{bg:'class',item:'📏',ch:[['saki','normal'],['me','normal']]},
+ st:[N('{友|とも}だちのものを{借|か}りたいときは、どんな{順|じゅん}{番|ばん}でするといいかな？')],
+ q:'する{順|じゅん}{番|ばん}に タッチしよう',
+ steps:['「かして」とたのむ','{友|とも}だちの{返事|へんじ}を{待|ま}つ','「ありがとう」と{言|い}って{使|つか}う','「ありがとう」と{言|い}って{返|かえ}す'],
+ w:'この{順|じゅん}{番|ばん}でできると、{友|とも}だちも{気持|きも}ちよく{貸|か}してくれるね。'},
+{th:'kashikari',lv:2,who:'haru',
+ sc:{bg:'class',item:'📕',ch:[['haru','normal'],['me','trouble']]},
+ st:[N('はるとさんに{借|か}りた{本|ほん}を、うっかりよごしてしまった。')],
+ q:'どうする？',
+ ch:[O('「ごめんね」と{正直|しょうじき}に{言|い}う','happy','ほっとした','{正直|しょうじき}に{伝|つた}えると、はるとさんも「いいよ」と{言|い}いやすいね。どうするかは{一緒|いっしょ}に{考|かんが}えよう。'),
+     X('だまって{返|かえ}す','sad','かなしい','あとで{気|き}づいたとき、はるとさんは「どうして{言|い}ってくれないの」とかなしくなるよ。'),
+     X('{返|かえ}さずにかくしておく','trouble','こまった','{本|ほん}がもどってこないと、はるとさんは{困|こま}ってしまうよ。')]},
+{th:'kashikari',lv:2,who:'yui',
+ sc:{bg:'class',item:'✂️',ch:[['yui','trouble'],['me','normal']]},
+ st:[N('{図工|ずこう}の{時間|じかん}。となりのゆいさんが、はさみをわすれて{困|こま}っているよ。')],
+ q:'どうする？',
+ ch:[O('「{使|つか}う？」と{声|こえ}をかける','happy','うれしい','{困|こま}っている{友|とも}だちに{声|こえ}をかけると、とても{助|たす}かるね。'),
+     X('{気|き}づかないふりをする','sad','さびしい','ゆいさんは{困|こま}ったまま。{声|こえ}をかけてあげると{安心|あんしん}するよ。'),
+     X('「わすれたの？」とからかう','sad','かなしい','からかわれると、ゆいさんはもっとかなしい{気持|きも}ちになるよ。')]},
+{th:'kashikari',lv:2,who:'sota',
+ sc:{bg:'home',item:'🧸',ch:[['sota','normal'],['me','trouble']]},
+ st:[N('おばあちゃんにもらった、{大切|たいせつ}なぬいぐるみ。'),SAY('sota','それ、{貸|か}して！')],
+ q:'{貸|か}したくないときは、どうする？',
+ ch:[O('「ごめんね、{大切|たいせつ}なものだから{貸|か}せないんだ」と{言|い}う','normal','なっとく','{貸|か}せないときは、{理由|りゆう}を{言|い}ってやさしく{断|ことわ}ればだいじょうぶ。{断|ことわ}ってもいいんだよ。'),
+     X('{聞|き}こえないふりをする','sad','かなしい','{返事|へんじ}がないと、そうたさんはかなしい{気持|きも}ちになるよ。'),
+     X('「あっち{行|い}って！」と{言|い}う','sad','かなしい','きつい{言葉|ことば}は{相手|あいて}を{傷|きず}つけるよ。やさしく{断|ことわ}ろう。')]},
+// ---- レベル3
+{th:'kashikari',lv:3,who:'yui',
+ sc:{bg:'class',item:'📗',ch:[['yui','normal'],['me','trouble']]},
+ st:[N('ゆいさんに「{明日|あした}{返|かえ}すね」と{約束|やくそく}して{本|ほん}を{借|か}りた。でも、{家|いえ}にわすれてきてしまった。')],
+ q:'どうする？',
+ ch:[O('{朝|あさ}のうちに「ごめん、わすれた。{明日|あした}{必|かなら}ず{返|かえ}すね」と{伝|つた}える','happy','あんしん','{自分|じぶん}から{早|はや}めに{伝|つた}えると、ゆいさんも{安心|あんしん}して{待|ま}てるね。'),
+     X('{聞|き}かれるまでだまっている','trouble','もやもや','ゆいさんは「{今日|きょう}{返|かえ}してもらえるはず」と{待|ま}っているよ。だまっていると{信用|しんよう}がへってしまうよ。'),
+     X('「もう{返|かえ}したよ」とうそをつく','sad','かなしい','うそは、{友|とも}だちとの{信頼|しんらい}をこわしてしまうよ。{正直|しょうじき}に{言|い}おう。')]},
+{th:'kashikari',lv:3,who:'saki',
+ sc:{bg:'class',item:'💻',ch:[['haru','normal'],['me','normal'],['saki','normal']]},
+ st:[N('グループで1{台|だい}のタブレットを{使|つか}って{調|しら}べ{学習|がくしゅう}をしている。{自分|じぶん}ばかり{使|つか}いたくなってきた。')],
+ q:'どうする？',
+ ch:[O('「5{分|ふん}ずつ{交代|こうたい}しよう」と{時間|じかん}を{決|き}める','happy','うれしい','{時間|じかん}を{決|き}めて{交代|こうたい}すると、みんなが{参加|さんか}できるね。'),
+     X('{自分|じぶん}がいちばん{上手|じょうず}だから、ずっと{使|つか}う','sad','さびしい','ほかの{人|ひと}も{使|つか}いたいと{思|おも}っているよ。グループのみんなで{使|つか}うものだね。'),
+     X('タブレットを{取|と}り{合|あ}う','angry','いやな{気持|きも}ち','{取|と}り{合|あ}うと、けんかになったり、タブレットがこわれたりするよ。')]},
+{th:'kashikari',lv:3,who:'sota',
+ sc:{bg:'class',item:'🖊️',ch:[['sota','trouble'],['me','surprised']]},
+ st:[N('そうたさんに{貸|か}したペンが、こわれて{返|かえ}ってきた。'),SAY('sota','ごめん…こわしちゃった。')],
+ q:'どうする？',
+ ch:[O('「{言|い}ってくれてありがとう。{次|つぎ}は{気|き}をつけてね」と{言|い}う','happy','ほっとした','あやまってくれた{友|とも}だちを{受|う}け{止|と}めると、{仲|なか}よくいられるね。こまったときは、{先生|せんせい}や{家|いえ}の{人|ひと}に{相談|そうだん}しよう。'),
+     X('みんなの{前|まえ}で{大|おお}きな{声|こえ}でせめる','sad','かなしい','みんなの{前|まえ}でせめられると、そうたさんはとてもつらい{気持|きも}ちになるよ。'),
+     X('「もう{二度|にど}と{貸|か}さない」とみんなに{言|い}いふらす','sad','かなしい','{言|い}いふらすと、そうたさんがクラスでいづらくなってしまうよ。')]},
+{th:'kashikari',lv:3,type:'order',who:'haru',fl:'うれしい',
+ sc:{bg:'class',item:'📐',ch:[['haru','normal'],['me','normal']]},
+ st:[SAY('haru','それ、{貸|か}して！'),N('でも{今|いま}、{使|つか}っているところ。どうやって{伝|つた}えるといいかな？')],
+ q:'する{順|じゅん}{番|ばん}に タッチしよう',
+ steps:['{相手|あいて}の{話|はなし}を{最後|さいご}まで{聞|き}く','「{今|いま}{使|つか}っているから、あとでね」と{伝|つた}える','{使|つか}い{終|お}わったら{自分|じぶん}から{声|こえ}をかける','「どうぞ」と{渡|わた}す'],
+ w:'「あとでね」と{言|い}ったら、{約束|やくそく}どおり{自分|じぶん}から{声|こえ}をかけるのがポイント！'},
+
+/* ================= あそびのルール ================= */
+// ---- レベル1
+{th:'asobi',lv:1,who:'haru',
+ sc:{bg:'park',item:'✌️',ch:[['haru','happy'],['me','sad']]},
+ st:[N('はるとさんと じゃんけん。 まけちゃった…。')],
+ q:'どうする？',
+ ch:[O('「つぎ がんばろう」と いう','happy','たのしい','くやしい きもちに なるのは あたりまえ。「つぎ がんばろう」と いえたら、かっこいいね！'),
+     X('「もう やらない！」と おこる','sad','かなしい','おこって やめると、はるとさんも かなしい きもちに なるよ。')]},
+{th:'asobi',lv:1,who:'sota',
+ sc:{bg:'park',ch:[['sota','happy'],['me','surprised']]},
+ st:[N('おにごっこを して いるよ。'),SAY('sota','タッチ！')],
+ q:'どうする？',
+ ch:[O('「タッチされた」と みとめて おにに なる','happy','たのしい','ルールを まもると、あそびが ずっと たのしく つづくね。'),
+     X('「さわって ない！」と いう','angry','いやな きもち','ルールを まもらないと、あそびが つづかなく なって しまうよ。')]},
+{th:'asobi',lv:1,who:'yui',
+ sc:{bg:'home',item:'🎲',ch:[['yui','normal'],['me','happy']]},
+ st:[N('すごろくで あそんで いるよ。 じぶんの ばんが おわった。')],
+ q:'どうする？',
+ ch:[O('サイコロを ゆいさんに わたす','happy','うれしい','じゅんばんに まわすと、みんなで たのしく あそべるね。'),
+     X('もう いっかい じぶんで ふる','angry','いやな きもち','じゅんばんを とばされると、ゆいさんは いやな きもちに なるよ。')]},
+{th:'asobi',lv:1,who:'saki',
+ sc:{bg:'park',item:'⚽',ch:[['saki','normal'],['me','happy'],['haru','happy']]},
+ st:[N('ボールあそびを して いるよ。'),SAY('saki','いれて！')],
+ q:'どうする？',
+ ch:[O('「いいよ！」と いう','happy','うれしい','「いいよ」と いって もらえると、さきさんは とても うれしいね。 みんなで あそぶと もっと たのしいよ。'),
+     X('きこえない ふりを する','sad','さびしい','きこえない ふりを されると、さきさんは さびしい きもちに なるよ。')]},
+// ---- レベル2
+{th:'asobi',lv:2,who:'haru',
+ sc:{bg:'park',item:'🏐',ch:[['haru','normal'],['me','surprised']]},
+ st:[N('ドッジボールで、ボールが{当|あ}たった。でも、{当|あ}たっていないような{気|き}がする…。')],
+ q:'どうする？',
+ ch:[O('ルールどおり{外野|がいや}に{出|で}る','happy','すっきり','ルールを{守|まも}ると{試合|しあい}が{楽|たの}しく{続|つづ}くね。どうしても{気|き}になるときは、あとで{先生|せんせい}に{聞|き}いてみよう。'),
+     X('「{当|あ}たってない！」と{言|い}いつづける','angry','いやな{気持|きも}ち','{言|い}い{合|あ}いになると、{試合|しあい}が{止|と}まってみんなが{困|こま}ってしまうよ。'),
+     X('ボールを{投|な}げすてて{帰|かえ}る','sad','かなしい','とちゅうでぬけると、チームのみんながかなしい{気持|きも}ちになるよ。')]},
+{th:'asobi',lv:2,who:'sota',
+ sc:{bg:'home',item:'🃏',ch:[['sota','sad'],['me','happy']]},
+ st:[N('そうたさんとカードゲーム。{自分|じぶん}が{勝|か}った！')],
+ q:'どうする？',
+ ch:[O('「{楽|たの}しかったね。またやろう」と{言|い}う','happy','うれしい','{勝|か}ったときこそ、{相手|あいて}にやさしい{言葉|ことば}をかけると、また{一緒|いっしょ}に{遊|あそ}びたくなるね。'),
+     X('「よわーい！」と{言|い}う','sad','かなしい','{負|ま}けた{人|ひと}はくやしい{気持|きも}ち。からかわれると、もっとかなしくなるよ。'),
+     X('{何度|なんど}も{自慢|じまん}する','angry','いやな{気持|きも}ち','{喜|よろこ}ぶのはいいけれど、{何度|なんど}も{自慢|じまん}されると{相手|あいて}はいやな{気持|きも}ちになるよ。')]},
+{th:'asobi',lv:2,who:'haru',
+ sc:{bg:'park',ch:[['haru','happy'],['saki','happy'],['me','trouble']]},
+ st:[N('{友|とも}だちが{新|あたら}しい{遊|あそ}びにさそってくれた。でも、ルールがよくわからない。')],
+ q:'どうする？',
+ ch:[O('「どうやって{遊|あそ}ぶの？」と{聞|き}く','happy','うれしい','わからないことを{聞|き}くのはとても{大切|たいせつ}。{友|とも}だちも{教|おし}えたくなるね。'),
+     X('わからないまま{自分|じぶん}のやり{方|かた}でやる','trouble','こまった','ルールがちがうと、みんなが{困|こま}ってしまうよ。'),
+     X('「つまらない」と{言|い}ってやめる','sad','かなしい','さそってくれた{友|とも}だちが、かなしい{気持|きも}ちになるよ。')]},
+{th:'asobi',lv:2,who:'yui',
+ sc:{bg:'home',item:'🎲',ch:[['yui','normal'],['me','normal']]},
+ st:[N('すごろくで、ゆいさんがルールをまちがえて{進|すす}んでいる。')],
+ q:'どうする？',
+ ch:[O('「そこはこうだよ」とやさしく{教|おし}える','happy','ありがとう','やさしく{教|おし}えてもらえると、ゆいさんも「ありがとう」と{言|い}えるね。'),
+     X('「ずるい！」とせめる','sad','かなしい','わざとではないかもしれないよ。せめられると、ゆいさんはかなしくなるよ。'),
+     X('だまってゲームをやめる','trouble','こまった','{急|きゅう}にやめると、ゆいさんはどうしたのかわからず{困|こま}ってしまうよ。')]},
+// ---- レベル3
+{th:'asobi',lv:3,who:'sota',
+ sc:{bg:'park',item:'⚽',ch:[['sota','normal'],['me','normal']]},
+ st:[SAY('sota','{今日|きょう}はおにごっこをしよう！'),N('でも{自分|じぶん}はサッカーがしたい。')],
+ q:'どうする？',
+ ch:[O('「{今日|きょう}はおにごっこ、{明日|あした}はサッカーにしよう」と{提案|ていあん}する','happy','うれしい','おたがいの{気持|きも}ちを{大切|たいせつ}にする{提案|ていあん}ができると、みんなが{楽|たの}しめるね。'),
+     X('「サッカーじゃなきゃやらない」と{言|い}う','sad','かなしい','{自分|じぶん}の{意見|いけん}だけおしつけると、{一緒|いっしょ}に{遊|あそ}べなくなってしまうよ。'),
+     X('だまって{一人|ひとり}でサッカーに{行|い}く','trouble','こまった','だまって{行|い}くと、そうたさんはどうしたらいいかわからなくて{困|こま}るよ。')]},
+{th:'asobi',lv:3,who:'haru',
+ sc:{bg:'park',item:'🏀',ch:[['haru','sad'],['me','normal'],['saki','normal']]},
+ st:[N('チーム{戦|せん}で{負|ま}けてしまった。{最後|さいご}のはるとさんのシュートが{外|はず}れたんだ。')],
+ q:'どうする？',
+ ch:[O('「どんまい！{次|つぎ}がんばろう」と{言|い}う','happy','ほっとした','いちばんくやしいのは、はるとさん{自身|じしん}。はげましの{言葉|ことば}で、チームが{一|ひと}つになるね。'),
+     X('「はるとさんのせいで{負|ま}けた」と{言|い}う','sad','かなしい','{負|ま}けはチームみんなのもの。だれか{一人|ひとり}のせいにすると、とても{傷|きず}つくよ。'),
+     X('はるとさんを{無視|むし}する','sad','さびしい','{無視|むし}されると、はるとさんはひとりぼっちの{気持|きも}ちになるよ。')]},
+{th:'asobi',lv:3,who:'yui',
+ sc:{bg:'home',item:'🃏',ch:[['yui','happy'],['me','angry']]},
+ st:[N('ゲームで{負|ま}けそう。くやしい{気持|きも}ちがおさえられない！')],
+ q:'どうする？',
+ ch:[O('{深呼吸|しんこきゅう}をしたり、ゆっくり10{数|かぞ}えたりする','happy','おちついた','くやしいのは、がんばっているしるし。{気持|きも}ちを{落|お}ち{着|つ}ける{方法|ほうほう}を{知|し}っておくと{安心|あんしん}だね。つらいときは、その{場|ば}をはなれて{休|やす}んでもいいよ。','me'),
+     X('カードを{投|な}げる','surprised','びっくり・こわい','{物|もの}を{投|な}げるとあぶないし、ゆいさんがこわい{気持|きも}ちになるよ。'),
+     X('ゆいさんに{文句|もんく}を{言|い}う','sad','かなしい','ゆいさんは{悪|わる}いことをしていないよ。{文句|もんく}を{言|い}われるとかなしくなるよ。')]},
+{th:'asobi',lv:3,type:'order',who:'saki',fl:'たのしい',
+ sc:{bg:'park',ch:[['haru','normal'],['saki','normal'],['sota','normal'],['me','normal']]},
+ st:[N('みんなで{新|あたら}しい{遊|あそ}びを{始|はじ}めるよ。どんな{順|じゅん}{番|ばん}で{進|すす}めるといいかな？')],
+ q:'する{順|じゅん}{番|ばん}に タッチしよう',
+ steps:['ルールをみんなで{確|たし}かめる','{順|じゅん}{番|ばん}や{役割|やくわり}を{決|き}める','ルールを{守|まも}って{遊|あそ}ぶ','{終|お}わったら「ありがとう」と{言|い}い{合|あ}う'],
+ w:'はじめにルールを{確|たし}かめておくと、けんかになりにくいね。'},
+
+/* ================= はなすじゅんばん ================= */
+// ---- レベル1
+{th:'hanashi',lv:1,who:'sensei',
+ sc:{bg:'class',ch:[['sensei','normal'],['haru','normal'],['me','happy']]},
+ st:[SAY('sensei','この こたえ、わかる ひと？'),N('こたえが わかった！')],
+ q:'どうする？',
+ ch:[O('てを あげて まつ','happy','うれしい','てを あげて まつと、せんせいが じゅんばんに あてられるね。'),
+     X('すぐに おおきな こえで こたえを いう','trouble','こまった','ほかの ともだちが かんがえる じかんが なくなって しまうよ。','haru')]},
+{th:'hanashi',lv:1,who:'saki',
+ sc:{bg:'class',ch:[['saki','happy'],['me','normal']]},
+ st:[SAY('saki','きのう いぬと さんぽに いったんだ。 それでね…'),N('じぶんも はなしたい ことが ある。')],
+ q:'どうする？',
+ ch:[O('さいごまで きいてから はなす','happy','うれしい','さいごまで きいて もらえると、さきさんは うれしいね。 そのあと じぶんの はなしを しよう。'),
+     X('とちゅうで じぶんの はなしを はじめる','sad','かなしい','とちゅうで はなしを とられると、さきさんは かなしい きもちに なるよ。')]},
+{th:'hanashi',lv:1,who:'sensei',
+ sc:{bg:'class',ch:[['sensei','normal'],['me','normal']]},
+ st:[N('せんせいに なまえを よばれたよ。')],
+ q:'どうする？',
+ ch:[O('「はい」と へんじを する','happy','うれしい','へんじを すると、せんせいに「きこえたよ」が つたわるね。'),
+     X('だまって いる','trouble','こまった','へんじが ないと、せんせいは きこえたか わからなくて こまって しまうよ。')]},
+{th:'hanashi',lv:1,who:'yui',
+ sc:{bg:'class',item:'🎨',ch:[['yui','happy'],['me','normal']]},
+ st:[N('ゆいさんが まえで はっぴょう して いるよ。')],
+ q:'どうする？',
+ ch:[O('ゆいさんの ほうを みて きく','happy','うれしい','みて きいて もらえると、ゆいさんは あんしんして はっぴょう できるね。'),
+     X('てあそびを する','sad','かなしい','きいて もらえないと、ゆいさんは かなしい きもちに なるよ。')]},
+// ---- レベル2
+{th:'hanashi',lv:2,who:'sensei',
+ sc:{bg:'class',ch:[['sensei','normal'],['me','sad']]},
+ st:[N('{何度|なんど}も{手|て}をあげているのに、なかなか{当|あ}ててもらえない…。')],
+ q:'どうする？',
+ ch:[O('{次|つぎ}のチャンスを{待|ま}つ','happy','うれしい','あててもらえないのはざんねんだけど、みんなに{順|じゅん}{番|ばん}があるよ。{待|ま}てるのはすごいこと！'),
+     X('「なんで{当|あ}ててくれないの！」と{言|い}う','trouble','こまった','{授業|じゅぎょう}が{止|と}まって、みんなが{困|こま}ってしまうよ。'),
+     X('{机|つくえ}にふせて、もう{参加|さんか}しない','trouble','しんぱい','{先生|せんせい}が{心配|しんぱい}するよ。くやしい{気持|きも}ちは、あとで{先生|せんせい}に{伝|つた}えてもいいね。')]},
+{th:'hanashi',lv:2,who:'yui',
+ sc:{bg:'class',ch:[['yui','normal'],['me','happy']]},
+ st:[N('ゆいさんと{話|はな}していたら、{自分|じぶん}ばかり{話|はな}している{気|き}がしてきた。')],
+ q:'どうする？',
+ ch:[O('「ゆいさんはどう？」と{聞|き}いてみる','happy','うれしい','{相手|あいて}にも{話|はな}す{番|ばん}をわたすと、おたがいに{楽|たの}しく{話|はな}せるね。'),
+     X('もっと{話|はな}しつづける','trouble','たいくつ','ずっと{聞|き}いてばかりだと、ゆいさんは{話|はな}したいことが{言|い}えないよ。'),
+     X('{急|きゅう}にだまる','trouble','こまった','{急|きゅう}にだまると、ゆいさんは「どうしたのかな」と{困|こま}ってしまうよ。')]},
+{th:'hanashi',lv:2,who:'sensei',
+ sc:{bg:'class',ch:[['sensei','normal'],['haru','normal'],['me','surprised']]},
+ st:[N('{先生|せんせい}が{話|はな}しているときに、{大事|だいじ}なことを{思|おも}い{出|だ}した！')],
+ q:'どうする？',
+ ch:[O('{話|はなし}が{終|お}わってから{手|て}をあげて{言|い}う','happy','うれしい','{話|はなし}の{区切|くぎ}りまで{待|ま}つのがマナー。でも、けがや{具合|ぐあい}が{悪|わる}いときは、すぐに{伝|つた}えていいよ。'),
+     X('すぐに{話|はな}しかける','trouble','こまった','{話|はなし}がとちゅうで{止|と}まると、みんなが{大事|だいじ}なことを{聞|き}きのがしてしまうよ。'),
+     X('となりの{友|とも}だちに、こそこそ{話|はな}す','trouble','こまった','こそこそ{話|はな}すと、{自分|じぶん}もとなりの{友|とも}だちも{話|はなし}が{聞|き}こえなくなるよ。','haru')]},
+{th:'hanashi',lv:2,who:'haru',
+ sc:{bg:'class',ch:[['haru','happy'],['me','normal']]},
+ st:[SAY('haru','{学級|がっきゅう}レクは、ドッジボールがいいと{思|おも}う！'),N('{自分|じぶん}はちがう{意見|いけん}だ。')],
+ q:'どうする？',
+ ch:[O('{最後|さいご}まで{聞|き}いてから「{自分|じぶん}はおにごっこがいいと{思|おも}う」と{言|い}う','happy','なるほど','{相手|あいて}の{意見|いけん}を{聞|き}いてから{自分|じぶん}の{意見|いけん}を{言|い}うと、{話|はな}し{合|あ}いがうまく{進|すす}むね。'),
+     X('「ちがうよ！」とさえぎる','angry','いやな{気持|きも}ち','さえぎられると、はるとさんはいやな{気持|きも}ちになるよ。'),
+     X('だまって、ふくれっつらをする','trouble','こまった','だまっていると、あなたの{考|かんが}えがみんなに{伝|つた}わらないよ。')]},
+// ---- レベル3
+{th:'hanashi',lv:3,type:'order',who:'sensei',fl:'うれしい',
+ sc:{bg:'class',ch:[['sensei','normal'],['haru','normal'],['me','normal']]},
+ st:[N('{話|はな}し{合|あ}いで{意見|いけん}を{言|い}いたい。どんな{順|じゅん}{番|ばん}でするといいかな？')],
+ q:'する{順|じゅん}{番|ばん}に タッチしよう',
+ steps:['{手|て}をあげる','{名前|なまえ}を{呼|よ}ばれるまで{待|ま}つ','「はい」と{返事|へんじ}をする','みんなに{聞|き}こえる{声|こえ}で{話|はな}す'],
+ w:'この{順|じゅん}{番|ばん}で{発言|はつげん}すると、みんなが{聞|き}きやすいね。'},
+{th:'hanashi',lv:3,who:'sota',
+ sc:{bg:'class',ch:[['haru','normal'],['saki','normal'],['sota','trouble'],['me','normal']]},
+ st:[N('グループで{話|はな}し{合|あ}い。そうたさんが、まだ{一言|ひとこと}も{話|はな}していない。')],
+ q:'どうする？',
+ ch:[O('「そうたさんはどう{思|おも}う？」と{聞|き}いてみる','happy','うれしい','{話|はな}すきっかけをもらえると、{話|はな}しやすくなるね。{答|こた}えるまで、ゆっくり{待|ま}ってあげよう。'),
+     X('{話|はな}さない{人|ひと}のことは{気|き}にしない','sad','さびしい','{意見|いけん}を{言|い}えないままだと、そうたさんはさびしい{気持|きも}ちになるよ。'),
+     X('「{早|はや}く{何|なに}か{言|い}ってよ！」とせかす','trouble','あせる','せかされると、{考|かんが}えがまとまらなくなってしまうよ。')]},
+{th:'hanashi',lv:3,who:'saki',
+ sc:{bg:'class',ch:[['saki','happy'],['me','sad']]},
+ st:[N('{話|はな}し{合|あ}いの{結果|けっか}、{自分|じぶん}の{意見|いけん}は{選|えら}ばれなかった。')],
+ q:'どうする？',
+ ch:[O('「わかった。みんなで{決|き}めたことをがんばろう」と{気持|きも}ちを{切|き}りかえる','happy','うれしい','ざんねんな{気持|きも}ちを{切|き}りかえられるのは、すてきな{力|ちから}。みんなで{決|き}めたことを、みんなで{楽|たの}しもう。'),
+     X('「じゃあ、やらない」と{参加|さんか}しない','sad','さびしい','あなたがいないと、みんなもさびしいよ。'),
+     X('{決|き}まったあとも{反対|はんたい}しつづける','trouble','こまった','{決|き}まったあとに{反対|はんたい}しつづけると、{話|はな}し{合|あ}いが{終|お}わらず、みんなが{困|こま}ってしまうよ。')]},
+{th:'hanashi',lv:3,who:'yui',
+ sc:{bg:'class',item:'🎨',ch:[['yui','trouble'],['me','normal']]},
+ st:[N('ゆいさんが{発表|はっぴょう}のとちゅうで、まちがえてしまった。')],
+ q:'どうする？',
+ ch:[O('{最後|さいご}まで{聞|き}いて、はくしゅをする','happy','ほっとした','まちがえても{最後|さいご}まで{聞|き}いてもらえると、ゆいさんは「{次|つぎ}もがんばろう」と{思|おも}えるね。'),
+     X('「まちがえてる〜」と{笑|わら}う','sad','かなしい','{笑|わら}われると、ゆいさんは{発表|はっぴょう}がこわくなってしまうよ。'),
+     X('{大|おお}きな{声|こえ}で、まちがいを{言|い}う','sad','はずかしい','みんなの{前|まえ}で{言|い}われると、はずかしい{気持|きも}ちになるよ。{伝|つた}えたいときは、あとでそっと{教|おし}えよう。')]}
+];
+
+
+/* ====== テーマ・レベル ====== */
+const THEMES={
+ junban:{name:'じゅんばん',sub:'ならぶ・まつ',icon:'🚶',
+   point:'{並|なら}ぶときは、いちばん{後|うし}ろ。{待|ま}つときは、{心|こころ}の{中|なか}で{数|かず}をかぞえよう。'},
+ kashikari:{name:'かしかり',sub:'かして・どうぞ',icon:'🤝',
+   point:'「かして」「いいよ」「ありがとう」。{借|か}りたものは、「ありがとう」と{言|い}って{返|かえ}そう。'},
+ asobi:{name:'あそびの ルール',sub:'かちまけ・こうたい',icon:'🎲',
+   point:'{負|ま}けても「つぎ がんばろう」。ルールを{守|まも}ると、みんなが{楽|たの}しいね。'},
+ hanashi:{name:'はなす じゅんばん',sub:'はっぴょう・かいわ',icon:'🙋',
+   point:'{話|はな}したいときは、{手|て}をあげて{待|ま}とう。{友|とも}だちの{話|はなし}は{最後|さいご}まで{聞|き}こう。'},
+ mix:{name:'まぜこぜ',sub:'いろいろな ばめんから 5もん',icon:'🌈',
+   point:'{相手|あいて}の{気持|きも}ちを{考|かんが}えると、みんなが{気持|きも}ちよくすごせるね。'}
+};
+const THEME_KEYS=['junban','kashikari','asobi','hanashi'];
+const LEVELS={
+ 1:{name:'はじめの いっぽ',d:'2つから えらぶ・ひらがな',grade:'1・2ねんせい',stars:'★',c:'#45e39c'},
+ 2:{name:'なかよし チャレンジ',d:'3つから えらぶ・ふりがな つき',grade:'3・4ねんせい',stars:'★★',c:'#3fe0ff'},
+ 3:{name:'リーダー チャレンジ',d:'3つから えらぶ・じゅんばん ならべ',grade:'5・6ねんせい',stars:'★★★',c:'#b794ff'}
+};
+const MARK=['●','▲','■'], MARK_READ=['まる','さんかく','しかく'];
+const STAMPS=['⭐','🌸','🍀','🌈','🎵','🍎','🐟','🌻','🚀','💎','🐣','🍙','🦋','🍩','🎈','🐬'];
+const GOOD=['できたね！','やったね！','すてき！','ばっちり！','すばらしい！'];
+
+/* ====== キャラクター ====== */
+const CH={
+ me:{name:'あなた',short:'あなた',hair:'#2b2320',shirt:'#2f7de1',skin:'#f7d4b5',style:'cap'},
+ haru:{name:'はるとさん',short:'はると',hair:'#3a2618',shirt:'#f08a24',skin:'#f3cba6',style:'short'},
+ saki:{name:'さきさん',short:'さき',hair:'#6b3b1c',shirt:'#e5507a',skin:'#f8d7bd',style:'pigtail'},
+ sota:{name:'そうたさん',short:'そうた',hair:'#1d1d1f',shirt:'#2aa866',skin:'#eec39d',style:'spiky'},
+ yui:{name:'ゆいさん',short:'ゆい',hair:'#2a1810',shirt:'#8b5cf6',skin:'#f6d0b2',style:'long'},
+ sensei:{name:'せんせい',short:'せんせい',hair:'#4a4a52',shirt:'#3c4f72',skin:'#f1c9a5',style:'teacher'}
+};
+
+/* ====== 便利関数 ====== */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ruby=s=>esc(s).replace(/\{([^|{}]+)\|([^{}]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>');
+const plain=s=>String(s).replace(/\{([^|{}]+)\|([^{}]+)\}/g,'$2');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ====== 保存（この端末の中だけ） ====== */
+const DEF_SET={auto:false,slow:true,sound:true,furi:true,size:1,theme:'cyber',font:'goth'};
+const store=(function(){
+  let d=null;
+  try{d=JSON.parse(localStorage.getItem(STORE_KEY)||'null');}catch(e){d=null;}
+  if(!d||typeof d!=='object')d={};
+  d.settings=Object.assign({},DEF_SET,d.settings||{});
+  if(!Array.isArray(d.stamps))d.stamps=[];
+  if(typeof d.medals!=='number')d.medals=0;
+  if(typeof d.total!=='number')d.total=0;
+  if(!d.clear||typeof d.clear!=='object')d.clear={};
+  return d;
+})();
+const S=store.settings;
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(store));}catch(e){}}
+
+function applySettings(){
+  const b=document.body;
+  b.dataset.theme=S.theme==='soft'?'soft':'cyber';
+  b.dataset.font=S.font==='kyo'?'kyo':'goth';
+  b.classList.toggle('nofuri',!S.furi);
+  document.documentElement.style.setProperty('--fs',([16,18,21,24][S.size]||18)+'px');
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m)m.content=S.theme==='soft'?'#fff7ea':'#050914';
+}
+
+/* ====== 読み上げ ====== */
+const TTS={
+  ok:('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window),
+  voice:null,btn:null,
+  pickVoice(){
+    if(!this.ok)return;
+    const vs=speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));
+    this.voice=vs.find(v=>v.localService&&/Nanami|Kyoko|O-ren|Haruka|Ayumi|Sayaka/i.test(v.name))||vs.find(v=>v.localService)||vs[0]||null;
+  },
+  speak(text,btn){
+    if(!this.ok||!text)return;
+    this.stop();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='ja-JP'; if(this.voice)u.voice=this.voice;
+    u.rate=S.slow?0.82:1.0; u.pitch=1.05;
+    if(btn){this.btn=btn;btn.classList.add('speaking');}
+    const done=()=>{if(btn)btn.classList.remove('speaking');};
+    u.onend=done;u.onerror=done;
+    setTimeout(()=>{try{speechSynthesis.speak(u);}catch(e){done();}},60);
+  },
+  stop(){
+    if(!this.ok)return;
+    try{speechSynthesis.cancel();}catch(e){}
+    document.querySelectorAll('.speaking').forEach(b=>b.classList.remove('speaking'));
+  }
+};
+if(TTS.ok){
+  TTS.pickVoice();
+  try{speechSynthesis.addEventListener('voiceschanged',()=>TTS.pickVoice());}catch(e){}
+  // iPad等：最初のタッチで読み上げを使えるようにする
+  const unlock=()=>{try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}document.removeEventListener('pointerdown',unlock);};
+  document.addEventListener('pointerdown',unlock);
+}else{document.body.classList.add('notts');}
+
+/* ====== 効果音（やさしい音） ====== */
+let actx=null;
+function sfx(type){
+  if(!S.sound)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    const t0=actx.currentTime+0.02;
+    const seq={ok:[[784,0],[988,.12],[1175,.24]],retry:[[523,0],[440,.16]],tap:[[880,0]],stamp:[[1319,0],[1760,.09]]}[type]||[[660,0]];
+    seq.forEach(([f,t])=>{
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t0+t);
+      g.gain.exponentialRampToValueAtTime(type==='tap'?0.08:0.16,t0+t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+t+0.38);
+      o.connect(g);g.connect(actx.destination);o.start(t0+t);o.stop(t0+t+0.42);
+    });
+  }catch(e){}
+}
+
+/* ====== イラスト（SVG） ====== */
+function headSVG(id,ex){
+  const c=CH[id];let s='';
+  const ink='#2a1c14';
+  if(c.style==='long')s+=`<path d="M-27,-6 Q-31,22 -21,30 L21,30 Q31,22 27,-6 Z" fill="${c.hair}"/>`;
+  if(c.style==='pigtail')s+=`<circle cx="-27" cy="7" r="8.5" fill="${c.hair}"/><circle cx="27" cy="7" r="8.5" fill="${c.hair}"/><circle cx="-21" cy="1" r="3" fill="#ffd84d"/><circle cx="21" cy="1" r="3" fill="#ffd84d"/>`;
+  s+=`<circle r="24" fill="${c.skin}" stroke="rgba(0,0,0,.18)" stroke-width="1"/>`;
+  s+=`<path d="M-25,-1 A25,25 0 0 1 25,-1 Q12,-13 0,-10 Q-12,-13 -25,-1 Z" fill="${c.hair}"/>`;
+  if(c.style==='spiky')s+=`<path d="M-19,-15 L-15,-30 L-8,-20 L-2,-32 L4,-21 L11,-31 L15,-16 Z" fill="${c.hair}"/>`;
+  if(c.style==='long')s+=`<g transform="translate(15 -19)"><path d="M0,0 L-8,-5 L-8,5 Z M0,0 L8,-5 L8,5 Z" fill="#ff6fa8"/><circle r="2.6" fill="#e83e8c"/></g>`;
+  if(c.style==='cap')s+=`<path d="M-24,-5 A24,24 0 0 1 24,-5 Z" fill="#2f7de1"/><path d="M2,-7 Q20,-11 33,-4 L31,0 Q18,-6 2,-3 Z" fill="#1d5fb8"/><circle cx="-4" cy="-17" r="3.5" fill="#ffd84d"/>`;
+  // まゆ
+  const brow={sad:'M-13,-8 L-5,-11 M13,-8 L5,-11',trouble:'M-13,-8 L-5,-11 M13,-8 L5,-11',angry:'M-13,-11 L-5,-7 M13,-11 L5,-7',surprised:'M-12,-12 Q-8.5,-15 -5,-12 M5,-12 Q8.5,-15 12,-12'}[ex];
+  if(brow)s+=`<path d="${brow}" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  // め
+  if(ex==='happy')s+=`<path d="M-12,0 Q-8.5,-5 -5,0 M5,0 Q8.5,-5 12,0" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  else if(ex==='surprised')s+=`<circle cx="-8.5" cy="-2" r="3.8" fill="${ink}"/><circle cx="8.5" cy="-2" r="3.8" fill="${ink}"/><circle cx="-7.3" cy="-3.3" r="1.2" fill="#fff"/><circle cx="9.7" cy="-3.3" r="1.2" fill="#fff"/>`;
+  else s+=`<ellipse cx="-8.5" cy="-1" rx="2.7" ry="3.5" fill="${ink}"/><ellipse cx="8.5" cy="-1" rx="2.7" ry="3.5" fill="${ink}"/><circle cx="-7.6" cy="-2.2" r=".9" fill="#fff"/><circle cx="9.4" cy="-2.2" r=".9" fill="#fff"/>`;
+  if(c.style==='teacher')s+=`<g stroke="#34363f" stroke-width="1.8" fill="none"><circle cx="-8.5" cy="-1" r="6.2"/><circle cx="8.5" cy="-1" r="6.2"/><path d="M-2.3,-1 H2.3"/></g>`;
+  // ほお
+  if(ex==='happy'||ex==='normal')s+=`<circle cx="-14.5" cy="6" r="3.6" fill="#ff8fa3" opacity=".5"/><circle cx="14.5" cy="6" r="3.6" fill="#ff8fa3" opacity=".5"/>`;
+  // くち
+  const mouth={
+    normal:`<path d="M-5,9 Q0,12.5 5,9" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    happy:`<path d="M-8,7 Q0,18 8,7 Z" fill="#c8323c"/><path d="M-4,12 Q0,15 4,12" fill="#ff8a8a"/>`,
+    sad:`<path d="M-6,13.5 Q0,7.5 6,13.5" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M-10,3 q3.2,5.5 0,8 q-3.2,-2.5 0,-8z" fill="#69bfff"/>`,
+    angry:`<path d="M-6,12 Q0,8.5 6,12" stroke="${ink}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M15,-19 l3,3 m0,-3 l-3,3" stroke="#e53935" stroke-width="2" stroke-linecap="round"/>`,
+    trouble:`<path d="M-7,11 q1.75,-2 3.5,0 t3.5,0 t3.5,0 t3.5,0" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M19,-13 q4.2,6 0,8.5 q-4.2,-2.5 0,-8.5z" fill="#7cc8ff"/>`,
+    surprised:`<ellipse cx="0" cy="10.5" rx="3.6" ry="4.6" fill="#c8323c"/>`
+  }[ex]||'';
+  s+=mouth;
+  return s;
+}
+const STAR='M0,-9 L2.6,-3.2 9,-2.8 4,1.4 5.6,7.6 0,4.2 -5.6,7.6 -4,1.4 -9,-2.8 -2.6,-3.2Z';
+function fig(id,ex,x,base,sc){
+  const c=CH[id];const k=sc*(id==='sensei'?1.1:1);
+  let s=`<g transform="translate(${x} ${base}) scale(${k})">`;
+  s+=`<ellipse rx="22" ry="4" fill="#000" opacity=".12"/>`;
+  s+=`<rect x="-12" y="-20" width="9" height="20" rx="3" fill="#3b4060"/><rect x="3" y="-20" width="9" height="20" rx="3" fill="#3b4060"/>`;
+  s+=`<rect x="-26" y="-54" width="9" height="28" rx="4.5" fill="${c.shirt}"/><rect x="17" y="-54" width="9" height="28" rx="4.5" fill="${c.shirt}"/>`;
+  s+=`<circle cx="-21.5" cy="-24" r="4.5" fill="${c.skin}"/><circle cx="21.5" cy="-24" r="4.5" fill="${c.skin}"/>`;
+  s+=`<rect x="-19" y="-58" width="38" height="42" rx="13" fill="${c.shirt}"/>`;
+  s+=`<g transform="translate(0 -80)">${headSVG(id,ex)}</g>`;
+  if(id==='me')s+=`<path transform="translate(0 -123)" d="${STAR}" fill="#ffd84d" stroke="#d9a400" stroke-width="1.5"/>`;
+  s+=`</g>`;
+  s+=`<g transform="translate(${x} ${base+13})"><rect x="-29" y="-9" width="58" height="18" rx="9" fill="${id==='me'?'#ffd84d':'#ffffff'}" opacity=".95"/><text text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="700" fill="#1b2540" font-family="sans-serif">${c.short}</text></g>`;
+  return s;
+}
+const BG={
+ park:()=>`<rect width="400" height="200" fill="#bfe8ff"/><circle cx="366" cy="28" r="15" fill="#ffe27a"/><g fill="#fff" opacity=".95"><ellipse cx="160" cy="30" rx="24" ry="9"/><ellipse cx="178" cy="24" rx="15" ry="9"/><ellipse cx="290" cy="20" rx="18" ry="7"/></g><rect y="148" width="400" height="52" fill="#a3d977"/><rect y="148" width="400" height="5" fill="#8cc761"/>`,
+ class:()=>`<rect width="400" height="200" fill="#fff0d4"/><rect x="12" y="16" width="62" height="56" rx="3" fill="#d4f0ff" stroke="#fff" stroke-width="4"/><line x1="43" y1="16" x2="43" y2="72" stroke="#fff" stroke-width="3"/><rect x="130" y="12" width="200" height="66" rx="4" fill="#2f5d46" stroke="#9a6a3a" stroke-width="6"/><path d="M146 30 h40 M146 44 h64 M146 58 h30" stroke="#e8f3ea" stroke-width="3" stroke-linecap="round" opacity=".65"/><rect y="156" width="400" height="44" fill="#d9ae7e"/><path d="M0 171 H400 M0 186 H400" stroke="#c99c6b" stroke-width="2"/>`,
+ home:()=>`<rect width="400" height="200" fill="#ffe8de"/><rect x="292" y="20" width="84" height="60" rx="4" fill="#d4f0ff" stroke="#fff" stroke-width="5"/><path d="M288 14 h92 v9 h-92z" fill="#b5835a"/><path d="M292 23 q14 28 0 57 z M376 23 q-14 28 0 57 z" fill="#ff9fb1" opacity=".9"/><rect y="156" width="400" height="44" fill="#c99b72"/><ellipse cx="200" cy="181" rx="160" ry="12" fill="#f3c86b" opacity=".7"/>`,
+ hall:()=>`<rect width="400" height="200" fill="#e8f1f7"/><rect y="112" width="400" height="44" fill="#cfe0ec"/><rect x="262" y="18" width="112" height="56" rx="4" fill="#d4f0ff" stroke="#fff" stroke-width="5"/><rect y="156" width="400" height="44" fill="#b8c8d6"/><path d="M0 176 H400" stroke="#a6b8c8" stroke-width="2"/>`
+};
+const PROP={
+ slide:{back:()=>`<rect x="58" y="74" width="7" height="104" rx="2" fill="#3d8be0"/><rect x="92" y="74" width="7" height="104" rx="2" fill="#3d8be0"/><path d="M65 96H92M65 116H92M65 136H92M65 156H92" stroke="#3d8be0" stroke-width="4"/><rect x="54" y="68" width="50" height="9" rx="3" fill="#ff8a3d"/><path d="M56 72 L64 78 L14 178 L2 174 Z" fill="#ffcf3a" stroke="#e3a900" stroke-width="2"/>`},
+ swing:{back:()=>`<g stroke="#d9534f" stroke-width="6" stroke-linecap="round" fill="none"><path d="M8 178 L26 30 L44 178"/><path d="M96 178 L114 30 L132 178"/><path d="M26 30 H114"/></g>`,
+        front:()=>`<path d="M52 33 V146 M88 33 V146" stroke="#7d7d7d" stroke-width="2.5"/><rect x="43" y="143" width="54" height="8" rx="3" fill="#8b5a2b"/>`},
+ fountain:{back:()=>`<rect x="40" y="110" width="40" height="68" rx="4" fill="#b9c4cc"/><rect x="26" y="98" width="68" height="16" rx="6" fill="#d7e0e6"/><path d="M60 96 q8 -26 24 -16" stroke="#5bc0ff" stroke-width="3" fill="none"/><circle cx="60" cy="96" r="4" fill="#8a99a6"/>`},
+ sink:{back:()=>`<rect x="8" y="36" width="104" height="44" rx="4" fill="#dff3ff" stroke="#fff" stroke-width="4"/><rect x="2" y="104" width="118" height="18" rx="6" fill="#eef2f5" stroke="#b9c4cc" stroke-width="2"/><rect x="10" y="122" width="102" height="56" fill="#cfd8df"/><path d="M32 104 v-11 h11 M78 104 v-11 h11" stroke="#8a99a6" stroke-width="4" fill="none"/>`},
+ lunch:{back:()=>`<rect x="6" y="110" width="116" height="10" rx="3" fill="#b5835a"/><rect x="12" y="120" width="8" height="58" fill="#9b6d47"/><rect x="108" y="120" width="8" height="58" fill="#9b6d47"/><rect x="18" y="84" width="38" height="26" rx="5" fill="#f2a33a"/><rect x="14" y="80" width="46" height="7" rx="3" fill="#d98a25"/><rect x="66" y="90" width="48" height="20" rx="5" fill="#9cc6e8"/><path d="M28 74 q4 -8 0 -14 M40 74 q4 -8 0 -14" stroke="#c9c9c9" stroke-width="2" fill="none"/>`}
+};
+function itemBubble(item,x,y){
+  return `<g transform="translate(${x} ${y})"><circle r="25" fill="#fff" stroke="#ffd84d" stroke-width="3"/><text text-anchor="middle" dominant-baseline="central" font-size="28" y="1">${item}</text></g>`;
+}
+function ghost(k,letter,x,off){
+  return `<g class="ghost${off?' off':''}" data-spot="${k}" role="button" tabindex="${off?-1:0}" aria-label="${letter}の ばしょ" transform="translate(${x} 176) scale(.8)">`+
+    `<rect x="-30" y="-130" width="60" height="150" fill="transparent"/>`+
+    `<circle class="gs" cy="-80" r="24"/><rect class="gs" x="-19" y="-56" width="38" height="56" rx="13"/>`+
+    `<text class="gl" y="-79" text-anchor="middle" dominant-baseline="central">${letter}</text></g>`;
+}
+function lineSpots(q){
+  const seq=q.lv===1?['front','c0','c1','c2','end']:['front','c0','mid','c1','c2','end'];
+  return seq.filter(k=>k[0]==='c'||q.sp[k]);
+}
+function sceneSVG(q,opt){
+  opt=opt||{};const sc=q.sc;const faces=opt.faces||{};
+  let s=BG[sc.bg]();
+  const prop=sc.prop&&PROP[sc.prop];
+  if(prop)s+=prop.back();
+  if(q.type==='line'){
+    const seq=lineSpots(q);const L='あいう';let li=0;
+    const xs=seq.map((k,i)=>130+(372-130)*i/(seq.length-1));
+    seq.forEach((k,i)=>{
+      if(k[0]==='c'){const [id,ex]=sc.ch[+k[1]];s+=fig(id,faces[id]||ex,xs[i],176,.8);}
+      else{
+        if(opt.chosen===k)s+=fig('me',q.sp[k].ok?'happy':'normal',xs[i],176,.8);
+        else s+=ghost(k,L[li],xs[i],opt.off&&opt.off.has(k));
+        li++;
+      }
+    });
+  }else{
+    const n=sc.ch.length;
+    const x0=prop?150:46,x1=prop?388:354;
+    const xs=sc.ch.map((c,i)=>c[2]!=null?c[2]:x0+(x1-x0)*(i+.5)/n);
+    const scale=n>=4?.86:1;
+    sc.ch.forEach(([id,ex],i)=>{s+=fig(id,faces[id]||ex,xs[i],176,id==='yui'&&sc.prop==='swing'?.92:scale);});
+    if(prop&&prop.front)s+=prop.front();
+    if(sc.item){const ix=n>=2?(xs[0]+xs[1])/2:200;s+=itemBubble(sc.item,ix,40);}
+  }
+  const alt=plain(q.st.map(l=>(l.who?CH[l.who].name+'「'+l.t+'」':l.t)).join(' '));
+  return `<svg viewBox="0 0 400 200" role="img" aria-label="${esc(alt)}">${s}</svg>`;
+}
+function faceSVG(id,ex){return `<svg viewBox="-34 -38 68 70" aria-hidden="true">${headSVG(id,ex)}</svg>`;}
+
+/* ====== 画面 ====== */
+const screen=$('#screen'),layer=$('#layer'),live=$('#live');
+let view='home',selLevel=1,st=null;
+
+function go(v,opts){
+  TTS.stop();view=v;closeLayer();
+  if(v==='home')renderHome();
+  else if(v==='themes')renderThemes();
+  else if(v==='play')renderPlay();
+  else if(v==='result')renderResult();
+  else if(v==='stamps')renderStamps();
+  window.scrollTo(0,0);
+  if(!(opts&&opts.nofocus)){const h=screen.querySelector('h2');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}}
+}
+
+function renderHome(){
+  const heroQ={sc:{bg:'park',item:'🤝',ch:[['haru','happy'],['me','happy'],['saki','happy'],['sensei','happy']]},st:[N('みんなで なかよく')],type:'c'};
+  const lv=[1,2,3].map(n=>{const L=LEVELS[n];return `
+    <button class="lvbtn" data-act="level" data-lv="${n}" style="--lc:${L.c}">
+      <span class="num"><small>LEVEL</small>${n}</span>
+      <span><b>${L.name}</b><span class="d">${L.d}</span><span class="d">めやす：${L.grade} <span class="stars">${L.stars}</span></span></span>
+    </button>`;}).join('');
+  screen.innerHTML=`
+  <section class="panel hero">
+    <div class="art">${sceneSVG(heroQ)}</div>
+    <div>
+      <div class="sys">MISSION // なかよく すごす ちから</div>
+      <p class="lead">ともだちと なかよく すごす ための<br><em>「ルール」</em>と<em>「じゅんばん」</em>を<br>れんしゅう しよう！</p>
+      <p class="note">どうすると、ともだちは どんな きもちに なるかな？ えらんで たしかめよう。</p>
+    </div>
+  </section>
+  <h2 class="step"><span class="tag">STEP 1</span>レベルを えらぼう</h2>
+  <div class="levels">${lv}</div>
+  <p class="note">がくねんは「めやす」だよ。 じぶんに あう レベルを えらんでね。</p>
+  <div class="homefoot">
+    <button class="btn" data-act="stamps">🎫 スタンプカード（${store.stamps.length}/20）${store.medals?` 🏅×${store.medals}`:''}</button>
+  </div>
+  <p class="portal"><a href="${esc(PORTAL_URL)}">むん先生の学習クエストへ もどる</a></p>`;
+}
+
+function renderThemes(){
+  const L=LEVELS[selLevel];
+  const tb=THEME_KEYS.concat('mix').map(k=>{const T=THEMES[k];const done=store.clear[selLevel+'-'+k];
+    return `<button class="thbtn${k==='mix'?' mix':''}" data-act="theme" data-th="${k}">
+      ${done?'<span class="clear">✔ クリア</span>':''}
+      <span class="ic" aria-hidden="true">${T.icon}</span>
+      <span><b>${T.name}</b><br><span class="d">${T.sub}</span></span>
+    </button>`;}).join('');
+  screen.innerHTML=`
+  <button class="backlink" data-act="home">◀ レベルを えらびなおす</button>
+  <h2 class="step"><span class="tag">STEP 2</span>テーマを えらぼう <span class="lvchip" style="--lc:${L.c}">レベル${selLevel}</span></h2>
+  <div class="themes">${tb}</div>
+  <p class="note">1つの テーマは 4もん。 まぜこぜは 5もんだよ。</p>`;
+}
+
+/* ---- プレイ */
+function startQuest(level,theme){
+  let list=theme==='mix'?shuffle(Q.filter(q=>q.lv===level)).slice(0,5):Q.filter(q=>q.lv===level&&q.th===theme);
+  st={level,theme,list,idx:0,got:[],medalUp:false};
+  prepQ();go('play');
+}
+const cur=()=>st.list[st.idx];
+function prepQ(){
+  const q=cur();
+  st.wrong=new Set();st.faces={};st.chosen=null;st.omsg='';
+  if(q.type==='order'){st.placed=[];st.deck=shuffle(q.steps.map((_,i)=>i));
+    // 正しい順のままにならないように
+    if(st.deck.every((v,i)=>v===i))st.deck.reverse();
+    st.miss=0;st.hint=-1;}
+  else if(q.type!=='line'){st.corder=shuffle(q.ch.map((_,i)=>i));}
+}
+function storyHTML(q){
+  return q.st.map(l=>{
+    if(!l.who)return `<div class="ln narr"><div class="bub">${ruby(l.t)}</div></div>`;
+    return `<div class="ln${l.who==='me'?' mine':''}"><div class="ava">${faceSVG(l.who,'normal')}</div><div class="bub"><span class="who">${esc(CH[l.who].name)}</span>${ruby(l.t)}</div></div>`;
+  }).join('');
+}
+function renderPlay(){
+  const q=cur(),n=st.list.length,T=THEMES[st.theme],L=LEVELS[st.level];
+  const dots=st.list.map((_,i)=>`<i class="${i<st.idx?'done':''}${i===st.idx?' now':''}"></i>`).join('');
+  screen.innerHTML=`
+  <div class="playbar">
+    <button class="backlink" data-act="quit">🏠 やめる</button>
+    <div class="dots" aria-hidden="true">${dots}</div>
+    <span class="count">${st.idx+1} / ${n}</span>
+  </div>
+  <div class="playgrid">
+    <section>
+      <div class="scene" id="scene">${sceneSVG(q,{faces:st.faces,chosen:st.chosen,off:st.wrong})}</div>
+      <div class="story">${storyHTML(q)}</div>
+    </section>
+    <section>
+      <div class="ask"><h2 id="qtitle">${ruby(q.q)}</h2><button class="saybtn" data-act="sayq" aria-label="もんだいを よみあげる">🔊 よむ</button></div>
+      <div id="answers">${answersHTML(q)}</div>
+      <p class="note"><span class="lvchip" style="--lc:${L.c}">レベル${st.level}</span> ${esc(T.icon)} ${esc(T.name)}</p>
+    </section>
+  </div>`;
+  if(S.auto)TTS.speak(questionText(q),$('[data-act="sayq"]'));
+}
+function answersHTML(q){
+  if(q.type==='line'){
+    const sp=lineSpots(q).filter(k=>k[0]!=='c');const L='あいう';
+    return `<p class="fb-sub" style="margin:0 0 .5rem">え の なかの ○ か、したの ボタンを タッチしてね。</p><div class="answers">`+
+      sp.map((k,i)=>{const off=st.wrong.has(k);
+        return `<div class="choice"><button class="cbtn${off?' off':''}" data-spot="${k}"${off?' disabled':''}><span class="mk mk${i}">${L[i]}</span><span>${L[i]} の ばしょに ならぶ</span>${off?'<span class="offtag">えらんだ</span>':''}</button></div>`;}).join('')+`</div>`;
+  }
+  if(q.type==='order'){
+    const n=q.steps.length;
+    let slots='';
+    for(let i=0;i<n;i++){
+      if(i<st.placed.length)slots+=`<li class="slot done"><span class="no">${i+1}</span><span>${ruby(q.steps[st.placed[i]])}</span></li>`;
+      else slots+=`<li class="slot${i===st.placed.length?' next':''}"><span class="no">${i+1}</span><span class="q">？</span></li>`;
+    }
+    const deck=st.deck.filter(k=>!st.placed.includes(k)).map(k=>
+      `<div class="choice"><button class="say-mini" data-sayk="${k}" aria-label="カードを よみあげる">🔊</button><button class="cbtn card${st.hint===k?' hint':''}" data-card="${k}"><span>${ruby(q.steps[k])}</span></button></div>`).join('');
+    return `<ol class="slots" aria-label="ならべた じゅんばん">${slots}</ol><p class="omsg" aria-live="polite">${ruby(st.omsg||'')}</p><div class="answers">${deck}</div>`;
+  }
+  return `<div class="answers">`+st.corder.map((ci,pos)=>{const c=q.ch[ci];const off=st.wrong.has(ci);
+    return `<div class="choice"><button class="say-mini" data-sayc="${ci}" aria-label="${MARK_READ[pos]}を よみあげる">🔊</button><button class="cbtn${off?' off':''}" data-ch="${ci}"${off?' disabled':''}><span class="mk mk${pos}" aria-label="${MARK_READ[pos]}">${MARK[pos]}</span><span>${ruby(c.t)}</span>${off?'<span class="offtag">えらんだ</span>':''}</button></div>`;}).join('')+`</div>`;
+}
+function questionText(q){
+  let t=q.st.map(l=>(l.who?CH[l.who].name+'。 ':'')+plain(l.t)).join(' ')+' '+plain(q.q)+'。';
+  if(q.type==='line'){const k=lineSpots(q).filter(k=>k[0]!=='c');t+=' '+('あいう'.slice(0,k.length).split('').join('、'))+' から えらんでね。';}
+  else if(q.type==='order')t+=' カードを、する じゅんばんに タッチしてね。';
+  else t+=' '+st.corder.filter(ci=>!st.wrong.has(ci)).map(ci=>MARK_READ[st.corder.indexOf(ci)]+'、'+plain(q.ch[ci].t)).join('。 ')+'。';
+  return t;
+}
+function refreshScene(){const el=$('#scene');if(el)el.innerHTML=sceneSVG(cur(),{faces:st.faces,chosen:st.chosen,off:st.wrong});}
+function refreshAnswers(){const el=$('#answers');if(el)el.innerHTML=answersHTML(cur());}
+
+function award(){
+  const icon=pick(STAMPS);st.got.push(icon);
+  store.stamps.push(icon);store.total++;
+  if(store.stamps.length>=20){store.medals++;store.stamps=[];st.medalUp=true;}
+  save();return icon;
+}
+function choose(ci){
+  const q=cur(),c=q.ch[ci];if(!c||st.wrong.has(ci))return;
+  if(c.ok)feedback(true,c);else{st.wrong.add(ci);feedback(false,c);}
+}
+function chooseSpot(k){
+  const q=cur(),c=q.sp[k];if(!c||st.wrong.has(k))return;
+  st.chosen=k;
+  if(c.ok)feedback(true,c);else{st.wrong.add(k);feedback(false,c);}
+}
+function tapCard(k,el){
+  const q=cur();
+  if(k===st.placed.length){
+    st.placed.push(k);st.miss=0;st.hint=-1;
+    if(st.placed.length===q.steps.length){st.omsg='';refreshAnswers();feedback(true,{ok:true,who:q.who,f:'happy',fl:q.fl||'うれしい',w:q.w});return;}
+    sfx('tap');st.omsg=st.placed.length+'ばんめ、OK！ つぎは どれかな？';refreshAnswers();
+    live.textContent=plain(st.omsg);
+  }else{
+    st.miss++;sfx('retry');
+    st.omsg=(st.placed.length+1)+'ばんめに する ことは どれかな？';
+    if(st.miss>=2){st.hint=st.placed.length;st.omsg+=' ひかって いる カードを みてね。';}
+    refreshAnswers();live.textContent=plain(st.omsg);
+    const nb=$(`[data-card="${k}"]`);if(nb){nb.classList.add('shake');setTimeout(()=>nb.classList.remove('shake'),450);}
+    if(S.auto)TTS.speak(plain(st.omsg));
+  }
+}
+function feedback(ok,c){
+  const q=cur();const who=c.who||q.who;
+  st.faces={};st.faces[who]=c.f;refreshScene();
+  let stampHTML='';
+  if(ok){const icon=award();sfx('ok');setTimeout(()=>sfx('stamp'),420);
+    stampHTML=`<div class="fb-stamp"><span class="stamp pop">${icon}</span>スタンプ ゲット！</div>`;}
+  else sfx('retry');
+  const last=st.idx===st.list.length-1;
+  const name=CH[who].name;
+  const title=ok?pick(GOOD):'ちょっと まって！';
+  layer.innerHTML=`
+  <div class="overlay">
+    <div class="sheet ${ok?'ok':'re'}" role="dialog" aria-modal="true" aria-labelledby="fbT">
+      <div class="fb-top">
+        <div class="fb-face">${faceSVG(who,c.f)}</div>
+        <div><p class="fb-title" id="fbT">${ok?'⭕':'💭'} ${title}</p>
+        <p class="fb-feel">${esc(name)}の きもち<span class="pill">${ruby(c.fl)}</span></p></div>
+      </div>
+      <p class="fb-why">${ruby(c.w)}</p>
+      ${ok?'':'<p class="fb-sub">ほかの えらびかたを かんがえて みよう。</p>'}
+      ${stampHTML}
+      <div class="fb-btns">
+        <button class="btn fb-say" data-act="sayfb">🔊 よむ</button>
+        <button class="btn primary big" data-act="${ok?'next':'retry'}">${ok?(last?'けっかを みる ▶':'つぎへ ▶'):'もういちど えらぶ'}</button>
+      </div>
+    </div>
+  </div>`;
+  st.fbText=name+'の きもちは、'+plain(c.fl)+'。 '+plain(c.w)+(ok?'':' ほかの えらびかたを かんがえて みよう。');
+  const p=layer.querySelector('.btn.primary');if(p)p.focus();
+  if(S.auto)setTimeout(()=>TTS.speak(st.fbText,layer.querySelector('[data-act="sayfb"]')),ok?650:350);
+}
+function nextQ(){
+  closeLayer();TTS.stop();
+  if(st.idx>=st.list.length-1){store.clear[st.level+'-'+st.theme]=true;save();go('result');return;}
+  st.idx++;prepQ();go('play');
+}
+function retryQ(){
+  closeLayer();TTS.stop();
+  st.faces={};st.chosen=null;refreshScene();refreshAnswers();
+  const b=$('#answers .cbtn:not(.off)');if(b)b.focus();
+}
+
+/* ---- けっか */
+function renderResult(){
+  const T=THEMES[st.theme];
+  screen.innerHTML=`
+  <section class="panel result">
+    <div class="sys">QUEST CLEAR // LEVEL ${st.level}</div>
+    <h2>クエスト クリア！</h2>
+    <div class="gotrow">${st.got.map((i,n)=>`<span class="stamp pop" style="animation-delay:${n*.12}s">${i}</span>`).join('')}</div>
+    <p style="font-weight:800;font-size:1.15rem;margin:.2rem 0">スタンプを ${st.got.length}こ ゲット！</p>
+    ${st.medalUp?'<div class="medal">🏅 スタンプカードが いっぱいに なって メダルを ゲット！</div>':''}
+    <div class="pointcard">
+      <div class="h"><span>📌 おぼえて おこう</span><button class="saybtn" data-act="saypoint" aria-label="よみあげる">🔊</button></div>
+      <p>${ruby(T.point)}</p>
+    </div>
+    <div class="btnrow" style="max-width:640px;margin-left:auto;margin-right:auto">
+      <button class="btn primary big" data-act="again">🔁 もういちど</button>
+      <button class="btn big" data-act="themes">📚 テーマを えらぶ</button>
+      <button class="btn big" data-act="stamps">🎫 スタンプカード</button>
+    </div>
+  </section>`;
+  if(S.auto)TTS.speak('クエスト クリア！ おぼえて おこう。 '+plain(T.point),$('[data-act="saypoint"]'));
+}
+
+/* ---- スタンプカード */
+function renderStamps(){
+  const slots=Array.from({length:20},(_,i)=>store.stamps[i]?`<span class="on">${store.stamps[i]}</span>`:`<span aria-hidden="true"></span>`).join('');
+  const rows=THEME_KEYS.concat('mix').map(k=>`<tr><th class="tn">${THEMES[k].icon} ${esc(THEMES[k].name)}</th>${[1,2,3].map(lv=>store.clear[lv+'-'+k]?'<td class="y">✔</td>':'<td>－</td>').join('')}</tr>`).join('');
+  screen.innerHTML=`
+  <button class="backlink" data-act="${st&&view==='stamps'&&st.fromResult?'result':'home'}">◀ もどる</button>
+  <section class="panel result" style="margin-top:.8rem">
+    <div class="sys">STAMP CARD</div>
+    <h2>スタンプカード</h2>
+    <p style="font-weight:700;margin:.2rem 0">あと ${20-store.stamps.length}こで メダル！ ${store.medals?` 🏅×${store.medals}`:''}</p>
+    <div class="card20" aria-label="スタンプ ${store.stamps.length}こ">${slots}</div>
+    <p class="note">これまでに あつめた スタンプ：${store.total}こ</p>
+    <h3 style="margin:1.2rem 0 .2rem">クリアした クエスト</h3>
+    <div style="overflow-x:auto"><table class="cleartable">
+      <tr><th></th>${[1,2,3].map(lv=>`<th class="lvh" style="--lc:${LEVELS[lv].c}">Lv.${lv}</th>`).join('')}</tr>${rows}
+    </table></div>
+  </section>`;
+}
+
+/* ====== ポップアップ ====== */
+function closeLayer(){layer.innerHTML='';}
+function openModal(html){
+  layer.innerHTML=`<div class="overlay" data-act="bg"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  const f=layer.querySelector('.modal button');if(f)f.focus();
+}
+let resetArmed=false;
+function seg(key,opts){
+  return `<div class="seg" role="group">`+opts.map(([v,l])=>`<button data-set="${key}" data-val="${v}" aria-pressed="${String(S[key])===String(v)}">${l}</button>`).join('')+`</div>`;
+}
+function openSettings(){
+  openModal(`
+    <h2>⚙️ せってい</h2>
+    <div class="setrow"><span class="lbl">🔊 じどうで よみあげ</span>${seg('auto',[['true','オン'],['false','オフ']])}</div>
+    <div class="setrow"><span class="lbl">🐢 よむ はやさ</span>${seg('slow',[['true','ゆっくり'],['false','ふつう']])}</div>
+    ${TTS.ok?'':'<p class="note">この たんまつでは よみあげが つかえません。</p>'}
+    <div class="setrow"><span class="lbl">🎵 こうかおん</span>${seg('sound',[['true','オン'],['false','オフ']])}</div>
+    <div class="setrow"><span class="lbl">あ ふりがな</span>${seg('furi',[['true','オン'],['false','オフ']])}</div>
+    <div class="setrow"><span class="lbl">🔠 もじの おおきさ</span>${seg('size',[['0','小'],['1','中'],['2','大'],['3','特大']])}</div>
+    <div class="setrow"><span class="lbl">🎨 いろ</span>${seg('theme',[['cyber','サイバー'],['soft','やさしい いろ']])}</div>
+    <div class="setrow"><span class="lbl">✏️ もじの かたち</span>${seg('font',[['goth','ゴシック'],['kyo','きょうかしょ']])}</div>
+    <div class="setrow"><span class="lbl">🗑 スタンプの きろく</span><button class="btn danger" data-act="reset">${resetArmed?'ほんとうに けす？（もういちど おす）':'ぜんぶ けす'}</button></div>
+    <div class="btnrow"><button class="btn primary big" data-act="close">とじる</button></div>`);
+}
+function openGuide(){
+  openModal(`<div class="guide">
+    <h2>👪 先生・おうちの方へ</h2>
+    <p>順番を待つ・物を貸し借りする・遊びのルールを守る・話す順番を守る、という生活の場面で、<b>「相手の気持ち」を手がかりに望ましい行動を選ぶ</b>練習をするアプリです。</p>
+    <h3>レベルの選び方</h3>
+    <ul>
+      <li>レベル1：2択。分かち書きのひらがなで、短い文です。</li>
+      <li>レベル2：3択。漢字にはふりがなが付きます。</li>
+      <li>レベル3：3択に加えて、行動の手順を並べる問題があります。</li>
+    </ul>
+    <p>学年は目安です。お子さんの読む力や経験に合わせて選んでください。1つのテーマは4問（まぜこぜは5問）、3〜5分ほどで終わります。</p>
+    <h3>間違えても大丈夫なつくり</h3>
+    <p>減点はありません。選んだ行動で相手がどんな気持ちになるかを、表情と言葉で示します。選んだ答えは選べなくなるので、最後は必ず正しい行動にたどり着き、成功体験で終われます。</p>
+    <h3>読み上げ・見やすさ</h3>
+    <p>🔊ボタンで文や選択肢を読み上げます（端末の音声機能を使います）。「せってい」で自動読み上げ、読む速さ、ふりがな、文字の大きさ、色、文字の形（教科書体）を変えられます。</p>
+    <h3>声かけの例</h3>
+    <ul>
+      <li>「この子は、どんな気持ちかな？」</li>
+      <li>「学校（おうち）の、どんなときに使えそう？」</li>
+      <li>実際の場面で「アプリでやった、いちばん後ろに並ぶ、だね」と思い出せるように声をかけると、生活につながりやすくなります。</li>
+    </ul>
+    <h3>記録について</h3>
+    <p>スタンプとクリアの記録は、この端末の中だけに保存されます。外部への送信はありません。</p>
+    <p class="note">場面の答えは一例です。学級やご家庭のルール、お子さんの特性に合わせて補ってください。</p>
+    <div class="btnrow"><button class="btn primary big" data-act="close">とじる</button></div>
+  </div>`);
+}
+
+/* ====== 操作 ====== */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act],[data-ch],[data-spot],[data-card],[data-sayc],[data-sayk],[data-set]');
+  if(!t)return;
+  if(t.dataset.set!==undefined){
+    let v=t.dataset.val;v=v==='true'?true:v==='false'?false:/^\d+$/.test(v)?+v:v;
+    S[t.dataset.set]=v;save();applySettings();openSettings();
+    const b=layer.querySelector(`[data-set="${t.dataset.set}"][data-val="${t.dataset.val}"]`);if(b)b.focus();
+    return;
+  }
+  if(t.dataset.ch!==undefined){choose(+t.dataset.ch);return;}
+  if(t.dataset.spot!==undefined){chooseSpot(t.dataset.spot);return;}
+  if(t.dataset.card!==undefined){tapCard(+t.dataset.card,t);return;}
+  if(t.dataset.sayc!==undefined){const q=cur();const pos=st.corder.indexOf(+t.dataset.sayc);TTS.speak(MARK_READ[pos]+'。 '+plain(q.ch[+t.dataset.sayc].t),t);return;}
+  if(t.dataset.sayk!==undefined){TTS.speak(plain(cur().steps[+t.dataset.sayk]),t);return;}
+  const a=t.dataset.act;
+  if(a==='bg'){if(e.target===t){TTS.stop();closeLayer();}return;}
+  switch(a){
+    case 'level':selLevel=+t.dataset.lv;go('themes');break;
+    case 'theme':startQuest(selLevel,t.dataset.th);break;
+    case 'home':go('home');break;
+    case 'themes':selLevel=st?st.level:selLevel;go('themes');break;
+    case 'again':startQuest(st.level,st.theme);break;
+    case 'stamps':if(st&&view==='result')st.fromResult=true;else if(st)st.fromResult=false;go('stamps');break;
+    case 'result':go('result');break;
+    case 'sayq':TTS.speak(questionText(cur()),t);break;
+    case 'sayfb':TTS.speak(st.fbText,t);break;
+    case 'saypoint':TTS.speak(plain(THEMES[st.theme].point),t);break;
+    case 'next':nextQ();break;
+    case 'retry':retryQ();break;
+    case 'quit':
+      openModal(`<h2>🏠 ホームに もどる？</h2><p>ここまでの スタンプは のこるよ。</p><div class="btnrow"><button class="btn big" data-act="close">つづける</button><button class="btn primary big" data-act="home">もどる</button></div>`);break;
+    case 'close':TTS.stop();closeLayer();resetArmed=false;break;
+    case 'reset':
+      if(!resetArmed){resetArmed=true;openSettings();layer.querySelector('[data-act="reset"]').focus();}
+      else{store.stamps=[];store.medals=0;store.total=0;store.clear={};save();resetArmed=false;openSettings();live.textContent='きろくを けしました';if(view==='home')renderHome();}
+      break;
+  }
+});
+document.addEventListener('keydown',e=>{
+  const g=e.target.closest&&e.target.closest('.ghost');
+  if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();chooseSpot(g.dataset.spot);}
+});
+$('#btnSet').addEventListener('click',()=>{resetArmed=false;openSettings();});
+$('#btnGuide').addEventListener('click',openGuide);
+
+applySettings();
+go('home',{nofocus:true});
+if(location.hash==='#selftest')window.__RQ={Q,THEMES,startQuest,choose,chooseSpot,tapCard,nextQ,retryQ,st:()=>st,store};
+})();
+</script>
+</body>
+</html>

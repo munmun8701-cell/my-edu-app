@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>問題クリエイター｜むんラボ｜むん先生の学習クエスト</title>
+  <meta name="description" content="自分で問題を作って、リンクやQRコードで友だちに出題できます。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/lab/creator.html">
+  <meta name="theme-color" content="#050914">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta property="og:title" content="問題クリエイター｜むんラボ｜むん先生の学習クエスト">
+  <meta property="og:description" content="自分で問題を作って、リンクやQRコードで友だちに出題できます。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./lab.css">
+  <script src="./lab-cards.js"></script>
+  <script src="./lab-data.js"></script>
+  <script src="./lab-avatar.js"></script>
+  <script src="./lab-core.js"></script>
+  <script src="./qrcode.js"></script>
+</head>
+<body>
+<script>LAB.header({ sub: "QUIZ CREATOR" });</script>
+<style>
+  .qedit { padding: 16px; border-radius: 18px; background: var(--card2); border: 1px solid var(--line); margin-bottom: 12px; }
+  .qedit .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .qedit .hd b { color: #fff; }
+  .qedit .hd .del { margin-left: auto; }
+  .fld { display: grid; gap: 4px; margin-bottom: 10px; }
+  .fld label { font-weight: 800; font-size: .82rem; color: var(--dim); }
+  .fld input, .fld textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(52,211,153,.35); background: rgba(2,6,23,.6); color: #fff; font: inherit; font-size: .95rem; }
+  .fld textarea { min-height: 64px; resize: vertical; }
+  .fld input:focus, .fld textarea:focus { outline: none; border-color: #34d399; box-shadow: 0 0 10px rgba(52,211,153,.35); }
+  .ch4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ch4 .c { display: flex; align-items: center; gap: 6px; }
+  .ch4 input[type=radio] { width: 20px; height: 20px; accent-color: #34d399; flex: none; }
+  .cnt { font-size: .7rem; color: var(--dim); text-align: right; }
+  .share { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: start; }
+  .qr { width: 200px; height: 200px; background: #fff; border-radius: 14px; padding: 8px; display: grid; place-items: center; color: #334155; font-size: .8rem; text-align: center; }
+  .qr svg { width: 100%; height: 100%; }
+  .link { word-break: break-all; font-family: var(--mono); font-size: .76rem; padding: 10px 12px; border-radius: 12px; background: #020617; border: 1px dashed rgba(52,211,153,.4); color: #a7f3d0; max-height: 120px; overflow: auto; }
+  .mysets { display: grid; gap: 8px; }
+  .mys { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); flex-wrap: wrap; }
+  .mys b { color: #fff; flex: 1; min-width: 140px; }
+  .play-h { text-align: center; }
+  .play-h h2 { color: #fff; margin: 6px 0; font-size: 1.5rem; }
+  .warn { padding: 10px 14px; border-radius: 12px; background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.35); color: #fde68a; font-size: .82rem; font-weight: 700; }
+  @media (max-width: 640px) { .ch4 { grid-template-columns: 1fr; } .share { grid-template-columns: 1fr; justify-items: center; } }
+</style>
+<main class="wrap" id="main"></main>
+<script>
+(function () {
+  const { $, $$, esc, get, update, toast, checkTrophies, reward, N, answered } = LAB;
+  const LIM = { title: 30, q: 80, c: 24, a: 24, e: 60, n: 10 };
+  const b64 = { enc: u8 => btoa(String.fromCharCode(...u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), dec: s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0)) };
+  async function pack(obj) {
+    const raw = new TextEncoder().encode(JSON.stringify(obj));
+    if (window.CompressionStream) { try { const cs = new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw')); return 'z' + b64.enc(new Uint8Array(await new Response(cs).arrayBuffer())); } catch (e) {} }
+    return 'j' + b64.enc(raw);
+  }
+  async function unpack(s) {
+    const t = s[0], body = b64.dec(s.slice(1));
+    let raw = body;
+    if (t === 'z') { const ds = new Blob([body]).stream().pipeThrough(new DecompressionStream('deflate-raw')); raw = new Uint8Array(await new Response(ds).arrayBuffer()); }
+    const o = JSON.parse(new TextDecoder().decode(raw));
+    // 形をたしかめる（へんなデータは受けつけない）
+    if (!o || typeof o.t !== 'string' || !Array.isArray(o.q) || !o.q.length || o.q.length > LIM.n) throw new Error('bad');
+    o.t = o.t.slice(0, LIM.title);
+    o.q = o.q.map(x => ({ q: String(x.q || '').slice(0, LIM.q), c: Array.isArray(x.c) ? x.c.slice(0, 4).map(v => String(v).slice(0, LIM.c)) : null, a: String(x.a == null ? '' : x.a).slice(0, LIM.a), e: String(x.e || '').slice(0, LIM.e) })).filter(x => x.q && x.a);
+    if (!o.q.length) throw new Error('bad');
+    return o;
+  }
+  const blankQ = () => ({ type: 'c', q: '', c: ['', '', '', ''], ok: 0, a: '', e: '' });
+  let draft = { t: '', qs: [blankQ()] };
+
+  /* ===================== つくる ===================== */
+  function editor() {
+    $('#main').innerHTML = `<div class="page-title" style="--c:#34d399"><span class="ic"><i class="fa-solid fa-pen-ruler"></i></span><h1><small>QUIZ CREATOR // 問題をつくる</small>問題クリエイター</h1><p>自分で問題を作って、リンクやQRコードで友だちに出題しよう。問題はリンクの中に入っているので、どこにも送信・保存されません。</p></div>
+      <div class="warn"><i class="fa-solid fa-triangle-exclamation"></i> 名前・学校名・住所などは書かないでね。人がいやな気持ちになる問題は作らないこと。</div>
+      <section class="panel" style="margin-top:14px"><div class="fld"><label for="q-title">問題集のタイトル</label><input id="q-title" maxlength="${LIM.title}" placeholder="例：歴史人物クイズ" value="${esc(draft.t)}"></div><div id="qs"></div>
+        <div class="btns"><button class="btn ghost" type="button" id="add"><i class="fa-solid fa-plus"></i> 問題を追加（最大${LIM.n}問）</button><button class="btn" type="button" id="make" style="margin-left:auto;background:linear-gradient(135deg,#6ee7b7,#10b981)"><i class="fa-solid fa-wand-magic-sparkles"></i> 完成！ リンクをつくる</button></div></section>
+      <section class="panel" id="out" hidden></section>
+      <section class="panel"><div class="h2" style="--c:#34d399"><i class="fa-solid fa-folder-open"></i>自分が作った問題集<small>この端末だけ</small></div><div class="mysets" id="mysets"></div></section>`;
+    $('#q-title').addEventListener('input', e => { draft.t = e.target.value; });
+    $('#add').addEventListener('click', () => { if (draft.qs.length >= LIM.n) return toast(`問題は${LIM.n}問までです`, 'fa-circle-info'); draft.qs.push(blankQ()); qs(); });
+    $('#make').addEventListener('click', make);
+    qs(); mysets();
+  }
+  function qs() {
+    $('#qs').innerHTML = draft.qs.map((x, i) => `<div class="qedit" data-i="${i}"><div class="hd"><b>第${i + 1}問</b><div class="seg" style="--c:#34d399"><button type="button" class="${x.type === 'c' ? 'on' : ''}" data-t="c">4択</button><button type="button" class="${x.type === 'w' ? 'on' : ''}" data-t="w">答えを入力</button></div>${draft.qs.length > 1 ? '<button class="btn ghost sm del" type="button" data-del><i class="fa-solid fa-trash"></i> けす</button>' : ''}</div>
+      <div class="fld"><label>問題文</label><textarea maxlength="${LIM.q}" data-f="q" placeholder="例：江戸幕府を開いた人物は？">${esc(x.q)}</textarea></div>
+      ${x.type === 'c' ? `<div class="fld"><label>選たくし（正解に ● をつけてね）</label><div class="ch4">${x.c.map((c, k) => `<div class="c"><input type="radio" name="ok${i}" ${x.ok === k ? 'checked' : ''} data-ok="${k}" aria-label="${'ABCD'[k]}を正解にする"><input maxlength="${LIM.c}" data-c="${k}" placeholder="${'ABCD'[k]}" value="${esc(c)}"></div>`).join('')}</div></div>`
+        : `<div class="fld"><label>正しい答え（ひらがな・数字がおすすめ）</label><input maxlength="${LIM.a}" data-f="a" value="${esc(x.a)}" placeholder="例：とくがわいえやす"></div>`}
+      <div class="fld"><label>かいせつ（なくてもOK）</label><input maxlength="${LIM.e}" data-f="e" value="${esc(x.e)}" placeholder="例：1603年に征夷大将軍になりました"></div></div>`).join('');
+    $$('#qs .qedit').forEach(el => {
+      const x = draft.qs[+el.dataset.i];
+      $$('[data-f]', el).forEach(f => f.addEventListener('input', () => { x[f.dataset.f] = f.value; }));
+      $$('[data-c]', el).forEach(f => f.addEventListener('input', () => { x.c[+f.dataset.c] = f.value; }));
+      $$('[data-ok]', el).forEach(f => f.addEventListener('change', () => { x.ok = +f.dataset.ok; }));
+      $$('[data-t]', el).forEach(b => b.addEventListener('click', () => { x.type = b.dataset.t; qs(); }));
+      const d = $('[data-del]', el); if (d) d.addEventListener('click', () => { draft.qs.splice(+el.dataset.i, 1); qs(); });
+    });
+  }
+  async function make() {
+    const t = draft.t.trim();
+    if (!t) { toast('タイトルを入れてね', 'fa-circle-exclamation'); $('#q-title').focus(); return; }
+    const out = [];
+    for (let i = 0; i < draft.qs.length; i++) {
+      const x = draft.qs[i]; const q = x.q.trim();
+      if (!q) { toast(`第${i + 1}問の問題文を入れてね`, 'fa-circle-exclamation'); return; }
+      if (x.type === 'c') { const cs = x.c.map(c => c.trim()); if (cs.some(c => !c)) { toast(`第${i + 1}問の選たくしを4つとも入れてね`, 'fa-circle-exclamation'); return; } if (new Set(cs).size < 4) { toast(`第${i + 1}問の選たくしが同じになっています`, 'fa-circle-exclamation'); return; } out.push({ q, c: cs, a: cs[x.ok], e: x.e.trim() }); }
+      else { const a = x.a.trim(); if (!a) { toast(`第${i + 1}問の答えを入れてね`, 'fa-circle-exclamation'); return; } out.push({ q, a, e: x.e.trim() }); }
+    }
+    const data = { t, q: out }, code = await pack(data);
+    const url = `${location.origin}${location.pathname}#play=${code}`;
+    const first = !(get().creator.made > 0);
+    update(d => { d.creator.made = (d.creator.made || 0) + 1; d.creator.sets = [{ t, code, date: LAB.ymd(), n: out.length }, ...(d.creator.sets || []).filter(s => s.code !== code)].slice(0, 20); });
+    if (first) reward({ coins: 300, exp: 10, reason: 'はじめての問題づくり！' });
+    checkTrophies(); share(t, url); mysets();
+  }
+  function share(t, url) {
+    const o = $('#out'); o.hidden = false;
+    let qrHtml = '';
+    if (url.length <= 1400 && window.qrcode) { try { const qr = qrcode(0, 'L'); qr.addData(url); qr.make(); qrHtml = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); } catch (e) { qrHtml = ''; } }
+    o.innerHTML = `<div class="h2" style="--c:#34d399"><i class="fa-solid fa-share-nodes"></i>「${esc(t)}」ができた！</div><div class="share"><div class="qr">${qrHtml || 'QRコードには長すぎます。<br>問題を少なくするか、リンクを送ってね。'}</div><div><p class="note" style="margin-top:0">このリンクを友だちに送ると、問題にチャレンジできます。QRコードは、タブレットのカメラで読みとれます。</p><div class="link" id="lnk">${esc(url)}</div><div class="btns" style="margin-top:10px"><button class="btn" type="button" id="cp"><i class="fa-solid fa-copy"></i> リンクをコピー</button><a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener"><i class="fa-solid fa-play"></i> ためしに解く</a></div></div></div>`;
+    $('#cp').addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました', 'fa-copy'); } catch (e) { const r = document.createRange(); r.selectNodeContents($('#lnk')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('リンクを選んだので、コピーしてね', 'fa-copy'); } });
+    o.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function mysets() {
+    const sets = get().creator.sets || [];
+    $('#mysets').innerHTML = sets.length ? sets.map((s, i) => `<div class="mys"><b>${esc(s.t)}</b><span class="note">${s.n}問・${s.date}</span><button class="btn sm" type="button" data-sh="${i}"><i class="fa-solid fa-qrcode"></i> リンク・QR</button><button class="btn ghost sm" type="button" data-ed="${i}"><i class="fa-solid fa-pen"></i> 直す</button><button class="btn ghost sm" type="button" data-rm="${i}"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="empty">まだありません。上で問題を作ってみよう！</p>';
+    $$('[data-sh]').forEach(b => b.addEventListener('click', () => { const s = sets[+b.dataset.sh]; share(s.t, `${location.origin}${location.pathname}#play=${s.code}`); }));
+    $$('[data-ed]').forEach(b => b.addEventListener('click', async () => { const s = sets[+b.dataset.ed]; try { const o = await unpack(s.code); draft = { t: o.t, qs: o.q.map(x => x.c ? { type: 'c', q: x.q, c: x.c.concat(['', '', '', '']).slice(0, 4), ok: Math.max(0, x.c.indexOf(x.a)), a: '', e: x.e } : { type: 'w', q: x.q, c: ['', '', '', ''], ok: 0, a: x.a, e: x.e }) }; editor(); scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { toast('読みこめませんでした', 'fa-circle-exclamation'); } }));
+    $$('[data-rm]').forEach(b => b.addEventListener('click', () => { if (!confirm('この問題集を一覧から消しますか？（送ったリンクは使えます）')) return; update(d => { d.creator.sets.splice(+b.dataset.rm, 1); }); mysets(); }));
+  }
+
+  /* ===================== 解く ===================== */
+  async function play(code) {
+    let o;
+    try { o = await unpack(code); } catch (e) { $('#main').innerHTML = `<section class="panel"><div class="empty">この問題のリンクは読みこめませんでした。リンクが最後までコピーされているか、たしかめてね。</div><div class="btns" style="justify-content:center;margin-top:12px"><a class="btn" href="./creator.html">自分で問題を作る</a></div></section>`; return; }
+    let i = 0, score = 0;
+    $('#main').innerHTML = `<section class="panel"><div class="play-h"><small class="note">QUIZ // だれかが作った問題</small><h2>${esc(o.t)}</h2><p class="note">全${o.q.length}問　※ 友だちが作った問題です。むん先生がチェックしたものではありません。</p></div><div id="pq"></div></section>`;
+    const one = () => {
+      const x = o.q[i], box = $('#pq');
+      if (x.c) {
+        const q = { s: `第${i + 1}問`, q: x.q, a: x.a, choices: LAB.shuffle(x.c), kind: 'choice' };
+        LAB.renderChoice(box, q, ok => { if (ok) score++; after(x); });
+      } else {
+        box.innerHTML = `<div class="q-box"><span class="q-tag">第${i + 1}問</span><div class="q-text">${esc(x.q)}</div><div class="ans-row"><input class="ans-in" id="pin" autocomplete="off" placeholder="答え"><button class="btn" type="button" id="pok">答える</button></div><div class="feedback" id="pfb"></div></div>`;
+        const go = () => { const v = $('#pin').value; if (!v.trim()) return; const ok = N(v) === N(x.a); if (ok) score++; answered(ok); $('#pfb').className = 'feedback ' + (ok ? 'ok' : 'ng'); $('#pfb').textContent = ok ? 'せいかい！' : `ざんねん… 答えは「${x.a}」`; $('#pin').disabled = true; $('#pok').disabled = true; after(x); };
+        $('#pok').addEventListener('click', go); $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) go(); }); $('#pin').focus();
+      }
+    };
+    const after = x => {
+      const box = $('#pq');
+      box.insertAdjacentHTML('beforeend', `${x.e ? `<p class="note" style="text-align:center">${esc(x.e)}</p>` : ''}<div class="btns" style="justify-content:center"><button class="btn" type="button" id="nx">${i < o.q.length - 1 ? '次の問題へ' : '結果を見る'}</button></div>`);
+      $('#nx').addEventListener('click', () => { i++; if (i < o.q.length) one(); else end(); }); $('#nx').focus();
+    };
+    const end = () => {
+      const first = !(get().creator.played > 0);
+      update(d => { d.creator.played = (d.creator.played || 0) + 1; });
+      if (first) reward({ coins: 200, exp: 5, reason: 'はじめてのチャレンジ' });
+      checkTrophies();
+      $('#pq').innerHTML = `<div class="q-box"><div class="q-text" style="font-size:2rem">${score} / ${o.q.length} 問 正解！</div><p>${score === o.q.length ? 'パーフェクト！ 作った人に教えてあげよう。' : 'もう一度チャレンジしてみよう。'}</p><div class="btns" style="justify-content:center"><button class="btn" type="button" id="re"><i class="fa-solid fa-rotate-right"></i> もう一度</button><a class="btn ghost" href="./creator.html"><i class="fa-solid fa-pen-ruler"></i> 自分も問題を作る</a></div></div>`;
+      $('#re').addEventListener('click', () => { i = 0; score = 0; one(); });
+    };
+    one();
+  }
+  function route() { const h = location.hash; if (h.startsWith('#play=')) play(h.slice(6)); else editor(); }
+  addEventListener('hashchange', route); route();
+})();
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8da24e49b08544cead394c557a53b918"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

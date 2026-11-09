@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ゴーストレース｜むんラボ｜むん先生の学習クエスト</title>
+  <meta name="description" content="前の自分の記録（ゴースト）と競争する計算タイムアタック。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/lab/ghost.html">
+  <meta name="theme-color" content="#050914">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta property="og:title" content="ゴーストレース｜むんラボ｜むん先生の学習クエスト">
+  <meta property="og:description" content="前の自分の記録（ゴースト）と競争する計算タイムアタック。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./lab.css">
+  <script src="./lab-cards.js"></script>
+  <script src="./lab-data.js"></script>
+  <script src="./lab-avatar.js"></script>
+  <script src="./lab-core.js"></script>
+</head>
+<body>
+<script>LAB.header({ sub: "TIME ATTACK" });</script>
+<style>
+  .modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .mode { padding: 14px; border-radius: 16px; background: var(--card2); border: 1px solid var(--line); text-align: left; color: var(--text); font: inherit; cursor: pointer; }
+  .mode:hover, .mode.on { border-color: #a78bfa; box-shadow: 0 0 16px rgba(167,139,250,.3); }
+  .mode b { display: block; color: #fff; font-size: 1rem; }
+  .mode small { display: block; color: var(--dim); font-size: .74rem; }
+  .mode .best { margin-top: 6px; font-family: var(--mono); color: #c4b5fd; font-weight: 700; font-size: .85rem; }
+  .track { position: relative; height: 110px; margin: 10px 0 16px; border-radius: 18px; background: linear-gradient(180deg, rgba(167,139,250,.08), rgba(2,6,23,.6)); border: 1px solid rgba(167,139,250,.3); overflow: hidden; }
+  .track .lane { position: absolute; left: 24px; right: 24px; height: 2px; background: repeating-linear-gradient(90deg, rgba(148,163,184,.35) 0 10px, transparent 10px 18px); }
+  .track .l1 { top: 36px; } .track .l2 { top: 78px; }
+  .track .goal { position: absolute; right: 18px; top: 10px; bottom: 10px; width: 6px; background: repeating-linear-gradient(180deg, #fff 0 6px, #0f172a 6px 12px); border-radius: 2px; }
+  .runner { position: absolute; left: 24px; width: 40px; height: 40px; margin-left: -20px; display: grid; place-items: center; font-size: 1.4rem; transition: left .12s linear; }
+  .runner.me { top: 16px; color: var(--cyan); filter: drop-shadow(0 0 6px var(--cyan)); }
+  .runner.gh { top: 58px; color: #c4b5fd; opacity: .75; filter: drop-shadow(0 0 6px #a78bfa); }
+  .runner small { position: absolute; top: -12px; font-size: .58rem; font-weight: 900; white-space: nowrap; color: inherit; font-family: var(--mono); }
+  .hud { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-weight: 700; }
+  .hud .t { font-size: 2rem; color: #fff; }
+  .hud .diff { font-size: 1.1rem; }
+  .diff.ahead { color: #34d399; } .diff.behind { color: #f87171; }
+  .gq { text-align: center; margin: 6px 0 10px; }
+  .gq .qq { font-size: clamp(2.2rem, 8vw, 3.4rem); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+  .gq .in { display: inline-block; min-width: 140px; padding: 6px 16px; border-radius: 14px; border: 2px solid rgba(0,229,255,.45); font-family: var(--mono); font-size: 2rem; color: var(--cyan); min-height: 1.6em; }
+  .gq .in.ng { border-color: var(--red); color: var(--red); animation: shake .3s; }
+  .pad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-width: 360px; margin: 0 auto; }
+  .pad button { padding: 14px 0; border-radius: 14px; border: 1px solid var(--line); background: var(--card2); color: #fff; font-family: var(--mono); font-size: 1.4rem; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+  .pad button:active { background: rgba(0,229,255,.2); }
+  .count { position: fixed; inset: 0; z-index: 8000; display: grid; place-items: center; background: rgba(2,6,23,.7); font-family: var(--mono); font-size: 7rem; font-weight: 700; color: #fff; text-shadow: 0 0 30px var(--cyan); }
+  .result { text-align: center; }
+  .result .big { font-family: var(--mono); font-size: 3rem; color: #fff; font-weight: 700; }
+  .hist-l { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+</style>
+<main class="wrap">
+  <div class="page-title" style="--c:#a78bfa"><span class="ic"><i class="fa-solid fa-ghost"></i></span><h1><small>TIME ATTACK // ゴーストレース</small>ゴーストレース</h1><p>計算20問のタイムアタック。いっしょに走る「ゴースト」は、あなたのベスト記録です。くらべる相手は、前の自分だけ。きのうの自分をこえよう！</p></div>
+  <section class="panel" id="sel"><div class="h2" style="--c:#a78bfa"><i class="fa-solid fa-flag-checkered"></i>コースをえらぶ</div><div class="modes" id="modes"></div><p class="note" style="margin:12px 0 0">答えを入力すると、正解なら自動で次へ進みます。キーボードの数字キーも使えます。</p></section>
+  <section class="panel" id="race" hidden></section>
+</main>
+<script>
+(function () {
+  const { $, $$, esc, get, update, reward, rnd, toast, answered, checkTrophies, dec } = LAB;
+  const MODES = [
+    { id: 'add1', name: 'たし算', sub: '1けた＋1けた（1年）', gen: () => { const a = rnd(1, 9), b = rnd(1, 9); return [`${a}＋${b}`, a + b]; } },
+    { id: 'sub1', name: 'ひき算', sub: 'くり下がり（1年）', gen: () => { const b = rnd(2, 9), a = rnd(10, b + 9); return [`${a}−${b}`, a - b]; } },
+    { id: 'kuku', name: '九九', sub: 'かけ算九九（2年）', gen: () => { const a = rnd(2, 9), b = rnd(2, 9); return [`${a}×${b}`, a * b]; } },
+    { id: 'add2', name: '2けたのたし算', sub: '2けた＋2けた（2年）', gen: () => { const a = rnd(11, 69), b = rnd(11, 29); return [`${a}＋${b}`, a + b]; } },
+    { id: 'div', name: 'わり算', sub: '九九の逆（3年）', gen: () => { const b = rnd(2, 9), q = rnd(1, 9); return [`${b * q}÷${b}`, q]; } },
+    { id: 'dec', name: '小数のたし算', sub: '小数第一位（4年）', gen: () => { const a = rnd(1, 49), b = rnd(1, 49); return [`${a / 10}＋${b / 10}`, dec((a + b) / 10)]; } }
+  ];
+  const fmt = ms => (ms / 1000).toFixed(2) + '秒';
+  function sel() {
+    const g = get().ghost;
+    $('#modes').innerHTML = MODES.map(m => { const r = g[m.id]; return `<button type="button" class="mode" data-m="${m.id}"><b>${m.name}</b><small>${m.sub}</small><div class="best">${r && r.best ? `<i class="fa-solid fa-ghost"></i> ベスト ${fmt(r.best)}` : 'まだ記録なし'}</div></button>`; }).join('');
+    $$('#modes .mode').forEach(b => b.addEventListener('click', () => start(MODES.find(m => m.id === b.dataset.m))));
+  }
+  let st = null;
+  function start(mode) {
+    const g = get().ghost[mode.id] || {};
+    const qs = []; let last = '';
+    while (qs.length < 20) { const q = mode.gen(); if (q[0] !== last) { qs.push(q); last = q[0]; } }
+    st = { mode, qs, i: 0, input: '', t0: 0, splits: [], miss: 0, ghost: g.splits || null, best: g.best || 0, timer: 0 };
+    $('#sel').hidden = true; const r = $('#race'); r.hidden = false;
+    r.innerHTML = `<div class="hud"><span><i class="fa-solid fa-flag"></i> ${esc(mode.name)}　<span id="g-n">1</span>/20</span><span class="t" id="g-t">0.00</span><span class="diff" id="g-d">${st.ghost ? 'VS GHOST' : 'はじめての記録'}</span></div>
+      <div class="track"><div class="lane l1"></div><div class="lane l2"></div><div class="goal"></div><div class="runner me" id="r-me"><small>YOU</small><i class="fa-solid fa-person-running"></i></div><div class="runner gh" id="r-gh" ${st.ghost ? '' : 'hidden'}><small>GHOST</small><i class="fa-solid fa-ghost"></i></div></div>
+      <div class="gq"><div class="qq" id="g-q"></div><div class="in" id="g-in" aria-live="polite"></div></div>
+      <div class="pad" id="pad">${['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0', '⌫'].map(k => `<button type="button" data-k="${k}">${k}</button>`).join('')}</div>
+      <div class="btns" style="justify-content:center;margin-top:14px"><button class="btn ghost sm" type="button" id="g-quit">やめる</button></div>`;
+    $$('#pad button').forEach(b => b.addEventListener('click', () => key(b.dataset.k)));
+    $('#g-quit').addEventListener('click', quit);
+    $('#g-q').textContent = '…';
+    const c = document.createElement('div'); c.className = 'count'; document.body.appendChild(c);
+    let n = 3; c.textContent = n;
+    const iv = setInterval(() => { n--; if (n > 0) c.textContent = n; else { clearInterval(iv); c.textContent = 'GO!'; setTimeout(() => c.remove(), 350); st.t0 = performance.now(); show(); loop(); } }, 650);
+  }
+  function quit() { if (st) cancelAnimationFrame(st.timer); st = null; $('#race').hidden = true; $('#sel').hidden = false; sel(); }
+  function show() { $('#g-q').textContent = st.qs[st.i][0] + ' ＝'; $('#g-in').textContent = st.input; $('#g-n').textContent = Math.min(20, st.i + 1); }
+  function key(k) {
+    if (!st || !st.t0) return;
+    if (k === '⌫' || k === 'Backspace') st.input = st.input.slice(0, -1);
+    else if (/^[0-9.]$/.test(k) && st.input.length < 6) st.input += k;
+    else return;
+    const ans = String(st.qs[st.i][1]);
+    $('#g-in').textContent = st.input;
+    if (st.input === ans) {
+      st.splits.push(performance.now() - st.t0); st.i++; st.input = ''; answered(true);
+      if (st.i >= 20) return finish();
+      show();
+    } else if (st.input.length >= ans.length && !ans.startsWith(st.input)) {
+      st.miss++; answered(false); const el = $('#g-in'); el.classList.add('ng'); setTimeout(() => { el.classList.remove('ng'); if (st) { st.input = ''; el.textContent = ''; } }, 280);
+    }
+  }
+  addEventListener('keydown', e => { if (!st) return; if (/^[0-9.]$/.test(e.key) || e.key === 'Backspace') { e.preventDefault(); key(e.key); } });
+  function ghostPos(t) {
+    if (!st.ghost) return 0; const s = st.ghost; let k = 0; while (k < s.length && s[k] <= t) k++;
+    if (k >= s.length) return 20; const prev = k ? s[k - 1] : 0; return k + (t - prev) / (s[k] - prev);
+  }
+  function loop() {
+    if (!st) return;
+    const t = performance.now() - st.t0, W = $('.track').clientWidth - 48;
+    $('#g-t').textContent = (t / 1000).toFixed(2);
+    $('#r-me').style.left = (24 + W * st.i / 20) + 'px';
+    if (st.ghost) {
+      $('#r-gh').style.left = (24 + W * Math.min(20, ghostPos(t)) / 20) + 'px';
+      if (st.i > 0) { const d = st.splits[st.i - 1] - st.ghost[st.i - 1]; const el = $('#g-d'); el.textContent = (d <= 0 ? '−' : '＋') + Math.abs(d / 1000).toFixed(2) + '秒'; el.className = 'diff ' + (d <= 0 ? 'ahead' : 'behind'); }
+    }
+    st.timer = requestAnimationFrame(loop);
+  }
+  function finish() {
+    cancelAnimationFrame(st.timer);
+    const time = st.splits[19], m = st.mode, prev = st.best, win = prev && time < prev, first = !prev;
+    update(d => {
+      const g = d.ghost[m.id] || { runs: 0, hist: [] };
+      g.runs = (g.runs || 0) + 1; g.hist = [...(g.hist || []), Math.round(time)].slice(-8);
+      if (!g.best || time < g.best) { g.best = Math.round(time); g.splits = st.splits.map(Math.round); g.date = LAB.ymd(); }
+      d.ghost[m.id] = g; if (win) d.ghostWins = (d.ghostWins || 0) + 1;
+      if (m.id === 'kuku' && time <= 30000) d.ghostFast = true;
+    });
+    const g = get().ghost[m.id];
+    $('#race').innerHTML = `<div class="result"><p class="note" style="margin:0">${esc(m.name)}・20問</p><div class="big">${fmt(time)}</div>
+      <p style="font-weight:900;font-size:1.2rem;color:${win ? '#34d399' : first ? '#00e5ff' : '#f87171'}">${win ? `ゴーストに勝った！ ${((prev - time) / 1000).toFixed(2)}秒 速くなった！` : first ? 'はじめての記録！ 次はこの記録がゴーストになるよ。' : `ゴーストまで あと ${((time - prev) / 1000).toFixed(2)}秒！`}</p>
+      <p class="note">ミス ${st.miss} 回 ／ ベスト ${fmt(g.best)} ／ 挑戦 ${g.runs} 回</p>
+      <div class="hist-l">${(g.hist || []).map(h => `<span class="pill">${(h / 1000).toFixed(1)}s</span>`).join('')}</div>
+      <div class="btns" style="justify-content:center;margin-top:16px"><button class="btn" type="button" id="again"><i class="fa-solid fa-rotate-right"></i> もう一度</button><button class="btn ghost" type="button" id="back">コースをえらぶ</button></div></div>`;
+    const mode = st.mode; st = null;
+    $('#again').addEventListener('click', () => start(mode)); $('#back').addEventListener('click', quit);
+    if (win) reward({ coins: 200, exp: 10, reason: 'ゴーストに勝った！' }); else if (first) reward({ coins: 100, exp: 5, reason: 'はじめての記録' }); else reward({ coins: 30, exp: 2, reason: '完走ボーナス' });
+    checkTrophies();
+  }
+  sel();
+})();
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8da24e49b08544cead394c557a53b918"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

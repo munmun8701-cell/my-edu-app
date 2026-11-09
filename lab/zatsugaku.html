@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日の雑学カード｜むんラボ｜むん先生の学習クエスト</title>
+  <meta name="description" content="1日1枚とどく「知ってた？」の雑学カード。集めたカードは図鑑に。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/lab/zatsugaku.html">
+  <meta name="theme-color" content="#050914">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta property="og:title" content="今日の雑学カード｜むんラボ｜むん先生の学習クエスト">
+  <meta property="og:description" content="1日1枚とどく「知ってた？」の雑学カード。集めたカードは図鑑に。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./lab.css">
+  <script src="./lab-cards.js"></script>
+  <script src="./lab-data.js"></script>
+  <script src="./lab-avatar.js"></script>
+  <script src="./lab-core.js"></script>
+</head>
+<body>
+<script>LAB.header({ sub: "TRIVIA CARDS" });</script>
+<style>
+  .zt-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .zcard { position: relative; padding: 26px 24px; border-radius: 24px; background: linear-gradient(160deg, rgba(251,191,36,.16), rgba(10,15,30,.94)); border: 1px solid rgba(251,191,36,.5); box-shadow: 0 0 30px rgba(251,191,36,.12); animation: flip .7s both; }
+  @keyframes flip { from { transform: perspective(900px) rotateY(80deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  .zcard .no { font-family: var(--mono); color: var(--gold); letter-spacing: .2em; font-size: .72rem; font-weight: 700; }
+  .zcard .zi { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; font-size: 1.8rem; color: var(--gold); background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.4); margin: 10px 0; }
+  .zcard h2 { margin: 0 0 10px; color: #fff; font-size: 1.4rem; line-height: 1.4; }
+  .zcard p { margin: 0; font-size: 1.02rem; line-height: 1.9; }
+  .zcard .cat { position: absolute; right: 18px; top: 18px; }
+  .dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 6px; }
+  .dx { aspect-ratio: 3 / 4; border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 4px; border: 1px solid var(--line); background: var(--card2); color: var(--dim); font-family: var(--mono); font-size: .7rem; cursor: default; }
+  .dx.on { cursor: pointer; border-color: rgba(251,191,36,.5); color: #fff; }
+  .dx.on i { color: var(--gold); font-size: 1.2rem; display: block; margin-bottom: 4px; }
+  .dx.on:hover { box-shadow: 0 0 12px rgba(251,191,36,.35); }
+  @media (max-width: 820px) { .zt-main { grid-template-columns: 1fr; } }
+</style>
+<main class="wrap">
+  <div class="page-title" style="--c:#fbbf24"><span class="ic"><i class="fa-solid fa-lightbulb"></i></span><h1><small>TRIVIA CARDS // 知ってた？</small>今日の雑学カード</h1><p>1日1枚、「知ってた？」がとどきます。見たカードは図鑑に保存。問題に正解すると、もう1枚もらえるチャンスも（1日2回まで）。</p></div>
+  <div class="zt-main">
+    <div><div id="today"></div><div class="panel" style="margin-top:16px"><div class="h2" style="--c:#fbbf24"><i class="fa-solid fa-gift"></i>もう1枚チャレンジ<small id="bon-n"></small></div><div id="bonus"></div></div></div>
+    <section class="panel" style="margin:0"><div class="h2" style="--c:#fbbf24"><i class="fa-solid fa-book-open-reader"></i>雑学図鑑<small id="dex-n"></small></div><div class="seg" id="cats" style="--c:#fbbf24;margin-bottom:10px"></div><div class="dex" id="dex"></div></section>
+  </div>
+</main>
+<script>
+(function () {
+  const { $, $$, esc, get, update, reward, today, ymd, question, renderChoice, checkTrophies, toast } = LAB;
+  const Z = LAB_DATA.ZATSU, T = ymd(today());
+  const d = today(), dayNo = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  const todayZ = Z[((dayNo % Z.length) + Z.length) % Z.length];
+  let cat = 'all';
+  const card = z => `<div class="zcard"><span class="pill cat">${esc(z.cat)}</span><span class="no">TRIVIA No.${String(z.id).padStart(2, '0')}</span><div class="zi"><i class="fa-solid ${z.ic}"></i></div><h2>${esc(z.t)}</h2><p>${esc(z.d)}</p></div>`;
+  function addSeen(id) { let added = false; update(x => { const s = new Set(x.zatsu.seen || []); if (!s.has(id)) { s.add(id); added = true; } x.zatsu.seen = [...s]; }); return added; }
+  // 今日のカード
+  const firstToday = get().zatsu.day !== T;
+  const isNew = addSeen(todayZ.id);
+  if (firstToday) { update(x => { x.zatsu.day = T; x.zatsu.bonus = 0; }); reward({ coins: 50, exp: 2, reason: isNew ? '新しい雑学カード！' : '今日の雑学' }); }
+  $('#today').innerHTML = `<p class="note" style="margin:0 0 8px"><i class="fa-solid fa-calendar-day"></i> ${d.getMonth() + 1}月${d.getDate()}日のカード${isNew ? '　<span class="pill" style="color:#fbbf24">NEW!</span>' : ''}</p>` + card(todayZ);
+  function bonus() {
+    const used = get().zatsu.bonus || 0, left = 2 - used, seen = new Set(get().zatsu.seen || []);
+    $('#bon-n').textContent = `今日 あと${left}回`;
+    if (seen.size >= Z.length) { $('#bonus').innerHTML = '<div class="empty">図鑑コンプリート！ すべての雑学を集めました。</div>'; return; }
+    if (left <= 0) { $('#bonus').innerHTML = '<div class="empty">今日のチャンスはおわり。また明日！</div>'; return; }
+    $('#bonus').innerHTML = `<p class="note" style="margin-top:0">問題に正解すると、まだ持っていないカードを1枚もらえるよ。</p><div class="btns"><button class="btn gold" type="button" id="bgo"><i class="fa-solid fa-play"></i> 問題にチャレンジ</button></div>`;
+    $('#bgo').addEventListener('click', () => {
+      update(x => { x.zatsu.bonus = (x.zatsu.bonus || 0) + 1; });
+      renderChoice($('#bonus'), question('mix', { choice: true }), ok => {
+        setTimeout(() => {
+          if (ok) { const pool = Z.filter(z => !new Set(get().zatsu.seen || []).has(z.id)); const z = pool[Math.floor(Math.random() * pool.length)]; addSeen(z.id); toast(`雑学カード No.${z.id} をゲット！`, 'fa-lightbulb'); checkTrophies(); dex(); $('#bonus').innerHTML = card(z) + '<div class="btns" style="margin-top:10px"><button class="btn ghost sm" type="button" id="bnx">つぎへ</button></div>'; $('#bnx').addEventListener('click', bonus); }
+          else bonus();
+        }, 900);
+      });
+    });
+  }
+  function dex() {
+    const seen = new Set(get().zatsu.seen || []);
+    const cats = ['all', ...new Set(Z.map(z => z.cat))];
+    $('#cats').innerHTML = cats.map(c => `<button type="button" class="${c === cat ? 'on' : ''}" data-c="${c}">${c === 'all' ? 'ぜんぶ' : c}</button>`).join('');
+    $$('#cats button').forEach(b => b.addEventListener('click', () => { cat = b.dataset.c; dex(); }));
+    $('#dex-n').textContent = `${seen.size} / ${Z.length}`;
+    $('#dex').innerHTML = Z.filter(z => cat === 'all' || z.cat === cat).map(z => seen.has(z.id) ? `<button type="button" class="dx on" data-id="${z.id}" title="${esc(z.t)}"><span><i class="fa-solid ${z.ic}"></i>No.${z.id}</span></button>` : `<div class="dx">No.${z.id}<br>？</div>`).join('');
+    $$('#dex .dx.on').forEach(b => b.addEventListener('click', () => {
+      const z = Z.find(x => x.id === +b.dataset.id);
+      const m = document.createElement('div'); m.className = 'lab-modal'; m.innerHTML = `<div class="box" style="background:transparent;border:0;box-shadow:none;padding:0">${card(z)}<div class="btns" style="justify-content:center;margin-top:12px"><button class="btn ghost" type="button" data-x>とじる</button></div></div>`;
+      document.body.appendChild(m); m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-x]')) m.remove(); });
+    }));
+  }
+  bonus(); dex(); checkTrophies();
+})();
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8da24e49b08544cead394c557a53b918"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

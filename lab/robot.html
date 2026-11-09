@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ロボットプログラミング｜むんラボ｜むん先生の学習クエスト</title>
+  <meta name="description" content="命令ブロックを組み合わせてロボットをゴールへ。小学校のプログラミング学習に。">
+  <link rel="canonical" href="https://www.munmungstudymax.com/lab/robot.html">
+  <meta name="theme-color" content="#050914">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta property="og:title" content="ロボットプログラミング｜むんラボ｜むん先生の学習クエスト">
+  <meta property="og:description" content="命令ブロックを組み合わせてロボットをゴールへ。小学校のプログラミング学習に。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./lab.css">
+  <script src="./lab-cards.js"></script>
+  <script src="./lab-data.js"></script>
+  <script src="./lab-avatar.js"></script>
+  <script src="./lab-core.js"></script>
+  <script src="./robot-levels.js"></script>
+</head>
+<body>
+<script>LAB.header({ sub: "CODING PUZZLE" });</script>
+<style>
+  .lvls { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; margin-bottom: 16px; }
+  .lv { padding: 8px 4px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); color: #fff; font-family: var(--mono); font-weight: 700; cursor: pointer; text-align: center; font-size: .95rem; }
+  .lv small { display: block; color: var(--gold); font-size: .62rem; letter-spacing: .05em; min-height: 1em; }
+  .lv.on { border-color: #38bdf8; box-shadow: 0 0 12px rgba(56,189,248,.4); }
+  .lv:disabled { opacity: .35; cursor: not-allowed; }
+  .rb-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .board { display: grid; gap: 4px; padding: 10px; border-radius: 18px; background: #030712; border: 1px solid rgba(56,189,248,.35); width: fit-content; max-width: 100%; margin: 0 auto; }
+  .cell { width: var(--cs); height: var(--cs); border-radius: 8px; display: grid; place-items: center; background: rgba(56,189,248,.13); border: 1px solid rgba(56,189,248,.32); font-size: calc(var(--cs) * .45); position: relative; }
+  .cell.wall { background: repeating-linear-gradient(135deg, #0b1120 0 5px, #1e293b 5px 10px); border-color: #0b1120; opacity: .9; }
+  .cell .gem { color: #f472b6; filter: drop-shadow(0 0 6px #f472b6); }
+  .cell .goal { color: #34d399; filter: drop-shadow(0 0 6px #34d399); }
+  .cell.trail { background: rgba(56,189,248,.3); border-color: rgba(56,189,248,.6); }
+  .bot { position: absolute; inset: 0; display: grid; place-items: center; color: #e0f2fe; filter: drop-shadow(0 0 8px #38bdf8); z-index: 2; }
+  .bot i { transition: transform .25s ease; }
+  .bot.crash { color: #f87171; animation: shake .4s; }
+  .pal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .cmd { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--card2); color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
+  .cmd:hover { border-color: #38bdf8; }
+  .cmd.f i { color: #38bdf8; } .cmd.r i { color: #fbbf24; } .cmd.l i { color: #a78bfa; } .cmd.loop i { color: #34d399; }
+  .loopn { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .loopn button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--soft); color: #fff; font-weight: 900; cursor: pointer; }
+  .loopn b { min-width: 2.2em; text-align: center; color: #34d399; font-family: var(--mono); font-size: 1.1rem; }
+  .prog { min-height: 120px; padding: 10px; border-radius: 16px; background: #020617; border: 1px dashed rgba(56,189,248,.35); display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+  .blk { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 10px; font-weight: 900; font-size: .82rem; color: #04121a; cursor: pointer; }
+  .blk.f { background: #38bdf8; } .blk.r { background: #fbbf24; } .blk.l { background: #c4b5fd; }
+  .blk.run { outline: 3px solid #fff; box-shadow: 0 0 12px #fff; }
+  .loopblk { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 12px; border: 2px solid #34d399; background: rgba(52,211,153,.1); }
+  .loopblk.edit { box-shadow: 0 0 0 2px rgba(52,211,153,.4); }
+  .loopblk > .lh { color: #34d399; font-weight: 900; font-size: .78rem; cursor: pointer; }
+  .meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 8px 0; font-size: .84rem; font-weight: 800; }
+  .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 10px; font-size: .76rem; font-weight: 800; color: var(--dim); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .sw-wall { display: inline-block; width: 14px; height: 14px; border-radius: 4px; background: repeating-linear-gradient(135deg, #0b1120 0 3px, #1e293b 3px 6px); border: 1px solid #334155; }
+  @media (max-width: 860px) { .rb-main { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<main class="wrap">
+  <div class="page-title" style="--c:#38bdf8"><span class="ic"><i class="fa-solid fa-robot"></i></span><h1><small>CODING PUZZLE // プログラミング</small>ロボットプログラミング</h1><p>命令ブロックをならべて、ロボットをゴールのはたまで動かそう。宝石はぜんぶ拾ってから！ 少ないブロックでクリアすると★3つ。「くりかえし」を使いこなそう。</p></div>
+  <div class="lvls" id="lvls"></div>
+  <div class="rb-main">
+    <section class="panel" style="margin:0"><div class="h2" style="--c:#38bdf8"><i class="fa-solid fa-map"></i><span id="lv-name"></span><small id="lv-par"></small></div><div id="board"></div><div class="legend"><span><i class="fa-solid fa-circle-up" style="color:#e0f2fe"></i> ロボット（矢印の向きに進む）</span><span><i class="fa-solid fa-gem" style="color:#f472b6"></i> 宝石</span><span><i class="fa-solid fa-flag-checkered" style="color:#34d399"></i> ゴール</span><span><i class="sw-wall"></i> かべ</span></div><p class="note" id="lv-hint" style="margin:10px 0 0"></p></section>
+    <section class="panel" style="margin:0">
+      <div class="h2" style="--c:#38bdf8"><i class="fa-solid fa-code"></i>プログラム<small id="blk-n"></small></div>
+      <div class="prog" id="prog" aria-live="polite"></div>
+      <p class="note" style="margin:6px 0 10px">ブロックをおすと消せます。「くりかえし」の中に入れているときは、緑のわくが光ります。</p>
+      <div class="pal">
+        <button class="cmd f" type="button" data-c="F"><i class="fa-solid fa-arrow-up"></i> 前へ</button>
+        <button class="cmd r" type="button" data-c="R"><i class="fa-solid fa-rotate-right"></i> 右を向く</button>
+        <button class="cmd l" type="button" data-c="L"><i class="fa-solid fa-rotate-left"></i> 左を向く</button>
+        <div class="loopn"><button type="button" id="ln-m" aria-label="回数をへらす">−</button><b id="ln">2回</b><button type="button" id="ln-p" aria-label="回数をふやす">＋</button></div>
+        <button class="cmd loop" type="button" id="loop"><i class="fa-solid fa-repeat"></i> くりかえし</button>
+        <button class="cmd" type="button" id="close-loop" disabled><i class="fa-solid fa-right-from-bracket"></i> くりかえしを出る</button>
+      </div>
+      <div class="btns" style="margin-top:12px"><button class="btn" type="button" id="run"><i class="fa-solid fa-play"></i> 実行</button><button class="btn ghost" type="button" id="reset"><i class="fa-solid fa-rotate"></i> もどす</button><button class="btn ghost" type="button" id="clear"><i class="fa-solid fa-trash"></i> 全部けす</button></div>
+      <div class="feedback" id="rb-fb"></div>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  const { $, $$, esc, get, update, reward, toast, checkTrophies } = LAB;
+  const L = window.ROBOT_LEVELS;
+  update(d => { d.robotTotal = L.length; });
+  let li = 0, prog = [], editLoop = null, loopN = 2, running = false, timer = null;
+  const DIR = { '^': 0, '>': 1, 'v': 2, '<': 3 };
+  const stars = () => get().robot;
+  const unlocked = i => i === 0 || (stars()[i - 1] || 0) > 0 || (stars()[i] || 0) > 0;
+  { const s = stars(); for (let i = 0; i < L.length; i++) { if (!(s[i] > 0)) { li = i; break; } li = i; } }
+  function lvls() {
+    const s = stars();
+    $('#lvls').innerHTML = L.map((l, i) => `<button type="button" class="lv ${i === li ? 'on' : ''}" data-i="${i}" ${unlocked(i) ? '' : 'disabled'}>${i + 1}<small>${s[i] ? '★'.repeat(s[i]) : ''}</small></button>`).join('');
+    $$('#lvls .lv').forEach(b => b.addEventListener('click', () => { li = +b.dataset.i; prog = []; editLoop = null; lvls(); load(); }));
+  }
+  let st = null;
+  function initState() {
+    const lv = L[li], g = lv.map.map(r => [...r]); let x = 0, y = 0, d = 1, gems = 0;
+    g.forEach((r, yy) => r.forEach((c, xx) => { if (c in DIR) { x = xx; y = yy; d = DIR[c]; g[yy][xx] = '.'; } if (c === '*') gems++; }));
+    st = { g, x, y, d, gems, got: 0, trail: new Set([`${x},${y}`]) };
+  }
+  function board(crash) {
+    const lv = L[li], W = lv.map[0].length, H = lv.map.length;
+    const avail = ($('#board').clientWidth || 320) - 22; // 盤面のわく（すき間・内側の余白）をのぞいた幅
+    const cs = Math.max(24, Math.min(62, Math.floor((avail - 4 * (W - 1)) / W)));
+    $('#board').innerHTML = `<div class="board" style="--cs:${cs}px;grid-template-columns:repeat(${W},var(--cs))">${st.g.map((r, y) => r.map((c, x) => `<div class="cell ${c === '#' ? 'wall' : ''} ${st.trail.has(`${x},${y}`) ? 'trail' : ''}">${c === '*' ? '<i class="fa-solid fa-gem gem"></i>' : c === 'G' ? '<i class="fa-solid fa-flag-checkered goal"></i>' : ''}${st.x === x && st.y === y ? `<span class="bot ${crash ? 'crash' : ''}"><i class="fa-solid fa-circle-up" style="transform:rotate(${st.d * 90}deg)"></i></span>` : ''}</div>`).join('')).join('')}</div>`;
+  }
+  function load() {
+    const lv = L[li]; initState(); board();
+    $('#lv-name').textContent = `ステージ${li + 1}：${lv.name}`; $('#lv-par').textContent = `★3 は ${lv.par} ブロック以内`;
+    $('#lv-hint').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#fbbf24"></i> ${esc(lv.hint)}`;
+    $('#rb-fb').textContent = ''; $('#rb-fb').className = 'feedback'; renderProg();
+  }
+  const count = () => prog.reduce((a, c) => a + (c.t === 'loop' ? 1 + c.body.length : 1), 0);
+  const NAME = { F: '前へ', R: '右', L: '左' }, CL = { F: 'f', R: 'r', L: 'l' };
+  function renderProg(active) {
+    let k = 0;
+    const blk = (c, path) => { const idx = k++; return `<span class="blk ${CL[c.t]} ${active === idx ? 'run' : ''}" data-p="${path}">${NAME[c.t]}</span>`; };
+    $('#prog').innerHTML = prog.length ? prog.map((c, i) => c.t === 'loop' ? `<span class="loopblk ${editLoop === c ? 'edit' : ''}"><span class="lh" data-p="${i}" title="おすと消える">${c.n}回くりかえし：</span>${c.body.map((b, j) => blk(b, `${i}.${j}`)).join('') || '<span class="note">（ここに入る）</span>'}</span>` : blk(c, `${i}`)).join('') : '<span class="note">下のボタンで命令を入れよう</span>';
+    $('#blk-n').textContent = `${count()} ブロック`;
+    $('#close-loop').disabled = !editLoop;
+    if (!running) $$('#prog [data-p]').forEach(b => b.addEventListener('click', () => { const [i, j] = b.dataset.p.split('.').map(Number); if (j == null) { if (prog[i] === editLoop) editLoop = null; prog.splice(i, 1); } else prog[i].body.splice(j, 1); renderProg(); }));
+  }
+  function add(t) { if (running) return; if (count() >= 40) return toast('ブロックは40こまでです', 'fa-circle-info'); (editLoop ? editLoop.body : prog).push({ t }); renderProg(); }
+  $$('.cmd[data-c]').forEach(b => b.addEventListener('click', () => add(b.dataset.c)));
+  $('#ln-m').addEventListener('click', () => { loopN = Math.max(2, loopN - 1); $('#ln').textContent = loopN + '回'; if (editLoop) { editLoop.n = loopN; renderProg(); } });
+  $('#ln-p').addEventListener('click', () => { loopN = Math.min(9, loopN + 1); $('#ln').textContent = loopN + '回'; if (editLoop) { editLoop.n = loopN; renderProg(); } });
+  $('#loop').addEventListener('click', () => { if (running) return; if (editLoop) return toast('くりかえしの中に、くりかえしは入れられません', 'fa-circle-info'); const l = { t: 'loop', n: loopN, body: [] }; prog.push(l); editLoop = l; renderProg(); });
+  $('#close-loop').addEventListener('click', () => { editLoop = null; renderProg(); });
+  $('#clear').addEventListener('click', () => { if (running) return; prog = []; editLoop = null; load(); });
+  $('#reset').addEventListener('click', () => { clearTimeout(timer); running = false; initState(); board(); renderProg(); $('#rb-fb').textContent = ''; });
+  addEventListener('keydown', e => { if (e.target.closest('input,textarea')) return; const k = { ArrowUp: 'F', ArrowRight: 'R', ArrowLeft: 'L' }[e.key]; if (k) { e.preventDefault(); add(k); } });
+  $('#run').addEventListener('click', () => {
+    if (running || !prog.length) return;
+    editLoop = null; initState(); board(); running = true; $('#rb-fb').textContent = '';
+    const flat = []; let k = 0; prog.forEach(c => { if (c.t === 'loop') { const base = k; for (let n = 0; n < c.n; n++) c.body.forEach((b, j) => flat.push({ t: b.t, k: base + j })); k += c.body.length; } else flat.push({ t: c.t, k: k++ }); });
+    let i = 0;
+    const step = () => {
+      if (i >= flat.length) { running = false; renderProg(); return fb('ng', st.got < st.gems ? `宝石があと ${st.gems - st.got} こ のこっているよ` : 'ゴールまで、あと少し！'); }
+      const c = flat[i++]; renderProg(c.k);
+      if (c.t === 'R') st.d = (st.d + 1) % 4; else if (c.t === 'L') st.d = (st.d + 3) % 4;
+      else {
+        const nx = st.x + [0, 1, 0, -1][st.d], ny = st.y + [-1, 0, 1, 0][st.d];
+        if (ny < 0 || ny >= st.g.length || nx < 0 || nx >= st.g[ny].length || st.g[ny][nx] === '#') { board(true); running = false; renderProg(); return fb('ng', 'ガシャン！ かべにぶつかった。プログラムを直そう。'); }
+        st.x = nx; st.y = ny; st.trail.add(`${nx},${ny}`);
+        if (st.g[ny][nx] === '*') { st.g[ny][nx] = '.'; st.got++; }
+        if (st.g[ny][nx] === 'G' && st.got === st.gems) { board(); running = false; renderProg(); return win(); }
+      }
+      board(); timer = setTimeout(step, 330);
+    };
+    step();
+  });
+  function fb(cls, msg) { const el = $('#rb-fb'); el.className = 'feedback ' + cls; el.textContent = msg; }
+  function win() {
+    const lv = L[li], n = count(), s = n <= lv.par ? 3 : n <= lv.par + 2 ? 2 : 1, prev = stars()[li] || 0;
+    update(d => { d.robot[li] = Math.max(d.robot[li] || 0, s); });
+    fb('ok', `ゴール！ ${'★'.repeat(s)}${'☆'.repeat(3 - s)}（${n}ブロック）${s < 3 ? `　${lv.par}ブロック以内なら★3！` : ''}`);
+    if (!prev) reward({ coins: 150 + li * 20, exp: 8, reason: `ステージ${li + 1} クリア！` }); else if (s > prev) reward({ coins: 100, exp: 3, reason: '★がふえた！' });
+    checkTrophies(); lvls();
+    if (li < L.length - 1) $('#rb-fb').insertAdjacentHTML('beforeend', ` <button class="btn sm" type="button" id="nx">次のステージへ</button>`);
+    const nx = $('#nx'); if (nx) nx.addEventListener('click', () => { li++; prog = []; lvls(); load(); });
+  }
+  addEventListener('resize', () => { if (!running && st) board(); });
+  lvls(); load();
+})();
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8da24e49b08544cead394c557a53b918"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

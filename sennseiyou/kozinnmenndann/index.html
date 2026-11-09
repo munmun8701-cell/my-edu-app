@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>個人面談 希望日時 集計ダッシュボード</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Hiragino Sans","Yu Gothic UI","Meiryo","Noto Sans JP",sans-serif;background:#f5f7fb;color:#1f2937;font-size:14px}
+header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+h1{font-size:16px;margin:0 8px 0 0}
+main{max-width:1200px;margin:0 auto;padding:16px 20px 48px}
+.btn{display:inline-block;background:#2563eb;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
+.btn.ghost{background:#fff;color:#2563eb;border:1px solid #2563eb}
+.mut{color:#6b7280;font-size:12px}
+.chk{font-size:13px;display:flex;gap:6px;align-items:center}
+.drop{border:2px dashed #93c5fd;border-radius:14px;background:#fff;padding:64px 20px;text-align:center;cursor:pointer}
+.drop.over{background:#eff6ff;border-color:#2563eb}
+.drop b{font-size:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 14px}
+.tabs button{border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:7px 14px;cursor:pointer;font-size:13px}
+.tabs button.on{background:#1f2937;color:#fff;border-color:#1f2937}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.card{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.card .k{font-size:12px;color:#6b7280}
+.card .v{font-size:26px;font-weight:700}
+.card .s{font-size:11px;color:#9ca3af}
+h2{font-size:15px;margin:18px 0 8px}
+h3{font-size:14px;margin:14px 0 6px}
+.scroll{overflow:auto;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid #eef0f3;padding:7px 9px;text-align:center;white-space:nowrap;font-size:13px}
+th{background:#f9fafb;font-weight:600}
+.grid th:first-child{text-align:left}
+td.nm,td.cm{text-align:left;white-space:normal}
+td.cm{min-width:220px;font-size:12px}
+.hm{cursor:pointer;font-weight:600;min-width:72px}
+.hm:hover{outline:2px solid #2563eb;outline-offset:-2px}
+.hm.sel{outline:3px solid #1f2937;outline-offset:-3px}
+.all{background:#dcfce7;color:#166534;font-weight:700}
+.none{background:#fee2e2;color:#991b1b}
+.partial{background:#fef3c7;color:#92400e;font-weight:600}
+.conflict{background:#ede9fe;color:#5b21b6;font-weight:700}
+.unknown{background:#f3f4f6;color:#6b7280}
+.flag{display:inline-block;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px;font-size:11px;margin:1px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.filters select,.filters input{padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
+.cbox{background:#fff;border-radius:12px;padding:14px 16px;margin-top:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.cand{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:#eff6ff;color:#1e40af;border-radius:999px;padding:4px 10px;font-size:12px}
+.chip.all2{background:#dcfce7;color:#166534}
+.cmi{background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.tag{display:inline-block;background:#f3f4f6;border-radius:6px;padding:0 6px;font-size:11px;margin-right:6px}
+.bar{display:grid;grid-template-columns:140px 1fr 56px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.bar i{display:block;height:14px;background:#2563eb;border-radius:6px}
+.ck li{margin:5px 0}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;font-size:12px;color:#92400e;margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>個人面談 希望日時 集計</h1>
+  <label class="btn">ファイルを選ぶ<input type="file" id="file" accept=".xlsx,.xls,.csv" hidden></label>
+  <span id="fname" class="mut"></span>
+  <label class="chk"><input type="checkbox" id="dedupe" checked> 同じ児童の重複回答は最新の1件だけ使う</label>
+  <button class="btn ghost" id="reset" hidden>別のファイルを読む</button>
+</header>
+<main>
+  <div id="drop" class="drop">
+    <b>アンケートのExcel（.xlsx）またはCSVをここにドロップ</b>
+    <p class="mut">またはクリックしてファイルを選んでください。データはこのブラウザの中だけで処理され、外部には送信されません。</p>
+  </div>
+
+  <div id="app" hidden>
+    <nav class="tabs">
+      <button data-tab="ov" class="on">概要</button>
+      <button data-tab="slot">日時別・候補の児童</button>
+      <button data-tab="list">児童一覧</button>
+      <button data-tab="cm">コメント</button>
+      <button data-tab="chk">要確認 <span id="chkN"></span></button>
+    </nav>
+
+    <section id="ov"></section>
+
+    <section id="slot" hidden></section>
+
+    <section id="list" hidden>
+      <div class="filters">
+        <select id="fCls"></select>
+        <input id="fQ" placeholder="名前または番号で検索">
+        <label class="chk"><input type="checkbox" id="fC"> コメントありのみ</label>
+        <label class="chk"><input type="checkbox" id="fK"> 要確認のみ</label>
+        <span id="lcount" class="mut"></span>
+        <button class="btn ghost" id="csv">表示中の一覧をCSVで保存</button>
+      </div>
+      <div class="scroll"><table id="ltab"></table></div>
+    </section>
+
+    <section id="cm" hidden>
+      <div class="filters"><select id="cmDay"></select></div>
+      <div id="cmList"></div>
+    </section>
+
+    <section id="chk" hidden></section>
+  </div>
+</main>
+
+<script>
+/*CORE-START*/
+const SYM={all:'◎',none:'×',partial:'△',conflict:'⚠',unknown:'？'};
+const LBL={all:'全時間帯OK',none:'都合がつかない',partial:'一部の時間帯',conflict:'回答が矛盾',unknown:'未回答'};
+const nz=v=>(v==null?'':String(v)).normalize('NFKC').replace(/\s+/g,' ').trim();
+const nName=v=>nz(v).replace(/\s/g,'');
+const p2=n=>String(n).padStart(2,'0');
+const DAYRE=/(\d{1,2})\/(\d{1,2})\s*\(([^)]*)\)/;
+
+// 見出しから列の位置を判定（日付の列は見出しの「12／14（月）」などから読む）
+function mapHeaders(hdr){
+  const M={cls:-1,num:-1,name:-1,period:-1,done:-1,other:-1};
+  const byDay={};
+  hdr.forEach((h,i)=>{
+    const t=nz(h);
+    if(M.cls<0 && /学年|学級/.test(t)) M.cls=i;
+    else if(M.num<0 && /出席番号/.test(t)) M.num=i;
+    else if(M.name<0 && /児童名|氏名/.test(t)) M.name=i;
+    else if(M.period<0 && /面談期間/.test(t)) M.period=i;
+    else if(M.done<0 && /完了時刻/.test(t)) M.done=i;
+    else if(M.other<0 && /その他/.test(t) && /連絡/.test(t)) M.other=i;
+    else{
+      const d=t.match(DAYRE); if(!d) return;
+      const label=`${+d[1]}/${+d[2]}(${d[3]})`;
+      const o=(byDay[label] ??= {label,col:-1,comment:-1});
+      if(/都合/.test(t)) o.col=i; else if(/連絡/.test(t)) o.comment=i;
+    }
+  });
+  M.days=Object.values(byDay).filter(d=>d.col>=0);
+  return M;
+}
+
+// 1日分の回答セルを読む
+function parseCell(v){
+  const t=nz(v);
+  if(!t) return {state:'blank',slots:[],raw:''};
+  let all=false,none=false;
+  const slots=new Set();
+  for(const p of t.split(/[;；]/).map(s=>s.trim()).filter(Boolean)){
+    if(/都合がつきません/.test(p)) none=true;
+    else if(/すべての時間帯/.test(p)) all=true;
+    else for(const x of p.matchAll(/(\d{1,2}):(\d{2})\s*[~〜-]\s*(\d{1,2}):(\d{2})/g))
+      slots.add(`${p2(+x[1])}:${x[2]}-${p2(+x[3])}:${x[4]}`);
+  }
+  let state;
+  if((all||slots.size)&&none) state='conflict';
+  else if(none) state='none';
+  else if(all) state='all';
+  else if(slots.size) state='partial';
+  else state='unknown';
+  return {state,slots:[...slots],raw:t};
+}
+
+function build(rows){
+  const M=mapHeaders(rows[0]||[]);
+  const days=M.days.map(d=>d.label);
+  const list=[];
+  rows.slice(1).forEach((r,i)=>{
+    if(!r||r.every(c=>c==null||String(c).trim()==='')) return;
+    const free=nz(r[M.period]).includes('すべての曜日');
+    const st={};
+    M.days.forEach(d=>{
+      const c=parseCell(r[d.col]);
+      if(c.state==='blank') c.state=free?'all':'unknown';
+      st[d.label]=c;
+    });
+    const comments=[];
+    M.days.forEach(d=>{ if(d.comment>=0){const t=nz(r[d.comment]); if(t) comments.push({day:d.label,text:t});} });
+    if(M.other>=0){const t=nz(r[M.other]); if(t) comments.push({day:'その他',text:t});}
+    let sub=M.done>=0?r[M.done]:null;
+    if(sub!=null&&sub!==''&&!(sub instanceof Date)) sub=new Date(sub);
+    if(!(sub instanceof Date)||isNaN(sub)) sub=null;
+    list.push({row:i+2,cls:nz(r[M.cls]),num:nz(r[M.num]),name:nz(r[M.name]),sub,free,days:st,comments});
+  });
+
+  // 時間帯の一覧を集める。「すべての時間帯」の回答はこの一覧すべてに当てはめる
+  const ss=new Set();
+  list.forEach(r=>days.forEach(dl=>r.days[dl].slots.forEach(x=>ss.add(x))));
+  const slots=[...ss].sort();
+  list.forEach(r=>days.forEach(dl=>{ if(r.days[dl].state==='all') r.days[dl].slots=slots.slice(); }));
+
+  // 同じ 学級|番号|名前 の重複は新しい回答を採用
+  const T=r=>r.sub?r.sub.getTime():0;
+  const later=(a,b)=>T(a)>T(b)||(T(a)===T(b)&&a.row>b.row);
+  const map=new Map(),dups=[];
+  list.forEach(r=>{
+    r.key=`${r.cls}|${r.num}|${nName(r.name)}`;
+    const p=map.get(r.key);
+    if(!p){map.set(r.key,r);return;}
+    const keep=later(r,p)?r:p, drop=keep===r?p:r;
+    dups.push({keep,drop}); map.set(r.key,keep);
+  });
+  const cmp=(a,b)=>a.cls.localeCompare(b.cls,'ja',{numeric:true})||a.num.localeCompare(b.num,'ja',{numeric:true})||a.name.localeCompare(b.name,'ja');
+  list.sort(cmp);
+  const active=[...map.values()].sort(cmp);
+
+  // 同じ学級・番号なのに名前が違う（出席番号の入力ミスの可能性）
+  const g=new Map();
+  active.forEach(r=>{ if(!r.num) return; const k=`${r.cls}|${r.num}`; if(!g.has(k)) g.set(k,[]); g.get(k).push(r); });
+  const clashes=[...g.values()].filter(a=>new Set(a.map(x=>nName(x.name))).size>1);
+
+  return {days,slots,list,active,dups,clashes};
+}
+
+function flagsOf(r,days){
+  const f=[];
+  const sts=days.map(d=>r.days[d].state);
+  if(sts.includes('conflict')) f.push('回答矛盾');
+  if(sts.includes('unknown')) f.push('未回答');
+  if(days.length&&sts.every(s=>s==='none')) f.push('全日程NG');
+  return f;
+}
+
+// その日（slot省略時はいずれかの時間帯）に都合がつくか
+function avail(r,day,slot){
+  const s=r.days[day]; if(!s) return false;
+  if(s.state==='all') return true;
+  if(s.state==='partial') return slot?s.slots.includes(slot):true;
+  return false;
+}
+/*CORE-END*/
+
+/*UI*/
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const slotName=k=>k.replace('-','〜');
+const shortSlot=k=>{const[a,b]=k.split('-');return `${+a.slice(0,2)}〜${+b.slice(0,2)}時`;};
+const heat=(n,N)=>`background:rgba(22,163,74,${(0.06+0.6*(N?n/N:0)).toFixed(2)})`;
+let D=null;
+const S={dedupe:true,cls:'',q:'',onlyC:false,onlyK:false,cmDay:'',cand:null};
+const pool=()=>S.dedupe?D.active:D.list;
+
+function cellHTML(r,d){
+  const s=r.days[d]; if(!s) return '<td>—</td>';
+  if(s.state==='partial') return `<td class="partial" title="${esc(s.raw)}">${s.slots.map(shortSlot).join('・')}</td>`;
+  return `<td class="${s.state}" title="${esc(LBL[s.state]+'：'+s.raw)}">${SYM[s.state]}</td>`;
+}
+
+function renderOverview(){
+  const P=pool(),N=P.length,days=D.days,sl=D.slots;
+  const allOK=P.filter(r=>days.every(d=>r.days[d].state==='all')).length;
+  const flagged=P.filter(r=>flagsOf(r,days).length).length;
+  const cards=[
+    ['回答件数',D.list.length,'シートの行数'],
+    ['対象の児童',N,S.dedupe?'重複を除いた人数':'重複を含む人数'],
+    ['重複回答',D.dups.length,'同じ児童の二重回答'],
+    ['全日程OK',allOK,'すべての日程で都合がつく'],
+    ['要確認',flagged,'矛盾・未回答・全日程NG'],
+  ];
+  const combos=[];
+  days.forEach(d=>sl.forEach(k=>combos.push({d,k,n:P.filter(r=>avail(r,d,k)).length})));
+  combos.sort((a,b)=>b.n-a.n);
+  const top=combos[0]?.n||1;
+  let h=`<div class="cards">${cards.map(c=>`<div class="card"><div class="k">${c[0]}</div><div class="v">${c[1]}</div><div class="s">${esc(c[2])}</div></div>`).join('')}</div>`;
+  h+=`<h2>都合がつく人数が多い日時（上位）</h2><div class="scroll" style="padding:12px 14px">`;
+  h+=combos.map(c=>`<div class="bar"><span>${esc(c.d)} ${slotName(c.k)}</span><i style="width:${Math.round(c.n/top*100)}%"></i><b>${c.n}名</b></div>`).join('');
+  h+=`</div>`;
+  h+=`<div class="note">「都合がつく」には、その時間帯が含まれる回答（「すべての時間帯」を含む）を数えています。候補の児童の一覧は「日時別・候補の児童」タブで見られます。</div>`;
+  $('ov').innerHTML=h;
+}
+
+function gridHTML(){
+  const P=pool(),N=P.length,sl=D.slots;
+  const rowsH=D.days.map(d=>{
+    const cell=k=>{const n=P.filter(r=>avail(r,d,k)).length;return `<td class="hm" data-d="${esc(d)}" data-s="${k??''}" style="${heat(n,N)}">${n}</td>`;};
+    const none=P.filter(r=>r.days[d].state==='none').length;
+    return `<tr><th>${esc(d)}</th>${sl.map(cell).join('')}${cell(null)}<td>${none}</td></tr>`;
+  }).join('');
+  return `<div class="scroll" style="padding:0"><table class="grid"><tr><th>日程</th>${sl.map(k=>`<th>${slotName(k)}</th>`).join('')}<th>いずれか可</th><th>都合がつかない</th></tr>${rowsH}</table></div><p class="mut">数字をクリックすると、その日時に都合がつく児童が下に表示されます（対象 ${N} 名）。</p>`;
+}
+
+function candHTML(){
+  const c=S.cand;
+  if(!c) return '<p class="mut">表の数字をクリックしてください。</p>';
+  const P=pool().filter(r=>avail(r,c.d,c.s));
+  const title=`${c.d}　${c.s?slotName(c.s):'いずれかの時間帯'}`;
+  if(!P.length) return `<h3>${esc(title)}</h3><p class="mut">該当する児童はいません。</p>`;
+  return `<h3>${esc(title)} に都合がつく児童（${P.length} 名）</h3><div class="cand">`+
+    P.map(r=>`<span class="chip ${r.days[c.d].state==='all'?'all2':''}">${esc(r.cls)} ${esc(r.num)}番 ${esc(r.name)}　<small>${r.days[c.d].state==='all'?'全時間':'一部'}</small></span>`).join('')+'</div>';
+}
+
+function renderSlots(){
+  $('slot').innerHTML=gridHTML()+`<div id="candBox" class="cbox">${candHTML()}</div>`;
+}
+
+function listRows(){
+  const q=nName(S.q), qn=S.q.trim();
+  return pool().filter(r=>(!S.cls||r.cls===S.cls)
+    &&(!q||nName(r.name).includes(q)||(qn&&r.num===qn))
+    &&(!S.onlyC||r.comments.length)
+    &&(!S.onlyK||flagsOf(r,D.days).length));
+}
+
+function renderList(){
+  const P=listRows();
+  $('ltab').innerHTML=`<thead><tr><th>学級</th><th>番号</th><th>児童名</th><th>期間の回答</th>${D.days.map(d=>`<th>${esc(d)}</th>`).join('')}<th>確認</th><th>コメント</th></tr></thead><tbody>`+
+    P.map(r=>`<tr><td>${esc(r.cls)}</td><td>${esc(r.num)}</td><td class="nm">${esc(r.name)}</td><td>${r.free?'すべて可':'条件あり'}</td>${D.days.map(d=>cellHTML(r,d)).join('')}<td>${flagsOf(r,D.days).map(f=>`<span class="flag">${f}</span>`).join('')}</td><td class="cm">${r.comments.map(c=>`<div><b>${esc(c.day)}</b> ${esc(c.text)}</div>`).join('')}</td></tr>`).join('')+'</tbody>';
+  $('lcount').textContent=`${P.length} 名を表示`;
+}
+
+function renderComments(){
+  const days=[...D.days,'その他'];
+  $('cmDay').innerHTML='<option value="">すべての日程</option>'+days.map(d=>`<option value="${esc(d)}" ${S.cmDay===d?'selected':''}>${esc(d)}</option>`).join('');
+  const items=[];
+  pool().forEach(r=>r.comments.forEach(c=>{ if(!S.cmDay||c.day===S.cmDay) items.push({r,c}); }));
+  $('cmList').innerHTML=items.length
+    ?items.map(({r,c})=>`<div class="cmi"><span class="tag">${esc(c.day)}</span><b>${esc(r.cls)} ${esc(r.num)}番 ${esc(r.name)}</b><div>${esc(c.text)}</div></div>`).join('')
+    :'<p class="mut">コメントはありません。</p>';
+}
+
+function renderChecks(){
+  const who=r=>`${esc(r.cls)} ${esc(r.num)}番 ${esc(r.name)}`;
+  const when=d=>d?d.toLocaleString('ja-JP'):'不明';
+  const sec=(title,items,fmt)=>`<h3>${title}（${items.length}件）</h3>`+(items.length?`<ul class="ck">${items.map(fmt).join('')}</ul>`:'<p class="mut">該当なし</p>');
+  const P=pool();
+  const conflicts=P.flatMap(r=>D.days.filter(d=>r.days[d].state==='conflict').map(d=>({r,d})));
+  let h='<p class="mut">内容を確認し、必要なら元のExcelを直してから読み直してください。</p>';
+  h+=sec('同じ児童の重複回答（新しい方を採用）',D.dups,x=>`<li>${who(x.keep)}：${when(x.drop.sub)} の回答（行${x.drop.row}）と ${when(x.keep.sub)} の回答（行${x.keep.row}）。新しい方を使用</li>`);
+  h+=sec('学級・番号が同じで名前が違う（出席番号の入力ミスの可能性）',D.clashes,a=>`<li>${esc(a[0].cls)} ${esc(a[0].num)}番：${a.map(x=>esc(x.name)).join(' ／ ')}</li>`);
+  h+=sec('回答が矛盾（同じ日程に「すべて可」と「不可」）',conflicts,x=>`<li>${who(x.r)}　${esc(x.d)}：${esc(x.r.days[x.d].raw)}</li>`);
+  h+=sec('全日程で都合がつかない',P.filter(r=>flagsOf(r,D.days).includes('全日程NG')),r=>`<li>${who(r)}</li>`);
+  h+=sec('未回答の日程がある',P.filter(r=>flagsOf(r,D.days).includes('未回答')),r=>`<li>${who(r)}</li>`);
+  $('chk').innerHTML=h;
+  const n=P.filter(r=>flagsOf(r,D.days).length).length+D.clashes.length;
+  $('chkN').textContent=`(${n})`;
+}
+
+function exportCSV(){
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const head=['学級','番号','児童名','期間の回答',...D.days,'確認','コメント'];
+  const lines=[head.map(q).join(',')];
+  listRows().forEach(r=>{
+    const cols=[r.cls,r.num,r.name,r.free?'すべて可':'条件あり',
+      ...D.days.map(d=>{const s=r.days[d];return s?(s.state==='partial'?s.slots.map(shortSlot).join('・'):LBL[s.state]):'';}),
+      flagsOf(r,D.days).join(' '),
+      r.comments.map(c=>`[${c.day}] ${c.text}`).join(' / ')];
+    lines.push(cols.map(q).join(','));
+  });
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='面談希望一覧.csv'; a.click();
+}
+
+function render(){
+  $('app').hidden=false; $('drop').hidden=true; $('reset').hidden=false;
+  const clsOpts=[...new Set(D.active.map(r=>r.cls))].sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
+  $('fCls').innerHTML='<option value="">すべての学級</option>'+clsOpts.map(c=>`<option value="${esc(c)}" ${S.cls===c?'selected':''}>${esc(c)}</option>`).join('');
+  renderOverview(); renderSlots(); renderList(); renderComments(); renderChecks();
+}
+
+function loadFile(f){
+  if(typeof XLSX==='undefined'){alert('読み込み用のライブラリを取得できませんでした。インターネット接続を確認してください。');return;}
+  $('fname').textContent=f.name;
+  const fr=new FileReader();
+  fr.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:null,raw:true});
+      const d=build(rows);
+      if(!d.days.length){alert('「〜のご都合」の日程の列が見つかりませんでした。アンケートのファイルか確認してください。');return;}
+      D=d; S.cand=null; render();
+    }catch(err){alert('読み込みに失敗しました：'+err.message);}
+  };
+  fr.readAsArrayBuffer(f);
+}
+
+// イベント
+$('file').onchange=e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); };
+const drop=$('drop');
+drop.onclick=()=>$('file').click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');const f=e.dataTransfer.files[0]; if(f) loadFile(f);};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['ov','slot','list','cm','chk'].forEach(id=>$(id).hidden=id!==b.dataset.tab);
+});
+$('dedupe').onchange=e=>{S.dedupe=e.target.checked; if(D) render();};
+$('fCls').onchange=e=>{S.cls=e.target.value; renderList();};
+$('fQ').oninput=e=>{S.q=e.target.value; renderList();};
+$('fC').onchange=e=>{S.onlyC=e.target.checked; renderList();};
+$('fK').onchange=e=>{S.onlyK=e.target.checked; renderList();};
+$('csv').onclick=exportCSV;
+$('cmDay').onchange=e=>{S.cmDay=e.target.value; renderComments();};
+$('slot').onclick=e=>{
+  const td=e.target.closest('[data-d]'); if(!td) return;
+  S.cand={d:td.dataset.d,s:td.dataset.s||null};
+  $('candBox').innerHTML=candHTML();
+  document.querySelectorAll('#slot .sel').forEach(x=>x.classList.remove('sel'));
+  td.classList.add('sel');
+};
+$('reset').onclick=()=>{
+  D=null; S.cand=null;
+  $('app').hidden=true; $('drop').hidden=false; $('reset').hidden=true;
+  $('fname').textContent=''; $('file').value='';
+};
+</script>
+</body>
+</html>
