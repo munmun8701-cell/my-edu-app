@@ -11,9 +11,9 @@
        self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))).then(() => self.registration.unregister())));
        // （ここまで）
    ===================================================================== */
-const CACHE = 'mq-pages-v1';
-const CORE = ['/', '/index.html', '/mun-link.js', '/manifest.webmanifest', '/icons/icon-192.png'];
-const MAX_ITEMS = 400;                  // とっておくファイルの数の上限
+const CACHE = 'mq-pages-v2';
+const CORE = ['/', '/index.html', '/mun-link.js', '/manifest.webmanifest', '/icons/icon-192.png', '/search.html', '/search-index.json'];
+const MAX_ITEMS = 1200;                 // とっておくファイルの数の上限
 const MAX_BYTES = 8 * 1024 * 1024;      // 8MB より大きいファイルは、とっておかない
 
 self.addEventListener('install', e => {
@@ -58,4 +58,29 @@ self.addEventListener('fetch', e => {
       return Response.error();
     }
   })());
+});
+
+/* ---- 「オフライン用にまとめて保存」（offline.html から呼ばれます） ---- */
+self.addEventListener('message', e => {
+  const d = e.data || {}, port = e.ports && e.ports[0];
+  const say = m => { try { port && port.postMessage(m); } catch (err) {} };
+  if (d.type === 'precache' && Array.isArray(d.urls)) {
+    e.waitUntil((async () => {
+      const c = await caches.open(CACHE); const urls = d.urls.filter(u => typeof u === 'string' && u.startsWith('/')).slice(0, 600);
+      let done = 0, ok = 0, ng = 0;
+      for (let i = 0; i < urls.length; i += 4) {
+        await Promise.all(urls.slice(i, i + 4).map(async u => {
+          try { const r = await fetch(new Request(u, { cache: 'reload' })); if (r && r.ok && r.type === 'basic') { await c.put(u, r); ok++; } else ng++; } catch (err) { ng++; }
+          done++; say({ done, total: urls.length });
+        }));
+      }
+      say({ fin: 1, total: urls.length, ok, ng });
+    })());
+  } else if (d.type === 'clear') {
+    e.waitUntil((async () => {
+      const c = await caches.open(CACHE); const ks = await c.keys();
+      for (const k of ks) { const p = new URL(k.url).pathname; if (!CORE.includes(p)) await c.delete(k); }
+      say({ fin: 1 });
+    })());
+  }
 });
