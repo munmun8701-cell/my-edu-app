@@ -189,6 +189,8 @@
     // 連続日数（EXPか学習時間がある日）
     const days = new Set(); Object.keys(load('mun_daily_exp', {})).forEach(k => { const a = k.split(' '); if (MON[a[1]]) days.add(`${a[3]}-${p2(MON[a[1]])}-${p2(a[2])}`); }); Object.keys(lg).forEach(k => days.add(k));
     let streak = 0; const d = new Date(); if (!days.has(ymd(d))) d.setDate(d.getDate() - 1); while (days.has(ymd(d))) { streak++; d.setDate(d.getDate() - 1); }
+    const sortedDays = [...days].sort(); let maxStreak = 0, run = 0, prevD = null;
+    sortedDays.forEach(s => { const dt = new Date(s + 'T00:00:00'); if (prevD && Math.round((dt - prevD) / 864e5) === 1) run++; else run = 1; if (run > maxStreak) maxStreak = run; prevD = dt; });
     const nazoClear = Object.values(lab.nazo).filter(r => r && r.cleared).length;
     const nazoNoHint = Object.values(lab.nazo).some(r => r && r.cleared && !r.hintUsed);
     const ghostModes = Object.keys(lab.ghost).filter(k => lab.ghost[k] && lab.ghost[k].best).length;
@@ -204,7 +206,7 @@
       bestTier: lab.season.bestTier || 0, bestStreak: lab.stats.best || 0, answered: lab.stats.answered || 0,
       holDays: (() => { let n = 0; Object.values(lab.hol || {}).forEach(h => Object.values((h && h.days) || {}).forEach(x => { if (x && (x.d || x.l || x.m)) n++; })); return n; })(),
       holFull: (() => { let n = 0; Object.values(lab.hol || {}).forEach(h => Object.values((h && h.days) || {}).forEach(x => { if (x && x.d && x.l && x.m) n++; })); return n; })(),
-      reports: lab.reports || 0,
+      reports: lab.reports || 0, certs: lab.certs || 0, studyDays: days.size, maxStreak, zukan: (window.LAB_ZK ? window.LAB_ZK.count() : 0), trophyN: Object.keys(lab.trophies || {}).length,
       drillRuns: lab.drillRuns || 0, drillPerfect: lab.drillPerfect || 0, weakRuns: lab.weakRuns || 0,
       drillMaster: Object.values(lab.drill || {}).filter(x => x && x.best >= 10).length,
       unitsTried: Object.keys(lab.units || {}).length,
@@ -308,6 +310,10 @@
     { id: 'ms7', g: 'ラボ', r: 'silver', ic: 'fa-calendar-week', t: 'ミッション7日', d: '今日のミッションを7日コンプリートした', f: c => c.misDays >= 7 },
     { id: 'ms30', g: 'ラボ', r: 'gold', ic: 'fa-calendar-check', t: 'ミッション30日', d: '今日のミッションを30日コンプリートした', f: c => c.misDays >= 30 },
     { id: 'sr1', g: 'ラボ', r: 'bronze', ic: 'fa-gift', t: 'シーズン報酬', d: '月が変わって、前のシーズンの報酬を受け取った', f: c => c.seasonPaid >= 1 },
+    { id: 'ct1', g: 'ラボ', r: 'bronze', ic: 'fa-award', t: 'はじめての賞状', d: '賞状プリンターで、賞状を印刷した', f: c => c.certs >= 1 },
+    { id: 'zk20', g: 'ラボ', r: 'bronze', ic: 'fa-book-bookmark', t: 'ずかんコレクター', d: 'むんずかんのカードを20まい集めた', f: c => c.zukan >= 20 },
+    { id: 'zk100', g: 'ラボ', r: 'silver', ic: 'fa-layer-group', t: 'ずかん100まい', d: 'むんずかんのカードを100まい集めた', f: c => c.zukan >= 100 },
+    { id: 'zk250', g: 'ラボ', r: 'gold', ic: 'fa-book-atlas', t: 'ずかん博士', d: 'むんずかんのカードを250まい集めた', f: c => c.zukan >= 250 },
     // ひみつのトロフィー（とるまで「？？？」）
     { id: 'hEarly', g: 'ひみつ', r: 'bronze', h: 1, ic: 'fa-cloud-sun', t: '朝の研究員', d: '朝5時〜8時のあいだに、むんラボをひらいた', f: c => c.hour >= 5 && c.hour < 8 },
     { id: 'hWeek', g: 'ひみつ', r: 'bronze', h: 1, ic: 'fa-umbrella-beach', t: '週末の研究員', d: '土曜日か日曜日に、むんラボをひらいた', f: c => c.dow === 0 || c.dow === 6 },
