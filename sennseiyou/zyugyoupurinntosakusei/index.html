@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>プリントメーカー v4 ｜ むん先生の学習クエスト</title>
+<title>プリントメーカー v5 ｜ むん先生の学習クエスト</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -30,8 +30,8 @@ button.on{background:#fff59d;border-color:#c9a800}
 .sp{flex:1}
 #main{flex:1;display:flex;min-height:0}
 #side{width:370px;min-width:370px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
-#tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)}
-#tabs button{flex:1;border:0;border-radius:0;padding:9px 2px;background:#f4f7f4;font-weight:bold;font-size:13px;border-bottom:3px solid transparent}
+#tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+#tabs button{border:0;border-radius:0;padding:8px 2px;white-space:nowrap;background:#f4f7f4;font-weight:bold;font-size:13px;border-bottom:3px solid transparent}
 #tabs button.act{background:#fff;border-bottom-color:var(--acc);color:var(--pri2)}
 #panels{flex:1;overflow:auto;padding:10px}
 .panel{display:none}.panel.act{display:block}
@@ -76,16 +76,16 @@ textarea.big{width:100%;border:2px solid var(--pri);border-radius:8px;padding:8p
 #loading{position:fixed;inset:0;background:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center;font-size:20px;z-index:98;font-weight:bold}
 details.fold{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:4px 8px}
 details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4px 0}
-@media print{body *{visibility:hidden}#printimg,#printimg *{visibility:visible}#printimg{position:absolute;left:0;top:0}#printimg img{width:100%;page-break-after:always}}
 #printimg{display:none}
+@media print{body{height:auto;overflow:visible;display:block;background:#fff}body>*:not(#printimg){display:none!important}#printimg{display:block!important}#printimg img{display:block;width:100%;height:100vh;object-fit:contain;break-after:page;page-break-after:always}#printimg img:last-child{break-after:auto;page-break-after:auto}}
+#saveState{font-size:12px;color:#888;min-width:70px}
+#saveState.dirty{color:#e65100;font-weight:bold}
 </style>
-<meta name="description" content="授業プリント作成｜単元に合わせた独自の学習プリントや小テストを作成・出力します。先生の校務や学級経営をサポートするためのツールです。現役の小学校教員が、日々の仕事の中で「こんなツールがあったらいいな」と感じたことをもとに作っています。…">
-<meta name="robots" content="noindex">
 </head>
 <body>
 <div id="top">
-  <h1>🖨 プリントメーカー v4</h1>
-  <input id="docTitle" placeholder="プリントの名前" value="新しいプリント">
+  <h1>🖨 プリントメーカー v5</h1>
+  <input id="docTitle" placeholder="プリントの名前" value="新しいプリント"><span id="saveState">保存済み</span>
   <button id="bNew">📄 新規</button>
   <button id="bSave" class="pri">💾 保存</button>
   <button id="bSaveAs">📑 別名で保存</button>
@@ -111,7 +111,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
 <div id="main">
  <div id="side">
   <div id="tabs">
-   <button data-t="tpl" class="act">⭐ひな型</button><button data-t="calc">🔢計算・問題</button><button data-t="kanji">✏️漢字</button><button data-t="kuku">✖九九</button><button data-t="parts">🧩部品</button><button data-t="tools">🧰道具</button><button data-t="page">📐用紙</button>
+   <button data-t="tpl" class="act">⭐ひな型</button><button data-t="calc">🔢計算・問題</button><button data-t="kanji">✏️漢字</button><button data-t="kuku">✖九九</button><button data-t="parts">🧩部品</button><button data-t="drill">🕒ドリル</button><button data-t="tools">🧰道具</button><button data-t="page">📐用紙</button>
   </div>
   <div id="panels">
 
@@ -130,7 +130,14 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
       <button data-tpl="kanji20"><b>漢字書き取り</b>20問 2列</button>
       <button data-tpl="kanjiNote"><b>漢字練習ノート</b>お手本つき</button>
       <button data-tpl="genkou"><b>作文用紙</b>原稿用紙</button>
+      <button data-tpl="hyaku"><b>百ます計算</b>たし算 10×10</button>
+      <button data-tpl="tokei"><b>時計の読み方</b>何時何分 12問</button>
+      <button data-tpl="ana"><b>□を求める</b>穴あき計算 20問</button>
+      <button data-tpl="dec"><b>小数の計算</b>たし算・ひき算 20問</button>
     </div>
+    <h3>🎲 同じ形で別の問題（類題）</h3>
+    <div class="hint">できたページを元に、<b>数字だけちがう</b>プリントを何枚でも作れます（テストの追試・宿題用に）。</div>
+    <div class="row"><label>枚数</label><input type="number" id="varN" value="1" min="1" max="20"><button id="bVarPage" class="warn">📄 このページの類題を作る</button></div>
     <h3>つかい方（かんたん3ステップ）</h3>
     <div class="hint">① 上のひな型か、「計算・問題」「漢字」「九九」タブで問題を作る。<br>② 問題は<b>ひとかたまり</b>で動きます。ドラッグで移動、角で拡大縮小。<br>③ 「⬇出力する」でPDF/Word、または「💾保存」。</div>
   </div>
@@ -142,7 +149,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <div class="hint">「＝」や「=」で終わる式は、答えの四角がつきます。文章題もそのまま書けます。<br>＋ − × ÷ は <b>+ - * /</b> でも打てます。答えは自動で計算して「答え」に入ります。</div>
     <details class="fold" open><summary>🎲 条件を決めて自動で問題を作る（上の欄に入ります）</summary>
       <div class="row"><label>種類</label>
-        <select id="g_type"><option value="add">たし算</option><option value="sub">ひき算</option><option value="mul">かけ算</option><option value="div">わり算</option><option value="kuku">九九（かけ算）</option><option value="kukudiv">九九のわり算</option><option value="mix">たし算・ひき算まぜ</option><option value="mix4">四則まぜ</option></select>
+        <select id="g_type"><option value="add">たし算</option><option value="sub">ひき算</option><option value="mul">かけ算</option><option value="div">わり算</option><option value="kuku">九九（かけ算）</option><option value="kukudiv">九九のわり算</option><option value="mix">たし算・ひき算まぜ</option><option value="mix4">四則まぜ</option><option value="ana">□を求める（たし算・ひき算）</option><option value="anam">□を求める（九九）</option><option value="dec">小数のたし算・ひき算</option></select>
         <label>問題数</label><input type="number" id="g_n" value="20" min="1" max="60"></div>
       <div class="row"><label>左の数の桁</label><input type="number" id="g_da" value="2" min="1" max="4"><label>右の数の桁</label><input type="number" id="g_db" value="2" min="1" max="4"></div>
       <div class="row"><label>くり上がり/くり下がり</label><select id="g_carry"><option value="any">どちらでも</option><option value="yes">ありだけ</option><option value="no">なしだけ</option></select></div>
@@ -151,6 +158,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
         <label>やり方</label><select id="g_mode"><option value="replace">置き換える</option><option value="append">あとに足す</option></select></div>
       <button id="gGen" class="warn">🎲 問題を自動で入れる</button>
     </details>
+    <div class="row"><button id="cVar" title="式の形・桁・くり上がりはそのままで、数字だけ入れかえます">🎲 数字だけ入れかえる</button><button id="cShuf">🔀 順番をまぜる</button><button id="cClear">🧹 欄を空に</button></div>
     <h3>② 見た目</h3>
     <div class="row"><label>列の数</label><select data-k="cols"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
       <label>番号</label><select data-k="num"><option value="p">（1）</option><option value="c">①</option><option value="n">1.</option><option value="no">なし</option></select></div>
@@ -228,6 +236,24 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <button class="warn big" id="bKukuUpd">🔄 選んでいる表を作り直す</button>
   </div>
 
+  <!-- ドリル（百ます・時計） -->
+  <div class="panel" id="p-drill">
+    <h3>💯 百ます計算</h3>
+    <div class="row"><label>計算</label><select data-k="hy_op"><option value="+">たし算</option><option value="-">ひき算</option><option value="×">かけ算</option></select>
+      <label>ますの数</label><select data-k="hy_n"><option value="10">100ます(10×10)</option><option value="5">25ます(5×5)</option><option value="7">49ます(7×7)</option></select></div>
+    <div class="row"><label><input type="checkbox" data-k="hy_time" checked> 「かかった時間」欄</label><label><input type="checkbox" data-k="hy_big"> ますを大きく</label></div>
+    <div class="hint">ひき算は「10〜19 − 0〜9」、たし算・かけ算は「0〜9」の数がバラバラに並びます。</div>
+    <button class="pri big" id="bHyakuAdd">➕ ページに追加</button>
+    <button class="warn big" id="bHyakuUpd">🔄 作り直す（数字も入れかえ）</button>
+    <h3>🕒 時計の読み方プリント</h3>
+    <div class="row"><label>問題数</label><input type="number" data-k="ck_n" value="12" min="1" max="30"><label>列</label><select data-k="ck_cols"><option>2</option><option selected>3</option><option>4</option></select></div>
+    <div class="row"><label>むずかしさ</label><select data-k="ck_step"><option value="60">○時ちょうど</option><option value="30">○時半まで</option><option value="5" selected>5分きざみ</option><option value="1">1分きざみ</option></select></div>
+    <div class="row"><label>問題のタイプ</label><select data-k="ck_mode"><option value="read">時計を見て時こくを書く</option><option value="draw">時こくを見て針をかく</option></select></div>
+    <div class="row"><label><input type="checkbox" data-k="ck_min" checked> 分の目もり(1分ごと)をかく</label><label><input type="checkbox" data-k="ck_num" checked> 数字をかく</label></div>
+    <button class="pri big" id="bClockAdd">➕ ページに追加</button>
+    <button class="warn big" id="bClockUpd">🔄 作り直す（時こくも入れかえ）</button>
+  </div>
+
   <!-- 部品 -->
   <div class="panel" id="p-parts">
     <h3>ヘッダー（タイトル・名前・点数）</h3>
@@ -237,7 +263,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <div class="row"><label><input type="checkbox" id="h_score" checked> 点数欄</label><label><input type="checkbox" id="h_date" checked> 日付欄</label><label><input type="checkbox" id="h_class" checked> 年・組</label></div>
     <button class="pri" id="bHeader">➕ ヘッダーをページの上に入れる</button><button id="bHeaderUpd">🔄 作り直す</button>
     <h3>文字・図形</h3>
-    <div class="row"><button data-add="text">Ａ 文字</button><button data-add="title">大きな見出し</button><button data-add="rect">□ 四角</button><button data-add="circle">○ 丸</button><button data-add="line">─ 線</button><button data-add="dline">┄ 点線</button><button data-add="arrow">→ 矢印</button></div>
+    <div class="row"><button data-add="text">Ａ 文字</button><button data-add="title">大きな見出し</button><button data-add="para">¶ 説明文(折り返し)</button><button data-add="rect">□ 四角</button><button data-add="circle">○ 丸</button><button data-add="line">─ 線</button><button data-add="dline">┄ 点線</button><button data-add="arrow">→ 矢印</button></div>
     <h3>罫線・方眼・数直線</h3>
     <div class="row"><label>幅</label><input type="number" id="r_w" value="680" step="10"><label>高さ</label><input type="number" id="r_h" value="300" step="10"></div>
     <div class="row"><label>間隔</label><input type="number" id="r_g" value="40" min="10"></div>
@@ -287,6 +313,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <div class="hint">「2面」にすると、いま作っているページの内容を<b>同じものを並べて</b>印刷（出力）します。半分サイズのプリントを作りたいときに使います。</div>
     <div class="row"><label><input type="checkbox" id="s_name"> 各面の上に「名前欄」を入れて出力</label></div>
     <div class="row"><input id="s_nametext" value="____年____組____番 名前:______________________" style="flex:1"><label>大きさ</label><input type="number" id="s_namefs" value="30" min="14" max="60"></div>
+    <div class="row"><label><input type="checkbox" id="s_split" checked> 問題が入りきらないときは、次のページに続ける（名前欄もコピー）</label></div>
     <h3>ページ</h3>
     <div class="row"><button id="pgAdd">➕ ページ追加</button><button id="pgDup">📋 このページを複製</button><button id="pgDel" class="danger">🗑 このページを削除</button></div>
     <div class="row"><button id="pgL">◀ 前へ移動</button><button id="pgR">▶ 後ろへ移動</button><button id="pgClear" class="danger">このページを白紙に</button></div>
@@ -376,13 +403,14 @@ function saveHist(now) {
   const f = () => {
     const j = canvasJSON();
     if (S.hist[S.hi] === j) return;
+    if (S.hi >= 0 && !S.noDirty) setDirty(true);
     S.hist = S.hist.slice(0, S.hi + 1); S.hist.push(j); if (S.hist.length > 50) S.hist.shift(); S.hi = S.hist.length - 1;
   };
   clearTimeout(histTimer); if (now) f(); else histTimer = setTimeout(f, 250);
 }
 async function restoreHist(i) {
   if (i < 0 || i >= S.hist.length) return;
-  S.hi = i; S.loading = true; await loadJSON(canvas, S.hist[i]); setAns(S.showAns); S.loading = false; ctxUpdate();
+  S.hi = i; S.loading = true; await loadJSON(canvas, S.hist[i]); setAns(S.showAns); S.loading = false; setDirty(true); ctxUpdate();
 }
 /* ===== ページ管理 ===== */
 function savePageState() { S.pages[S.idx].json = canvasJSON(); }
@@ -414,12 +442,12 @@ async function pgDel() {
 }
 async function pgMove(d) {
   const j = S.idx + d; if (j < 0 || j >= S.pages.length) return;
-  savePageState(); const t = S.pages[S.idx]; S.pages[S.idx] = S.pages[j]; S.pages[j] = t; S.idx = j; renderPageBar();
+  savePageState(); const t = S.pages[S.idx]; S.pages[S.idx] = S.pages[j]; S.pages[j] = t; S.idx = j; renderPageBar(); setDirty(true); draftSoon();
 }
 async function newDoc(noconfirm) {
   if (!noconfirm && canvas.getObjects().length && !confirm('今の内容は消えます（保存していない場合）。新規作成しますか？')) return;
   S.pages = [{ json: null }]; S.idx = 0; S.recId = null; $('docTitle').value = '新しいプリント';
-  S.loading = true; await loadJSON(canvas, null); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); ctxUpdate();
+  S.loading = true; await loadJSON(canvas, null); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); setDirty(false); ctxUpdate();
 }
 /* ===== 部品作成の共通 ===== */
 function tw(str, size, font, bold) {
@@ -523,7 +551,7 @@ function ctxUpdate() {
   const mk = (txt, fn, cls, title) => { const b = document.createElement('button'); b.textContent = txt; if (cls) b.className = cls; if (title) b.title = title; b.onclick = fn; return b; };
   const grp = () => { const d = document.createElement('div'); d.className = 'grp'; el.appendChild(d); return d; };
   const a = canvas.getActiveObject();
-  if (!a) { el.innerHTML = '<span style="color:#666">👆 ページの上の物をクリックすると、ここで直したり、動かしたり、消したりできます。問題は1つのかたまりで動きます。</span>'; return; }
+  if (!a) { el.innerHTML = '<span style="color:#666">👆 ページの上の物をクリックすると、ここで直したり、動かしたり、消したりできます。Shift+クリックで複数選んで「そろえる」こともできます。</span>'; return; }
   const g1 = grp();
   g1.appendChild(mk('📋 複製', dupSel)); g1.appendChild(mk('🗑 削除', delSel, 'danger'));
   g1.appendChild(mk('⬆前面', () => { canvas.bringForward(a); saveHist(true); })); g1.appendChild(mk('⬇背面', () => { canvas.sendBackwards(a); saveHist(true); }));
@@ -535,9 +563,14 @@ function ctxUpdate() {
   if (a.pmSource) {
     const g3 = grp();
     g3.appendChild(mk('✏ この問題の設定を開く', () => openSource(a), 'pri'));
+    if (VARIABLE.includes(a.pmSource.kind)) g3.appendChild(mk('🎲 数字を入れかえ', variantSel, 'warn', '同じ形・同じむずかしさで、数字だけ変えます'));
     g3.appendChild(mk('✂ バラバラにして細かく直す', ungroupSel, 'warn', 'グループをばらします（元の「作り直す」はできなくなります）'));
   } else if (a.type === 'group') g1.appendChild(mk('✂ ばらす', ungroupSel));
-  if (a.type === 'activeSelection') { const g = grp(); g.appendChild(mk('🔗 ひとかたまりにする', () => { const gr = a.toGroup(); canvas.setActiveObject(gr); saveHist(true); ctxUpdate(); })); }
+  if (a.type === 'activeSelection') {
+    const g = grp(); g.appendChild(mk('🔗 ひとかたまりにする', () => { const gr = a.toGroup(); canvas.setActiveObject(gr); saveHist(true); ctxUpdate(); }));
+    const g4 = grp(); g4.appendChild(mk('⇤左そろえ', () => alignSel('left'))); g4.appendChild(mk('↔中央そろえ', () => alignSel('center'))); g4.appendChild(mk('⤒上そろえ', () => alignSel('top')));
+    g4.appendChild(mk('☰ たて等間隔', () => alignSel('vdist'))); g4.appendChild(mk('⇡ 上につめる', () => alignSel('pack')));
+  }
   const isT = o => o && ['i-text', 'textbox', 'text'].includes(o.type);
   if (isT(a)) {
     const g = grp();
@@ -557,7 +590,7 @@ function ctxUpdate() {
 function toHex(c) { if (typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)) return c; if (typeof c === 'string' && /^#[0-9a-f]{3}$/i.test(c)) return '#' + c.slice(1).split('').map(x => x + x).join(''); return '#000000'; }
 function dupSel() {
   const a = canvas.getActiveObject(); if (!a) return;
-  a.clone(c => { c.set({ left: a.left + 24, top: a.top + 24 }); if (a.pmSource) c.pmSource = JSON.parse(JSON.stringify(a.pmSource)); c.isAnswer = a.isAnswer; canvas.discardActiveObject(); canvas.add(c); canvas.setActiveObject(c); saveHist(true); ctxUpdate(); }, EXTRA);
+  a.clone(c => { if (a.pmSource) c.pmSource = JSON.parse(JSON.stringify(a.pmSource)); c.isAnswer = a.isAnswer; addCloned(c, 24); }, EXTRA);
 }
 function delSel() {
   const a = canvas.getActiveObject(); if (!a) return;
@@ -574,7 +607,8 @@ function ungroupSel() {
 }
 function openSource(a) {
   const s = a.pmSource; if (!s) return;
-  const map = { calc: 'p-calc', kanji: 'p-kanji', note: 'p-kanji', kuku: 'p-kuku', header: 'p-parts' };
+  const map = { calc: 'p-calc', kanji: 'p-kanji', note: 'p-kanji', kuku: 'p-kuku', header: 'p-parts', hyaku: 'p-drill', clock: 'p-drill' };
+  if (s.kind === 'hyaku' || s.kind === 'clock') { writeForm('p-drill', s.p); showTab('drill'); return; }
   if (s.kind === 'header') { $('h_title').value = s.title || ''; $('h_nw').value = s.nw; $('h_nh').value = s.nh; $('h_score').checked = s.score; $('h_date').checked = s.date; $('h_class').checked = s.cls; syncLabels(); showTab('parts'); return; }
   if (s.kind === 'note') { writeForm('p-kanji', Object.assign({}, s.p)); showTab('kanji'); return; }
   writeForm(map[s.kind], s.p); showTab(s.kind === 'calc' ? 'calc' : s.kind === 'kanji' ? 'kanji' : 'kuku');
@@ -614,6 +648,20 @@ function genProblems(o) {
       const d = o.db === 1 ? rnd(2, 9) : rndDigits(o.db), q = rndDigits(Math.max(1, o.da - o.db + 1) || 1), r = o.rem === 'yes' ? rnd(1, d - 1) : 0;
       if (d < 2 || (o.rem === 'yes' && d < 3)) continue; s = `${d * q + r}÷${d}=`;
     }
+    else if (t === 'ana') {
+      const add = o.anaop ? o.anaop === '+' : Math.random() < 0.5;
+      let a = rndDigits(o.da), b = rndDigits(o.db); if (!add && a < b) [a, b] = [b, a]; if (!add && a === b) continue;
+      const c = add ? a + b : a - b; if (o.dc && String(c).length !== o.dc) continue;
+      const v = [a, b, c], pos = o.anapos != null ? o.anapos : rnd(0, 2); v[pos] = '□';
+      s = `${v[0]}${add ? '+' : '-'}${v[1]}=${v[2]}`;
+    } else if (t === 'anam') {
+      const a = o.anaa || dans[rnd(0, dans.length - 1)], b = rnd(1, 9), v = [a, b, a * b], pos = o.anapos != null ? o.anapos : rnd(0, 2); v[pos] = '□';
+      s = `${v[0]}×${v[1]}=${v[2]}`;
+    } else if (t === 'dec') {
+      const add = o.anaop ? o.anaop === '+' : Math.random() < 0.5, mk = d => (rndDigits(d) * 10 + rnd(1, 9)) / 10;
+      let a = mk(o.da), b = mk(o.db); if (!add && a < b) [a, b] = [b, a]; if (!add && a === b) continue;
+      s = `${a.toFixed(1)}${add ? '+' : '-'}${b.toFixed(1)}=`;
+    }
     if (!s || seen.has(s) && tries < 3000) continue; seen.add(s); out.push(s);
   }
   return out;
@@ -635,11 +683,22 @@ function answerText(e) {
   const v = evalMath(e); if (v === null) return null;
   return String(Math.round(v * 1000) / 1000);
 }
+/* □を求める問題の答え（□は1つだけ） */
+function solveBlank(e) {
+  const N = '(\\d+(?:\\.\\d+)?|□)', m = e.match(new RegExp('^' + N + '([+\\-×÷])' + N + '=' + N + '$'));
+  if (!m) return null; const [, a, op, b, c] = m;
+  if ([a, b, c].filter(x => x === '□').length !== 1) return null;
+  const A = +a, B = +b, C = +c; let v;
+  if (c === '□') v = op === '+' ? A + B : op === '-' ? A - B : op === '×' ? A * B : A / B;
+  else if (a === '□') v = op === '+' ? C - B : op === '-' ? C + B : op === '×' ? C / B : C * B;
+  else v = op === '+' ? C - A : op === '-' ? A - C : op === '×' ? C / A : A / C;
+  return isFinite(v) ? String(Math.round(v * 1000) / 1000) : null;
+}
 function dispMath(e) { return e.replace(/\+/g, '＋').replace(/-/g, '－').replace(/=/g, '＝'); }
 function calcItem(P) {
   const font = FONTS[P.font] || FONTS.g, ansF = +P.answ || 1.6;
   return (col, x, y, w, i, raw) => {
-    const fs0 = +P.fs, lab = ordinal(i, P.num);
+    const fs0 = +P.fs, lab = ordinal(i + (+P.start || 0), P.num);
     const mathy = isMathLine(raw); let e = mathy ? normExpr(raw) : null;
     let h = 0;
     const boxW = f => f * (0.9 + 0.8 * ansF), boxH = f => f * 1.7;
@@ -649,6 +708,19 @@ function calcItem(P) {
       const m = e.replace(/=$/, '').match(/^(\d+)([+\-×÷])(\d+)$/);
       const wantBox = !given && !blankIn && P.ans !== 'none', ans = given || blankIn ? null : answerText(e);
       if (P.hissan && m && m[2] !== '÷' && !given) return hissanItem(col, x, y, w, i, m, ans, P, font, lab);
+      const sol = blankIn ? solveBlank(e) : null;
+      if (sol !== null) {
+        const parts = dispMath(e).split('□'), bwB = boxW(fs0) * 0.8;
+        const needB = f => tw(lab, f, font) + 8 + tw(parts[0], f, font) + tw(parts[1], f, font) + bwB * f / fs0 + 12;
+        const fs = needB(fs0) > w ? fs0 * w / needB(fs0) : fs0, bh = boxH(fs), cy = y + bh / 2, bw = bwB * fs / fs0;
+        col.add(T(lab, x, cy, fs, { font })); let cx = x + tw(lab, fs, font) + 8;
+        if (parts[0]) { col.add(T(parts[0], cx, cy, fs, { font })); cx += tw(parts[0], fs, font); }
+        cx += 6; col.rect('ans', cx, cy - bh / 2, bw, bh, { stroke: '#222', w: 2 });
+        col.add(T(sol, cx + bw / 2, cy, fs, { font, center: true, ans: true, fill: '#e53935' })); cx += bw + 6;
+        if (parts[1]) col.add(T(parts[1], cx, cy, fs, { font }));
+        if (P.dot) col.line('sep', x, y + bh + (+P.gap) / 2, x + w, y + bh + (+P.gap) / 2, { stroke: '#aaa', w: 1, dash: [4, 4] });
+        return bh;
+      }
       const text = dispMath(e);
       const rem = !!(ans && ans.includes('あまり')), bwf = f => rem ? boxW(f) * 0.85 * 2 + tw('あまり', f * 0.7, font) + 16 : boxW(f);
       let k = 1; const need = f => tw(lab, f, font) + 8 + tw(text, f, font) + (wantBox ? 14 + bwf(f) : (P.ans === 'none' && ans ? 14 + tw(ans, f, font) : 0));
@@ -737,7 +809,7 @@ function kanjiItem(P) {
   const font = FONTS[P.font] || FONTS.k, fs = +P.fs, B = +P.box, hs = +P.hs;
   const st = { bcol: P.bcol, gcol: P.gcol, bw: +P.bw, bstyle: P.bstyle };
   return (col, x, y, w, i, line) => {
-    const lab = ordinal(i, P.num), lw = lab ? tw(lab, fs, font) + 8 : 0, avail = w - lw;
+    const lab = ordinal(i + (+P.start || 0), P.num), lw = lab ? tw(lab, fs, font) + 8 : 0, avail = w - lw;
     const segs = parseKanji(line);
     // トークン化： {k:'c',ch} / {k:'b',ch,hint,gi,first} / {k:'t',s} (読み問題の本文)
     const toks = [];
@@ -1082,10 +1154,11 @@ function textParas() {
       const s = o.pmSource;
       if (s && s.kind === 'header') P(s.title || '', { bold: true, sz: 40, align: 'center' });
       else if (s && s.kind === 'calc') {
-        String(s.p.lines).split('\n').filter(l => l.trim()).forEach((l, i) => P(ordinal(i, s.p.num) + ' ' + l.trim(), { sz: 28 }));
+        String(s.p.lines).split('\n').filter(l => l.trim()).forEach((l, i) => P(ordinal(i + (+s.p.start || 0), s.p.num) + ' ' + l.trim(), { sz: 28 }));
       } else if (s && s.kind === 'kanji') {
-        normKanjiLines(s.p).forEach((l, i) => P(ordinal(i, s.p.num) + ' ' + l.replace(/「([^」|｜]*)[^」]*」/g, (m, w) => '（' + '　'.repeat(Math.max(1, [...w].length)) + '）'), { sz: 28 }));
-      } else if (s && s.kind === 'kuku') P('（九九の表・図は「見たまま」のWordを使ってください）', { color: '888888' });
+        normKanjiLines(s.p).forEach((l, i) => P(ordinal(i + (+s.p.start || 0), s.p.num) + ' ' + l.replace(/「([^」|｜]*)[^」]*」/g, (m, w) => '（' + '　'.repeat(Math.max(1, [...w].length)) + '）'), { sz: 28 }));
+      } else if (s && (s.kind === 'hyaku' || s.kind === 'clock')) P('（百ます・時計は「見たまま」のWordを使ってください）', { color: '888888' });
+      else if (s && s.kind === 'kuku') P('（九九の表・図は「見たまま」のWordを使ってください）', { color: '888888' });
       else if (['i-text', 'textbox', 'text'].includes(o.type) && o.text) P(o.text, { bold: o.fontWeight === 'bold', sz: Math.max(18, Math.round(o.fontSize * (o.scaleY || 1) * 0.75 * 2)), align: o.textAlign === 'center' ? 'center' : 'left' });
     });
   });
@@ -1124,7 +1197,7 @@ function projectObj() { return { app: 'pm4', title: $('docTitle').value, cfg: cf
 async function loadProject(o) {
   applyCfg(o.cfg); $('m_subj').value = o.subj || ''; $('m_unit').value = o.unit || ''; $('docTitle').value = o.title || o.name || '無題';
   S.pages = (o.pages && o.pages.length ? o.pages : [null]).map(j => ({ json: j })); S.idx = 0; S.loading = true; applySize();
-  await loadJSON(canvas, S.pages[0].json); setAns(S.showAns); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); ctxUpdate();
+  await loadJSON(canvas, S.pages[0].json); setAns(S.showAns); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); setDirty(false); ctxUpdate();
 }
 function newId() { return 'p' + Date.now().toString(36) + rnd(100, 999); }
 async function saveDoc(asNew) {
@@ -1134,7 +1207,7 @@ async function saveDoc(asNew) {
   const db = await getDB(); let rec = db.find(r => r.id === S.recId);
   if (!rec) { rec = { id: newId(), created: Date.now() }; db.unshift(rec); S.recId = rec.id; }
   Object.assign(rec, Object.assign(projectObj(), { id: rec.id, created: rec.created, title, updated: Date.now(), thumb: canvas.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.35 / S.zoom }) }));
-  await setDB(db); toast('「' + title + '」を保存しました（📚保存一覧にあります）');
+  await setDB(db); setDirty(false); toast('「' + title + '」を保存しました（📚保存一覧にあります）');
 }
 async function openLib(tab) {
   tab = tab || 'saved'; const m = $('modal'); $('modalbg').classList.add('show');
@@ -1189,6 +1262,7 @@ function addPart(kind) {
   const pos = { left: 70 + rnd(0, 30), top: Math.min(canvas.height - 120, contentBottom() + 20) };
   if (kind === 'text') placeObj(new fabric.IText('ここに文字を入力', Object.assign({ fontSize: 28, fontFamily: FONTS.g, fill: '#111' }, pos)));
   else if (kind === 'title') placeObj(new fabric.IText('見出し', Object.assign({ fontSize: 44, fontWeight: 'bold', fontFamily: FONTS.m, fill: '#1b5e20' }, pos)));
+  else if (kind === 'para') placeObj(new fabric.Textbox('ここに説明文を書きます。長い文は自動で折り返されます。右はしをドラッグすると幅を変えられます。', Object.assign({ width: canvas.width - 2 * PAD - 80, fontSize: 24, lineHeight: 1.4, fontFamily: FONTS.m, fill: '#111', splitByGrapheme: true }, pos)));
   else if (kind === 'rect') placeObj(new fabric.Rect(Object.assign({ width: 220, height: 120, fill: '', stroke: '#222', strokeWidth: 3 }, pos)));
   else if (kind === 'circle') placeObj(new fabric.Circle(Object.assign({ radius: 60, fill: '', stroke: '#222', strokeWidth: 3 }, pos)));
   else if (kind === 'line') placeObj(new fabric.Line([0, 0, 320, 0], Object.assign({ stroke: '#222', strokeWidth: 3 }, pos)));
@@ -1308,8 +1382,12 @@ async function tpl(name) {
     hdr('漢字れんしゅうノート'); writeForm('p-kanji', { nlist: '学 校 先 生 友 空', nper: 8, nrows: 1, nbox: 84, nmodel: 'gray', nyomi: 'がく,こう,せん,せい,とも,そら' });
     g = buildNote(readForm('p-kanji')); addSheet(g);
   } else if (name === 'genkou') { hdr('作文'); addGenkou(); }
+  else if (name === 'ana') { hdr('□にあてはまる数'); g = calc({ cols: 2, fs: 30, gap: 30 }, G('ana', 10, { da: 2, db: 2, dc: 2 }).concat(G('anam', 10))); }
+  else if (name === 'dec') { hdr('小数のたし算・ひき算'); g = calc({ cols: 2 }, G('dec', 20, { da: 1, db: 1 })); }
+  else if (name === 'hyaku') { hdr('百ます計算'); writeForm('p-drill', { hy_op: '+', hy_n: 10, hy_time: true, hy_big: false }); g = buildHyaku(readForm('p-drill')); addSheet(g); }
+  else if (name === 'tokei') { hdr('とけいの よみかた'); writeForm('p-drill', { ck_n: 12, ck_cols: 3, ck_step: 5, ck_mode: 'read', ck_min: true, ck_num: true }); g = buildClocks(readForm('p-drill')); addSheet(g); }
   if (g) { canvas.discardActiveObject(); canvas.requestRenderAll(); }
-  if (/^kanji[12]/.test(name)) { showTab('kanji'); } else if (/^(calc|hissan|mul|kuku-test)/.test(name)) showTab('calc'); else if (/^kuku/.test(name)) showTab('kuku');
+  if (/^kanji[12]/.test(name)) { showTab('kanji'); } else if (/^(calc|hissan|mul|kuku-test|ana|dec)/.test(name)) showTab('calc'); else if (/^(hyaku|tokei)/.test(name)) showTab('drill'); else if (/^kuku/.test(name)) showTab('kuku');
   toast('できました。文字や問題を直したいときは、右のタブで書き直して「作り直す」を押してください');
 }
 function helpModal() {
@@ -1323,7 +1401,12 @@ function helpModal() {
   <h3>■ 漢字の□マス</h3><p>「✏️漢字」タブで「算数を「勉強」する」のように<b>「　」で囲った部分</b>が、点線入り（田の字）の四角マスになります。囲む手間は、①ドラッグして「「」で囲む」ボタン、②下に出る漢字ボタンをタップ、③「漢字を全部マスにする」チェック、のどれでもOK。読みのヒントは「勉強|べんきょう」と書きます。マスの大きさ・線の色・点線のしゅるいも変えられます。</p>
   <h3>■ 答えページ</h3><p>「✅答え」ボタンで赤い答えを表示/非表示。出力の「問題＋答え」で2部いっぺんに作れます。</p>
   <h3>■ 保存したものを消す・コピーする</h3><p>「📚保存一覧」で、開く／複製／名前変更／削除（ごみ箱から戻せます）ができます。</p>
-  <h3>■ 便利なキー</h3><p>Ctrl+Z 元に戻す / Ctrl+Y やり直し / Ctrl+S 保存 / Ctrl+D 複製 / Delete 削除 / 矢印キー 少し動かす</p></div>`;
+  <h3>■ 類題（数字だけちがうプリント）</h3><p>問題をクリック →「🎲数字を入れかえ」で、同じ形・同じむずかしさ（桁・くり上がり・九九の段）のまま数字だけ変わります。「⭐ひな型」タブの「📄このページの類題を作る」なら、ページごと何枚でも作れます。</p>
+  <h3>■ たくさんの問題</h3><p>計算・漢字の問題がページに入りきらないときは、<b>自動で次のページに続きます</b>（名前欄もコピー、番号も続き番号）。小さくして1ページに入れたいときは「📐用紙」タブのチェックを外します。</p>
+  <h3>■ □を求める・小数</h3><p>「□+25=60」「7×□=56」のように書くと、□が答えの四角になり、答えも自動で計算されます。「1.2+3.5=」のような小数もOKです。</p>
+  <h3>■ 百ます計算・時計</h3><p>「🕒ドリル」タブで作れます。「作り直す」を押すたびに数字・時こくが入れかわります。</p>
+  <h3>■ きれいに並べる</h3><p>ドラッグすると、ページの中央・左右の余白にピタッと合います（赤い点線）。Altキーを押しながらだと合わせません。Shift+クリックで複数選ぶと「左そろえ」「たて等間隔」「上につめる」が使えます。</p>
+  <h3>■ 便利なキー</h3><p>Ctrl+Z 元に戻す / Ctrl+Y やり直し / Ctrl+S 保存 / Ctrl+C・Ctrl+V コピー・貼り付け（別のページにも貼れます）/ Ctrl+D 複製 / Delete 削除 / 矢印キー 少し動かす（Shiftで大きく）/ Ctrl+マウスホイール 拡大縮小 / PageUp・PageDown ページ移動</p></div>`;
   $('hx').onclick = () => $('modalbg').classList.remove('show');
 }
 
@@ -1416,17 +1499,216 @@ async function addFurigana() {
   });
 }
 
+/* ================= 百ます計算 ================= */
+function shuffled(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function buildHyaku(P) {
+  const n = +P.hy_n || 10, op = P.hy_op || '+', W = canvas.width - 2 * PAD, font = FONTS.m, col = new Col();
+  const cell = Math.min(P.hy_big ? 80 : 62, W / (n + 1)), fs = cell * 0.5;
+  const tops = shuffled([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, n);
+  const lefts = shuffled(op === '-' ? [10, 11, 12, 13, 14, 15, 16, 17, 18, 19] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, n);
+  let y0 = 0; const x0 = 0;
+  if (P.hy_time) { col.add(T('かかった時間　　　分　　　秒', cell * (n + 1), 16, 22, { font, right: true })); y0 = 40; }
+  col.rect('hd', x0, y0, cell, cell, { fill: '#2e7d32', stroke: '#222', w: 2 });
+  col.add(T(op === '-' ? '－' : op === '+' ? '＋' : '×', x0 + cell / 2, y0 + cell / 2, fs, { font, center: true, bold: true, fill: '#fff' }));
+  tops.forEach((v, k) => { col.rect('hh', x0 + cell * (k + 1), y0, cell, cell, { fill: '#e8f5e9', stroke: '#222', w: 2 }); col.add(T(v, x0 + cell * (k + 1.5), y0 + cell / 2, fs, { font, center: true, bold: true })); });
+  lefts.forEach((a, r) => {
+    const yy = y0 + cell * (r + 1);
+    col.rect('hh', x0, yy, cell, cell, { fill: '#e8f5e9', stroke: '#222', w: 2 }); col.add(T(a, x0 + cell / 2, yy + cell / 2, fs, { font, center: true, bold: true }));
+    tops.forEach((b, k) => {
+      col.rect('cl', x0 + cell * (k + 1), yy, cell, cell, { stroke: '#444', w: (k % 5 === 4 || r % 5 === 4) ? 2.4 : 1.2 });
+      const v = op === '+' ? a + b : op === '-' ? a - b : a * b;
+      col.add(T(v, x0 + cell * (k + 1.5), yy + cell / 2, fs * 0.9, { font, center: true, ans: true, fill: '#e53935' }));
+    });
+  });
+  col.rect('frm', x0, y0, cell * (n + 1), cell * (n + 1), { stroke: '#222', w: 3 });
+  return reorderFills(col).group({ kind: 'hyaku', p: P });
+}
+/* ================= 時計の読み方 ================= */
+function clockTimes(n, step) {
+  const out = [], seen = new Set(); let tries = 0;
+  while (out.length < n && tries++ < 500) {
+    const h = rnd(1, 12), m = step === 60 ? 0 : step === 30 ? rnd(0, 1) * 30 : step === 5 ? rnd(0, 11) * 5 : rnd(0, 59);
+    const k = h * 60 + m; if (seen.has(k) && tries < 300) continue; seen.add(k); out.push([h, m]);
+  }
+  return out;
+}
+function buildClocks(P) {
+  const n = Math.max(1, +P.ck_n || 12), cols = +P.ck_cols || 3, step = +P.ck_step || 5, draw = P.ck_mode === 'draw';
+  const W = canvas.width - 2 * PAD, font = FONTS.m, times = clockTimes(n, step);
+  const r = gridLayout(times, cols, W, 24, 26, (col, x, y, w, i, t) => {
+    const [h, m] = t, lab = ordinal(i, 'p'), lfs = 20, R = Math.min(w / 2 - 14, 120), cx = x + w / 2, cy = y + 14 + R;
+    col.add(T(lab, x, y + 10, lfs, { font }));
+    col.add(new fabric.Circle({ left: cx - R, top: cy - R, radius: R, fill: '#fff', stroke: '#222', strokeWidth: 3, objectCaching: false }));
+    for (let k = 0; k < 60; k++) {
+      const a = k * Math.PI / 30, big = k % 5 === 0; if (!big && !P.ck_min) continue;
+      const r1 = R * (big ? 0.86 : 0.92), r2 = R * 0.98;
+      col.line(big ? 'tb' : 'ts', cx + r1 * Math.sin(a), cy - r1 * Math.cos(a), cx + r2 * Math.sin(a), cy - r2 * Math.cos(a), { stroke: '#222', w: big ? 2.6 : 1.2 });
+    }
+    if (P.ck_num) for (let k = 1; k <= 12; k++) { const a = k * Math.PI / 6; col.add(T(k, cx + R * 0.7 * Math.sin(a), cy - R * 0.7 * Math.cos(a), R * 0.2, { font, center: true, bold: true })); }
+    const hand = (deg, len, wd, ans) => { const a = deg * Math.PI / 180; const l = new fabric.Line([cx, cy, cx + len * Math.sin(a), cy - len * Math.cos(a)], { stroke: ans ? '#e53935' : '#111', strokeWidth: wd, strokeLineCap: 'round', objectCaching: false }); if (ans) { l.isAnswer = true; l.visible = S.showAns; } col.add(l); };
+    hand((h % 12) * 30 + m * 0.5, R * 0.5, Math.max(4, R * 0.07), draw); hand(m * 6, R * 0.8, Math.max(2.5, R * 0.04), draw);
+    col.add(new fabric.Circle({ left: cx - 4, top: cy - 4, radius: 4, fill: '#111', objectCaching: false }));
+    const by = cy + R + 14, fs = Math.min(26, w / 8), bh = fs * 1.6;
+    if (draw) { col.add(T(`${h}時${m ? m + '分' : ''}`, cx, by + bh / 2, fs * 1.1, { font, center: true, bold: true })); }
+    else {
+      const bw = fs * 2.2, gap = tw('時', fs, font) + 6, tot = step === 60 ? bw + gap : bw * 2 + gap * 2 + 6;
+      let bx = cx - tot / 2;
+      col.rect('ab', bx, by, bw, bh, { stroke: '#222', w: 2 }); col.add(T(h, bx + bw / 2, by + bh / 2, fs, { font, center: true, ans: true, fill: '#e53935' }));
+      bx += bw + 3; col.add(T('時', bx, by + bh / 2, fs, { font })); bx += gap + 3;
+      if (step !== 60) { col.rect('ab', bx, by, bw, bh, { stroke: '#222', w: 2 }); col.add(T(m, bx + bw / 2, by + bh / 2, fs, { font, center: true, ans: true, fill: '#e53935' })); bx += bw + 3; col.add(T('分', bx, by + bh / 2, fs, { font })); }
+    }
+    return by + bh - y;
+  });
+  return r.col.group({ kind: 'clock', p: P });
+}
+/* ================= 類題（数字だけ入れかえ） ================= */
+function variantLine(raw) {
+  if (!raw.trim() || !isMathLine(raw)) return raw;
+  const e = normExpr(raw), one = o => genProblems(Object.assign({ n: 1, dan: '1-9', carry: 'any', rem: 'no' }, o))[0];
+  let m = e.match(/^(\d+|□)([+\-×])(\d+|□)=(\d+|□)$/);
+  if (m && /□/.test(e)) {
+    const pos = [m[1], m[3], m[4]].indexOf('□'), num = [m[1], m[3], m[4]].filter(x => x !== '□');
+    if (m[2] === '×') { const a = m[1] !== '□' ? +m[1] : null; return one({ type: 'anam', anapos: pos, anaa: a && a <= 9 ? a : null }) || raw; }
+    const da = String(pos === 0 ? (m[2] === '+' ? +m[4] - +m[3] : +m[4] + +m[3]) : m[1]).length;
+    const db = String(pos === 1 ? Math.abs(+m[4] - +m[1]) : m[3]).length;
+    const dc = String(pos === 2 ? (m[2] === '+' ? +m[1] + +m[3] : +m[1] - +m[3]) : m[4]).length;
+    return one({ type: 'ana', anaop: m[2], anapos: pos, da: Math.max(1, da), db: Math.max(1, db), dc }) || one({ type: 'ana', anaop: m[2], anapos: pos, da: Math.max(1, da), db: Math.max(1, db) }) || raw;
+  }
+  m = e.match(/^(\d+\.\d+)([+\-])(\d+\.\d+)=$/);
+  if (m) return one({ type: 'dec', anaop: m[2], da: String(Math.floor(+m[1])).length, db: String(Math.floor(+m[3])).length }) || raw;
+  m = e.match(/^(\d+)([+\-×÷])(\d+)=$/); if (!m) return raw;
+  const a = +m[1], b = +m[3], da = m[1].length, db = m[3].length;
+  if (m[2] === '+') return one({ type: 'add', da, db, carry: hasCarry(a, b) ? 'yes' : 'no' }) || raw;
+  if (m[2] === '-') return one({ type: 'sub', da, db, carry: hasBorrow(a, b) ? 'yes' : 'no' }) || raw;
+  if (m[2] === '×') return da === 1 && db === 1 ? `${a}×${rnd(1, 9)}=` : one({ type: 'mul', da, db }) || raw;
+  if (b >= 1 && b <= 9 && a % b === 0 && a / b <= 9) return `${b * rnd(1, 9)}÷${b}=`;
+  for (let t = 0; t < 300; t++) { // 割られる数の桁をそろえる
+    const d = db === 1 ? rnd(2, 9) : rndDigits(db), r = a % b ? rnd(1, d - 1) : 0;
+    if (a % b && d < 3) continue;
+    const qmin = Math.max(1, Math.ceil((Math.pow(10, da - 1) - r) / d)), qmax = Math.floor((Math.pow(10, da) - 1 - r) / d);
+    if (qmax < qmin) continue; const q = rnd(qmin, qmax); return `${d * q + r}÷${d}=`;
+  }
+  return raw;
+}
+function variantText(t) { return String(t || '').split('\n').map(variantLine).join('\n'); }
+const REBUILD = { calc: buildCalc, kanji: buildKanji, note: buildNote, kuku: buildKuku, hyaku: buildHyaku, clock: buildClocks };
+const VARIABLE = ['calc', 'kuku', 'hyaku', 'clock'];
+function replaceKeep(old, g) {
+  const idx = canvas.getObjects().indexOf(old);
+  g.set({ left: old.left, top: old.top, scaleX: old.scaleX, scaleY: old.scaleY, angle: old.angle || 0 });
+  if (old.lockedCustom) { g.lockedCustom = true; g.set({ lockMovementX: true, lockMovementY: true, lockScalingX: true, lockScalingY: true, lockRotation: true, hasControls: false }); }
+  canvas.remove(old); canvas.add(g); if (idx >= 0) canvas.moveTo(g, idx); g.setCoords(); return g;
+}
+function variantObj(o) {
+  const s = o.pmSource; if (!s || !VARIABLE.includes(s.kind)) return null;
+  const p = JSON.parse(JSON.stringify(s.p)); if (s.kind === 'calc') p.lines = variantText(p.lines);
+  return replaceKeep(o, REBUILD[s.kind](p));
+}
+function variantSel() {
+  const a = canvas.getActiveObject(); if (!a) return;
+  const g = variantObj(a); if (!g) return; canvas.setActiveObject(g); silentLoadSource(g); canvas.requestRenderAll(); saveHist(true); ctxUpdate(); toast('数字を入れかえました');
+}
+async function variantPages(n) {
+  n = Math.max(1, Math.min(20, +n || 1)); let cnt = 0;
+  for (let t = 0; t < n; t++) {
+    await pgAdd(true);
+    canvas.getObjects().slice().forEach(o => { if (variantObj(o)) cnt++; });
+    canvas.discardActiveObject(); canvas.requestRenderAll(); saveHist(true);
+  }
+  ctxUpdate(); toast(cnt ? `類題ページを${n}枚作りました（数字だけちがいます）` : 'ページを複製しました（数字を入れかえられる問題がありませんでした）', 4000);
+}
+/* ================= 入りきらない問題を次のページへ ================= */
+async function newPageWithHeader() {
+  const h = canvas.getObjects().find(o => o.pmSource && o.pmSource.kind === 'header'), hj = h ? h.toObject(EXTRA) : null;
+  await pgAdd(false);
+  if (hj) await new Promise(res => fabric.util.enlivenObjects([hj], objs => { canvas.add(objs[0]); canvas.discardActiveObject(); res(); }));
+}
+async function addSplit(builder, P) {
+  let rest = String(P.lines || '').split('\n').filter(s => s.trim()), start = 0, pages = 0;
+  if (!rest.length) throw new Error('問題が入力されていません');
+  while (rest.length) {
+    const top = canvas.getObjects().length ? contentBottom() + 14 : PAD, aw = canvas.width - 2 * PAD, ah = canvas.height - top - PAD;
+    const tryK = k => { const g = builder(Object.assign({}, P, { lines: rest.slice(0, k).join('\n'), start })); return { g, ok: g.height * Math.min(1, aw / g.width) <= ah + 0.5 }; };
+    let best = tryK(rest.length), k = rest.length;
+    if (!best.ok) {
+      let lo = 0, hi = rest.length - 1;
+      while (lo < hi) { const mid = Math.ceil((lo + hi) / 2); if (tryK(mid).ok) lo = mid; else hi = mid - 1; }
+      k = lo; const cols = +P.cols || 1; if (k > cols) k -= k % cols;
+      if (k === 0) {
+        if (canvas.getObjects().length > 1 || (canvas.getObjects().length === 1 && pages === 0 && !canvas.getObjects()[0].pmSource)) { await newPageWithHeader(); pages++; continue; }
+        k = 1;
+      }
+      best = tryK(k);
+    }
+    addSheet(best.g); rest = rest.slice(k); start += k;
+    if (rest.length) { await newPageWithHeader(); pages++; }
+  }
+  if (pages) toast(`入りきらない分を、次のページに続けました（${pages + 1}ページ分）`, 4500);
+}
+/* ================= コピー・貼り付け・整列 ================= */
+function addCloned(c, dx) {
+  canvas.discardActiveObject();
+  c.set({ left: c.left + dx, top: c.top + dx });
+  if (c.type === 'activeSelection') { c.canvas = canvas; c.forEachObject(o => canvas.add(o)); c.setCoords(); }
+  else canvas.add(c);
+  canvas.setActiveObject(c); canvas.requestRenderAll(); saveHist(true); ctxUpdate();
+}
+function copySel() { const a = canvas.getActiveObject(); if (!a) return false; a.clone(c => { S.clip = c; S.clipN = 0; }, EXTRA); toast('コピーしました（Ctrl+V で貼り付け。ほかのページにも貼れます）', 1800); return true; }
+function pasteClip() { if (!S.clip) return false; S.clipN = (S.clipN || 0) + 1; const n = S.clipN; S.clip.clone(c => addCloned(c, 20 * n), EXTRA); return true; }
+function alignSel(mode) {
+  const a = canvas.getActiveObject(); if (!a || a.type !== 'activeSelection') return;
+  const objs = a.getObjects().slice(); canvas.discardActiveObject();
+  const rs = objs.map(o => o.getBoundingRect(true, true)), W = canvas.width;
+  if (mode === 'left') { const m = Math.min(...rs.map(r => r.left)); objs.forEach((o, i) => o.left += m - rs[i].left); }
+  if (mode === 'center') objs.forEach((o, i) => o.left += W / 2 - (rs[i].left + rs[i].width / 2));
+  if (mode === 'top') { const m = Math.min(...rs.map(r => r.top)); objs.forEach((o, i) => o.top += m - rs[i].top); }
+  if (mode === 'vdist' && objs.length > 2) {
+    const ord = objs.map((o, i) => i).sort((p, q) => rs[p].top - rs[q].top), f = rs[ord[0]], l = rs[ord[ord.length - 1]];
+    const sumH = ord.reduce((s, i) => s + rs[i].height, 0), gap = (l.top + l.height - f.top - sumH) / (ord.length - 1);
+    let y = f.top; ord.forEach(i => { objs[i].top += y - rs[i].top; y += rs[i].height + gap; });
+  }
+  if (mode === 'pack') { // 上につめる
+    const ord = objs.map((o, i) => i).sort((p, q) => rs[p].top - rs[q].top); let y = rs[ord[0]].top;
+    ord.forEach(i => { objs[i].top += y - rs[i].top; y += rs[i].height + 14; });
+  }
+  objs.forEach(o => o.setCoords());
+  const sel = new fabric.ActiveSelection(objs, { canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); saveHist(true); ctxUpdate();
+}
+/* ガイド線（ページの中央・左右の余白にピタッと合わせる） */
+const SNAP = 8; let guides = [];
+function snapMove(e) {
+  const o = e.target; guides = []; if (!o || (e.e && e.e.altKey)) return;
+  const W = canvas.width, H = canvas.height, r = o.getBoundingRect(true, true);
+  const tryX = (cur, target) => { if (Math.abs(cur - target) < SNAP) { o.left += target - cur; guides.push({ x: target }); return true; } return false; };
+  tryX(r.left + r.width / 2, W / 2) || tryX(r.left, PAD) || tryX(r.left + r.width, W - PAD);
+  if (Math.abs(r.top - PAD) < SNAP) { o.top += PAD - r.top; guides.push({ y: PAD }); }
+  else if (Math.abs(r.top + r.height / 2 - H / 2) < SNAP) { o.top += H / 2 - (r.top + r.height / 2); guides.push({ y: H / 2 }); }
+  o.setCoords();
+}
+function drawGuides() {
+  if (!guides.length) return; const x = canvas.getContext();
+  x.save(); x.strokeStyle = '#e91e63'; x.lineWidth = 1.5; x.setLineDash([6, 4]);
+  guides.forEach(g => { x.beginPath(); if (g.x != null) { x.moveTo(g.x, 0); x.lineTo(g.x, canvas.height); } else { x.moveTo(0, g.y); x.lineTo(canvas.width, g.y); } x.stroke(); });
+  x.restore();
+}
+/* 保存状態の表示 */
+function setDirty(v) { S.dirty = v; const e = $('saveState'); if (!e) return; e.textContent = v ? '● 未保存' : '保存済み'; e.classList.toggle('dirty', v); }
+
 /* ================= 初期化 ================= */
-function doBuild(builder, panel, kind, upd) {
+async function doBuild(builder, panel, kind, upd) {
   try {
-    const P = readForm(panel), g = builder(P);
-    if (upd) { const t = selGroup(kind); if (!t) { toast('先にページ上の問題（作り直したいもの）をクリックして選んでください', 4000); return; } addSheet(g, t); }
-    else addSheet(g);
+    const P = readForm(panel);
+    if (upd) {
+      const t = selGroup(kind); if (!t) { toast('先にページ上の問題（作り直したいもの）をクリックして選んでください', 4000); return; }
+      if (t.pmSource.p && t.pmSource.p.start) P.start = t.pmSource.p.start;
+      addSheet(builder(P), t);
+    } else if ((kind === 'calc' || kind === 'kanji') && $('s_split').checked) await addSplit(builder, P);
+    else addSheet(builder(P));
   } catch (e) { console.error(e); toast(e.message || String(e), 5000); }
 }
 function silentLoadSource(a) {
   const s = a && a.pmSource; if (!s) return;
-  if (s.kind === 'calc') writeForm('p-calc', s.p); else if (s.kind === 'kanji' || s.kind === 'note') { writeForm('p-kanji', s.p); kChips(); } else if (s.kind === 'kuku') writeForm('p-kuku', s.p);
+  if (s.kind === 'hyaku' || s.kind === 'clock') writeForm('p-drill', s.p); else if (s.kind === 'calc') writeForm('p-calc', s.p); else if (s.kind === 'kanji' || s.kind === 'note') { writeForm('p-kanji', s.p); kChips(); } else if (s.kind === 'kuku') writeForm('p-kuku', s.p);
 }
 let draftTimer = null;
 function draftSoon() { clearTimeout(draftTimer); draftTimer = setTimeout(async () => { try { savePageState(); await localforage.setItem('pm4Draft', projectObj()); } catch (e) { } }, 1500); }
@@ -1486,7 +1768,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('bClock').onclick = addClock; $('bFrac').onclick = addFraction;
   $('bPartSave').onclick = savePart; $('bPartIns').onclick = insertPart; $('bPartDel').onclick = delPart; $('bOCR').onclick = runOCR; $('bFuri').onclick = addFurigana; refreshParts();
   ['s_name', 's_nametext', 's_namefs'].forEach(id => $(id).addEventListener('change', draftSoon));
-  window.addEventListener('paste', ev => { if (/^(INPUT|TEXTAREA)$/.test((ev.target.tagName || ''))) return; for (const it of (ev.clipboardData || {}).items || []) if (it.type.indexOf('image') === 0) { const r = new FileReader(); r.onload = () => addImageFromURL(r.result); r.readAsDataURL(it.getAsFile()); } });
+  window.addEventListener('paste', ev => {
+    if (/^(INPUT|TEXTAREA)$/.test((ev.target.tagName || '')) || (canvas.getActiveObject() && canvas.getActiveObject().isEditing)) return;
+    let img = false;
+    for (const it of (ev.clipboardData || {}).items || []) if (it.type.indexOf('image') === 0) { img = true; const r = new FileReader(); r.onload = () => addImageFromURL(r.result); r.readAsDataURL(it.getAsFile()); }
+    if (!img && S.clip) { ev.preventDefault(); pasteClip(); }
+  });
+  // 新機能のボタン
+  $('bHyakuAdd').onclick = () => doBuild(buildHyaku, 'p-drill', 'hyaku', false); $('bHyakuUpd').onclick = () => doBuild(buildHyaku, 'p-drill', 'hyaku', true);
+  $('bClockAdd').onclick = () => doBuild(buildClocks, 'p-drill', 'clock', false); $('bClockUpd').onclick = () => doBuild(buildClocks, 'p-drill', 'clock', true);
+  $('bVarPage').onclick = () => variantPages($('varN').value);
+  $('cVar').onclick = () => { const ta = $('c_lines'); if (!ta.value.trim()) { toast('先に問題を入れてください'); return; } ta.value = variantText(ta.value); toast('数字を入れかえました。「作り直す」でページに反映します'); };
+  $('cShuf').onclick = () => { const ta = $('c_lines'); ta.value = shuffled(ta.value.split('\n').filter(s => s.trim())).join('\n'); };
+  $('cClear').onclick = () => { if (!$('c_lines').value.trim() || confirm('入力欄を空にしますか？')) $('c_lines').value = ''; };
+  canvas.on('object:moving', snapMove);
+  canvas.on('after:render', drawGuides);
+  canvas.on('mouse:up', () => { if (guides.length) { guides = []; canvas.requestRenderAll(); } });
+  $('stage').addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); S.fit = false; setZoom(Math.max(0.2, Math.min(2.5, S.zoom * (e.deltaY < 0 ? 1.1 : 0.9)))); }, { passive: false });
+  window.addEventListener('beforeunload', e => { if (S.dirty) { try { savePageState(); localforage.setItem('pm4Draft', projectObj()); } catch (x) { } e.preventDefault(); e.returnValue = ''; } });
+  $('docTitle').addEventListener('input', () => { setDirty(true); draftSoon(); });
   canvas.on('path:created', () => saveHist(true));
   // キャンバスのイベント
   canvas.on('object:modified', () => { saveHist(); draftSoon(); }); canvas.on('object:added', () => { saveHist(); draftSoon(); }); canvas.on('object:removed', () => { saveHist(); draftSoon(); });
@@ -1494,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   canvas.on('selection:created', e => { ctxUpdate(); const a = canvas.getActiveObject(); if (a && a.pmSource) { silentLoadSource(a); } });
   canvas.on('selection:updated', () => { ctxUpdate(); const a = canvas.getActiveObject(); if (a && a.pmSource) silentLoadSource(a); });
   canvas.on('selection:cleared', ctxUpdate);
-  canvas.on('mouse:dblclick', () => { const a = canvas.getActiveObject(); if (a && a.pmSource && ['calc', 'kanji', 'kuku', 'note', 'header'].includes(a.pmSource.kind)) openSource(a); });
+  canvas.on('mouse:dblclick', () => { const a = canvas.getActiveObject(); if (a && a.pmSource && ['calc', 'kanji', 'kuku', 'note', 'header', 'hyaku', 'clock'].includes(a.pmSource.kind)) openSource(a); });
   // キーボード
   document.addEventListener('keydown', e => {
     const tg = e.target, typing = tg && (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName) || tg.isContentEditable);
@@ -1504,6 +1804,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); restoreHist(S.hi + (e.shiftKey ? 1 : -1)); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); restoreHist(S.hi + 1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); dupSel(); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') { if (a) copySel(); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); const os = canvas.getObjects().filter(o => o.selectable !== false); if (os.length) { canvas.discardActiveObject(); canvas.setActiveObject(new fabric.ActiveSelection(os, { canvas })); canvas.requestRenderAll(); ctxUpdate(); } }
+    else if (e.key === 'PageDown') { e.preventDefault(); gotoPage(S.idx + 1); }
+    else if (e.key === 'PageUp') { e.preventDefault(); gotoPage(S.idx - 1); }
+    else if (e.key === 'Escape') { if (canvas.isDrawingMode) setPen(false); canvas.discardActiveObject(); canvas.requestRenderAll(); ctxUpdate(); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); delSel(); }
     else if (a && e.key.startsWith('Arrow') && !a.lockedCustom) {
       e.preventDefault(); const d = e.shiftKey ? 10 : 1;
@@ -1516,7 +1821,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   applySize(); syncLabels(); renderPageBar();
   if (draft && draft.pages && draft.pages.some(j => j && JSON.parse(j).objects && JSON.parse(j).objects.length)) { await loadProject(draft); toast('前回の続きから再開しました', 3500); }
   else { S.loading = true; await loadJSON(canvas, null); S.loading = false; addSheet(buildHeader(readHeader())); canvas.discardActiveObject(); saveHist(true); }
-  S.hist = []; S.hi = -1; saveHist(true); ctxUpdate(); kChips(); setTimeout(() => { if (S.fit) setZoom(null); }, 100);
+  S.hist = []; S.hi = -1; saveHist(true); setDirty(false); ctxUpdate(); kChips(); setTimeout(() => { if (S.fit) setZoom(null); }, 100);
   window.__pmReady = true;
 });
 

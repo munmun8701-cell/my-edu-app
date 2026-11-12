@@ -40,7 +40,12 @@ $files = @(
   'tanosikugakusyuusiyou/kotodamakuronikuru2/index.html',
   'tanosikugakusyuusiyou/kotodamakuronikuru3/index.html',
   '1nennseiyougakusyuugame/tashizanhikizanhiragana/index.html',
-  'sienngaxtukyuu/poxtupuko-nnwokaou/index.html'
+  'sienngaxtukyuu/poxtupuko-nnwokaou/index.html',
+  'tyuugakueigokisobunnpou/1tyuugaku1nensei/index.html',
+  'tyuugakueigokisobunnpou/2tyuugaku2nensei/index.html',
+  'tyuugakueigokisobunnpou/3tyuugaku3nensei/index.html',
+  'tyuugakueigokisobunnpou/4koukouzyukenkiso/index.html',
+  'tyuugakueigokisobunnpou/5koukouzyukenntyoubun/index.html'
 )
 $strict = New-Object System.Text.UTF8Encoding($false, $true)
 $added = 0; $skipped = 0; $errors = 0

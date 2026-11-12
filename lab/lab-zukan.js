@@ -45,7 +45,7 @@
     ['app-history-11', '陸奥宗光', 'むつむねみつ', 'fa-gavel', '領事裁判権をなくす条約改正に成功した外務大臣。'],
     ['app-history-11', '小村寿太郎', 'こむらじゅたろう', 'fa-coins', '関税自主権を取りもどす条約改正に成功した外務大臣。']
   ];
-  const LEARN = /^(math|kokugo|social|history|game|grade)/;
+  const LEARN = /^(math|kokugo|social|history|eigo|game|grade)/;
   const RAR = [['normal', 'ノーマル', '#94a3b8'], ['silver', 'シルバー', '#cbd5e1'], ['gold', 'ゴールド', '#fbbf24'], ['platinum', 'プラチナ', '#67e8f9']];
   const rarOf = n => n >= 30 ? 3 : n >= 10 ? 2 : n >= 3 ? 1 : 0;
 

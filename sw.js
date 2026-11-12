@@ -43,7 +43,7 @@ async function clean(res, fromCache) {
     const buf = await res.clone().arrayBuffer();
     const txt = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(buf);
     if (txt.indexOf('mq-about:start') < 0) return res;
-    const out = txt.replace(//g, m => (m.indexOf('all:initial') >= 0 ? m : ''));
+    const out = txt.replace(/<!-- mq-about:start[\s\S]*?<!-- mq-about:end -->/g, m => (m.indexOf('all:initial') >= 0 ? m : ''));
     if (out === txt) return res;
     const h = new Headers(res.headers); h.delete('content-length'); h.delete('content-encoding');
     return new Response(new TextEncoder().encode(out), { status: res.status, statusText: res.statusText, headers: h });
