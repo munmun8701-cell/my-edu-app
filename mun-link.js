@@ -1,5 +1,5 @@
 /* =====================================================================
-   むんクエスト連携キット（mun-link.js）  v1.5  2026.11
+   むんクエスト連携キット（mun-link.js）  v1.6  2026.11
    ---------------------------------------------------------------------
    単元アプリやゲームの </body> の直前に、次の1行を入れるだけで使えます。
      <script src="/mun-link.js"></script>
@@ -246,8 +246,32 @@
     if (seg.length < 2 || seg[0] === 'koinn' || window.top !== window.self) return;
     save('mun_last_app', { path: location.pathname, title: String(document.title || '').slice(0, 60), t: Date.now() });
   }
-  function boot() { rememberApp(); startSession(); autoBack(); ttsButton(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
+  /* ---------- 「このアプリについて」の説明は、画面のすみの小さなボタンにする（アプリの画面を侵食しないように） ---------- */
+  function fixAbout() {
+    try {
+      var a = document.getElementById('mq-about'); if (!a || a.getAttribute('data-mqf')) return;
+      var d = a.querySelector('details'), sm = d && d.querySelector('summary'); if (!d || !sm) return;
+      a.setAttribute('data-mqf', '1');
+      var ff = "'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','BIZ UDPGothic',Meiryo,sans-serif";
+      a.style.cssText = 'all:initial;display:flex;flex-direction:column;align-items:flex-end;box-sizing:border-box;position:fixed;right:10px;bottom:10px;z-index:2147483000;margin:0;padding:0;width:auto;height:auto;font-family:' + ff + ';';
+      d.style.cssText = 'display:block;box-sizing:border-box;margin:0;padding:0;background:transparent;color:#cbd5e1;font-size:15px;line-height:1.9;text-align:left;';
+      var panel = d.querySelector('div[data-mqp]');
+      if (!panel) {
+        panel = document.createElement('div'); panel.setAttribute('data-mqp', '1');
+        var kids = Array.prototype.slice.call(d.childNodes); kids.forEach(function (n) { if (n !== sm) panel.appendChild(n); });
+        d.appendChild(panel);
+      }
+      panel.style.cssText = 'display:block;box-sizing:border-box;width:min(560px,calc(100vw - 20px));max-height:72vh;overflow:auto;margin:6px 0 0;background:#0b1222;border:1px solid rgba(0,229,255,.4);border-radius:16px;padding:12px 18px;text-align:left;box-shadow:0 10px 40px rgba(0,0,0,.5);';
+      sm.style.cssText = 'display:block;list-style:none;box-sizing:border-box;cursor:pointer;margin:0 0 0 auto;padding:0;width:34px;height:34px;border-radius:50%;background:rgba(11,18,34,.82);color:#ffffff;border:1px solid rgba(0,229,255,.55);text-align:center;line-height:32px;font-size:16px;font-weight:800;opacity:.8;overflow:hidden;';
+      sm.setAttribute('title', 'このアプリについて（保護者・先生の方へ）'); sm.setAttribute('aria-label', 'このアプリについて（保護者・先生の方へ）');
+      sm.innerHTML = '📘';
+      d.removeAttribute('open');
+      var st = document.createElement('style'); st.textContent = '@media print{#mq-about{display:none!important}}#mq-about summary::-webkit-details-marker{display:none}'; (document.head || document.documentElement).appendChild(st);
+    } catch (e) {}
+  }
+  function fixAboutSoon() { fixAbout(); setTimeout(fixAbout, 600); setTimeout(fixAbout, 2500); }
+  function boot() { fixAboutSoon(); rememberApp(); startSession(); autoBack(); ttsButton(); if (location.pathname.split('/').filter(Boolean).length >= 2) setInterval(studyTick, 15000); }
   if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);
 
-  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.5', learnCoins: function () { return learnLog().c; } };
+  window.MunQuest = { complete: complete, setTotal: setTotal, getProgress: getProgress, visit: visit, backButton: backButton, toast: toast, version: '1.6', learnCoins: function () { return learnLog().c; } };
 })();
