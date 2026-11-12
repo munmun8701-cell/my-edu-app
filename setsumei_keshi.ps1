@@ -9,7 +9,7 @@ $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
 Write-Host ''
 Write-Host '=== アプリ説明を取りのぞくツール ===' -ForegroundColor Cyan
 Write-Host ('さがす場所: ' + $root)
-$rx = New-Object System.Text.RegularExpressions.Regex('(?s)(<style>@media print\{#mq-about\{display:none!important\}\}</style>\r?\n?)?<!-- mq-about:start.*?<!-- mq-about:end -->\r?\n?')
+$rx = New-Object System.Text.RegularExpressions.Regex('(?s)(<style>@media print\{#mq-about\{display:none!important\}\}</style>\r?\n?)?\r?\n?')
 $n = 0; $seen = 0
 Get-ChildItem -LiteralPath $root -Recurse -File -Include *.html | ForEach-Object {
   try {

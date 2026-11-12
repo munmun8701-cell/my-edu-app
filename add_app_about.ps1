@@ -17,7 +17,7 @@ if (-not (Test-Path (Join-Path $root 'index.html')) -or -not (Test-Path $dataPat
 }
 $data = [System.IO.File]::ReadAllText($dataPath, $utf8) | ConvertFrom-Json
 $added = 0; $updated = 0; $missing = 0; $errors = 0
-$blockRe = New-Object System.Text.RegularExpressions.Regex('(?s)<!-- mq-about:start.*?<!-- mq-about:end -->\r?\n?')
+$blockRe = New-Object System.Text.RegularExpressions.Regex('(?s)\r?\n?')
 foreach ($e in $data) {
   $file = Join-Path $root ($e.path -replace '/', [System.IO.Path]::DirectorySeparatorChar)
   if (-not (Test-Path -LiteralPath $file)) { Write-Host ('  - ' + $e.path + ' : ファイルがありません（とばします）') -ForegroundColor DarkGray; $missing++; continue }
