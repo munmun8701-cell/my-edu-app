@@ -1,0 +1,135 @@
+// 中1の単語 データ2：単元11〜20（各10語）
+STAGES.push(
+{g:"動物・自然", name:"いろいろな動物", words:[
+  {en:"lion", ja:"ライオン", ex:"A lion is called the king of animals."},
+  {en:"monkey", ja:"サル", ex:"The monkey is climbing a tree."},
+  {en:"bear", ja:"クマ", ex:"A bear lives in the forest."},
+  {en:"elephant", ja:"ゾウ", ex:"An elephant has a long nose."},
+  {en:"tiger", ja:"トラ", ex:"The tiger is very fast."},
+  {en:"panda", ja:"パンダ", ex:"Pandas eat bamboo."},
+  {en:"duck", ja:"アヒル", ex:"A duck is swimming in the pond."},
+  {en:"chicken", ja:"ニワトリ", ex:"The chicken lays eggs."},
+  {en:"snake", ja:"ヘビ", ex:"I'm not afraid of snakes."},
+  {en:"zoo", ja:"動物園", ex:"We went to the zoo."}
+]},
+{g:"動物・自然", name:"自然", words:[
+  {en:"sun", ja:"太陽", ex:"The sun is very hot."},
+  {en:"moon", ja:"月", ex:"The moon is bright tonight."},
+  {en:"star", ja:"星", ex:"Look at the stars."},
+  {en:"sky", ja:"空", ex:"The sky is blue."},
+  {en:"tree", ja:"木", ex:"There is a big tree in the park."},
+  {en:"flower", ja:"花", ex:"The flowers are beautiful."},
+  {en:"mountain", ja:"山", ex:"We climbed the mountain."},
+  {en:"river", ja:"川", ex:"The river is clean."},
+  {en:"sea", ja:"海", ex:"The sea is calm today."},
+  {en:"rain", ja:"雨", ex:"The rain stopped."}
+]},
+{g:"天気・季節・行事", name:"天気", words:[
+  {en:"weather", ja:"天気", ex:"How's the weather today?"},
+  {en:"sunny", ja:"晴れた", ex:"It's sunny today."},
+  {en:"cloudy", ja:"くもりの", ex:"It's cloudy this morning."},
+  {en:"rainy", ja:"雨の", ex:"It's a rainy day."},
+  {en:"snowy", ja:"雪の", ex:"It is snowy in Hokkaido."},
+  {en:"windy", ja:"風の強い", ex:"It is windy outside."},
+  {en:"hot", ja:"暑い", ex:"It's hot in summer."},
+  {en:"cold", ja:"寒い", ex:"It is cold in winter."},
+  {en:"warm", ja:"暖かい", ex:"It is warm in spring."},
+  {en:"cool", ja:"涼しい", ex:"It's cool in the evening."}
+]},
+{g:"天気・季節・行事", name:"季節と行事", words:[
+  {en:"spring", ja:"春", ex:"Spring is my favorite season."},
+  {en:"summer", ja:"夏", ex:"We go swimming in summer."},
+  {en:"fall", ja:"秋", ex:"Fall is a nice season."},
+  {en:"winter", ja:"冬", ex:"Winter is very cold."},
+  {en:"party", ja:"パーティー", ex:"We have a party tonight."},
+  {en:"festival", ja:"祭り", ex:"There is a festival in our town."},
+  {en:"birthday", ja:"誕生日", ex:"Happy birthday!"},
+  {en:"holiday", ja:"休日", ex:"Today is a holiday."},
+  {en:"vacation", ja:"休暇", ex:"We went on vacation."},
+  {en:"picnic", ja:"ピクニック", ex:"We had a picnic in the park."}
+]},
+{g:"食べ物・飲み物", name:"食べ物", words:[
+  {en:"bread", ja:"パン", ex:"I eat bread for breakfast."},
+  {en:"rice", ja:"ごはん", ex:"Rice is my favorite food."},
+  {en:"cheese", ja:"チーズ", ex:"Cheese is made from milk."},
+  {en:"meat", ja:"肉", ex:"Do you like meat?"},
+  {en:"salad", ja:"サラダ", ex:"The salad is fresh."},
+  {en:"soup", ja:"スープ", ex:"The soup is hot."},
+  {en:"cake", ja:"ケーキ", ex:"Let's eat cake."},
+  {en:"curry", ja:"カレー", ex:"We had curry for dinner."},
+  {en:"sandwich", ja:"サンドイッチ", ex:"I made a sandwich."},
+  {en:"pizza", ja:"ピザ", ex:"Do you like pizza?"}
+]},
+{g:"食べ物・飲み物", name:"果物と野菜", words:[
+  {en:"apple", ja:"りんご", ex:"I eat an apple every day."},
+  {en:"banana", ja:"バナナ", ex:"The banana is yellow."},
+  {en:"orange", ja:"オレンジ", ex:"Orange juice is sweet."},
+  {en:"grape", ja:"ぶどう", ex:"Grapes are purple."},
+  {en:"strawberry", ja:"いちご", ex:"Strawberries are red."},
+  {en:"potato", ja:"じゃがいも", ex:"Potatoes are good for curry."},
+  {en:"tomato", ja:"トマト", ex:"Tomatoes are red and round."},
+  {en:"onion", ja:"たまねぎ", ex:"Onions make me cry."},
+  {en:"carrot", ja:"にんじん", ex:"Carrots are good for your eyes."},
+  {en:"lemon", ja:"レモン", ex:"Add a slice of lemon to the tea."}
+]},
+{g:"食べ物・飲み物", name:"飲み物と食事", words:[
+  {en:"milk", ja:"牛乳", ex:"I drink milk every morning."},
+  {en:"water", ja:"水", ex:"Can I have some water?"},
+  {en:"tea", ja:"お茶", ex:"I drink green tea."},
+  {en:"coffee", ja:"コーヒー", ex:"My father drinks coffee."},
+  {en:"juice", ja:"ジュース", ex:"I want some orange juice."},
+  {en:"breakfast", ja:"朝ごはん", ex:"What did you eat for breakfast?"},
+  {en:"dinner", ja:"夕ごはん", ex:"We have dinner at seven."},
+  {en:"food", ja:"食べ物", ex:"This food is delicious."},
+  {en:"cup", ja:"カップ", ex:"Please bring me a cup."},
+  {en:"delicious", ja:"おいしい", ex:"This soup is delicious."}
+]},
+{g:"色・数字・時", name:"色", words:[
+  {en:"red", ja:"赤", ex:"My bag is red."},
+  {en:"blue", ja:"青", ex:"The sea is blue."},
+  {en:"green", ja:"緑", ex:"The grass is green."},
+  {en:"yellow", ja:"黄色", ex:"Yellow is my favorite color."},
+  {en:"white", ja:"白", ex:"Snow is white."},
+  {en:"black", ja:"黒", ex:"My cat is black."},
+  {en:"brown", ja:"茶色", ex:"My dog is brown."},
+  {en:"pink", ja:"ピンク", ex:"She likes pink."},
+  {en:"purple", ja:"紫", ex:"The flowers are purple."},
+  {en:"gray", ja:"灰色", ex:"The cloud is gray."}
+]},
+{g:"色・数字・時", name:"数字（1〜10）", words:[
+  {en:"one", ja:"1", ex:"I have one brother."},
+  {en:"two", ja:"2", ex:"I have two cats."},
+  {en:"three", ja:"3", ex:"There are three apples."},
+  {en:"four", ja:"4", ex:"Four people came."},
+  {en:"five", ja:"5", ex:"I have five pencils."},
+  {en:"six", ja:"6", ex:"It is six o'clock."},
+  {en:"seven", ja:"7", ex:"Seven days make a week."},
+  {en:"eight", ja:"8", ex:"I sleep eight hours."},
+  {en:"nine", ja:"9", ex:"Nine is my lucky number."},
+  {en:"ten", ja:"10", ex:"I have ten fingers."}
+]},
+{g:"色・数字・時", name:"数字（11〜100）と順番", words:[
+  {en:"eleven", ja:"11", ex:"There are eleven players on a team."},
+  {en:"twelve", ja:"12", ex:"Twelve months make a year."},
+  {en:"twenty", ja:"20", ex:"It costs twenty yen."},
+  {en:"thirty", ja:"30", ex:"I walk thirty minutes to school."},
+  {en:"forty", ja:"40", ex:"Forty people came to the party."},
+  {en:"fifty", ja:"50", ex:"He ran fifty meters."},
+  {en:"hundred", ja:"100", ex:"One hundred is a big number."},
+  {en:"first", ja:"1番目の", ex:"He came first in the race."},
+  {en:"second", ja:"2番目の", ex:"This is my second visit."},
+  {en:"third", ja:"3番目の", ex:"She is third in the line."}
+]},
+{g:"色・数字・時", name:"曜日と週", words:[
+  {en:"Monday", ja:"月曜日", ex:"School starts on Monday."},
+  {en:"Tuesday", ja:"火曜日", ex:"We have English on Tuesday."},
+  {en:"Wednesday", ja:"水曜日", ex:"It is Wednesday today."},
+  {en:"Thursday", ja:"木曜日", ex:"I play tennis on Thursday."},
+  {en:"Friday", ja:"金曜日", ex:"Friday is my favorite day."},
+  {en:"Saturday", ja:"土曜日", ex:"I go shopping on Saturday."},
+  {en:"Sunday", ja:"日曜日", ex:"We rest on Sunday."},
+  {en:"week", ja:"週", ex:"I study English every week."},
+  {en:"day", ja:"日", ex:"What day is it today?"},
+  {en:"month", ja:"1か月", ex:"The next month is December."}
+]}
+);

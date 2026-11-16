@@ -41,11 +41,18 @@ $files = @(
   'tanosikugakusyuusiyou/kotodamakuronikuru3/index.html',
   '1nennseiyougakusyuugame/tashizanhikizanhiragana/index.html',
   'sienngaxtukyuu/poxtupuko-nnwokaou/index.html',
-  'tyuugakueigokisobunnpou/1tyuugaku1nensei/index.html',
-  'tyuugakueigokisobunnpou/2tyuugaku2nensei/index.html',
-  'tyuugakueigokisobunnpou/3tyuugaku3nensei/index.html',
-  'tyuugakueigokisobunnpou/4koukouzyukenkiso/index.html',
-  'tyuugakueigokisobunnpou/5koukouzyukenntyoubun/index.html'
+  'tyuugakuseieigo/1tyuugaku1nensei/index.html',
+  'tyuugakuseieigo/2tyuugaku2nensei/index.html',
+  'tyuugakuseieigo/3tyuugaku3nensei/index.html',
+  'tyuugakuseieigo/4koukouzyukenkiso/index.html',
+  'tyuugakuseieigo/5koukouzyukenntyoubun/index.html',
+  'tyuugakuseieigo/1nennseinoeitanngo/index.html',
+  'kokugo/kokugowa-rudo1/index.html',
+  'kokugo/kokugowa-rudo2/index.html',
+  'kokugo/kokugowa-rudo3/index.html',
+  'tanosikugakusyuusiyou/3dkotodamakuronikuru1/index.html',
+  'tanosikugakusyuusiyou/3dkotodamakuronikuru2/index.html',
+  'tanosikugakusyuusiyou/3dkotodamakuronikuru3/index.html'
 )
 $strict = New-Object System.Text.UTF8Encoding($false, $true)
 $added = 0; $skipped = 0; $errors = 0
