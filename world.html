@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>むんワールド 3D｜むん先生の学習クエスト</title>
+<meta name="description" content="むん先生の学習クエストを3Dの町にしたメタバース風ワールド。歩き回ってクイズで学び、スターを集めて、自分だけのキャラクターにきせかえしよう！">
+<meta name="theme-color" content="#050914">
+<link rel="canonical" href="https://www.munmungstudymax.com/world.html">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --bg:#050914; --cyan:#00e5ff; --purple:#a855f7; --pink:#ec4899; --gold:#fbbf24; --emerald:#10b981;
+    --ink:#fff; --ink2:#94a3b8; --panel:rgba(10,15,30,.86); --line:rgba(148,163,184,.18);
+    --sat: env(safe-area-inset-top,0px); --sab: env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','BIZ UDPGothic',system-ui,sans-serif;touch-action:none;overscroll-behavior:none}
+  #c{position:fixed;inset:0;display:block;outline:none}
+  button{font-family:inherit}
+
+  /* ---- HUD ---- */
+  .hud{position:fixed;left:0;right:0;top:0;padding:calc(10px + var(--sat)) 12px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none;z-index:5}
+  .hud > *{pointer-events:auto}
+  .badge{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 12px;backdrop-filter:blur(8px);box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  .badge .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:grid;place-items:center;font-size:18px;color:#050914;box-shadow:0 0 14px rgba(0,229,255,.5)}
+  .badge b{font-size:.95rem;display:block;line-height:1.15}
+  .badge small{color:var(--ink2);font-size:.72rem}
+  .badge .coin{color:var(--gold);font-weight:800}
+  .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .ib{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);color:#fff;border-radius:999px;padding:8px 12px;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none;backdrop-filter:blur(8px)}
+  .ib:hover{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.35)}
+  .ib i{color:var(--cyan)}
+
+  /* ---- place name ---- */
+  #place{position:fixed;left:50%;top:calc(14px + var(--sat));transform:translateX(-50%);background:rgba(5,9,20,.7);border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:.85rem;font-weight:800;letter-spacing:.04em;z-index:4;pointer-events:none;transition:opacity .3s;white-space:nowrap}
+  #place i{color:var(--gold);margin-right:6px}
+
+  /* ---- prompt ---- */
+  #prompt{position:fixed;left:50%;bottom:calc(120px + var(--sab));transform:translateX(-50%);background:var(--panel);border:1px solid var(--cyan);border-radius:16px;padding:10px 16px;font-weight:800;z-index:6;display:none;align-items:center;gap:10px;box-shadow:0 0 24px rgba(0,229,255,.35);cursor:pointer;max-width:92vw}
+  #prompt.on{display:flex}
+  #prompt .k{background:var(--cyan);color:#050914;border-radius:8px;padding:2px 8px;font-size:.75rem}
+  #prompt small{color:var(--ink2);font-weight:500}
+
+  /* ---- minimap ---- */
+  #mm{position:fixed;right:12px;bottom:calc(12px + var(--sab));width:132px;height:132px;border-radius:50%;border:2px solid rgba(0,229,255,.4);background:rgba(5,9,20,.75);z-index:5;box-shadow:0 0 18px rgba(0,229,255,.25)}
+  @media (max-width:700px){ #mm{width:96px;height:96px;right:10px;bottom:calc(10px + var(--sab))} #place{top:calc(70px + var(--sat));font-size:.78rem} .badge b{font-size:.85rem} }
+
+  /* ---- joystick ---- */
+  #joy{position:fixed;left:18px;bottom:calc(18px + var(--sab));width:130px;height:130px;border-radius:50%;background:rgba(148,163,184,.12);border:2px solid rgba(148,163,184,.3);z-index:5;display:none;touch-action:none}
+  #joy .knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,var(--cyan));box-shadow:0 0 16px rgba(0,229,255,.6)}
+  .touch #joy{display:block}
+  #jump{position:fixed;right:160px;bottom:calc(36px + var(--sab));width:64px;height:64px;border-radius:50%;background:rgba(251,191,36,.2);border:2px solid var(--gold);color:var(--gold);font-weight:900;font-size:.68rem;line-height:1.1;z-index:5;display:none;touch-action:none}
+  .touch #jump{display:block}
+  @media (max-width:700px){ #jump{right:120px;width:56px;height:56px} }
+
+  /* ---- help ---- */
+  #help{position:fixed;left:50%;bottom:calc(14px + var(--sab));transform:translateX(-50%);color:var(--ink2);font-size:.74rem;background:rgba(5,9,20,.55);padding:4px 12px;border-radius:999px;z-index:4;pointer-events:none;white-space:nowrap}
+  .touch #help{display:none}
+
+  /* ---- panel (quest list) ---- */
+  #ov{position:fixed;inset:0;background:rgba(2,4,12,.55);backdrop-filter:blur(3px);z-index:20;display:none;align-items:center;justify-content:center;padding:14px}
+  #ov.on{display:flex}
+  .panel{width:min(760px,100%);max-height:min(86vh,860px);background:linear-gradient(180deg,rgba(15,23,42,.97),rgba(5,9,20,.97));border:1px solid var(--pc,var(--cyan));border-radius:24px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 40px color-mix(in srgb,var(--pc,var(--cyan)) 35%,transparent),0 30px 80px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;animation:pop .28s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes pop{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+  .ph{display:flex;align-items:center;gap:14px;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+  .ph .pi{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:24px;color:#050914;background:var(--pc,var(--cyan));box-shadow:0 0 18px color-mix(in srgb,var(--pc,var(--cyan)) 60%,transparent);flex:none}
+  .ph h2{margin:0;font-size:1.2rem;line-height:1.2}
+  .ph p{margin:4px 0 0;color:var(--ink2);font-size:.8rem;line-height:1.5}
+  .ph .x{margin-left:auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:rgba(148,163,184,.1);color:#fff;font-size:18px;cursor:pointer;flex:none}
+  .pb{overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;-webkit-overflow-scrolling:touch}
+  .qa{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:16px;background:rgba(148,163,184,.07);border:1px solid var(--line);text-decoration:none;color:#fff;transition:.15s}
+  .qa:hover{border-color:var(--pc,var(--cyan));background:rgba(148,163,184,.13);transform:translateY(-2px)}
+  .qa .qi{width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--pc,var(--cyan)) 22%,transparent);color:var(--pc,var(--cyan));display:grid;place-items:center;font-size:18px;flex:none}
+  .qa b{display:block;font-size:.92rem;line-height:1.3}
+  .qa span{display:block;color:var(--ink2);font-size:.74rem;line-height:1.45;margin-top:3px}
+  .qa .no{font-size:.68rem;color:var(--pc,var(--cyan));font-weight:800;letter-spacing:.06em}
+  .pf{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--ink2)}
+  .pf a{color:var(--cyan);text-decoration:none;font-weight:700}
+  .pf .go{background:var(--pc,var(--cyan));color:#050914;border-radius:999px;padding:9px 16px;font-weight:900;text-decoration:none;font-size:.9rem}
+
+  /* ---- intro ---- */
+  #intro{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,rgba(168,85,247,.25),transparent 60%),var(--bg);padding:20px}
+  #intro .card{max-width:520px;width:100%;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:30px 26px;box-shadow:0 0 60px rgba(0,229,255,.15)}
+  #intro h1{margin:0 0 6px;font-size:1.7rem;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  #intro p{color:var(--ink2);font-size:.88rem;line-height:1.7;margin:0 0 16px}
+  #intro .ctl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 18px;text-align:left}
+  #intro .ctl div{background:rgba(148,163,184,.08);border-radius:14px;padding:10px 12px;font-size:.78rem;line-height:1.5}
+  #intro .ctl b{color:var(--gold);display:block;font-size:.8rem}
+  #start{width:100%;border:0;border-radius:999px;padding:14px;font-size:1.05rem;font-weight:900;color:#050914;background:linear-gradient(90deg,var(--cyan),#7dd3fc);cursor:pointer;box-shadow:0 0 24px rgba(0,229,255,.5)}
+  #start:hover{transform:translateY(-2px)}
+  #intro .back{display:inline-block;margin-top:12px;color:var(--ink2);font-size:.78rem}
+  #intro .ld{color:var(--ink2);font-size:.78rem;margin-top:10px}
+  #err{display:none;background:rgba(239,68,68,.15);border:1px solid #ef4444;border-radius:12px;padding:10px;font-size:.8rem;margin-top:10px}
+
+  /* ---- toast ---- */
+  #toast{position:fixed;left:50%;top:calc(70px + var(--sat));transform:translateX(-50%) translateY(-10px);background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:8px 16px;font-weight:800;font-size:.85rem;z-index:9;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+  #toast.on{opacity:1;transform:translateX(-50%)}
+
+  /* =========================================================
+     2026-11-17 追加：きせかえ・クイズ・ミッションなど
+  ========================================================= */
+  .badge .st{color:#fde68a;font-weight:800;margin-left:6px}
+  .badge .gr{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:rgba(0,229,255,.15);color:var(--cyan);font-size:.68rem;font-weight:800}
+  .badge .av{font-size:22px}
+  .tools{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+  .tb{position:relative;width:44px;height:44px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:#fff;font-size:20px;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(8px)}
+  .tb:hover{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.35)}
+  .tb .dot{position:absolute;right:-3px;top:-3px;min-width:16px;height:16px;border-radius:999px;background:var(--pink);color:#fff;font-size:.6rem;font-weight:900;display:none;place-items:center;padding:0 4px}
+  .tb .dot.on{display:grid}
+  .tb .tl{position:absolute;right:52px;top:50%;transform:translateY(-50%);white-space:nowrap;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:.72rem;font-weight:700;opacity:0;pointer-events:none;transition:.15s}
+  .tb:hover .tl{opacity:1}
+  .touch .tb .tl{display:none}
+  #emo{position:fixed;right:64px;z-index:6;display:none;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:6px;backdrop-filter:blur(8px)}
+  #emo.on{display:flex}
+  #emo button{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:rgba(148,163,184,.1);font-size:22px;cursor:pointer;color:#fff}
+  #emo button small{display:block;font-size:.55rem;margin-top:-2px;color:var(--ink2)}
+  #dash{position:fixed;right:160px;bottom:calc(108px + var(--sab));width:52px;height:52px;border-radius:50%;background:rgba(0,229,255,.15);border:2px solid var(--cyan);color:var(--cyan);font-weight:900;font-size:.62rem;line-height:1.1;z-index:5;display:none;touch-action:none}
+  .touch #dash{display:block}
+  #dash.on{background:var(--cyan);color:#050914}
+  @media (max-width:700px){ #dash{right:122px;bottom:calc(98px + var(--sab));width:48px;height:48px} }
+
+  /* パネル：小物 */
+  .panel.dock{position:fixed;right:14px;top:auto;bottom:14px;width:min(430px,calc(100vw - 28px));max-height:min(78vh,720px);animation:slide .25s ease}
+  @keyframes slide{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+  @media (max-width:700px){ .panel.dock{left:8px;right:8px;width:auto;bottom:8px;max-height:52vh} }
+  #ov.dockmode{background:transparent;backdrop-filter:none;pointer-events:none}
+  #ov.dockmode .panel{pointer-events:auto}
+  .pb.one{display:block}
+  .sec{margin:0 0 14px}
+  .sec h3{margin:0 0 8px;font-size:.9rem;color:var(--gold);display:flex;align-items:center;gap:6px}
+  .row{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{min-width:64px;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:rgba(148,163,184,.08);color:#fff;cursor:pointer;font-size:.8rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+  .opt .e{font-size:22px;line-height:1.1}
+  .opt.on{border-color:var(--cyan);background:rgba(0,229,255,.16);box-shadow:0 0 12px rgba(0,229,255,.3)}
+  .opt.lock{opacity:.5;cursor:not-allowed}
+  .opt.lock::after{content:'🔒';position:absolute;right:4px;top:2px;font-size:.7rem}
+  .opt .need{font-size:.6rem;color:var(--ink2);font-weight:500}
+  .sw{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.25);cursor:pointer}
+  .sw.on{outline:3px solid var(--cyan);outline-offset:2px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0}
+  .tab{border:1px solid var(--line);background:rgba(148,163,184,.08);color:#fff;border-radius:999px;padding:6px 12px;font-weight:800;font-size:.8rem;cursor:pointer}
+  .tab.on{background:var(--cyan);color:#050914;border-color:var(--cyan)}
+  .inp{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(5,9,20,.6);color:#fff;font-size:1rem;font-family:inherit}
+  .note{font-size:.74rem;color:var(--ink2);line-height:1.6;margin:6px 0 0}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:999px;padding:10px 16px;font-weight:900;font-size:.9rem;cursor:pointer;background:var(--pc,var(--cyan));color:#050914;text-decoration:none}
+  .btn.sub{background:rgba(148,163,184,.15);color:#fff;border:1px solid var(--line)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* クイズ */
+  .qz{text-align:center}
+  .qz .qs{font-size:clamp(1.15rem,3.6vw,1.6rem);font-weight:900;line-height:1.55;margin:6px 0 16px;white-space:pre-line}
+  .qz .ch{display:grid;gap:10px}
+  .qz .ch button{border:2px solid var(--line);background:rgba(148,163,184,.08);color:#fff;border-radius:16px;padding:14px 12px;font-size:clamp(1rem,3.2vw,1.2rem);font-weight:800;cursor:pointer;font-family:inherit;transition:.12s}
+  .qz .ch button:hover{border-color:var(--pc,var(--cyan));transform:translateY(-1px)}
+  .qz .ch button.ok{border-color:#22c55e;background:rgba(34,197,94,.22)}
+  .qz .ch button.ng{border-color:#ef4444;background:rgba(239,68,68,.2)}
+  .qz .res{margin-top:14px;font-weight:900;font-size:1.1rem;min-height:1.4em}
+  .qz .why{color:var(--ink2);font-size:.85rem;margin-top:4px}
+  .qz .hp{font-size:1.2rem;letter-spacing:.1em}
+  .qz .sp{border:1px solid var(--line);background:rgba(148,163,184,.1);color:#fff;border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:pointer;font-family:inherit}
+
+  /* きろく・ミッション */
+  .ms{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(148,163,184,.07);border:1px solid var(--line);margin-bottom:8px}
+  .ms .ck{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(148,163,184,.15);flex:none}
+  .ms.done .ck{background:#22c55e;color:#050914}
+  .ms b{font-size:.88rem;display:block}
+  .ms small{color:var(--ink2);font-size:.72rem}
+  .bar{height:10px;border-radius:999px;background:rgba(148,163,184,.15);overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .stats div{background:rgba(148,163,184,.07);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+  .stats b{display:block;font-size:1.3rem;color:var(--gold)}
+  .stats small{color:var(--ink2);font-size:.72rem}
+  .sj{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:.82rem;margin-bottom:6px}
+  .sj span:last-child{text-align:right;color:var(--ink2)}
+  .weak{background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.5);border-radius:14px;padding:10px 12px;font-size:.84rem;line-height:1.6}
+
+  /* 学年えらび（はじめの画面） */
+  .grades{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 16px}
+  .grades button{border:1px solid var(--line);background:rgba(148,163,184,.08);color:#fff;border-radius:999px;padding:7px 12px;font-weight:800;font-size:.82rem;cursor:pointer;font-family:inherit}
+  .grades button.on{background:var(--gold);color:#050914;border-color:var(--gold)}
+  #intro .gl{font-size:.8rem;color:var(--gold);font-weight:800;margin:0 0 6px}
+
+  /* 写真モード */
+  #photo-ui{position:fixed;left:0;right:0;bottom:calc(20px + var(--sab));display:none;justify-content:center;gap:14px;z-index:8}
+  .photo #photo-ui{display:flex}
+  #photo-ui button{border:0;border-radius:999px;padding:14px 22px;font-weight:900;font-size:1rem;cursor:pointer;font-family:inherit}
+  #shutter{background:#fff;color:#050914;box-shadow:0 0 24px rgba(255,255,255,.5)}
+  #photo-x{background:var(--panel);color:#fff;border:1px solid var(--line)!important}
+  .photo .hud,.photo #mm,.photo #joy,.photo #jump,.photo #dash,.photo #help,.photo #place,.photo #prompt,.photo #emo,.photo #toast{display:none!important}
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:40;transition:opacity .35s}
+  #flash.on{opacity:.85;transition:none}
+
+  /* ごほうび表示 */
+  #gain{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.8);z-index:12;pointer-events:none;opacity:0;text-align:center;font-weight:900;font-size:clamp(1.4rem,5vw,2.2rem);text-shadow:0 0 18px rgba(251,191,36,.8),0 4px 0 rgba(0,0,0,.4);transition:.25s}
+  #gain.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #gain small{display:block;font-size:.5em;color:#e2e8f0}
+  #mm{cursor:pointer}
+  @media (max-width:700px){ #toast{white-space:normal;width:max-content;max-width:calc(100vw - 24px);text-align:center;line-height:1.5} }
+</style>
+</head>
+<body>
+<canvas id="c" tabindex="0"></canvas>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="badge">
+    <div class="av" id="hud-av">🐱</div>
+    <div><b id="hud-lv">Lv.1 ぼうけん者</b><small>EXP <span id="hud-exp">0</span> ・ <span class="coin"><i class="fa-solid fa-coins"></i> <span id="hud-coin">0</span></span><span class="st">⭐ <span id="hud-star">0</span></span><span class="gr" id="hud-gr">小学3年</span></small></div>
+  </div>
+  <div class="hud-r">
+    <a class="ib" href="./index.html"><i class="fa-solid fa-house"></i> トップページ</a>
+    <button class="ib" id="btn-map" type="button"><i class="fa-solid fa-map"></i> 案内図</button>
+    <div class="tools">
+      <button class="tb" id="btn-closet" type="button" aria-label="きせかえ">👕<span class="dot" id="dot-closet">!</span><span class="tl">きせかえ</span></button>
+      <button class="tb" id="btn-mission" type="button" aria-label="ミッション">📋<span class="dot" id="dot-mission"></span><span class="tl">きょうのミッション</span></button>
+      <button class="tb" id="btn-emo" type="button" aria-label="エモート">😀<span class="tl">エモート</span></button>
+      <button class="tb" id="btn-rec" type="button" aria-label="きろく">📊<span class="tl">きろく・にがてチェック</span></button>
+      <button class="tb" id="btn-photo" type="button" aria-label="写真">📷<span class="tl">写真をとる</span></button>
+      <button class="tb" id="btn-set" type="button" aria-label="せってい">⚙️<span class="tl">せってい</span></button>
+    </div>
+  </div>
+</div>
+<div id="emo">
+  <button type="button" data-emo="wave">👋<small>手をふる</small></button>
+  <button type="button" data-emo="dance">💃<small>ダンス</small></button>
+  <button type="button" data-emo="cheer">🙌<small>ばんざい</small></button>
+  <button type="button" data-emo="sit">🪑<small>すわる</small></button>
+  <button type="button" data-emo="spin">🌀<small>くるっと</small></button>
+</div>
+<div id="place"><i class="fa-solid fa-location-dot"></i><span>むん広場</span></div>
+<div id="prompt"><span class="k">タップ / Enter</span><span id="prompt-t">クエストを見る</span><small id="prompt-s"></small></div>
+<canvas id="mm" width="264" height="264" title="案内図をひらく"></canvas>
+<div id="joy"><div class="knob"></div></div>
+<button id="jump" type="button"><i class="fa-solid fa-arrow-up"></i><br>JUMP</button>
+<button id="dash" type="button"><i class="fa-solid fa-person-running"></i><br>ダッシュ</button>
+<div id="help">W A S D / 矢印キーで歩く ・ Shift でダッシュ ・ Space でジャンプ ・ ドラッグで見回す ・ Enter で入る・話す</div>
+<div id="toast"></div>
+<div id="gain"></div>
+<div id="flash"></div>
+<div id="photo-ui"><button id="shutter" type="button">📷 とる</button><button id="photo-x" type="button">もどる</button></div>
+
+<!-- パネル -->
+<div id="ov"><div class="panel" id="panel"></div></div>
+
+<!-- はじめの画面 -->
+<div id="intro">
+  <div class="card">
+    <h1><i class="fa-solid fa-earth-asia"></i> むんワールド 3D</h1>
+    <p>むん先生の学習クエストが、歩き回れる3Dの町になりました。<br>クイズ石で学んで ⭐スターを集め、きせかえを ふやそう！</p>
+    <div class="gl">あなたの学年は？（クイズの むずかしさが かわります）</div>
+    <div class="grades" id="grades"></div>
+    <div class="ctl">
+      <div><b><i class="fa-solid fa-keyboard"></i> パソコン</b>W A S D / 矢印キーで歩く<br>マウスをドラッグで見回す<br>Enter で入る・話す</div>
+      <div><b><i class="fa-solid fa-hand-pointer"></i> タブレット</b>左のスティックで歩く<br>画面をドラッグで見回す<br>たてものや人をタップ</div>
+    </div>
+    <button id="start" type="button"><i class="fa-solid fa-play"></i> ワールドに入る</button>
+    <div class="ld" id="ld">読み込み中…</div>
+    <div id="err"></div>
+    <a class="back" href="./index.html"><i class="fa-solid fa-arrow-left"></i> いつものトップページにもどる</a>
+  </div>
+</div>
+
+<script id="data" type="application/json">{"cats":[{"id":"math1","label":"1年 算数","name":"1年生 さんすう","icon":"fa-solid fa-apple-whole","desc":"1年生のさんすうを、たのしく1じかんずつ学べるコーナーです。たんげんは じゅんばんに ふえていきます。","hidden":false,"apps":[{"t":"なかまづくりとかず","d":"おなじなかまをあつめて、10までのかずをかぞえよう！","h":"./1nennseisannsuu/01nakamadukuritokazu/index.html","i":"fa-solid fa-apple-whole","id":"app-math1-1"},{"t":"なかまづくりとかず（2）","d":"10までのかずのならびや、どちらがおおきいかをしらべよう！","h":"./1nennseisannsuu/02nakamadukuritokazu/index.html","i":"fa-solid fa-arrow-up-1-9","id":"app-math1-2"}]},{"id":"math3","label":"3年 算数","name":"3年生 算数ドリル","icon":"fa-solid fa-pen-to-square","desc":"3年生の算数の単元を、教科書の順番にマスターできる練習コーナーです。単元01〜10は、むん先生のオリジナル問題で、1時間ごとの授業にそって自分に合ったレベルで学べます。","hidden":false,"apps":[{"t":"わり算","d":"「同じ数ずつ分ける」わり算を、1時間ずつ学ぼう！","h":"./3nennseisannsuu/01warikireruwarizann/index.html","i":"fa-solid fa-divide","id":"app-math-1"},{"t":"時計と時間","d":"時こくと時間のちがいや計算を、1時間ずつ学ぼう！","h":"./3nennseisannsuu/02tokei/index.html","i":"fa-solid fa-clock","id":"app-math-2"},{"t":"大きな数","d":"大きな数の筆算を、1時間ずつマスターしよう！","h":"./3nennseisannsuu/03ookinakazu/index.html","i":"fa-solid fa-arrow-up-9-1","id":"app-math-3"},{"t":"きょりと長さ","d":"まきじゃくの使い方や、kmとmの関係を1時間ずつ学ぼう！","h":"./3nennseisannsuu/04kyoritongasa/index.html","i":"fa-solid fa-ruler-combined","id":"app-math-4"},{"t":"表とグラフ","d":"データを分けて数え、ぼうグラフや表に表して調べよう！","h":"./3nennseisannsuu/05kirokuwoseirisitesirabeyou/index.html","i":"fa-solid fa-chart-column","id":"app-math-5"},{"t":"暗算で計算しよう","d":"暗算のしかたを、1時間ずつ学ぼう！","h":"./3nennseisannsuu/06annzanndekeisannsiyou/index.html","i":"fa-solid fa-bolt","id":"app-math-6"},{"t":"わり算 2","d":"あまりのあるわり算を、1時間ずつ学ぼう！","h":"./3nennseisannsuu/07warizann2/index.html","i":"fa-solid fa-trophy","id":"app-math-7"},{"t":"10000より大きい数","d":"一万をこえる大きな数のしくみを、1時間ずつ学ぼう！","h":"./3nennseisannsuu/08a10000yorio/index.html","i":"fa-solid fa-gem","id":"app-math-8"},{"t":"大きな数のかけ算の仕方","d":"2けた・3けたのかけ算を、1時間ずつ学ぼう！","h":"./3nennseisannsuu/09ookiikazunokakezannnosikata/index.html","i":"fa-solid fa-xmark","id":"app-math-9"},{"t":"わり算や分数を考えよう","d":"わり算と分数の考え方を、1時間ずつ学ぼう！","h":"./3nennseisannsuu/10warizannyabunnsuuwokanngaeyou/index.html","i":"fa-solid fa-chart-pie","id":"app-math-10"},{"t":"重さの表し方","d":"gやkgなど、重さの単位をマスターしよう！","h":"./3nennseisannsuu/11omosanoarawasikata/index.html","i":"fa-solid fa-scale-balanced","id":"app-math-11"},{"t":"数の表し方","d":"小数の仕組みや、いろいろな数の表し方を学ぼう！","h":"./3nennseisannsuu/12kazunoarawasikata/index.html","i":"fa-solid fa-hashtag","id":"app-math-12"},{"t":"分数を使った数の表し方","d":"分数を使って、はしたの大きさを正しく表そう！","h":"./3nennseisannsuu/13bunnsuuwotukaxtutakazunoarawasikata/index.html","i":"fa-solid fa-pizza-slice","id":"app-math-13"},{"t":"□を使った計算","d":"わからない数を□にして、式を立てて答えを見つけよう！","h":"./3nennseisannsuu/14sikakuwotukaxtutakeisan/index.html","i":"fa-regular fa-square","id":"app-math-14"},{"t":"かけ算の筆算","d":"2けた×1けた、3けた×1けたのかけ算を筆算で解こう！","h":"./3nennseisannsuu/15kakezannnohixtusann/index.html","i":"fa-solid fa-list-ol","id":"app-math-15"},{"t":"倍の計算","d":"ある数がもとの数の何倍になるか、計算で求めよう！","h":"./3nennseisannsuu/16bainokeisan/index.html","i":"fa-solid fa-layer-group","id":"app-math-16"},{"t":"丸い形を調べよう","d":"円や球のひみつ、コンパスの使い方をマスターしよう！","h":"./3nennseisannsuu/17maruikatatiwosirabeyou/index.html","i":"fa-solid fa-circle-notch","id":"app-math-17"},{"t":"三角形を調べよう","d":"二等辺三角形や正三角形のひみつを探ろう！","h":"./3nennseisannsuu/18sannkaxtukeiwosirabeyou/index.html","i":"fa-solid fa-shapes","id":"app-math-18"},{"t":"そろばん","d":"そろばんを使って、たし算やひき算の計算をしよう！","h":"./3nennseisannsuu/19soroban/index.html","i":"fa-solid fa-calculator","id":"app-math-19"}]},{"id":"math4","label":"4年 算数","name":"4年生 算数ドリル","icon":"fa-solid fa-calculator","desc":"4年生の算数の単元を、むん先生のオリジナル問題で、1時間ごとの授業にそって学べるコーナーです。単元は順番に追加していきます。","hidden":false,"apps":[{"t":"1億より大きい数","d":"億や兆といった、とても大きな数の仕組みを調べよう！","h":"./4nennseisannsuu/011okuyoriookiikazuwosirabeyou/index.html","i":"fa-solid fa-arrow-up-9-1","id":"app-math4-1"},{"t":"グラフや表を使って考えよう","d":"折れ線グラフなどを読み取って、変化のようすを調べよう！","h":"./4nennseisannsuu/02gurahuyahyouwotukaxtutekanngaeyou/index.html","i":"fa-solid fa-chart-line","id":"app-math4-2"},{"t":"わり算のしかた","d":"わり算の筆算のしかたをマスターしよう！","h":"./4nennseisannsuu/03warizannosikata/index.html","i":"fa-solid fa-divide","id":"app-math4-3"},{"t":"角の大きさの表し方","d":"分度器を使って、角の大きさを正しくはかろう！","h":"./4nennseisannsuu/04kakunoookisanoarawasikata/index.html","i":"fa-solid fa-angle-up","id":"app-math4-4"},{"t":"小数のしくみを調べよう","d":"小数のたし算やひき算、小数のしくみを学ぼう！","h":"./4nennseisannsuu/05syousuunosikumiwosirabeyou/index.html","i":"fa-solid fa-magnifying-glass-chart","id":"app-math4-5"},{"t":"そろばん","d":"そろばんを使って大きな数や小数の計算をしよう！","h":"./4nennseisannsuu/06soroban/index.html","i":"fa-solid fa-calculator","id":"app-math4-6"},{"t":"わり算の筆算を考えよう","d":"2けたでわるわり算の筆算のしかたをマスターしよう！","h":"./4nennseisannsuu/07warizannnohixtusannwokanngaeyou/index.html","i":"fa-solid fa-divide","id":"app-math4-7"},{"t":"およその数の表し方と使い方","d":"四捨五入でがい数にして、見積もりに使おう！","h":"./4nennseisannsuu/08oyosonokazunoarawasikatatotukaikata/index.html","i":"fa-solid fa-bullseye","id":"app-math4-8"},{"t":"補充問題1","d":"これまでの学習を、問題でふりかえろう！","h":"./4nennseisannsuu/09hozyuumonndai1/index.html","i":"fa-solid fa-dumbbell","id":"app-math4-9"}]},{"id":"math5","label":"5年 算数","name":"5年生 算数","icon":"fa-solid fa-plus-minus","desc":"5年生の算数の単元を、むん先生のオリジナル問題で、1時間ごとの授業にそって学べるコーナーです。単元は順番に追加していきます。","hidden":false,"apps":[{"t":"整数と小数","d":"10倍・100倍したときの小数点の動きを調べよう！","h":"./5nenseisannsuu/01seisuutosyousuu/index.html","i":"fa-solid fa-hashtag","id":"app-math5-1"},{"t":"直方体や立方体の体積","d":"1cm³の何こ分かで、体積を求めよう！","h":"./5nenseisannsuu/02tyokuhoutaiyarixtupoutainotaiseki/index.html","i":"fa-solid fa-cube","id":"app-math5-2"},{"t":"比例","d":"一方が2倍、3倍…になると、もう一方はどうなるか調べよう！","h":"./5nenseisannsuu/03hirei/index.html","i":"fa-solid fa-chart-line","id":"app-math5-3"},{"t":"小数のかけ算","d":"小数をかける計算のしかたを考えよう！","h":"./5nenseisannsuu/04syousuunokakezann/index.html","i":"fa-solid fa-xmark","id":"app-math5-4"},{"t":"小数のわり算","d":"小数でわる計算のしかたを考えよう！","h":"./5nenseisannsuu/05syousuunowarizann/index.html","i":"fa-solid fa-divide","id":"app-math5-5"},{"t":"小数の倍","d":"何倍かが小数になるときの考え方を学ぼう！","h":"./5nenseisannsuu/06syousuunobai/index.html","i":"fa-solid fa-magnifying-glass-plus","id":"app-math5-6"},{"t":"合同な図形","d":"ぴったり重なる図形の性質やかき方を調べよう！","h":"./5nenseisannsuu/07goudounazukei/index.html","i":"fa-solid fa-clone","id":"app-math5-7"},{"t":"図形の角","d":"三角形や四角形の角の大きさの和を調べよう！","h":"./5nenseisannsuu/08zukeinokaku/index.html","i":"fa-solid fa-draw-polygon","id":"app-math5-8"},{"t":"偶数と奇数","d":"偶数・奇数や、倍数・約数のなかま分けをしよう！","h":"./5nenseisannsuu/09guusuutokisuu/index.html","i":"fa-solid fa-list-ol","id":"app-math5-9"},{"t":"分数のたし算とひき算","d":"分母のちがう分数のたし算・ひき算を考えよう！","h":"./5nenseisannsuu/10bunnsuunotasizannhikizann/index.html","i":"fa-solid fa-plus-minus","id":"app-math5-10"},{"t":"分数と小数、整数の関係","d":"分数・小数・整数を、たがいに表しかえよう！","h":"./5nenseisannsuu/11bunnsuutosyousuutoseisuunokannkei/index.html","i":"fa-solid fa-arrows-rotate","id":"app-math5-11"},{"t":"補充問題1","d":"これまでの学習を、問題でふりかえろう！","h":"./5nenseisannsuu/12hozyuumonndai1/index.html","i":"fa-solid fa-dumbbell","id":"app-math5-12"},{"t":"平均","d":"ならしたときの大きさ「平均」を求めよう！","h":"./5nenseisannsuu/13heikinn/index.html","i":"fa-solid fa-scale-balanced","id":"app-math5-13"},{"t":"単位量あたりの大きさ","d":"こみぐあいや速さを、くらべ方から考えよう！","h":"./5nenseisannsuu/14tanniryouatarinoookisa/index.html","i":"fa-solid fa-people-group","id":"app-math5-14"}]},{"id":"math6","label":"6年 算数","name":"6年生 算数","icon":"fa-solid fa-square-root-variable","desc":"6年生の算数の単元を、むん先生のオリジナル問題で、1時間ごとの授業にそって学べるコーナーです。単元は順番に追加していきます。","hidden":false,"apps":[{"t":"つり合いのとれた図形を調べよう","d":"線対称・点対称な図形のひみつを調べよう！","h":"./6nennseisannsuu/01turiainotoretazukeiwosirabeyou/index.html","i":"fa-solid fa-shapes","id":"app-math6-1"},{"t":"文字と式","d":"x や a を使って、数量の関係を式に表そう！","h":"./6nennseisannsuu/02mozitosiki/index.html","i":"fa-solid fa-square-root-variable","id":"app-math6-2"},{"t":"分数をかける計算を考えよう","d":"分数×分数の計算のしかたを考えよう！","h":"./6nennseisannsuu/03bunnsuuwokakerukeisannwokanngaeyou/index.html","i":"fa-solid fa-xmark","id":"app-math6-3"},{"t":"分数をわる計算を考えよう","d":"分数÷分数の計算のしかたを考えよう！","h":"./6nennseisannsuu/04bunnsuuwowarukeisannwokanngaeyou/index.html","i":"fa-solid fa-divide","id":"app-math6-4"},{"t":"分数の倍","d":"何倍かが分数になるときの考え方を学ぼう！","h":"./6nennseisannsuu/05bunnsuunobai/index.html","i":"fa-solid fa-magnifying-glass-plus","id":"app-math6-5"},{"t":"割合の表し方を調べよう","d":"比を使って、2つの量の割合を表そう！","h":"./6nennseisannsuu/06wariainoarawasikata/index.html","i":"fa-solid fa-scale-unbalanced","id":"app-math6-6"},{"t":"拡大図と縮図","d":"形を変えずに大きくしたり小さくしたりした図を調べよう！","h":"./6nennseisannsuu/07kakudaizutosyukuzu/index.html","i":"fa-solid fa-up-right-and-down-left-from-center","id":"app-math6-7"},{"t":"データの調べ方","d":"平均値やちらばりから、データの特ちょうを読みとろう！","h":"./6nennseisannsuu/08de-tanosirabekata/index.html","i":"fa-solid fa-chart-column","id":"app-math6-8"},{"t":"円の面積","d":"半径×半径×円周率で、円の面積を求めよう！","h":"./6nennseisannsuu/09ennnomennseki/index.html","i":"fa-solid fa-circle","id":"app-math6-9"},{"t":"角柱と円柱の体積","d":"底面積×高さで、角柱や円柱の体積を求めよう！","h":"./6nennseisannsuu/10kakutyuutoenntyuunomennski/index.html","i":"fa-solid fa-database","id":"app-math6-10"},{"t":"およその面積","d":"身近な形を図形とみて、面積を見積もろう！","h":"./6nennseisannsuu/12oyosonomennseki/index.html","i":"fa-solid fa-map","id":"app-math6-12"},{"t":"比例と反比例","d":"ともなって変わる2つの量の関係を調べよう！","h":"./6nennseisannsuu/13hireitohannpirei/index.html","i":"fa-solid fa-chart-line","id":"app-math6-13"},{"t":"並べ方と組み合わせ方","d":"落ちや重なりがないように、すべての場合を調べよう！","h":"./6nennseisannsuu/14narabekatatokumiawasekata/index.html","i":"fa-solid fa-shuffle","id":"app-math6-14"},{"t":"小学生の算数の仕上げ","d":"6年間の算数をふりかえって、中学校へ進もう！","h":"./6nennseisannsuu/15syougakuseinosannsuunosiage/index.html","i":"fa-solid fa-graduation-cap","id":"app-math6-15"}]},{"id":"kokugo","label":"国語","name":"国語（漢字・ことば）","icon":"fa-solid fa-pen-fancy","desc":"学年ごとに習う漢字や、ことばのきまり・物語文を、ゲーム感覚でくり返し練習できるコーナーです。","hidden":false,"apps":[{"t":"漢字の冒険","d":"冒険しながら漢字を覚えていこう！","h":"./kokugo/kannzinoboukenn/dist/index.html","i":"fa-solid fa-scroll","id":"app-game-1"},{"t":"漢字 低学年","d":"1・2年生で習う漢字を練習しよう！","h":"./kokugo/kannziteigakunenn/index.html","i":"fa-solid fa-pencil","id":"app-kokugo-1"},{"t":"漢字 中学年","d":"3・4年生で習う漢字を練習しよう！","h":"./kokugo/kannzityugakunenn/index.html","i":"fa-solid fa-pen","id":"app-kokugo-2"},{"t":"漢字 高学年","d":"5・6年生で習う漢字にチャレンジしよう！","h":"./kokugo/kannzikougakunen/index.html","i":"fa-solid fa-feather-pointed","id":"app-kokugo-3"},{"t":"言霊クロニクル 1","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第1章！","h":"./kokugo/kotodamakuronikuru1/index.html","i":"fa-solid fa-wand-sparkles","id":"app-kokugo-4"},{"t":"言霊クロニクル 2","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第2章！","h":"./kokugo/kotodamakuronikuru2/index.html","i":"fa-solid fa-wand-sparkles","id":"app-kokugo-5"},{"t":"言霊クロニクル 3","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第3章！","h":"./kokugo/kotodamakuronikuru3/index.html","i":"fa-solid fa-wand-sparkles","id":"app-kokugo-6"},{"t":"言霊クロニクル 4","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第4章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru4/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-17"},{"t":"言霊クロニクル 5","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第5章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru5/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-18"},{"t":"言霊クロニクル 6","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第6章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru6/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-19"},{"t":"3D 言霊クロニクル 1年生","d":"3Dの しまを じゆうに あるいて ぼうけんする、かん字の RPG。1年生の かん字で すすもう！","h":"./tanosikugakusyuusiyou/3dkotodamakuronikuru1/index.html","i":"fa-solid fa-dragon","id":"app-game-20"},{"t":"3D 言霊クロニクル 2年生","d":"3Dの 島を じゆうに 歩いて ぼうけんする、漢字の RPG。2年生の 漢字で すすもう！","h":"./tanosikugakusyuusiyou/3dkotodamakuronikuru2/index.html","i":"fa-solid fa-dragon","id":"app-game-21"},{"t":"3D 言霊クロニクル 3年生","d":"3Dの島を自由に歩いて冒険する、漢字のRPG。3年生の漢字を使って進もう！","h":"./tanosikugakusyuusiyou/3dkotodamakuronikuru3/index.html","i":"fa-solid fa-dragon","id":"app-game-22"},{"t":"取材したことを報告文に","d":"取材して集めたことを整理して、わかりやすい報告文を書こう！","h":"./kokugo/syuzaisitakotowohoukokubunnni/index.html","i":"fa-solid fa-newspaper","id":"app-kokugo-7"},{"t":"国語ワールド 1年生","d":"ひらがな・カタカナ、ことばの きまり、ものがたりを、レベルごとに まなぼう。にがてが わかる「にがてマップ」つき。","h":"./kokugo/kokugowa-rudo1/index.html","i":"fa-solid fa-book-open-reader","id":"app-kokugo-14"},{"t":"国語ワールド 2年生","d":"ことばの きまりや ものがたりを、レベルごとに 学ぼう。にがてが わかる「にがてマップ」つき。","h":"./kokugo/kokugowa-rudo2/index.html","i":"fa-solid fa-book-open-reader","id":"app-kokugo-15"},{"t":"国語ワールド 3年生","d":"ことばのきまりや物語文など、国語のきほんをレベルごとに学ぼう。苦手が分かる「にがてマップ」つき。","h":"./kokugo/kokugowa-rudo3/index.html","i":"fa-solid fa-book-open-reader","id":"app-kokugo-16"}]},{"id":"social","label":"社会","name":"社会科用アプリ","icon":"fa-solid fa-map-location-dot","desc":"地図や町のようす、地域の探険ができるアプリです。","hidden":false,"apps":[{"t":"農家と工場","d":"野菜づくりや、工場で働く人たちの工夫を学ぼう！","h":"./syakai/noukatokouzyou/index.html","i":"fa-solid fa-tractor","id":"app-social-1"},{"t":"地図記号アプリ","d":"社会で使う地図記号をみんなで確認・学習しよう！","h":"./kurasuyou/tizukigou/index.html","i":"fa-solid fa-map-location","id":"app-class-12"},{"t":"くらしを守る","d":"火事や事故から地域のくらしを守る人たちの仕事と工夫を調べよう！","h":"./syakai/kurasiwomamoru/index.html","i":"fa-solid fa-fire-extinguisher","id":"app-social-2"},{"t":"流山市のうつり変わり","d":"昔と今の流山市の様子をくらべて、まちがどのように発展してきたのかを調べよう！","h":"./syakai/nagareyamashinouturikawari/index.html","i":"fa-solid fa-clock-rotate-left","id":"app-social-3"}]},{"id":"history","label":"歴史","name":"歴史カードクエスト（6年 社会）","icon":"fa-solid fa-scroll","desc":"時代ごとのアプリで歴史を学ぶと、人物やできごとのカードが手に入ります。集めたカードで自分だけのデッキを組んで、CPUとバトルしよう！カードと学習の記録は、すべての時代のアプリで共有されます。","hidden":false,"apps":[{"t":"古代文明","d":"エジプトやメソポタミアなど、世界の古代文明を学んでカードを集めよう！","h":"./syakai/rekishi/01kodaibunnmei/index.html","i":"fa-solid fa-landmark","id":"app-history-1"},{"t":"日本のあけぼの","d":"縄文・弥生・古墳時代のくらしと、くにの成り立ちを学ぼう！","h":"./syakai/rekishi/02nihonnnoakebono/index.html","i":"fa-solid fa-mound","id":"app-history-2"},{"t":"飛鳥文化","d":"聖徳太子や大化の改新など、天皇中心の国づくりを学ぼう！","h":"./syakai/rekishi/03asukabunnka/index.html","i":"fa-solid fa-vihara","id":"app-history-3"},{"t":"平安時代","d":"貴族のくらしや、かな文字・源氏物語などの国風文化を学ぼう！","h":"./syakai/rekishi/04heiznnzidai/index.html","i":"fa-solid fa-pen-nib","id":"app-history-4"},{"t":"鎌倉時代","d":"源頼朝と鎌倉幕府、御恩と奉公、元寇を学ぼう！","h":"./syakai/rekishi/05kamakurazidai/index.html","i":"fa-solid fa-shield-halved","id":"app-history-5"},{"t":"室町時代","d":"金閣・銀閣、書院造、茶の湯など、今につながる文化を学ぼう！","h":"./syakai/rekishi/06muromatizidai/index.html","i":"fa-solid fa-mug-saucer","id":"app-history-6"},{"t":"安土桃山時代","d":"織田信長・豊臣秀吉による天下統一への道を学ぼう！","h":"./syakai/rekishi/07adutimomoyama/index.html","i":"fa-solid fa-chess-rook","id":"app-history-7"},{"t":"江戸時代1","d":"江戸幕府のしくみ、参勤交代や鎖国を学ぼう！","h":"./syakai/rekishi/08edozidai1/index.html","i":"fa-solid fa-person-walking","id":"app-history-8"},{"t":"江戸時代2","d":"歌舞伎・浮世絵などの町人文化と、蘭学・国学を学ぼう！","h":"./syakai/rekishi/08edozidai2/index.html","i":"fa-solid fa-masks-theater","id":"app-history-9"},{"t":"明治時代1","d":"黒船来航・開国と、明治維新の改革を学ぼう！","h":"./syakai/rekishi/09meizizidai1/index.html","i":"fa-solid fa-train","id":"app-history-10"},{"t":"明治時代2","d":"自由民権運動、憲法と国会、条約改正を学ぼう！","h":"./syakai/rekishi/09meizizidai2/index.html","i":"fa-solid fa-landmark-dome","id":"app-history-11"}]},{"id":"eigo","label":"中学英語・受験","name":"中学英語・高校受験アプリ","icon":"fa-solid fa-language","desc":"中学1年から3年までの英文法・英単語と、高校受験にむけた英語の学習アプリです。ステージごとに、3つのレベルから自分に合ったものを選べます。苦手なところは「苦手マップ」で確かめられます。","hidden":false,"apps":[{"t":"中1 英語の文法","d":"中学1年の英文法を、ステージごとに3つのレベルで練習。苦手な単元が分かる「苦手マップ」つき。","h":"./tyuugakuseieigo/1tyuugaku1nensei/index.html","i":"fa-solid fa-language","id":"app-eigo-1"},{"t":"中2 英語の文法","d":"中学2年の英文法を、ステージごとに3つのレベルで練習。苦手な単元が分かる「苦手マップ」つき。","h":"./tyuugakuseieigo/2tyuugaku2nensei/index.html","i":"fa-solid fa-spell-check","id":"app-eigo-2"},{"t":"中3 英語の文法","d":"中学3年の英文法を、ステージごとに3つのレベルで練習。苦手な単元が分かる「苦手マップ」つき。","h":"./tyuugakuseieigo/3tyuugaku3nensei/index.html","i":"fa-solid fa-graduation-cap","id":"app-eigo-3"},{"t":"高校受験 英語の基礎","d":"高校入試にむけて、英語の基礎をおさらい。ステージごとに、3つのレベルで練習。","h":"./tyuugakuseieigo/4koukouzyukenkiso/index.html","i":"fa-solid fa-book-open","id":"app-eigo-4"},{"t":"高校受験 英語の長文","d":"高校入試にむけて、英語の長文に挑戦。ステージごとに、3つのレベルで練習。","h":"./tyuugakuseieigo/5koukouzyukenntyoubun/index.html","i":"fa-solid fa-file-lines","id":"app-eigo-5"},{"t":"中1 英単語","d":"中学1年で習う英単語を練習しよう。","h":"./tyuugakuseieigo/1nennseinoeitanngo/index.html","i":"fa-solid fa-font","id":"app-eigo-6"}]},{"id":"game","label":"学習ゲーム","name":"楽しく学ぶ！学習ゲーム","icon":"fa-solid fa-gamepad","desc":"ゲーム感覚で楽しく学べるコーナーです。遊びながら力をつけよう！","hidden":false,"apps":[{"t":"算数クエスト","d":"冒険の世界で 算数の問題に挑戦しよう！","h":"./tanosikugakusyuusiyou/sannsuukuesuto/dist/index.html","i":"fa-solid fa-shield-halved","id":"app-game-2"},{"t":"算数クエスト (サイバー版)","d":"新しいサイバー世界で、算数の計算をマスターしよう！","h":"./tanosikugakusyuusiyou/sannsuusaiba/index.html","i":"fa-solid fa-microchip","id":"app-game-3"},{"t":"算数3年（上）まとめ","d":"3年生の算数（上）で習ったことをふりかえろう！","h":"./tanosikugakusyuusiyou/sannsuu3nennzyoumatme/index.html","i":"fa-solid fa-book-open","id":"app-game-4"},{"t":"算数3年（下）まとめ","d":"3年生の算数（下）で習ったことをふりかえろう！","h":"./tanosikugakusyuusiyou/3nennseisannsuuge/index.html","i":"fa-solid fa-book-open","id":"app-game-10"},{"t":"81マス計算","d":"九九の計算をすばやく正確に解く練習をしよう！","h":"./tanosikugakusyuusiyou/math81/index.html","i":"fa-solid fa-table-cells","id":"app-game-5"},{"t":"むんむんタイピング","d":"文字を打つ練習でタイピングが上手くなるよ！","h":"./tanosikugakusyuusiyou/munmuntaipinngu/kotobanotennkuuzyou/index.html","i":"fa-solid fa-keyboard","id":"app-game-6"},{"t":"言葉の天空","d":"クラスみんなで言葉の学習をしよう！","h":"./tanosikugakusyuusiyou/kotobanotennkuuzyou/index.html","i":"fa-solid fa-cloud","id":"app-game-7"},{"t":"英語の町","d":"英単語を答えて自分だけの町を作ろう！","h":"./tanosikugakusyuusiyou/englishnomati/index.html","i":"fa-solid fa-house-chimney","id":"app-game-8"},{"t":"オセロ・チェス・将棋","d":"定番のボードゲームで遊びながら考える力をきたえよう！","h":"./tanosikugakusyuusiyou/oserotyesusyougi/index.html","i":"fa-solid fa-chess-knight","id":"app-game-9"},{"t":"mozimon","d":"文字を並び替えてモンスターとバトルしよう！","h":"./tanosikugakusyuusiyou/mozimon/index.html","i":"fa-solid fa-dragon","id":"app-game-11"},{"t":"サイバータイピング","d":"サイバーな世界でタイピングに挑戦！速く・正確に打てるかな？","h":"./tanosikugakusyuusiyou/saiba-taipingu/index.html","i":"fa-solid fa-terminal","id":"app-game-12"},{"t":"都道府県クエスト","d":"日本全国を冒険して都道府県をマスターしよう！","h":"./tanosikugakusyuusiyou/todoufukennkuesuto/index.html","i":"fa-solid fa-map-location-dot","id":"app-game-13"},{"t":"言霊クロニクル 1","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第1章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru1/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-14"},{"t":"言霊クロニクル 2","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第2章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru2/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-15"},{"t":"言霊クロニクル 3","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第3章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru3/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-16"},{"t":"言霊クロニクル 4","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第4章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru4/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-17"},{"t":"言霊クロニクル 5","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第5章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru5/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-18"},{"t":"言霊クロニクル 6","d":"ことばの意味や使い方を考えながら進む国語の冒険ゲーム。1〜6年生まで、じぶんのペースで楽しめる第6章！","h":"./tanosikugakusyuusiyou/kotodamakuronikuru6/index.html","i":"fa-solid fa-wand-sparkles","id":"app-game-19"},{"t":"3D 言霊クロニクル 1年生","d":"3Dの しまを じゆうに あるいて ぼうけんする、かん字の RPG。1年生の かん字で すすもう！","h":"./tanosikugakusyuusiyou/3dkotodamakuronikuru1/index.html","i":"fa-solid fa-dragon","id":"app-game-20"},{"t":"3D 言霊クロニクル 2年生","d":"3Dの 島を じゆうに 歩いて ぼうけんする、漢字の RPG。2年生の 漢字で すすもう！","h":"./tanosikugakusyuusiyou/3dkotodamakuronikuru2/index.html","i":"fa-solid fa-dragon","id":"app-game-21"},{"t":"3D 言霊クロニクル 3年生","d":"3Dの島を自由に歩いて冒険する、漢字のRPG。3年生の漢字を使って進もう！","h":"./tanosikugakusyuusiyou/3dkotodamakuronikuru3/index.html","i":"fa-solid fa-dragon","id":"app-game-22"}]},{"id":"class","label":"クラス用","name":"クラス用共有アプリ","icon":"fa-solid fa-users","desc":"友だちと一緒に意見をまとめたり、学んだりできるツールです。朝や帰りの支度に使えるタイマーもあります。","hidden":false,"apps":[{"t":"電子黒板","d":"ページを切りかえながら板書できる電子黒板。書いた内容は履歴に保存できます。","h":"./kurasuyou/howaitobo-do/index.html","i":"fa-solid fa-pen-nib","id":"app-class-1"},{"t":"挙手シート","d":"みんなの意見や、手を挙げているか確認できるよ！","h":"./kurasuyou/kyosyusiito/index.html","i":"fa-solid fa-hand","id":"app-class-2"},{"t":"挙手シート（クラス全体用）","d":"クラス全体で使える挙手シートです。みんなの状況を確認しよう！","h":"./kurasuyou/kyosyusiitokurasuyou/index.html","i":"fa-solid fa-hands","id":"app-class-11"},{"t":"ビンゴ大会","d":"お楽しみ会や、レクの時間にみんなで遊ぼう！","h":"./kurasuyou/bingo/index.html","i":"fa-solid fa-gift","id":"app-class-3"},{"t":"ルーレット","d":"係決めや、発表の順番を決めるときに回してみよう！","h":"./kurasuyou/ruret/index.html","i":"fa-solid fa-bullseye","id":"app-class-4"},{"t":"エイサー隊形移動","d":"運動会のエイサーの隊形や、移動の場所を確認しよう！","h":"./kurasuyou/eisataikeiidou/index.html","i":"fa-solid fa-location-dot","id":"app-class-5"},{"t":"画像編集機能","d":"画像を楽しく編集したり、お絵かきしたりしよう！","h":"./kurasuyou/gazouhennsyuukinou/index.html","i":"fa-solid fa-image","id":"app-class-6"},{"t":"係掲示用アプリ","d":"係からのお知らせやポスターをみんなに見てもらおう！","h":"./kurasuyou/kakarikeiziyouapuri/index.html","i":"fa-solid fa-clipboard","id":"app-class-7"},{"t":"ノートアプリ","d":"授業のメモやアイデアをノートに書き込もう！","h":"./kurasuyou/noteapuri/index.html","i":"fa-solid fa-book","id":"app-class-9"},{"t":"静けさキープアプリ","d":"クラスの静かさをチェックして、集中できる環境を作ろう！","h":"./kurasuyou/sizukesakipuapuri/index.html","i":"fa-solid fa-volume-low","id":"app-class-10"},{"t":"翻訳アプリ","d":"わからない言葉を翻訳して、外国語や意味を調べよう！","h":"./kurasuyou/honyakuapuri/index.html","i":"fa-solid fa-language","id":"app-class-13"},{"t":"挙手集計シート（集計表）","d":"クラスみんなの挙手の回数を集計して、目標達成をめざそう！","h":"./sennseiyou/kyosyusiito/index.html","i":"fa-solid fa-chart-simple","id":"app-class-15"},{"t":"朝・帰りの支度タイマー","d":"テレビにうつして、クラスみんなで朝のしたく・帰りのしたくに取り組むタイマー。時間は先生が自由に決められます。","h":"./kurasuyou/kaerinositaku/index.html","i":"fa-solid fa-stopwatch","id":"app-class-16"}]},{"id":"grade1","label":"1年生","name":"１年生用学習アプリ","icon":"fa-solid fa-seedling","desc":"１年生向けの、たのしくまなべるアプリコーナーです。","hidden":false,"apps":[{"t":"たしざん・ひきざん・ひらがな","d":"1ねんせいの たしざん、ひきざん、ひらがなを たのしくまなぼう！","h":"./1nennseiyougakusyuugame/tashizanhikizanhiragana/index.html","i":"fa-solid fa-shapes","id":"app-grade1-1"}]},{"id":"support","label":"支援学級","name":"支援学級用学習アプリ","icon":"fa-solid fa-hands-holding-child","desc":"それぞれのペースで楽しく学べる支援学級向けのアプリコーナーです。気持ち・ことば・安全・お金・生活の流れなど、学校と家の両方で使えます。どのアプリも3つのレベルから子どもに合わせて選べます。","hidden":false,"apps":[{"t":"ポップコーンを買おう","d":"おかねをつかって、ポップコーンをかう れんしゅうをしよう！","h":"./sienngaxtukyuu/poxtupuko-nnwokaou/index.html","i":"fa-solid fa-shop","id":"app-support-1"},{"t":"気持ちの温度計","d":"いまの きもちと つよさを えらんで、おちつく ほうほうを ためそう。","h":"./sienngaxtukyuu/1kimotinoonndokei/index.html","i":"fa-solid fa-temperature-half","id":"app-support-2"},{"t":"ルールや順番をおぼえよう","d":"ならぶ・まつ・かしかり・あそびの ルールを、ばめんで れんしゅう。","h":"./sienngaxtukyuu/2ru-ruyazyunnbannwooboeyou/index.html","i":"fa-solid fa-people-line","id":"app-support-3"},{"t":"声のものさし","d":"あいさつの ことば・かお・こえの おおきさを れんしゅうしよう。","h":"./sienngaxtukyuu/3koenomonosasi/index.html","i":"fa-solid fa-volume-high","id":"app-support-4"},{"t":"きせつやふくそうを考えよう","d":"てんきと きおんを みて、ふくと もちものを えらぼう。","h":"./sienngaxtukyuu/4kisetuyahukusouwokanngaeyou/index.html","i":"fa-solid fa-shirt","id":"app-support-5"},{"t":"ひなんくんれんシミュレーション","d":"じしんや かじの とき、どう うごくかを じゅんばんに たしかめよう。","h":"./sienngaxtukyuu/5hinannkunnrennsyumire-syonn/index.html","i":"fa-solid fa-house-crack","id":"app-support-6"},{"t":"でんしゃやバスにのろう","d":"きっぷ・かいさつ・バスの せいりけんまで、のりかたを れんしゅう。","h":"./sienngaxtukyuu/6dennsyayabasunonorikata/index.html","i":"fa-solid fa-train-subway","id":"app-support-7"},{"t":"そうだんシミュレーション","d":"こまった とき、だれに なんて いうかを れんしゅうしよう。","h":"./sienngaxtukyuu/7soudannsyumire-syonn/index.html","i":"fa-solid fa-comments","id":"app-support-8"},{"t":"しんごう・おうだんほどうチャレンジ","d":"しんごうの いろと みぎ・ひだりを みて、あんぜんに わたろう。","h":"./sienngaxtukyuu/8sinngououdannhodoutyarennzi/index.html","i":"fa-solid fa-traffic-light","id":"app-support-9"},{"t":"おこづかいチャレンジ","d":"つかう・ためるを かんがえて、ほしいものを めざそう。","h":"./sienngaxtukyuu/9okodukaityarennzi/index.html","i":"fa-solid fa-piggy-bank","id":"app-support-10"},{"t":"おかいものシミュレーション","d":"おつかいメモを みて かごに いれ、レジで はらおう。","h":"./sienngaxtukyuu/10okaimonosyumire-syonn/index.html","i":"fa-solid fa-cart-shopping","id":"app-support-11"},{"t":"じぶんのよていをかんりしよう","d":"カレンダーを よんで、じぶんの よていを スタンプで いれよう。","h":"./sienngaxtukyuu/11yoteityouwotukuxtutemiyou/index.html","i":"fa-solid fa-calendar-check","id":"app-support-12"},{"t":"時計をおぼえよう","d":"とけいを よむ・はりを あわせる・みえる タイマーも つかえる。","h":"./sienngaxtukyuu/12tokeiwooboeyou/index.html","i":"fa-solid fa-clock","id":"app-support-13"},{"t":"一日のながれを考えよう","d":"えカードで じぶんの スケジュールを つくって つかおう。","h":"./sienngaxtukyuu/13itinitinonagarenituitekanngaeyou/index.html","i":"fa-solid fa-list-check","id":"app-support-14"},{"t":"食べ物なかま分けゲーム","d":"たべものを 3つの いろに わけて、こんだても つくろう。","h":"./sienngaxtukyuu/14tabemononakamawakekuizu/index.html","i":"fa-solid fa-carrot","id":"app-support-15"},{"t":"レストランチャレンジ","d":"おみせに はいってから でるまでを、じゅんばんに れんしゅう。","h":"./sienngaxtukyuu/15resutoranntyarennzi/index.html","i":"fa-solid fa-utensils","id":"app-support-16"},{"t":"給食マナーチャレンジ","d":"てあらいから かたづけまで、きゅうしょくの じかんを れんしゅう。","h":"./sienngaxtukyuu/16kyuusyokumana-tyarennzi/index.html","i":"fa-solid fa-bowl-rice","id":"app-support-17"},{"t":"明日の用意をしてみよう","d":"じかんわりを みて、ランドセルの じゅんびを しよう。","h":"./sienngaxtukyuu/17gaxtukounozyunnbityarennzi/index.html","i":"fa-solid fa-school","id":"app-support-18"}]},{"id":"duty","label":"係活動","name":"係用アプリ","icon":"fa-solid fa-clipboard-check","desc":"クラスの係のお仕事を記録したり発表したりするアプリです。","hidden":false,"apps":[{"t":"学習係ボード","d":"宿題のチェックや、授業のあいさつの記録をしよう！","h":"./kakari/gakusyuukakari/index.html","i":"fa-solid fa-book-open-reader","id":"app-duty-1"},{"t":"給食係ボード","d":"今日の献立や、給食当番の分担をお知らせしよう！","h":"./kakari/kyuusyoku/index.html","i":"fa-solid fa-utensils","id":"app-duty-2"},{"t":"窓・電気係ボード","d":"休み時間の換気や、節電のチェックを記録しよう！","h":"./kakari/madodennki/index.html","i":"fa-regular fa-lightbulb","id":"app-duty-3"},{"t":"黒板係ボード","d":"黒板をきれいにした記録や、係の連絡を残そう！","h":"./kakari/kokubannkakari/index.html","i":"fa-solid fa-chalkboard","id":"app-duty-4"},{"t":"学級委員ボード","d":"学級委員からの連絡や、話し合いのテーマを共有しよう！","h":"./kakari/gaxtukyuuiinn/index.html","i":"fa-solid fa-users-rays","id":"app-duty-5"},{"t":"配り係ボード","d":"プリントの配布状況や、配り係からのお知らせを確認しよう！","h":"./kakari/kubarigakari/index.html","i":"fa-solid fa-hand-holding-hand","id":"app-duty-6"},{"t":"音楽係ボード","d":"今月の歌や、音楽係からのリクエスト曲をお知らせしよう！","h":"./kakari/onngakugakari/index.html","i":"fa-solid fa-music","id":"app-duty-7"},{"t":"オールマイティ係ボード","d":"クラスのみんなを助ける、オールマイティ係のボードです！","h":"./kakari/oorumaitexi/index.html","i":"fa-solid fa-star","id":"app-duty-8"},{"t":"体育係ボード","d":"体育の準備や体操の記録をお知らせしよう！","h":"./kakari/taiikukakari/index.html","i":"fa-solid fa-person-running","id":"app-duty-9"},{"t":"手紙係ボード","d":"クラスのみんなへのお手紙やメッセージを配達・管理しよう！","h":"./kakari/tegamigakari/index.html","i":"fa-solid fa-envelope","id":"app-duty-10"}]},{"id":"teacher","label":"先生用","name":"先生用アプリ","icon":"fa-solid fa-chalkboard-user","desc":"宿題管理、引き渡し訓練、所見作成などを行う先生専用のメニューです。","hidden":true,"apps":[{"t":"宿題管理","d":"児童の宿題の提出状況をチェック・記録します。","h":"./sennseiyou/sukudaikannri/index.html","i":"fa-solid fa-square-check","id":"app-teacher-2"},{"t":"所見管理アシスタント","d":"通知表の所見作成や、日々の児童の記録管理を行います。","h":"./sennseiyou/syokenn/index.html","i":"fa-solid fa-wand-magic-sparkles","id":"app-teacher-3"},{"t":"募金管理","d":"募金の集計と管理を行います。","h":"./sennseiyou/bokin/index.html","i":"fa-solid fa-hand-holding-dollar","id":"app-teacher-8"},{"t":"引き渡し訓練","d":"引き渡し訓練の状況を記録・確認します。","h":"./sennseiyou/hikiwatasikunnrenn/index.html","i":"fa-solid fa-person-walking-arrow-right","id":"app-teacher-9"},{"t":"リサイクル委員会活動計画","d":"リサイクル委員会の活動計画を作成・管理します。","h":"./sennseiyou/risaikuruiinnkaikatudoukeikaku/index.html","i":"fa-solid fa-recycle","id":"app-teacher-10"},{"t":"算数アンケート自動集計","d":"児童の算数アンケート結果を自動で集計します。","h":"./sennseiyou/sannsuuannketozidousyuukei/index.html","i":"fa-solid fa-chart-pie","id":"app-teacher-11"},{"t":"提出物管理","d":"プリントやアンケートなどの提出状況をチェック・記録します。","h":"./sennseiyou/teisyutubutukannri/index.html","i":"fa-solid fa-file-signature","id":"app-teacher-12"},{"t":"授業プリント作成","d":"単元に合わせた独自の学習プリントや小テストを作成・出力します。","h":"./sennseiyou/zyugyoupurinntosakusei/index.html","i":"fa-solid fa-file-pdf","id":"app-teacher-13"},{"t":"個人面談 回答集計","d":"個人面談の希望日時アンケート（Googleフォームの回答Excel）を読みこんで、希望の日時を一目で集計します。","h":"./sennseiyou/kozinnmenndann/index.html","i":"fa-solid fa-people-arrows","id":"app-teacher-17"},{"t":"座席表","d":"クラスの座席表を作成・編集して、席替えや掲示に使えます。","h":"./sennseiyou/zasekihyou/index.html","i":"fa-solid fa-table-cells-large","id":"app-teacher-14"},{"t":"学年レク走","d":"くじ引きで走る組とレースを決めて、学年レク走を運営できます。","h":"./sennseiyou/rekusou/index.html","i":"fa-solid fa-flag-checkered","id":"app-teacher-15"},{"t":"座席所見メモ","d":"座席表から子どもを選んで、日々の様子や所見のメモを記録できます。","h":"./sennseiyou/zasekisyokenn/index.html","i":"fa-solid fa-user-pen","id":"app-teacher-16"}]}],"park":[{"h":"./koinn/uchu/index.html","c":"#a78bfa","i":"fa-solid fa-rocket","t":"むん宇宙館","d":"星と宇宙のふしぎ"},{"h":"./koinn/doubutuenn/index.html","c":"#84cc16","i":"fa-solid fa-paw","t":"むん動物園","d":"動物をむかえよう"},{"h":"./koinn/syokubutuenn/index.html","c":"#34d399","i":"fa-solid fa-leaf","t":"むん植物園","d":"植物をそだてよう"},{"h":"./koinn/suizokukann/index.html","c":"#38bdf8","i":"fa-solid fa-fish","t":"むん水族館","d":"生きものを育てよう"},{"h":"./koinn/kyouryuuhakubutukann/index.html","c":"#f59e0b","i":"fa-solid fa-bone","t":"むん恐竜博物館","d":"大昔の世界へ"},{"h":"./koinn/nouenn/index.html","c":"#22c55e","i":"fa-solid fa-seedling","t":"むん農園","d":"野菜でコインをかせぐ"},{"h":"./koinn/syoutenngai/index.html","c":"#f472b6","i":"fa-solid fa-store","t":"むん商店街","d":"お店でコインをかせぐ"}]}</script>
+
+<script>
+/* =========================================================
+   ワールドのクイズ（学年べつ・3たく）
+   ・さんすうは、毎回あたらしい問題を自動で作ります
+   ・ほかの教科は、下のリストから出ます。問題を足すときは、同じ形で1行ふやしてください
+========================================================= */
+window.WQ = (function () {
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const GRADES = [
+    { id: 'g1', label: '小学1年' }, { id: 'g2', label: '小学2年' }, { id: 'g3', label: '小学3年' },
+    { id: 'g4', label: '小学4年' }, { id: 'g5', label: '小学5年' }, { id: 'g6', label: '小学6年' }, { id: 'chu', label: '中学生' }
+  ];
+  const SUBJ = {
+    math: { name: 'さんすう', emoji: '🔢', color: '#00e5ff' },
+    kanji: { name: 'かんじ', emoji: '✏️', color: '#60a5fa' },
+    eigo: { name: 'えいご', emoji: '🔤', color: '#818cf8' },
+    shakai: { name: 'しゃかい', emoji: '🗾', color: '#34d399' },
+    rika: { name: 'りか', emoji: '🔬', color: '#a3e635' },
+    kotowaza: { name: 'ことわざ', emoji: '📜', color: '#f472b6' }
+  };
+  const SUBJ_OF = {
+    g1: ['math', 'kanji', 'eigo'], g2: ['math', 'kanji', 'eigo'],
+    g3: ['math', 'kanji', 'eigo', 'shakai', 'rika'], g4: ['math', 'kanji', 'eigo', 'shakai', 'rika'],
+    g5: ['math', 'kanji', 'eigo', 'shakai', 'rika', 'kotowaza'], g6: ['math', 'kanji', 'eigo', 'shakai', 'rika', 'kotowaza'],
+    chu: ['math', 'eigo', 'kanji', 'shakai', 'rika', 'kotowaza']
+  };
+
+  /* ---------- さんすう（自動で作る） ---------- */
+  function numChoices(ans, spread, opt) {
+    opt = opt || {};
+    const set = new Set([ans]);
+    const cand = [ans + 1, ans - 1, ans + spread, ans - spread, ans + 2, ans - 2, ans + 10, ans - 10, ans * 2, Math.round(ans / 2)];
+    for (const c of shuffle(cand)) {
+      if (set.size >= 3) break;
+      if (!Number.isFinite(c) || c === ans) continue;
+      if (!opt.neg && c < 0) continue;
+      set.add(c);
+    }
+    let k = 3; while (set.size < 3) set.add(ans + k++);
+    return [...set];
+  }
+  const fmt = n => String(Math.round(n * 1000) / 1000);
+  function decChoices(ans, step) {
+    const set = new Set([fmt(ans)]);
+    for (const d of shuffle([step, -step, step * 10, -step * 10, step * 2])) { if (set.size >= 3) break; const v = ans + d; if (v > 0) set.add(fmt(v)); }
+    return [...set];
+  }
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const MATH = {
+    g1() {
+      const t = R(0, 2);
+      if (t === 0) { const a = R(1, 9), b = R(1, 9); return q(`${a} ＋ ${b} は いくつ？`, a + b, numChoices(a + b, 1), `${a}と${b}で ${a + b}`); }
+      if (t === 1) { const a = R(6, 18), b = R(1, Math.min(9, a)); return q(`${a} − ${b} は いくつ？`, a - b, numChoices(a - b, 1), `${a}から${b}を ひくと ${a - b}`); }
+      const a = R(1, 19); return q(`${a} の つぎの かずは？`, a + 1, numChoices(a + 1, 1), `${a}の つぎは ${a + 1}`);
+    },
+    g2() {
+      const t = R(0, 2);
+      if (t === 0) { const a = R(2, 9), b = R(1, 9); return q(`${a} × ${b} は？（九九）`, a * b, numChoices(a * b, a), `${a}のだん：${a}×${b}＝${a * b}`); }
+      if (t === 1) { const a = R(21, 79), b = R(11, 99 - a); return q(`${a} ＋ ${b} は？`, a + b, numChoices(a + b, 10), `くり上がりに 気をつけて ${a + b}`); }
+      const a = R(40, 99), b = R(12, a - 5); return q(`${a} − ${b} は？`, a - b, numChoices(a - b, 10), `くり下がりに 気をつけて ${a - b}`);
+    },
+    g3() {
+      const t = R(0, 3);
+      if (t === 0) { const b = R(2, 9), ans = R(2, 9), a = b * ans; return q(`${a} ÷ ${b} は？`, ans, numChoices(ans, 1), `${b}×${ans}＝${a} だから ${ans}`); }
+      if (t === 1) { const a = R(12, 49), b = R(2, 9); return q(`${a} × ${b} は？`, a * b, numChoices(a * b, b), `${a}×${b}＝${a * b}`); }
+      if (t === 2) { const h = R(1, 3), m = pick([10, 15, 20, 30, 40, 45]); return q(`${h}時間${m}分は 何分？`, h * 60 + m, numChoices(h * 60 + m, 10), `1時間＝60分。${h * 60}＋${m}＝${h * 60 + m}分`); }
+      const a = R(250, 799), b = R(120, 999 - a); return q(`${a} ＋ ${b} は？`, a + b, numChoices(a + b, 100), `ひっ算で ${a + b}`);
+    },
+    g4() {
+      const t = R(0, 3);
+      if (t === 0) { const b = R(3, 9), qq = R(4, 12), r = R(1, b - 1), a = b * qq + r;
+        const ans = `${qq} あまり ${r}`; return q(`${a} ÷ ${b} は？`, ans, [ans, `${qq} あまり ${r + 1 >= b ? r - 1 : r + 1}`, `${qq + 1} あまり ${r}`], `${b}×${qq}＝${b * qq}、${a}−${b * qq}＝${r}`); }
+      if (t === 1) { const a = R(11, 89) / 10, b = R(11, 89) / 10; return q(`${fmt(a)} ＋ ${fmt(b)} は？`, fmt(a + b), decChoices(a + b, 0.1), `小数点の位置をそろえて ${fmt(a + b)}`); }
+      if (t === 2) { const a = R(2, 9) * 10 + R(1, 9), b = R(11, 39); return q(`${a} × ${b} は？`, a * b, numChoices(a * b, 10), `${a}×${b}＝${a * b}`); }
+      const m = R(2, 9); return q(`1万を ${m * 10}こ あつめた数は？`, `${m * 10}万`, [`${m * 10}万`, `${m}万`, `${m * 100}万`], `1万が${m * 10}こで ${m * 10}万`);
+    },
+    g5() {
+      const t = R(0, 3);
+      if (t === 0) { const a = R(12, 95) / 10, b = R(2, 9); return q(`${fmt(a)} × ${b} は？`, fmt(a * b), decChoices(a * b, 0.1), `${fmt(a)}×${b}＝${fmt(a * b)}`); }
+      if (t === 1) { const d = pick([5, 7, 8, 9, 11]), a = R(1, d - 2), b = R(1, d - 1 - a);
+        const ans = `${a + b}/${d}`; return q(`${a}/${d} ＋ ${b}/${d} は？`, ans, [ans, `${a + b}/${d * 2}`, `${a * b}/${d}`].filter((v, i, s) => s.indexOf(v) === i).concat([`${a + b + 1}/${d}`]).slice(0, 3), `分母はそのまま、分子をたして ${ans}`); }
+      if (t === 2) { const x = [R(60, 95), R(60, 95)]; let s = x[0] + x[1]; let z = R(60, 95); while ((s + z) % 3) z++; const avg = (s + z) / 3;
+        return q(`${x[0]}点・${x[1]}点・${z}点 の平均は？`, `${avg}点`, numChoices(avg, 3).map(v => v + '点'), `(${x[0]}＋${x[1]}＋${z})÷3＝${avg}`); }
+      const n = R(10, 99); const even = n % 2 === 0; return q(`${n} は 偶数？ 奇数？`, even ? '偶数' : '奇数', ['偶数', '奇数', 'どちらでもない'], `一の位が ${n % 10} だから ${even ? '偶数' : '奇数'}`);
+    },
+    g6() {
+      const t = R(0, 3);
+      if (t === 0) { const d = pick([3, 4, 5, 7, 9]), a = R(1, d - 1), b = R(2, 5); const nu = a * b, g = gcd(nu, d);
+        const ans = (d / g === 1) ? String(nu / g) : `${nu / g}/${d / g}`; return q(`${a}/${d} × ${b} は？（約分してね）`, ans, [ans, `${a}/${d * b}`, `${a + b}/${d}`, `${nu}/${d * b}`, `${a * b + 1}/${d}`], `分子に${b}をかけて ${nu}/${d}${g > 1 ? ' → 約分して ' + ans : ''}`); }
+      if (t === 1) { const k = R(2, 6), a = R(1, 5), b = R(a + 1, 9), g = gcd(a, b); const ans = `${a / g}:${b / g}`;
+        return q(`${a * k}:${b * k} を かんたんな比に すると？`, ans, [ans, `${a * k / g}:${b / g}`, `${b / g}:${a / g}`], `両方を${k * g}でわって ${ans}`); }
+      if (t === 2) { const r = R(2, 10); const ans = fmt(r * r * 3.14); return q(`半径${r}cmの円の面積は？（円周率3.14）`, ans + 'cm²', [ans + 'cm²', fmt(r * 3.14) + 'cm²', fmt(r * r * 3.14 * 2) + 'cm²'], `半径×半径×3.14＝${r}×${r}×3.14＝${ans}`); }
+      const v = R(3, 9) * 10, h = R(2, 5); return q(`時速${v}kmで ${h}時間 進むと 何km？`, v * h + 'km', numChoices(v * h, v).map(x => x + 'km'), `速さ×時間＝${v}×${h}＝${v * h}`);
+    },
+    chu() {
+      const t = R(0, 3);
+      if (t === 0) { const a = -R(2, 9), b = R(2, 15); return q(`(${a}) ＋ ${b} は？`, a + b, numChoices(a + b, 2, { neg: 1 }).concat([-(a + b)]).filter((v, i, s) => s.indexOf(v) === i).slice(0, 3), `${a}＋${b}＝${a + b}`); }
+      if (t === 1) { const x = R(-5, 9), a = R(2, 6), b = R(-9, 9); const c = a * x + b; const bs = b >= 0 ? `＋ ${b}` : `− ${-b}`;
+        return q(`${a}x ${bs} ＝ ${c} のとき、x は？`, x, numChoices(x, 1, { neg: 1 }), `${a}x＝${c - b} → x＝${x}`); }
+      if (t === 2) { const a = -R(2, 9), b = -R(2, 9); return q(`(${a}) × (${b}) は？`, a * b, [a * b, -(a * b), a + b, a * b + 1], `マイナス×マイナスはプラス：${a * b}`); }
+      const a = R(2, 5), b = R(1, 9); return q(`x＝${b} のとき、${a}x² の値は？`, a * b * b, numChoices(a * b * b, a * b).concat([a * b * 2]).filter((v, i, s) => s.indexOf(v) === i).slice(0, 3), `${a}×${b}×${b}＝${a * b * b}`);
+    }
+  };
+  function q(text, ans, choices, why) {
+    ans = String(ans); choices = [...new Set(choices.map(String))];
+    if (!choices.includes(ans)) choices.unshift(ans);
+    choices = [ans, ...choices.filter(c => c !== ans)];
+    while (choices.length < 3) choices.push(ans + (choices.length === 1 ? 'ではない' : '？'));
+    return { q: text, a: ans, c: shuffle(choices.slice(0, 3)), why };
+  }
+
+  /* ---------- かんじ（読み） ---------- */
+  const KANJI = {
+    g1: '雨 あめ|花 はな|森 もり|空 そら|犬 いぬ|虫 むし|草 くさ|竹 たけ|石 いし|学校 がっこう|先生 せんせい|早い はやい|小さい ちいさい|赤い あかい|青い あおい|白い しろい|休む やすむ|見る みる|夕日 ゆうひ|百円 ひゃくえん|町 まち|村 むら|耳 みみ|王さま おうさま|一年生 いちねんせい',
+    g2: '春 はる|夏 なつ|秋 あき|冬 ふゆ|朝 あさ|昼 ひる|夜 よる|海 うみ|歌 うた|雪 ゆき|電車 でんしゃ|教室 きょうしつ|算数 さんすう|国語 こくご|体 からだ|楽しい たのしい|新しい あたらしい|黄色 きいろ|公園 こうえん|地図 ちず|親友 しんゆう|聞く きく|話す はなす',
+    g3: '宿題 しゅくだい|島 しま|港 みなと|坂 さか|旅行 りょこう|病院 びょういん|薬 くすり|美しい うつくしい|寒い さむい|暑い あつい|勉強 べんきょう|漢字 かんじ|世界 せかい|野球 やきゅう|練習 れんしゅう|相談 そうだん|写真 しゃしん|調べる しらべる|始まる はじまる|遊ぶ あそぶ|昔話 むかしばなし',
+    g4: '協力 きょうりょく|努力 どりょく|希望 きぼう|自然 しぜん|笑顔 えがお|関係 かんけい|試験 しけん|観察 かんさつ|博物館 はくぶつかん|選ぶ えらぶ|伝える つたえる|説明 せつめい|健康 けんこう|季節 きせつ|改良 かいりょう|景色 けしき',
+    g5: '貿易 ぼうえき|輸出 ゆしゅつ|複雑 ふくざつ|印象 いんしょう|夢中 むちゅう|職業 しょくぎょう|賛成 さんせい|移動 いどう|豊か ゆたか|責任 せきにん|準備 じゅんび|余る あまる|支える ささえる|資料 しりょう|弁当 べんとう',
+    g6: '宇宙 うちゅう|憲法 けんぽう|尊敬 そんけい|誕生日 たんじょうび|推理 すいり|宝物 たからもの|郵便 ゆうびん|批判 ひはん|創造 そうぞう|簡単 かんたん|異なる ことなる|届ける とどける|誠実 せいじつ|縦 たて|拡大 かくだい',
+    chu: '曖昧 あいまい|矛盾 むじゅん|概要 がいよう|継続 けいぞく|貢献 こうけん|抽象 ちゅうしょう|慎重 しんちょう|顕著 けんちょ|謙虚 けんきょ|把握 はあく|促す うながす|挑む いどむ|漂う ただよう|妥協 だきょう|朗らか ほがらか'
+  };
+  function kanjiQ(g) {
+    const list = KANJI[g].split('|').map(s => s.split(' '));
+    const [w, r] = pick(list);
+    const others = shuffle(list.filter(x => x[1] !== r)).slice(0, 2).map(x => x[1]);
+    return q(`「${w}」の 読みは？`, r, [r, ...others], `「${w}」は「${r}」と読みます`);
+  }
+
+  /* ---------- えいご ---------- */
+  const EW = 'apple りんご|dog いぬ|cat ねこ|bird 鳥|fish 魚|book 本|school 学校|teacher 先生|friend 友だち|water 水|milk 牛乳|red 赤|blue 青|yellow 黄色|green 緑|white 白|black 黒|big 大きい|small 小さい|happy うれしい|sad かなしい|hot 暑い|cold 寒い|eat 食べる|run 走る|swim 泳ぐ|sing 歌う|read 読む|write 書く|sleep ねむる|morning 朝|night 夜|Monday 月曜日|Friday 金曜日|Sunday 日曜日|spring 春|summer 夏|winter 冬|sun 太陽|moon 月|star 星|rain 雨|snow 雪|sea 海|mountain 山|river 川|park 公園|library 図書館|hospital 病院|family 家族|mother 母|father 父|three 3|seven 7|twelve 12|twenty 20';
+  const EW_CHU = 'beautiful 美しい|important 大切な|interesting おもしろい|difficult むずかしい|easy かんたんな|tomorrow 明日|yesterday 昨日|always いつも|sometimes ときどき|often よく・しばしば|kitchen 台所|station 駅|country 国|language 言語|practice 練習する|visit 訪れる|borrow 借りる|buy 買う|answer 答える|understand 理解する|January 1月|August 8月|December 12月|Wednesday 水曜日|Thursday 木曜日|world 世界|future 未来|teach 教える|travel 旅行する|hungry おなかがすいた';
+  const EG = [
+    ['I (　) a student.', 'am', ['am', 'is', 'are']],
+    ['She (　) tennis every day.', 'plays', ['plays', 'play', 'playing']],
+    ['(　) you like music?', 'Do', ['Do', 'Does', 'Are']],
+    ['He (　) to the park yesterday.', 'went', ['went', 'goes', 'go']],
+    ['I am (　) TV now.', 'watching', ['watching', 'watch', 'watched']],
+    ['This bag is (　) than that one.', 'bigger', ['bigger', 'big', 'biggest']],
+    ['(　) is your birthday? — It\'s May 5.', 'When', ['When', 'Where', 'Who']],
+    ['(　) many pencils do you have?', 'How', ['How', 'What', 'Which']],
+    ['Tom (　) English well.', 'speaks', ['speaks', 'speak', 'speaking']],
+    ['We (　) in Chiba last year.', 'lived', ['lived', 'live', 'living']],
+    ['She can (　) the piano.', 'play', ['play', 'plays', 'played']],
+    ['(　) your bag heavy?', 'Is', ['Is', 'Are', 'Do']],
+    ['I have (　) been to Kyoto.', 'never', ['never', 'yet', 'ago']],
+    ['There (　) two cats under the table.', 'are', ['are', 'is', 'be']]
+  ];
+  function eigoQ(g) {
+    const chu = g === 'chu';
+    if (chu && Math.random() < 0.35) { const [t, a, c] = pick(EG); return q(`（　）に入る ことばは？\n${t}`, a, c, `答えは「${a}」。 ${t.replace('(　)', a)}`); }
+    const list = (chu ? EW + '|' + EW_CHU : EW).split('|').map(s => s.split(' '));
+    const [en, ja] = pick(list);
+    const others = shuffle(list.filter(x => x[0] !== en)).slice(0, 2);
+    if (chu && Math.random() < 0.5) return q(`「${ja}」を 英語で いうと？`, en, [en, ...others.map(x => x[0])], `${ja} ＝ ${en}`);
+    const o = q(`「${en}」の いみは？`, ja, [ja, ...others.map(x => x[1])], `${en} ＝ ${ja}`); o.say = en; return o;
+  }
+
+  /* ---------- しゃかい ---------- */
+  const SH = {
+    g3: [
+      ['地図記号「文」は 何を あらわす？', '小・中学校', ['小・中学校', '図書館', '病院']],
+      ['地図記号「卍」は 何を あらわす？', '寺', ['寺', '神社', '工場']],
+      ['地図記号「〒」は 何を あらわす？', '郵便局', ['郵便局', '交番', '市役所']],
+      ['地図で、ふつう上は どの方位？', '北', ['北', '南', '東']],
+      ['北の 反対の 方位は？', '南', ['南', '東', '西']],
+      ['火事のとき、電話するのは 何番？', '119番', ['119番', '110番', '117番']],
+      ['事件や事故で 警察に 電話するのは 何番？', '110番', ['110番', '119番', '171番']]
+    ],
+    g4: [
+      ['日本には 都道府県が いくつ ある？', '47', ['47', '43', '50']],
+      ['いちばん 面積が 大きい 都道府県は？', '北海道', ['北海道', '岩手県', '長野県']],
+      ['いちばん 面積が 小さい 都道府県は？', '香川県', ['香川県', '大阪府', '東京都']]
+    ],
+    g5: [
+      ['日本で いちばん 長い 川は？', '信濃川', ['信濃川', '利根川', '石狩川']],
+      ['日本で いちばん 高い 山は？', '富士山', ['富士山', '北岳', '浅間山']],
+      ['日本の 国土の およそ4分の3は？', '山地', ['山地', '平野', '湖']],
+      ['自動車工業が さかんな 愛知県の 都市は？', '豊田市', ['豊田市', '浜松市', '四日市市']],
+      ['日本の まわりの 海で、北海道の 東から 九州の 南に 広がる 大きな 海は？', '太平洋', ['太平洋', '日本海', 'オホーツク海']]
+    ],
+    g6: [
+      ['鎌倉幕府を 開いた人は？', '源頼朝', ['源頼朝', '足利尊氏', '平清盛']],
+      ['江戸幕府を 開いた人は？', '徳川家康', ['徳川家康', '豊臣秀吉', '織田信長']],
+      ['金閣を 建てた人は？', '足利義満', ['足利義満', '足利義政', '聖武天皇']],
+      ['十七条の憲法を つくった人は？', '聖徳太子', ['聖徳太子', '中大兄皇子', '卑弥呼']],
+      ['邪馬台国の 女王は？', '卑弥呼', ['卑弥呼', '紫式部', '清少納言']],
+      ['東大寺の 大仏を つくらせた 天皇は？', '聖武天皇', ['聖武天皇', '天武天皇', '明治天皇']],
+      ['『源氏物語』を 書いた人は？', '紫式部', ['紫式部', '清少納言', '小野小町']],
+      ['法律を つくるのは どこ？', '国会', ['国会', '内閣', '裁判所']],
+      ['日本国憲法の 三つの原則に 入るのは？', '平和主義', ['平和主義', '鎖国', '楽市・楽座']]
+    ]
+  };
+  const PREF = '北海道 札幌市|岩手県 盛岡市|宮城県 仙台市|栃木県 宇都宮市|群馬県 前橋市|茨城県 水戸市|埼玉県 さいたま市|千葉県 千葉市|神奈川県 横浜市|石川県 金沢市|山梨県 甲府市|愛知県 名古屋市|三重県 津市|滋賀県 大津市|兵庫県 神戸市|島根県 松江市|香川県 高松市|愛媛県 松山市|沖縄県 那覇市'.split('|').map(s => s.split(' '));
+  function shakaiQ(g) {
+    const pool = [];
+    const add = k => (SH[k] || []).forEach(x => pool.push(() => q(x[0], x[1], x[2], `答えは「${x[1]}」`)));
+    if (g === 'g3') add('g3');
+    if (g === 'g4' || g === 'g5') { add('g4'); for (let i = 0; i < 6; i++) pool.push(prefQ); }
+    if (g === 'g5') add('g5');
+    if (g === 'g6' || g === 'chu') { add('g6'); add('g5'); pool.push(prefQ, prefQ); }
+    return (pool.length ? pick(pool) : prefQ)();
+  }
+  function prefQ() {
+    const [p, c] = pick(PREF); const others = shuffle(PREF.filter(x => x[0] !== p)).slice(0, 2).map(x => x[1]);
+    return q(`${p}の 県庁所在地は？`, c, [c, ...others], `${p}の 県庁所在地は ${c}`);
+  }
+
+  /* ---------- りか ---------- */
+  const RK = {
+    g3: [
+      ['こん虫の 足は 何本？', '6本', ['6本', '8本', '4本']],
+      ['こん虫の 体は どう 分かれている？', '頭・むね・はら', ['頭・むね・はら', '頭・はら', '頭・むね・はら・しっぽ']],
+      ['じしゃくに つくのは どれ？', '鉄のクリップ', ['鉄のクリップ', 'アルミかん', '10円玉']],
+      ['太陽が しずむのは どの方位？', '西', ['西', '東', '北']],
+      ['かげが できるのは、太陽の どちら側？', '反対側', ['反対側', '同じ側', '真上']]
+    ],
+    g4: [
+      ['水が こおり始める 温度は？', '0度', ['0度', '10度', '−10度']],
+      ['水が ふっとうする 温度は およそ？', '100度', ['100度', '60度', '200度']],
+      ['水が 氷になると、体積は？', 'ふえる', ['ふえる', 'へる', 'かわらない']],
+      ['とじこめた 空気を おすと、体積は？', '小さくなる', ['小さくなる', '大きくなる', 'かわらない']],
+      ['夏の大三角に 入る 星は？', 'ベガ', ['ベガ', 'シリウス', 'ベテルギウス']]
+    ],
+    g5: [
+      ['種子の 発芽に ひつような ものに 入らないのは？', '肥料', ['肥料', '水', '空気']],
+      ['日本の 天気は、ふつう どちらから 変わる？', '西から東', ['西から東', '東から西', '北から南']],
+      ['川の カーブで、深く けずられるのは？', '外側', ['外側', '内側', 'まん中']],
+      ['ふりこの 1往復の 時間を 変えるのは？', 'ふりこの長さ', ['ふりこの長さ', 'おもりの重さ', 'ふれはば']]
+    ],
+    g6: [
+      ['植物の 葉に 日光が 当たると できる ものは？', 'でんぷん', ['でんぷん', 'しぼう', 'ビタミン']],
+      ['ものが 燃えるのに ひつような 気体は？', '酸素', ['酸素', 'ちっ素', '二酸化炭素']],
+      ['月が 光って 見えるのは なぜ？', '太陽の光を 反射しているから', ['太陽の光を 反射しているから', '自分で光っているから', '地球の光が当たるから']],
+      ['てこで、力点を 支点から 遠ざけると？', '小さな力で 持ち上がる', ['小さな力で 持ち上がる', '大きな力が いる', 'かわらない']],
+      ['酸性の 水よう液に 青色リトマス紙を つけると？', '赤くなる', ['赤くなる', '青のまま', '黄色になる']]
+    ]
+  };
+  function rikaQ(g) {
+    const lv = { g3: ['g3'], g4: ['g3', 'g4'], g5: ['g4', 'g5'], g6: ['g5', 'g6'], chu: ['g5', 'g6'] }[g] || ['g3'];
+    const pool = lv.flatMap(k => RK[k]); const x = pick(pool);
+    return q(x[0], x[1], x[2], `答えは「${x[1]}」`);
+  }
+
+  /* ---------- ことわざ ---------- */
+  const KW = [
+    ['猿も木から落ちる', '名人でも 失敗することがある'],
+    ['急がば回れ', '急ぐときこそ、安全なやり方を えらぶとよい'],
+    ['石の上にも三年', 'がまん強く 続ければ、いつか うまくいく'],
+    ['ちりも積もれば山となる', '小さなことも 積み重なれば 大きくなる'],
+    ['七転び八起き', '何度 失敗しても、くじけず 立ち上がる'],
+    ['花より団子', '見た目より、実際に 役立つものを えらぶ'],
+    ['早起きは三文の徳', '朝 早く起きると、よいことがある']
+  ];
+  function kotowazaQ() {
+    const [w, m] = pick(KW); const others = shuffle(KW.filter(x => x[0] !== w)).slice(0, 2).map(x => x[1]);
+    return q(`「${w}」の いみは？`, m, [m, ...others], `「${w}」＝${m}`);
+  }
+
+  function make(g, subj) {
+    if (!SUBJ_OF[g]) g = 'g3';
+    if (!SUBJ_OF[g].includes(subj)) subj = 'math';
+    let o;
+    if (subj === 'math') o = MATH[g]();
+    else if (subj === 'kanji') o = kanjiQ(g);
+    else if (subj === 'eigo') o = eigoQ(g);
+    else if (subj === 'shakai') o = shakaiQ(g);
+    else if (subj === 'rika') o = rikaQ(g);
+    else o = kotowazaQ();
+    o.subj = subj; return o;
+  }
+  return { GRADES, SUBJ, SUBJ_OF, make };
+})();
+</script>
+
+<script type="importmap">
+{ "imports": { "three": "./js/three.module.min.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// 文字のフォントを読みこんでから 看板を作る（1.5秒で あきらめて先へ進む）
+try { await Promise.race([document.fonts.load('900 60px "M PLUS Rounded 1c"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+
+/* =========================================================
+   ごほうびの量（ここの数字を変えると、かんたんに調整できます）
+   ・EXP とコインは、サイト全体のもの（トップページと同じ）にたまります
+   ・1日に ワールドで もらえる上限を DAILY_CAP で決めています
+   ・⭐スターは ワールドだけのもので、きせかえを ふやすのに使います
+========================================================= */
+const REWARD = {
+  quiz:    { star: 3,  exp: 5,  coin: 20 },   // クイズ石で正解（1つの石につき1日1回）
+  tower:   { star: 30, exp: 30, coin: 200 },  // チャレンジタワーをクリア（1日1回）
+  mission: { star: 20, exp: 20, coin: 100 },  // きょうのミッションを ぜんぶクリア
+  deck:    { star: 10 },                      // 空のデッキに のぼる（1日1回）
+  pick:    { star: 1 }                        // おちているスターを ひろう
+};
+const DAILY_CAP = { exp: 100, coin: 500 };
+
+/* =========================================================
+   データ・保存値
+   ・mun_exp / mun_coins / mun_daily_exp は サイト全体と同じ保存名（ふやすだけで、へらしません）
+   ・ワールドだけのものは mun_world_ ではじまる名前に保存します
+========================================================= */
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const LS = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+const J = (k, d) => { try { const v = JSON.parse(LS.get(k)); return v == null ? d : v; } catch (e) { return d; } };
+const SJ = (k, v) => LS.set(k, JSON.stringify(v));
+const TODAY = new Date().toDateString();          // サイトの mun_daily_exp と同じ日付の形
+const NOW = new Date();
+const MONTH = NOW.getMonth() + 1;
+
+const readExp = () => parseInt(LS.get('mun_exp')) || 0;
+const readCoins = () => parseInt(LS.get('mun_coins')) || 0;
+const levelOf = e => Math.floor(e / 100) + 1;
+const rankOf = l => l >= 30 ? 'でんせつの勇者' : l >= 20 ? 'マスター' : l >= 10 ? 'ベテラン' : l >= 5 ? 'ちょうせん者' : 'ぼうけん者';
+let lvl = levelOf(readExp());
+let FAVS = J('mun_favs', []); if (!Array.isArray(FAVS)) FAVS = [];
+
+const ST = Object.assign({ stars: 0, total: 0, quiz: {}, chestsTotal: 0, towerClears: 0, unlocked: [], seenItems: [], talksTotal: 0, quizTotal: 0 }, J('mun_world_state', {}));
+if (!ST.day || ST.day.date !== TODAY) {
+  ST.day = { date: TODAY, exp: 0, coin: 0, picked: [], chests: [], stones: {}, tower: false, towerTry: false, deck: false, visits: [], talks: 0, emotes: 0, dress: false, quizOk: 0, missionDone: false };
+}
+const saveST = () => SJ('mun_world_state', ST);
+saveST();
+
+const OPT = Object.assign({ q: 'auto', sound: true, sky: 'auto' }, J('mun_world_opts', {}));
+const saveOPT = () => SJ('mun_world_opts', OPT);
+let GRADE = LS.get('mun_world_grade') || '';
+
+const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+if (isTouch) document.body.classList.add('touch');
+const QUALITY = OPT.q === 'auto' ? (isTouch ? 'low' : 'high') : OPT.q;
+const LOW = QUALITY === 'low';
+
+/* ---- その日だけの 決まった乱数（スター・宝箱の場所、ミッションが 毎日かわる） ---- */
+function seedRand(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  let a = h >>> 0;
+  return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const dayRand = seedRand('munworld-' + TODAY);
+
+/* =========================================================
+   きせかえの しな物
+   need … star:そうごうで集めた⭐の数 / lv:サイトのレベル / tower:タワークリア回数 / chest:宝箱からだけ / month:その月だけ
+========================================================= */
+const COLORS = ['#00e5ff', '#a855f7', '#ec4899', '#fbbf24', '#10b981', '#ef4444', '#3b82f6', '#f97316', '#ffffff', '#1f2937', '#ffd166', '#8b5a2b', '#f5d0a9', '#c68642', '#94a3b8', '#84cc16'];
+const ITEMS = {
+  type: [
+    { id: 'neko', name: 'ネコ', e: '🐱' }, { id: 'inu', name: 'イヌ', e: '🐶' }, { id: 'usagi', name: 'ウサギ', e: '🐰' },
+    { id: 'hito', name: 'ひと', e: '🧒' }, { id: 'kuma', name: 'クマ', e: '🐻', need: { star: 30 } },
+    { id: 'pengin', name: 'ペンギン', e: '🐧', need: { star: 80 } }, { id: 'robot', name: 'ロボット', e: '🤖', need: { lv: 5 } }
+  ],
+  eye: [{ id: 'maru', name: 'まる', e: '⚫' }, { id: 'kira', name: 'キラキラ', e: '✨' }, { id: 'nikkori', name: 'にっこり', e: '😊' }, { id: 'neboke', name: 'ねむい', e: '😪' }],
+  hairStyle: [{ id: 'short', name: 'ショート', e: '💇' }, { id: 'long', name: 'ロング', e: '👩' }, { id: 'twin', name: 'ツイン', e: '🎀' }, { id: 'tsun', name: 'ツンツン', e: '⚡' }],
+  hat: [
+    { id: 'none', name: 'なし', e: '⭕' }, { id: 'cap', name: 'キャップ', e: '🧢' }, { id: 'ribbon', name: 'リボン', e: '🎀' },
+    { id: 'band', name: 'はちまき', e: '🔴' }, { id: 'flower', name: 'お花', e: '🌸', need: { star: 20 } },
+    { id: 'helmet', name: 'ヘルメット', e: '⛑️', need: { lv: 3 } }, { id: 'wizard', name: 'まほうの ぼうし', e: '🧙', need: { star: 60 } },
+    { id: 'santa', name: 'サンタぼうし', e: '🎅', need: { month: 12 } }, { id: 'crown', name: '王かん', e: '👑', need: { star: 150 } },
+    { id: 'halo', name: 'てんしの わ', e: '😇', need: { tower: 3 } }
+  ],
+  acc: [
+    { id: 'none', name: 'なし', e: '⭕' }, { id: 'scarf', name: 'マフラー', e: '🧣' }, { id: 'glasses', name: 'めがね', e: '👓' },
+    { id: 'randoseru', name: 'ランドセル', e: '🎒' }, { id: 'phones', name: 'ヘッドホン', e: '🎧', need: { star: 40 } },
+    { id: 'cape', name: 'マント', e: '🦸', need: { star: 100 } }, { id: 'wings', name: 'つばさ', e: '🪽', need: { chest: 1 } },
+    { id: 'jet', name: 'ジェットパック', e: '🚀', need: { chest: 1 } }
+  ],
+  pet: [
+    { id: 'none', name: 'なし', e: '⭕' }, { id: 'minimun', name: 'ミニむん', e: '🐈', need: { star: 10 } }, { id: 'hiyoko', name: 'ひよこ', e: '🐤', need: { star: 25 } },
+    { id: 'slime', name: 'スライム', e: '💧', need: { star: 50 } }, { id: 'drone', name: 'ドローン', e: '🛸', need: { lv: 8 } },
+    { id: 'ufo', name: 'UFO', e: '👽', need: { chest: 1 } }, { id: 'dragon', name: 'ミニドラゴン', e: '🐉', need: { star: 300 } }
+  ],
+  aura: [
+    { id: 'cyan', name: 'シアン', e: '🔵', c: '#00e5ff' }, { id: 'pink', name: 'ピンク', e: '🩷', c: '#ec4899' }, { id: 'green', name: 'みどり', e: '🟢', c: '#10b981' },
+    { id: 'gold', name: 'ゴールド', e: '🟡', c: '#fbbf24', need: { star: 15 } }, { id: 'rainbow', name: 'にじいろ', e: '🌈', c: '#ffffff', need: { chest: 1 } }
+  ]
+};
+const AV_DEF = { type: 'neko', body: '#00e5ff', fur: '#ffd166', hair: '#3b2a1a', hairStyle: 'short', eye: 'maru', cheek: true, hat: 'none', acc: 'scarf', pet: 'none', aura: 'cyan', name: '' };
+let AV = Object.assign({}, AV_DEF, J('mun_world_avatar', {}));
+const saveAV = () => SJ('mun_world_avatar', AV);
+
+function itemOK(cat, it) {
+  const n = it.need; if (!n) return true;
+  if (ST.unlocked.includes(cat + ':' + it.id)) return true;
+  if (n.star && ST.total >= n.star) return true;
+  if (n.lv && lvl >= n.lv) return true;
+  if (n.tower && ST.towerClears >= n.tower) return true;
+  if (n.month && MONTH === n.month) return true;
+  return false;
+}
+function needText(n) {
+  if (!n) return '';
+  if (n.star) return `⭐${n.star}こで`;
+  if (n.lv) return `Lv.${n.lv}で`;
+  if (n.tower) return `タワー${n.tower}回クリア`;
+  if (n.chest) return '宝箱から';
+  if (n.month) return `${n.month}月だけ`;
+  return '';
+}
+// 今もっている しな物の一覧（あたらしく ふえたら知らせるため）
+const ownedKeys = () => Object.entries(ITEMS).flatMap(([c, l]) => l.filter(it => it.need && itemOK(c, it)).map(it => c + ':' + it.id));
+// 使えなくなった しな物（月の限定など）は、ふつうのものに もどす
+for (const c of ['type', 'hat', 'acc', 'pet', 'aura']) { const it = ITEMS[c].find(x => x.id === AV[c]); if (!it || !itemOK(c, it)) AV[c] = AV_DEF[c]; }
+
+/* =========================================================
+   three.js の ざいりょう
+========================================================= */
+const matCache = {};
+function mat(color, o = {}) {
+  const k = color + JSON.stringify(o);
+  if (!matCache[k]) matCache[k] = new THREE.MeshStandardMaterial(Object.assign({ color, roughness: .6 }, o));
+  return matCache[k];
+}
+const basic = (color, o = {}) => new THREE.MeshBasicMaterial(Object.assign({ color }, o));
+function darker(hex, k = .7) { const c = new THREE.Color(hex); c.multiplyScalar(k); return '#' + c.getHexString(); }
+function mesh(geo, m, x = 0, y = 0, z = 0, parent) { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (!LOW) o.castShadow = true; if (parent) parent.add(o); return o; }
+
+/* ---- まるい 光のつぶ（キラキラ・雪で使う） ---- */
+const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.45, 'rgba(255,255,255,.9)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); return t; })();
+const dotMat = (color, size, opacity = 1) => new THREE.PointsMaterial({ color, size, map: dotTex, transparent: true, opacity, depthWrite: false });
+
+/* ---- 文字ラベル（スプライト） ---- */
+function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+const FONT = '"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","BIZ UDPGothic",sans-serif';
+function makeLabel(text, sub, color, scale = 1) {
+  const c = document.createElement('canvas'); const W = 640, H = 200; c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(5,9,20,.82)'; roundRect(g, 10, 20, W - 20, H - 40, 40); g.fill();
+  g.strokeStyle = color; g.lineWidth = 8; roundRect(g, 10, 20, W - 20, H - 40, 40); g.stroke();
+  g.fillStyle = '#fff'; g.font = `900 60px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let fs = 60; while (g.measureText(text).width > W - 70 && fs > 30) { fs -= 4; g.font = `900 ${fs}px ${FONT}`; }
+  g.fillText(text, W / 2, sub ? 82 : H / 2);
+  if (sub) { g.fillStyle = color; g.font = `700 34px ${FONT}`; g.fillText(sub, W / 2, 142); }
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  s.scale.set(9.6 * scale, 3 * scale, 1);
+  return s;
+}
+function makeEmoji(emoji, size = 2.2) {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.font = '190px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(emoji, 128, 140);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false })); s.scale.set(size, size, 1); return s;
+}
+// ふきだし（なかまの せりふ）
+function makeBubble(text) {
+  const c = document.createElement('canvas'); const W = 720, H = 300; c.width = W; c.height = H; const g = c.getContext('2d');
+  g.font = `800 40px ${FONT}`;
+  const lines = []; let cur = '';
+  for (const ch of text) { if (g.measureText(cur + ch).width > W - 90) { lines.push(cur); cur = ch; } else cur += ch; }
+  if (cur) lines.push(cur);
+  const L = lines.slice(0, 4), bh = 60 + L.length * 52;
+  g.fillStyle = 'rgba(255,255,255,.96)'; roundRect(g, 10, 10, W - 20, bh, 36); g.fill();
+  g.beginPath(); g.moveTo(W / 2 - 24, bh + 8); g.lineTo(W / 2 + 24, bh + 8); g.lineTo(W / 2, bh + 44); g.closePath(); g.fill();
+  g.fillStyle = '#0f172a'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  L.forEach((l, i) => g.fillText(l, W / 2, 10 + 30 + 26 + i * 52 - (L.length > 1 ? 0 : 0)));
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
+  s.scale.set(7.2, 3, 1); s.renderOrder = 10; return s;
+}
+
+/* =========================================================
+   キャラクターを組み立てる
+   （VRoid などの 3Dモデルに 入れかえるときは、この関数の かわりを 作ります）
+========================================================= */
+const G = {
+  cap: (r, l) => new THREE.CapsuleGeometry(r, l, 4, 10),
+  sph: r => new THREE.SphereGeometry(r, 18, 14),
+  cone: (r, h, s = 12) => new THREE.ConeGeometry(r, h, s),
+  box: (x, y, z) => new THREE.BoxGeometry(x, y, z),
+  cyl: (a, b, h, s = 16) => new THREE.CylinderGeometry(a, b, h, s),
+  tor: (r, t, a = Math.PI * 2) => new THREE.TorusGeometry(r, t, 8, 24, a)
+};
+function buildAvatar(cfg, opt = {}) {
+  const root = new THREE.Group();
+  const P = {};
+  const bodyM = mat(cfg.body, { emissive: new THREE.Color(cfg.body).multiplyScalar(.12) });
+  const furM = mat(cfg.fur, { roughness: .7, emissive: new THREE.Color(cfg.fur).multiplyScalar(.16) });
+  const t = cfg.type;
+  const black = mat('#111827', { roughness: .3 });
+  // 足
+  const legM = t === 'pengin' ? mat('#f59e0b') : mat(darker(cfg.body, .55));
+  for (const s of [-1, 1]) {
+    const pv = new THREE.Group(); pv.position.set(s * .2, .62, 0); root.add(pv);
+    mesh(G.cap(.14, .32), legM, 0, -.3, 0, pv);
+    mesh(G.sph(.16), legM, 0, -.5, .07, pv).scale.set(1, .6, 1.4);
+    P[s < 0 ? 'legL' : 'legR'] = pv;
+  }
+  // からだ
+  const body = t === 'robot' ? mesh(G.box(.95, .9, .7), mat(cfg.body, { metalness: .6, roughness: .35 }), 0, 1.08, 0, root)
+    : mesh(G.cap(.45, .45), bodyM, 0, 1.08, 0, root);
+  P.body = body;
+  if (t === 'pengin') mesh(G.sph(.4), mat('#ffffff'), 0, 1.05, .14, root).scale.set(.9, 1.05, .8);
+  // うで
+  const armM = (t === 'pengin') ? furM : (t === 'robot' ? mat('#94a3b8', { metalness: .6, roughness: .3 }) : bodyM);
+  for (const s of [-1, 1]) {
+    const pv = new THREE.Group(); pv.position.set(s * .52, 1.42, 0); pv.rotation.z = s * .18; root.add(pv);
+    if (t === 'pengin') mesh(G.sph(.2), armM, 0, -.32, 0, pv).scale.set(.45, 1.4, .9);
+    else { mesh(G.cap(.12, .38), armM, 0, -.3, 0, pv); mesh(G.sph(.14), (t === 'hito') ? furM : (t === 'robot' ? armM : furM), 0, -.56, 0, pv); }
+    P[s < 0 ? 'armL' : 'armR'] = pv;
+  }
+  // 頭
+  const head = new THREE.Group(); head.position.y = 2.0; root.add(head); P.head = head;
+  if (t === 'robot') {
+    mesh(G.box(1.0, .9, .9), mat('#cbd5e1', { metalness: .5, roughness: .3 }), 0, 0, 0, head);
+    mesh(G.box(.8, .28, .05), basic(cfg.fur), 0, .05, .46, head);
+    mesh(G.cyl(.03, .03, .4, 6), mat('#64748b'), 0, .62, 0, head);
+    mesh(G.sph(.1), basic(cfg.body), 0, .86, 0, head);
+    for (const s of [-1, 1]) mesh(G.cyl(.14, .14, .14, 12), mat('#64748b'), s * .55, 0, 0, head).rotation.z = Math.PI / 2;
+  } else {
+    mesh(G.sph(.55), furM, 0, 0, 0, head);
+    // 目
+    for (const s of [-1, 1]) {
+      const x = s * .2, y = .05, z = .49;
+      if (cfg.eye === 'nikkori') { const e = mesh(G.tor(.08, .022, Math.PI), black, x, y - .02, z + .02, head); }
+      else if (cfg.eye === 'neboke') { mesh(G.sph(.08), black, x, y - .02, z, head).scale.set(1.1, .3, .6); }
+      else {
+        mesh(G.sph(cfg.eye === 'kira' ? .1 : .075), black, x, y, z, head);
+        if (cfg.eye === 'kira') { mesh(G.sph(.035), basic('#ffffff'), x + .03, y + .04, z + .08, head); }
+      }
+    }
+    if (cfg.cheek) for (const s of [-1, 1]) { const ck = mesh(new THREE.CircleGeometry(.085, 16), basic('#fb7185', { transparent: true, opacity: .75 }), s * .32, -.1, .45, head); ck.rotation.y = s * .55; ck.castShadow = false; }
+    // 口
+    if (t !== 'pengin') { const m = mesh(G.tor(.06, .015, Math.PI), black, 0, -.12, .52, head); m.rotation.z = Math.PI; }
+    // 種類ごと
+    if (t === 'neko') {
+      for (const s of [-1, 1]) { const e = mesh(G.cone(.2, .45, 4), furM, s * .33, .5, 0, head); e.rotation.z = -s * .3; const ie = mesh(G.cone(.1, .25, 4), mat('#f9a8d4'), s * .32, .47, .08, head); ie.rotation.z = -s * .3; }
+      const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, .9, -.4), new THREE.Vector3(0, 1.1, -.85), new THREE.Vector3(0, 1.6, -1.0), new THREE.Vector3(.1, 1.85, -.85)]);
+      P.tail = mesh(new THREE.TubeGeometry(curve, 16, .08, 8), furM, 0, 0, 0, root);
+    } else if (t === 'inu') {
+      for (const s of [-1, 1]) { const e = mesh(G.sph(.22), mat(darker(cfg.fur, .75)), s * .5, .02, -.02, head); e.scale.set(.45, 1.1, .7); e.rotation.z = s * .25; }
+      mesh(G.sph(.22), mat(new THREE.Color(cfg.fur).lerp(new THREE.Color('#ffffff'), .45).getStyle()), 0, -.12, .42, head).scale.set(1, .8, .9);
+      mesh(G.sph(.07), black, 0, -.04, .62, head);
+      P.tail = mesh(G.cone(.09, .45, 8), furM, 0, 1.05, -.48, root); P.tail.rotation.x = -.8;
+    } else if (t === 'usagi') {
+      for (const s of [-1, 1]) { const e = mesh(G.cap(.11, .6), furM, s * .2, .78, -.05, head); e.rotation.z = -s * .12; mesh(G.cap(.05, .45), mat('#f9a8d4'), s * .2, .78, .04, head).rotation.z = -s * .12; }
+      mesh(G.sph(.17), mat('#ffffff'), 0, .95, -.47, root);
+    } else if (t === 'kuma') {
+      for (const s of [-1, 1]) { mesh(G.sph(.18), furM, s * .38, .45, 0, head); mesh(G.sph(.09), mat(darker(cfg.fur, .7)), s * .38, .45, .09, head); }
+      mesh(G.sph(.2), mat(new THREE.Color(cfg.fur).lerp(new THREE.Color('#fff7ed'), .5).getStyle()), 0, -.13, .44, head).scale.set(1.1, .8, .8);
+      mesh(G.sph(.065), black, 0, -.06, .6, head);
+    } else if (t === 'pengin') {
+      mesh(G.sph(.42), mat('#ffffff'), 0, -.08, .2, head).scale.set(1, .9, .8);
+      const bk = mesh(G.cone(.1, .26, 8), mat('#f59e0b'), 0, -.12, .6, head); bk.rotation.x = Math.PI / 2;
+    } else if (t === 'hito') {
+      const hm = mat(cfg.hair, { roughness: .8 });
+      const cap = mesh(new THREE.SphereGeometry(.58, 20, 12, 0, Math.PI * 2, 0, Math.PI * .52), hm, 0, .02, -.03, head); cap.rotation.x = -.22;
+      if (cfg.hairStyle === 'long') { mesh(G.cap(.4, .5), hm, 0, -.45, -.25, head).scale.set(1.2, 1, .6); }
+      if (cfg.hairStyle === 'twin') for (const s of [-1, 1]) { mesh(G.sph(.2), hm, s * .55, .15, -.15, head); mesh(G.cap(.13, .45), hm, s * .62, -.25, -.15, head); }
+      if (cfg.hairStyle === 'tsun') for (let i = 0; i < 7; i++) { const a = (i / 6 - .5) * 2.2; const sp = mesh(G.cone(.13, .4, 6), hm, Math.sin(a) * .42, .48, Math.cos(a) * .1 - .12, head); sp.rotation.z = -a * .6; sp.rotation.x = -.4; }
+      for (const s of [-1, 1]) mesh(G.sph(.1), furM, s * .55, -.02, 0, head);
+    }
+  }
+  // ぼうし
+  const hy = (t === 'robot') ? .5 : .45;
+  const hat = cfg.hat;
+  if (hat === 'cap') { const hm = mat(cfg.body); mesh(new THREE.SphereGeometry(.58, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), hm, 0, .1, 0, head); const b = mesh(G.cyl(.38, .38, .04, 20), hm, 0, .12, .42, head); b.scale.z = .8; }
+  if (hat === 'ribbon') { const rm = mat('#f472b6'); for (const s of [-1, 1]) { const c = mesh(G.cone(.14, .3, 8), rm, s * .17 + .28, hy, .12, head); c.rotation.z = s * Math.PI / 2; } mesh(G.sph(.08), rm, .28, hy, .12, head); }
+  if (hat === 'band') { mesh(G.tor(.555, .06), mat('#ef4444'), 0, .18, 0, head).rotation.x = Math.PI / 2; mesh(G.sph(.1), mat('#ef4444'), 0, .18, -.56, head); }
+  if (hat === 'flower') { for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; mesh(G.sph(.08), mat('#f9a8d4'), -.32 + Math.cos(a) * .1, hy - .05 + Math.sin(a) * .1, .3, head); } mesh(G.sph(.06), mat('#fbbf24'), -.32, hy - .05, .33, head); }
+  if (hat === 'helmet') { mesh(new THREE.SphereGeometry(.62, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat('#f8fafc', { metalness: .3, roughness: .3 }), 0, .05, 0, head); mesh(G.box(.9, .06, .2), mat('#f59e0b'), 0, .1, .5, head); }
+  if (hat === 'wizard') { mesh(G.cyl(.75, .75, .05, 24), mat('#6d28d9'), 0, hy - .05, 0, head); const w = mesh(G.cone(.45, 1.1, 16), mat('#7c3aed', { emissive: '#2e1065' }), 0, hy + .5, 0, head); w.rotation.z = .15; mesh(G.sph(.08), basic('#fde68a'), .1, hy + .6, .36, head); }
+  if (hat === 'santa') { mesh(G.tor(.5, .1), mat('#ffffff'), 0, hy - .05, 0, head).rotation.x = Math.PI / 2; const s = mesh(G.cone(.48, .9, 16), mat('#dc2626'), 0, hy + .4, 0, head); s.rotation.z = -.35; mesh(G.sph(.12), mat('#ffffff'), .33, hy + .78, 0, head); }
+  if (hat === 'crown') { const gm = mat('#fbbf24', { metalness: .8, roughness: .25, emissive: '#78350f' }); mesh(G.cyl(.36, .38, .26, 20), gm, 0, hy + .08, 0, head); for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; mesh(G.cone(.08, .22, 6), gm, Math.cos(a) * .32, hy + .3, Math.sin(a) * .32, head); } mesh(G.sph(.07), basic('#ef4444'), 0, hy + .1, .37, head); }
+  if (hat === 'halo') { const h = mesh(G.tor(.38, .05), basic('#fde68a'), 0, hy + .45, 0, head); h.rotation.x = Math.PI / 2; P.halo = h; }
+  // アクセサリー
+  const acc = cfg.acc;
+  if (acc === 'scarf') { const s = mesh(G.tor(.42, .12), mat('#ec4899'), 0, 1.55, 0, root); s.rotation.x = Math.PI / 2; mesh(G.box(.2, .45, .08), mat('#ec4899'), .22, 1.3, .38, root).rotation.z = .2; }
+  if (acc === 'glasses') { const gm = mat('#111827'); for (const s of [-1, 1]) mesh(G.tor(.12, .025), gm, s * .2, .05, .53, head); mesh(G.box(.14, .03, .03), gm, 0, .07, .54, head); }
+  if (acc === 'randoseru') { mesh(G.box(.7, .78, .34), mat('#dc2626', { roughness: .4 }), 0, 1.2, -.58, root); mesh(G.box(.72, .45, .06), mat('#b91c1c'), 0, 1.38, -.77, root); }
+  if (acc === 'phones') { const pm = mat('#334155'); const b = mesh(G.tor(.6, .05, Math.PI), pm, 0, .05, 0, head); for (const s of [-1, 1]) mesh(G.cyl(.18, .18, .14, 16), mat(cfg.body), s * .6, 0, 0, head).rotation.z = Math.PI / 2; }
+  if (acc === 'cape') { const c = mesh(new THREE.PlaneGeometry(1.0, 1.25, 1, 4), mat('#dc2626', { side: THREE.DoubleSide }), 0, 1.05, -.5, root); c.rotation.x = .12; P.cape = c; }
+  if (acc === 'wings') { const wm = mat('#ffffff', { emissive: '#64748b', roughness: .4 }); for (const s of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(s * .2, 1.4, -.42); root.add(pv); const w = mesh(G.sph(.5), wm, s * .45, 0, 0, pv); w.scale.set(.9, .45, .08); w.rotation.z = s * .4; P[s < 0 ? 'wingL' : 'wingR'] = pv; } }
+  if (acc === 'jet') { const jm = mat('#94a3b8', { metalness: .7, roughness: .3 }); for (const s of [-1, 1]) { mesh(G.cyl(.15, .15, .7, 12), jm, s * .2, 1.2, -.55, root); const f = mesh(G.cone(.12, .35, 10), basic('#f97316'), s * .2, .7, -.55, root); f.rotation.x = Math.PI; (P.flames = P.flames || []).push(f); } }
+  // あしもとの光
+  const aura = ITEMS.aura.find(a => a.id === cfg.aura) || ITEMS.aura[0];
+  if (!opt.noAura) {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(.7, 1.0, 32), basic(aura.c, { transparent: true, opacity: .55, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = .05; root.add(ring); P.aura = ring; P.rainbow = cfg.aura === 'rainbow';
+  }
+  root.userData.P = P;
+  return root;
+}
+
+/* ---- ペット ---- */
+function buildPet(id) {
+  const g = new THREE.Group(); if (id === 'none') return null;
+  if (id === 'minimun') { const m = mat('#ffd166'); mesh(G.sph(.32), m, 0, .35, 0, g); for (const s of [-1, 1]) mesh(G.cone(.1, .22, 4), m, s * .18, .65, 0, g).rotation.z = -s * .3; for (const s of [-1, 1]) mesh(G.sph(.04), basic('#111827'), s * .1, .4, .29, g); }
+  if (id === 'hiyoko') { const m = mat('#fde047'); mesh(G.sph(.28), m, 0, .3, 0, g); mesh(G.sph(.2), m, 0, .62, .05, g); const b = mesh(G.cone(.06, .14, 6), mat('#f97316'), 0, .6, .26, g); b.rotation.x = Math.PI / 2; for (const s of [-1, 1]) mesh(G.sph(.035), basic('#111827'), s * .08, .66, .2, g); }
+  if (id === 'slime') { const s = mesh(G.sph(.35), new THREE.MeshStandardMaterial({ color: '#22d3ee', transparent: true, opacity: .8, roughness: .1 }), 0, .3, 0, g); s.scale.y = .75; g.userData.blob = s; for (const k of [-1, 1]) mesh(G.sph(.05), basic('#0f172a'), k * .1, .38, .3, g); }
+  if (id === 'drone') { mesh(G.box(.5, .14, .5), mat('#334155', { metalness: .6 }), 0, 0, 0, g); g.userData.rotors = []; for (const [x, z] of [[-.3, -.3], [.3, -.3], [-.3, .3], [.3, .3]]) { const r = mesh(G.box(.36, .02, .06), basic('#00e5ff'), x, .1, z, g); g.userData.rotors.push(r); } mesh(G.sph(.06), basic('#ef4444'), 0, 0, .26, g); g.userData.fly = 1.9; }
+  if (id === 'ufo') { mesh(G.cyl(.15, .5, .18, 20), mat('#94a3b8', { metalness: .8, roughness: .2 }), 0, 0, 0, g); mesh(new THREE.SphereGeometry(.22, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#a7f3d0', transparent: true, opacity: .7 }), 0, .08, 0, g); const beam = mesh(G.cone(.4, 1.2, 16, 1), basic('#a7f3d0', { transparent: true, opacity: .18 }), 0, -.65, 0, g); beam.castShadow = false; g.userData.fly = 2.3; }
+  if (id === 'dragon') { const m = mat('#22c55e'); mesh(G.sph(.3), m, 0, .45, 0, g); mesh(G.sph(.22), m, 0, .8, .18, g); for (const s of [-1, 1]) { const w = mesh(G.sph(.3), mat('#86efac'), s * .35, .6, -.1, g); w.scale.set(.9, .5, .08); w.rotation.z = s * .5; (g.userData.wings = g.userData.wings || []).push(w); } for (const s of [-1, 1]) mesh(G.cone(.05, .18, 6), mat('#fef08a'), s * .1, 1.0, .15, g); for (const s of [-1, 1]) mesh(G.sph(.04), basic('#111827'), s * .08, .84, .37, g); g.userData.fly = 1.4; }
+  g.userData.id = id; return g;
+}
+
+/* =========================================================
+   場所のレイアウト（もとの作りと同じ）
+========================================================= */
+const CAT_COLOR = { math1: '#fb7185', math3: '#00e5ff', math4: '#a78bfa', math5: '#facc15', math6: '#f472b6', kokugo: '#60a5fa', social: '#34d399', history: '#e879f9', eigo: '#818cf8', game: '#fb923c', class: '#f472b6', grade1: '#a3e635', support: '#2dd4bf', duty: '#fbbf24', teacher: '#fb7185' };
+const CAT_EMOJI = { math1: '🍎', math3: '✏️', math4: '🧮', math5: '➕', math6: '√', kokugo: '🖋️', social: '🗺️', history: '📜', eigo: '🔤', game: '🎮', class: '👥', grade1: '🌱', support: '🤝', duty: '📋', teacher: '🧑‍🏫' };
+const PARK_EMOJI = { 'むん宇宙館': '🚀', 'むん動物園': '🐾', 'むん植物園': '🌿', 'むん水族館': '🐟', 'むん恐竜博物館': '🦖', 'むん農園': '🥕', 'むん商店街': '🏪' };
+// 学年ごとの おすすめの たてもの
+const REC = { g1: ['math1', 'grade1', 'kokugo'], g2: ['kokugo', 'game'], g3: ['math3', 'kokugo', 'social'], g4: ['math4', 'social', 'kokugo'], g5: ['math5', 'social'], g6: ['math6', 'history'], chu: ['eigo'] };
+
+const PLACES = [];
+const cats = DATA.cats.filter(c => !c.hidden);
+const RING = 40, N = cats.length;
+cats.forEach((c, i) => {
+  let th = Math.PI * 0.67 + i * (Math.PI * 1.4 / (N - 1));
+  if (th > Math.PI * 1.37) th += Math.PI * 0.26;
+  const x = Math.cos(th) * RING, z = Math.sin(th) * RING;
+  PLACES.push({ id: c.id, type: 'cat', name: c.name, sub: `${c.apps.length}このクエスト`, color: CAT_COLOR[c.id] || '#00e5ff', x, z, r: 6.5, emoji: CAT_EMOJI[c.id] || '📘', cat: c, size: 6 + Math.min(5, c.apps.length * 0.3) });
+});
+DATA.park.forEach((p, i) => {
+  const a = Math.PI * 1.5 + (i - 3) * 0.26, R = 70;
+  PLACES.push({ id: 'park' + i, type: 'park', name: p.t, sub: p.d, color: p.c, x: Math.cos(a) * R, z: Math.sin(a) * R, r: 6.5, emoji: PARK_EMOJI[p.t] || '🎡', link: p.h, size: 7 });
+});
+PLACES.push({ id: 'desk', type: 'link', name: 'マイデスク', sub: '持ち物チェック・読書通帳・タイマーなど', color: '#fbbf24', x: -16, z: 52, r: 6, emoji: '🧰', link: './index.html#desk', size: 6 });
+PLACES.push({ id: 'lab', type: 'link', name: 'むんラボ', sub: '実験中のあたらしいアプリ', color: '#ec4899', x: 16, z: 52, r: 6, emoji: '🧪', link: './lab/', size: 6 });
+PLACES.push({ id: 'guide', type: 'link', name: '学習ガイド図書館', sub: 'つまずきポイント・おうちでの声かけ', color: '#60a5fa', x: 0, z: -14, r: 5.5, emoji: '📚', link: './guide.html', size: 6 });
+
+/* ---- あいている場所をさがす（道・たてものと かさならないように） ---- */
+const ISLAND_R = 86;
+const OBST = [];  // {x,z,r}
+const segDist = (px, pz, ax, az, bx, bz) => { const vx = bx - ax, vz = bz - az; const t = Math.max(0, Math.min(1, ((px - ax) * vx + (pz - az) * vz) / (vx * vx + vz * vz || 1))); return Math.hypot(px - (ax + vx * t), pz - (az + vz * t)); };
+function onRoad(x, z, pad) {
+  for (const p of PLACES) { const f = p.type === 'park' ? [0, -RING - 4] : [0, 0]; if (segDist(x, z, f[0], f[1], p.x, p.z) < 1.6 + pad) return true; }
+  if (Math.abs(x) < 2.5 + pad && z > -RING - 6 && z < 50) return true;
+  return false;
+}
+function isFree(x, z, r) {
+  const d = Math.hypot(x, z);
+  if (d > ISLAND_R - r - 3 || d < 15 + r) return false;
+  for (const p of PLACES) if (Math.hypot(p.x - x, p.z - z) < p.size * .8 + r + 4) return false;
+  for (const o of OBST) if (Math.hypot(o.x - x, o.z - z) < o.r + r + 1.5) return false;
+  return !onRoad(x, z, r);
+}
+function findSpot(cands, r) { for (const [x, z] of cands) if (isFree(x, z, r)) { OBST.push({ x, z, r }); return { x, z }; } return null; }
+function ringCands(rad, n, off = 0) { const a = []; for (let i = 0; i < n; i++) { const t = off + i / n * Math.PI * 2; a.push([Math.cos(t) * rad, Math.sin(t) * rad]); } return a; }
+
+/* =========================================================
+   three.js セットアップ
+========================================================= */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !LOW, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, LOW ? 1 : 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = !LOW;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x070b1c);
+scene.fog = new THREE.Fog(0x070b1c, 80, 210);
+const camera = new THREE.PerspectiveCamera(innerWidth < innerHeight ? 72 : 60, innerWidth / innerHeight, 0.1, 420);
+
+const hemi = new THREE.HemisphereLight(0x8fb6ff, 0x1a1030, 0.9); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffe9c4, 1.2);
+sun.position.set(40, 70, 20); sun.castShadow = !LOW;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -100, right: 100, top: 100, bottom: -100, near: 1, far: 220 });
+scene.add(sun);
+const plazaLight = new THREE.PointLight(0x00e5ff, 1.4, 60, 1.5); plazaLight.position.set(0, 8, 0); scene.add(plazaLight);
+
+/* ---- 星空・惑星 ---- */
+let starField;
+{
+  const g = new THREE.BufferGeometry(); const n = LOW ? 900 : 1800; const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const r = 300, th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 0.9 + 0.05); pos[i * 3] = r * Math.sin(ph) * Math.cos(th); pos[i * 3 + 1] = r * Math.cos(ph); pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th); }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  starField = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: true, transparent: true, opacity: .9, fog: false }));
+  scene.add(starField);
+  const planet = new THREE.Mesh(new THREE.SphereGeometry(26, 32, 32), new THREE.MeshStandardMaterial({ color: 0x7c5cff, emissive: 0x3b1d8a, emissiveIntensity: .6, roughness: 1, fog: false }));
+  planet.position.set(-150, 90, -220); scene.add(planet);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(34, 48, 48), new THREE.MeshBasicMaterial({ color: 0xa855f7, side: THREE.DoubleSide, transparent: true, opacity: .45, fog: false }));
+  ring.position.copy(planet.position); ring.rotation.x = Math.PI / 2.6; ring.rotation.y = .4; scene.add(ring);
+}
+
+/* ---- 地面（島） ---- */
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x15213f, roughness: .95 });
+let gridHelper;
+{
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(ISLAND_R, 96), groundMat);
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  gridHelper = new THREE.GridHelper(ISLAND_R * 2, 44, 0x00e5ff, 0x1d2b55);
+  gridHelper.material.transparent = true; gridHelper.material.opacity = .22; gridHelper.position.y = .02; scene.add(gridHelper);
+  const edge = new THREE.Mesh(new THREE.TorusGeometry(ISLAND_R, .5, 8, 120), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+  edge.rotation.x = Math.PI / 2; edge.position.y = .1; scene.add(edge);
+  const under = new THREE.Mesh(new THREE.ConeGeometry(ISLAND_R, 40, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x0b1226, roughness: 1, side: THREE.BackSide }));
+  under.rotation.x = Math.PI; under.position.y = -20; scene.add(under);
+  const plaza = new THREE.Mesh(new THREE.CircleGeometry(14, 64), new THREE.MeshStandardMaterial({ color: 0x24335f, roughness: .8, emissive: 0x0a1430 }));
+  plaza.rotation.x = -Math.PI / 2; plaza.position.y = .03; plaza.receiveShadow = true; scene.add(plaza);
+  const plazaRing = new THREE.Mesh(new THREE.RingGeometry(13.4, 14, 64), new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide }));
+  plazaRing.rotation.x = -Math.PI / 2; plazaRing.position.y = .04; scene.add(plazaRing);
+  const roadMat = new THREE.MeshStandardMaterial({ color: 0x2a3a66, roughness: .9 });
+  for (const p of PLACES) {
+    const from = new THREE.Vector3(0, 0, 0), to = new THREE.Vector3(p.x, 0, p.z);
+    if (p.type === 'park') from.set(0, 0, -RING - 4);
+    const len = from.distanceTo(to);
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(3.2, len), roadMat);
+    road.rotation.x = -Math.PI / 2; road.position.set((from.x + to.x) / 2, .025, (from.z + to.z) / 2);
+    road.rotation.z = Math.atan2(-(to.x - from.x), -(to.z - from.z));
+    road.receiveShadow = true; scene.add(road);
+  }
+  const main = new THREE.Mesh(new THREE.PlaneGeometry(5, RING + 6), roadMat); main.rotation.x = -Math.PI / 2; main.position.set(0, .026, -(RING + 6) / 2); scene.add(main);
+  const south = new THREE.Mesh(new THREE.PlaneGeometry(5, 50), roadMat); south.rotation.x = -Math.PI / 2; south.position.set(0, .026, 25); scene.add(south);
+}
+
+/* ---- 建物 ---- */
+const portals = [];
+const clickables = [];
+function makeBuilding(p) {
+  const grp = new THREE.Group(); grp.position.set(p.x, 0, p.z);
+  grp.lookAt(0, 0, 0);
+  if (p.type === 'park') grp.lookAt(0, 0, -RING);
+  const col = new THREE.Color(p.color);
+  const w = p.size, d = p.size * 0.9, h = p.type === 'cat' ? 5 + Math.min(7, p.cat.apps.length * 0.45) : 6.5;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: 0x1b2746, roughness: .6, metalness: .2 }));
+  body.position.y = h / 2; body.castShadow = !LOW; body.receiveShadow = !LOW; grp.add(body);
+  const winMat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.2, roughness: .3 });
+  const floors = Math.max(1, Math.floor(h / 2.2));
+  for (let f = 0; f < floors; f++) {
+    const y = 1.4 + f * 2.2; if (y > h - 0.8) break;
+    for (const side of [1, -1]) {
+      const win = new THREE.Mesh(new THREE.BoxGeometry(w * 0.86, .55, .08), winMat); win.position.set(0, y, side * (d / 2 + .02)); grp.add(win);
+      const win2 = new THREE.Mesh(new THREE.BoxGeometry(.08, .55, d * 0.86), winMat); win2.position.set(side * (w / 2 + .02), y, 0); grp.add(win2);
+    }
+  }
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.78, 2.6, 4), new THREE.MeshStandardMaterial({ color: col, roughness: .5, emissive: col, emissiveIntensity: .25 }));
+  roof.position.y = h + 1.3; roof.rotation.y = Math.PI / 4; roof.castShadow = !LOW; grp.add(roof);
+  // アンテナの光（たくさんの光は重くなるので、光る玉だけにしました）
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(.45, 16, 16), new THREE.MeshBasicMaterial({ color: col })); orb.position.y = h + 3.2; grp.add(orb);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 3.2, .3), new THREE.MeshStandardMaterial({ color: 0x050914, emissive: col, emissiveIntensity: .6 }));
+  door.position.set(0, 1.6, d / 2 + .1); grp.add(door);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(2.2, 3.1, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .75, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.set(0, .06, d / 2 + 4); grp.add(ring);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .18 }));
+  disc.rotation.x = -Math.PI / 2; disc.position.copy(ring.position); grp.add(disc);
+  const label = makeLabel(p.name, p.sub, p.color); label.position.set(0, h + 5.2, 0); grp.add(label);
+  const em = makeEmoji(p.emoji, 3.2); em.position.set(0, h * 0.55, d / 2 + .6); grp.add(em);
+  if (p.type === 'cat' && p.cat.apps.some(a => FAVS.includes(a.id))) { const st = makeEmoji('⭐', 1.6); st.position.set(w / 2, h + 1.6, d / 2); grp.add(st); }
+  let recMark = null;
+  if (p.type === 'cat') { recMark = makeLabel('おすすめ', 'あなたの学年', '#fbbf24', .45); recMark.position.set(0, h + 7.4, 0); recMark.visible = false; grp.add(recMark); }
+  scene.add(grp);
+  const world = new THREE.Vector3(); ring.getWorldPosition(world);
+  portals.push({ place: p, pos: world, ring, orb, grp, h, recMark });
+  for (const o of [body, door, roof, em, label]) { clickables.push(o); o.userData.place = p; }
+}
+PLACES.forEach(makeBuilding);
+function updateRec() { const r = REC[GRADE] || []; for (const q of portals) if (q.recMark) q.recMark.visible = r.includes(q.place.id); }
+
+/* =========================================================
+   話せる・さわれる もの（クイズ石・タワー・先生・なかま）
+========================================================= */
+const INTER = [];   // {kind, x, z, r, name, sub(), act(), obj}
+function addInter(o) { INTER.push(o); if (o.obj) o.obj.traverse(m => { if (m.isMesh || m.isSprite) { m.userData.inter = o; clickables.push(m); } }); return o; }
+
+/* ---- 広場のモニュメント ---- */
+let monument;
+{
+  monument = new THREE.Group();
+  const pillar = new THREE.Mesh(new THREE.CylinderGeometry(.8, 1.4, 5, 8), new THREE.MeshStandardMaterial({ color: 0x24335f, metalness: .5, roughness: .4 })); pillar.position.y = 2.5; pillar.castShadow = !LOW; monument.add(pillar);
+  const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(1.8, 0), new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.2, transparent: true, opacity: .9 })); crystal.position.y = 7.2; monument.add(crystal); monument.userData.crystal = crystal;
+  const title = makeLabel('むん先生の学習クエスト', 'MUN WORLD // 3D', '#fbbf24', 1.4); title.position.y = 11; monument.add(title);
+  scene.add(monument);
+}
+
+/* ---- クイズ石 ---- */
+const STONES = [];
+const stoneGeo = new THREE.CylinderGeometry(.9, 1.2, 3.2, 6);
+const stoneTopGeo = new THREE.OctahedronGeometry(.55, 0);
+{
+  const cands = [...ringCands(24, 32, .1), ...ringCands(30, 32, .15), ...ringCands(58, 40, .05), ...ringCands(64, 40, .12)];
+  // ばらばらに 12こ置く（近すぎないように）
+  const picked = [];
+  for (const [x, z] of cands) {
+    if (picked.length >= 12) break;
+    if (picked.some(p => Math.hypot(p.x - x, p.z - z) < 16)) continue;
+    if (!isFree(x, z, 2)) continue;
+    picked.push({ x, z }); OBST.push({ x, z, r: 2 });
+  }
+  picked.forEach((p, i) => {
+    const g = new THREE.Group(); g.position.set(p.x, 0, p.z);
+    const base = new THREE.Mesh(stoneGeo, new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: .4, roughness: .45, emissive: 0x0b1530 }));
+    base.position.y = 1.6; base.castShadow = !LOW; g.add(base);
+    const topM = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1 });
+    const top = new THREE.Mesh(stoneTopGeo, topM); top.position.y = 3.9; g.add(top);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.0, 32), new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: .5, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = .06; g.add(ring);
+    scene.add(g);
+    const s = { id: 'st' + i, i, x: p.x, z: p.z, grp: g, top, topM, ring, label: null, subj: 'math' };
+    STONES.push(s);
+    addInter({ kind: 'stone', x: p.x, z: p.z, r: 3.4, obj: g, stone: s, name: () => `${WQ.SUBJ[s.subj].name}の クイズ石`, sub: () => ST.day.stones[s.id] ? 'きょうは クリアずみ（れんしゅうは できるよ）' : `正解で ⭐${REWARD.quiz.star}・${REWARD.quiz.coin}コイン`, act: () => openQuiz({ kind: 'stone', stone: s }) });
+  });
+}
+function setupStones() {
+  const subs = WQ.SUBJ_OF[GRADE] || WQ.SUBJ_OF.g3;
+  for (const s of STONES) {
+    s.subj = subs[s.i % subs.length];
+    const S = WQ.SUBJ[s.subj], done = !!ST.day.stones[s.id];
+    const col = new THREE.Color(done ? '#fbbf24' : S.color);
+    s.topM.color.copy(col); s.topM.emissive.copy(col); s.ring.material.color.copy(col);
+    if (s.label) s.grp.remove(s.label);
+    s.label = makeLabel(`${S.emoji} ${S.name}`, done ? 'クリア！' : 'クイズ石', done ? '#fbbf24' : S.color, .42); s.label.position.y = 5.3; s.grp.add(s.label);
+  }
+}
+
+/* ---- チャレンジタワー ---- */
+let TOWER;
+{
+  const sp = findSpot([[-34, 62], [34, 62], [-60, 34], [60, 34], [-62, -20], [62, -20], [-50, 50], [50, 50]], 6) || { x: -34, z: 62 };
+  const g = new THREE.Group(); g.position.set(sp.x, 0, sp.z); g.lookAt(0, 0, 0);
+  const m1 = new THREE.MeshStandardMaterial({ color: 0x1e1b4b, metalness: .5, roughness: .35 });
+  const glow = new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0xa855f7, emissiveIntensity: 1.3 });
+  const t1 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.2, 14, 8), m1); t1.position.y = 7; t1.castShadow = !LOW; g.add(t1);
+  for (let i = 0; i < 5; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(3.6 - i * .1, .12, 6, 32), glow); r.rotation.x = Math.PI / 2; r.position.y = 2 + i * 2.6; g.add(r); }
+  const top = new THREE.Mesh(new THREE.ConeGeometry(3.6, 4, 8), glow); top.position.y = 16; g.add(top);
+  const gem = new THREE.Mesh(new THREE.OctahedronGeometry(1.2, 0), new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 1.2 })); gem.position.y = 19.5; g.add(gem);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.4, .3), new THREE.MeshStandardMaterial({ color: 0x050914, emissive: 0xa855f7, emissiveIntensity: .8 })); door.position.set(0, 1.7, 3.9); g.add(door);
+  const lb = makeLabel('チャレンジタワー', '5もん 正解で クリア！', '#a855f7', 1); lb.position.y = 23; g.add(lb);
+  scene.add(g);
+  const front = new THREE.Vector3(0, 0, 6.5).applyQuaternion(g.quaternion).add(g.position);
+  TOWER = { x: sp.x, z: sp.z, grp: g, gem, front };
+  addInter({ kind: 'tower', x: front.x, z: front.z, r: 3.2, obj: g, name: () => 'チャレンジタワー', sub: () => ST.day.tower ? 'きょうは クリアずみ！（もういちど ちょうせんできる）' : `クリアで ⭐${REWARD.tower.star}・${REWARD.tower.coin}コイン`, act: () => openQuiz({ kind: 'tower' }) });
+}
+
+/* ---- 空の道（のぼって あそぶ足場）とジャンプ台 ---- */
+const PLATS = [];   // {x,z,r,top}
+const PADS = [];    // {x,z,mesh}
+let DECK;
+{
+  const c = findSpot([[62, 4], [-62, 4], [64, 24], [-64, 24], [58, -30], [-58, -30]], 11) || { x: 62, z: 4 };
+  const platM = new THREE.MeshStandardMaterial({ color: 0x1e3a5f, metalness: .4, roughness: .4, emissive: 0x0b2440 });
+  const edgeM = new THREE.MeshBasicMaterial({ color: 0x00e5ff });
+  const n = 9;
+  for (let i = 0; i < n; i++) {
+    const a = i * 0.95, r = 6.5, top = 1.0 + i * 1.15;
+    const x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r;
+    const g = new THREE.Group(); g.position.set(x, top, z);
+    const disk = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 1.6, .5, 20), platM); disk.position.y = -.25; disk.castShadow = !LOW; disk.receiveShadow = !LOW; g.add(disk);
+    const e = new THREE.Mesh(new THREE.TorusGeometry(2.0, .08, 6, 32), edgeM); e.rotation.x = Math.PI / 2; g.add(e);
+    scene.add(g); PLATS.push({ x, z, r: 2.0, top });
+  }
+  // てっぺんの デッキ
+  const top = 1.0 + n * 1.15;
+  const dg = new THREE.Group(); dg.position.set(c.x, top, c.z);
+  const deck = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 3.5, .6, 28), platM); deck.position.y = -.3; deck.castShadow = !LOW; dg.add(deck);
+  const de = new THREE.Mesh(new THREE.TorusGeometry(4.5, .12, 6, 40), new THREE.MeshBasicMaterial({ color: 0xfbbf24 })); de.rotation.x = Math.PI / 2; dg.add(de);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.5, .7, top, 10), new THREE.MeshStandardMaterial({ color: 0x334155, metalness: .5 })); pole.position.y = -top / 2 - .3; dg.add(pole);
+  const big = new THREE.Mesh(starShape(1.4), new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 1 })); big.position.y = 2.2; dg.add(big);
+  const lb = makeLabel('空のデッキ', 'てっぺんまで のぼろう', '#fbbf24', .6); lb.position.y = 8.5; dg.add(lb);
+  scene.add(dg);
+  PLATS.push({ x: c.x, z: c.z, r: 4.5, top });
+  OBST.push({ x: c.x, z: c.z, r: 9 });
+  DECK = { x: c.x, z: c.z, top, big, grp: dg, label: lb };
+  // ジャンプ台（空の道の下と、広場のまわり）
+  const padSpots = [[c.x + Math.cos(3 * .95) * 6.5, c.z + Math.sin(3 * .95) * 6.5]];  // 3だん目の 足場の 真下
+  const extra = findSpot([[0, 20], [10, 18], [-10, 18]], 1.5); // 広場の南
+  if (extra) padSpots.push([extra.x, extra.z]); else padSpots.push([8, 18]);
+  for (const [x, z] of padSpots) {
+    const g = new THREE.Group(); g.position.set(x, 0, z);
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.5, .3, 24), new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: .8 })); pad.position.y = .15; g.add(pad);
+    const ar = makeEmoji('⏫', 1.4); ar.position.y = 1.4; g.add(ar);
+    scene.add(g); PADS.push({ x, z, mesh: pad, arrow: ar });
+  }
+}
+function starShape(r) {
+  const s = new THREE.Shape();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; const x = Math.cos(a) * rr, y = -Math.sin(a) * rr; i ? s.lineTo(x, y) : s.moveTo(x, y); }
+  s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth: r * .3, bevelEnabled: true, bevelThickness: r * .08, bevelSize: r * .06, bevelSegments: 1 });
+  g.center(); return g;
+}
+
+/* ---- むん先生（広場） ---- */
+let TEACHER;
+{
+  const av = buildAvatar({ type: 'hito', body: '#1e40af', fur: '#f5d0a9', hair: '#1f2937', hairStyle: 'short', eye: 'kira', cheek: false, hat: 'none', acc: 'glasses', aura: 'gold' });
+  av.position.set(5.5, 0, 9.5); av.rotation.y = .4; av.scale.setScalar(1.15); scene.add(av);
+  const lb = makeLabel('むん先生', 'はなしかけてね', '#fbbf24', .5); lb.position.y = 3.6; av.add(lb);
+  const mark = makeEmoji('💬', 1.2); mark.position.set(.8, 3.0, 0); av.add(mark);
+  TEACHER = { grp: av, mark };
+  addInter({ kind: 'teacher', x: 5.5, z: 9.5, r: 3.2, obj: av, name: () => 'むん先生と 話す', sub: () => missionsAllDone() ? 'ミッション ぜんぶ クリア！' : 'きょうのミッション・おすすめ', act: () => openTeacher() });
+}
+
+/* ---- なかま（あるきまわる むんっこ） ---- */
+const TIPS = [
+  'クイズ石は 1日1回 ごほうびが もらえるよ。ぜんぶ 金色に してみよう！',
+  '空の道を のぼると、てっぺんに 大きな スターが あるよ。',
+  '宝箱は 毎日 3こ。たてものの うらや 空の上を さがしてみて！',
+  'チャレンジタワーは 5もん 正解で クリア。3回 まちがえると おしまいだよ。',
+  'タコの 心臓は 3つ あるんだって。',
+  '1日は 24時間、1時間は 60分、1分は 60秒だよ。',
+  '富士山の 高さは 3776メートル。日本で いちばん 高い山だよ。',
+  '地球は 1日に 1回、くるっと まわっているよ。',
+  'ペンギンは 鳥の なかま。でも 空は とべないんだ。',
+  '⭐スターを あつめると、きせかえが どんどん ふえるよ。',
+  'Thank you は「ありがとう」。Good morning は「おはよう」だよ。',
+  'わからない問題は、こたえの せつめいを 読むと 力が つくよ。',
+  '緑のジャンプ台に のると、高く とべるよ！',
+  'まちがえても だいじょうぶ。もう一度 ちょうせんしよう！'
+];
+const NPCS = [];
+{
+  const n = LOW ? 3 : 5, rnd = seedRand('npc' + TODAY);
+  const names = ['ポン', 'ミミ', 'ロロ', 'ハル', 'ソラ'];
+  const types = ['inu', 'usagi', 'kuma', 'pengin', 'robot', 'neko'];
+  for (let i = 0; i < n; i++) {
+    const cfg = { type: types[Math.floor(rnd() * types.length)], body: COLORS[Math.floor(rnd() * 8)], fur: ['#ffd166', '#f5d0a9', '#ffffff', '#c68642', '#94a3b8'][Math.floor(rnd() * 5)], eye: ['maru', 'kira', 'nikkori'][Math.floor(rnd() * 3)], cheek: rnd() > .4, hat: ['none', 'cap', 'ribbon', 'band'][Math.floor(rnd() * 4)], acc: ['none', 'scarf', 'randoseru'][Math.floor(rnd() * 3)], aura: 'cyan' };
+    const av = buildAvatar(cfg, { noAura: true }); av.scale.setScalar(.85);
+    const a = rnd() * Math.PI * 2, r = 16 + rnd() * 14; av.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+    const lb = makeLabel(names[i], 'むんっこ', '#94a3b8', .3); lb.position.y = 3.4; av.add(lb);
+    scene.add(av);
+    const npc = { grp: av, name: names[i], tx: av.position.x, tz: av.position.z, wait: rnd() * 3, bubble: null, bubbleT: 0, walkT: 0 };
+    NPCS.push(npc);
+    addInter({ kind: 'npc', get x() { return av.position.x; }, get z() { return av.position.z; }, r: 2.8, obj: av, npc, name: () => `${npc.name}と 話す`, sub: () => 'なかまの むんっこ', act: () => talkNPC(npc) });
+  }
+}
+function talkNPC(npc) {
+  if (npc.bubble) npc.grp.remove(npc.bubble);
+  const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+  npc.bubble = makeBubble(tip); npc.bubble.position.y = 5.2; npc.bubble.scale.multiplyScalar(1 / .85); npc.grp.add(npc.bubble); npc.bubbleT = 6; npc.wait = 6;
+  npc.grp.lookAt(player.position.x, 0, player.position.z);
+  ST.day.talks++; ST.talksTotal++; saveST(); SND.play('pop'); checkMissions();
+}
+
+/* ---- 木・街灯・光の粒 ---- */
+let motes;
+{
+  const trunkG = new THREE.CylinderGeometry(.18, .25, 1.6, 6), leafG = new THREE.ConeGeometry(1.3, 3.2, 7);
+  const trunkM = new THREE.MeshStandardMaterial({ color: 0x4a2e1f }), leafM = new THREE.MeshStandardMaterial({ color: 0x1f8a5a, roughness: .9 });
+  const NT = LOW ? 70 : 140; const trunks = new THREE.InstancedMesh(trunkG, trunkM, NT), leaves = new THREE.InstancedMesh(leafG, leafM, NT);
+  trunks.castShadow = leaves.castShadow = !LOW;
+  const m = new THREE.Matrix4(); let placed = 0, tries = 0; const tr = seedRand('trees');
+  while (placed < NT && tries < 5000) {
+    tries++;
+    const r = 18 + tr() * (ISLAND_R - 22), a = tr() * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (PLACES.some(p => Math.hypot(p.x - x, p.z - z) < 9)) continue;
+    if (OBST.some(o => Math.hypot(o.x - x, o.z - z) < o.r + 2.5)) continue;
+    if (onRoad(x, z, 1.2)) continue;
+    const s = .8 + tr() * .8;
+    m.makeScale(s, s, s); m.setPosition(x, .8 * s, z); trunks.setMatrixAt(placed, m);
+    m.makeScale(s, s, s); m.setPosition(x, 1.6 * s + 1.4 * s, z); leaves.setMatrixAt(placed, m);
+    OBST.push({ x, z, r: 1 });
+    placed++;
+  }
+  trunks.count = leaves.count = placed;
+  scene.add(trunks, leaves);
+  const lampG = new THREE.CylinderGeometry(.08, .1, 4, 6), lampM = new THREE.MeshStandardMaterial({ color: 0x334155 });
+  for (let i = 0; i < 10; i++) {
+    const a = i / 10 * Math.PI * 2; const x = Math.cos(a) * 15.5, z = Math.sin(a) * 15.5;
+    const pole = new THREE.Mesh(lampG, lampM); pole.position.set(x, 2, z); scene.add(pole);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 10), new THREE.MeshBasicMaterial({ color: 0xfff1b8 })); bulb.position.set(x, 4.1, z); scene.add(bulb);
+  }
+  const n = LOW ? 150 : 400, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - .5) * 170; pos[i * 3 + 1] = Math.random() * 18 + 1; pos[i * 3 + 2] = (Math.random() - .5) * 170; }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  motes = new THREE.Points(pg, dotMat(0x9be7ff, .55, .8)); scene.add(motes);
+}
+
+/* ---- 季節（12月はツリー、12〜2月は雪） ---- */
+let snow = null;
+if (MONTH === 12) {
+  const g = new THREE.Group(); g.position.set(-6, 0, 9);
+  const lm = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: .8 });
+  for (let i = 0; i < 3; i++) { const c = new THREE.Mesh(new THREE.ConeGeometry(2.4 - i * .6, 2.6, 10), lm); c.position.y = 2 + i * 1.5; c.castShadow = !LOW; g.add(c); }
+  const st = new THREE.Mesh(starShape(.6), new THREE.MeshStandardMaterial({ color: 0xfde047, emissive: 0xfde047, emissiveIntensity: 1.2 })); st.position.y = 6.6; g.add(st);
+  const cols = [0xef4444, 0xfbbf24, 0x60a5fa, 0xf472b6, 0xffffff];
+  for (let i = 0; i < 24; i++) { const a = i * 2.4, y = 1.2 + (i / 24) * 4.4, r = 2.2 - (y - 1.2) * .38; const b = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 8), new THREE.MeshBasicMaterial({ color: cols[i % 5] })); b.position.set(Math.cos(a) * r, y, Math.sin(a) * r); g.add(b); }
+  scene.add(g); OBST.push({ x: -6, z: 9, r: 2.5 });
+}
+if (MONTH === 12 || MONTH <= 2) {
+  const n = LOW ? 500 : 1400, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - .5) * 180; pos[i * 3 + 1] = Math.random() * 60; pos[i * 3 + 2] = (Math.random() - .5) * 180; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  snow = new THREE.Points(g, dotMat(0xffffff, .6, .9)); scene.add(snow);
+}
+
+/* ---- おちているスター（毎日 場所がかわる） ---- */
+const STARS = [];
+const starGeo = starShape(.55), starMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: .9, metalness: .3 });
+{
+  const spots = []; let tries = 0;
+  while (spots.length < 30 && tries < 4000) {
+    tries++;
+    const r = 8 + dayRand() * (ISLAND_R - 12), a = dayRand() * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (PLACES.some(p => Math.hypot(p.x - x, p.z - z) < p.size * .8 + 1.5)) continue;
+    if (OBST.some(o => Math.hypot(o.x - x, o.z - z) < o.r + .8)) continue;
+    if (Math.hypot(x, z) < 3) continue;
+    spots.push([x, 1.2, z]);
+  }
+  for (const p of PLATS.slice(1, -1)) if (dayRand() < .5) spots.push([p.x, p.top + 1.1, p.z]);
+  spots.forEach((s, i) => {
+    const id = 's' + i; if (ST.day.picked.includes(id)) return;
+    const m = new THREE.Mesh(starGeo, starMat); m.position.set(s[0], s[1], s[2]); m.castShadow = false; scene.add(m);
+    STARS.push({ id, m, y: s[1] });
+  });
+}
+
+/* ---- 宝箱（毎日 3こ） ---- */
+const CHESTS = [];
+{
+  const cand = [];
+  for (const p of PLACES) { const d = Math.hypot(p.x, p.z) || 1; const k = p.size * .8 + 3; cand.push([p.x + p.x / d * k, 0, p.z + p.z / d * k]); }
+  cand.push([DECK.x + 2.2, DECK.top, DECK.z]);
+  for (const [x, z] of ringCands(76, 18, .3)) cand.push([x, 0, z]);
+  const ok = cand.filter(([x, y, z]) => y > 0 || (Math.hypot(x, z) < ISLAND_R - 3 && !OBST.some(o => Math.hypot(o.x - x, o.z - z) < o.r + 1)));
+  const pickN = [];
+  while (pickN.length < 3 && ok.length) pickN.push(ok.splice(Math.floor(dayRand() * ok.length), 1)[0]);
+  pickN.forEach((p, i) => {
+    const id = 'c' + i; if (ST.day.chests.includes(id)) return;
+    const g = new THREE.Group(); g.position.set(p[0], p[1], p[2]); g.rotation.y = dayRand() * Math.PI * 2;
+    const wood = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: .7 }), gold = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: .8, roughness: .3, emissive: 0x78350f });
+    const b = new THREE.Mesh(new THREE.BoxGeometry(1.3, .8, .9), wood); b.position.y = .4; b.castShadow = !LOW; g.add(b);
+    const lid = new THREE.Group(); lid.position.set(0, .8, -.45); g.add(lid);
+    const l = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, 1.3, 12, 1, false, 0, Math.PI), wood); l.rotation.z = Math.PI / 2; l.position.z = .45; lid.add(l);
+    const band = new THREE.Mesh(new THREE.BoxGeometry(.15, .85, .95), gold); band.position.y = .4; g.add(band);
+    const sp = makeEmoji('✨', 1.2); sp.position.y = 2; g.add(sp);
+    scene.add(g); CHESTS.push({ id, g, lid, sp, open: 0 });
+  });
+}
+
+/* =========================================================
+   空の色（じっさいの時こくで かわる）
+========================================================= */
+function skyPeriod() {
+  if (OPT.sky === 'night') return 'night';
+  const h = NOW.getHours() + NOW.getMinutes() / 60;
+  if (h >= 5 && h < 9) return 'morning';
+  if (h >= 9 && h < 16) return 'day';
+  if (h >= 16 && h < 18.5) return 'evening';
+  return 'night';
+}
+const SKY = {
+  morning: { bg: 0xf3b7a2, hs: 0xffe1c8, hg: 0x40406a, hi: 1.05, sc: 0xffd6a0, si: 1.4, gr: 0x2a3d6e, st: .15, ex: 1.0 },
+  day: { bg: 0x7cc4ff, hs: 0xdff1ff, hg: 0x3a4a6a, hi: 1.2, sc: 0xffffff, si: 1.6, gr: 0x30508a, st: 0, ex: .95 },
+  evening: { bg: 0xc96b84, hs: 0xffb199, hg: 0x2a1840, hi: .9, sc: 0xff9a5a, si: 1.2, gr: 0x22305a, st: .45, ex: 1.0 },
+  night: { bg: 0x070b1c, hs: 0x8fb6ff, hg: 0x1a1030, hi: .9, sc: 0xffe9c4, si: 1.2, gr: 0x15213f, st: .9, ex: 1.05 }
+};
+function applySky() {
+  const k = SKY[skyPeriod()];
+  scene.background.setHex(k.bg); scene.fog.color.setHex(k.bg);
+  hemi.color.setHex(k.hs); hemi.groundColor.setHex(k.hg); hemi.intensity = k.hi;
+  sun.color.setHex(k.sc); sun.intensity = k.si; groundMat.color.setHex(k.gr);
+  starField.material.opacity = k.st; starField.visible = k.st > 0;
+  renderer.toneMappingExposure = k.ex;
+  gridHelper.material.opacity = k.st > .5 ? .22 : .14;
+}
+applySky();
+
+/* =========================================================
+   プレイヤー
+========================================================= */
+const player = new THREE.Group();
+let avatar = null, pet = null, nameTag = null;
+function rebuildPlayer() {
+  if (avatar) player.remove(avatar);
+  avatar = buildAvatar(AV); player.add(avatar);
+  if (nameTag) player.remove(nameTag);
+  nameTag = makeLabel(AV.name || rankOf(lvl), `Lv.${lvl} ${rankOf(lvl)}`, '#fbbf24', .32); nameTag.position.y = 3.5; player.add(nameTag);
+  if (pet) scene.remove(pet);
+  pet = buildPet(AV.pet); if (pet) { pet.position.set(player.position.x - 1.5, 0, player.position.z - 1.5); scene.add(pet); }
+  document.getElementById('hud-av').textContent = (ITEMS.type.find(t => t.id === AV.type) || ITEMS.type[0]).e;
+}
+player.position.set(0, 0, 46);
+scene.add(player);
+rebuildPlayer();
+const plLight = new THREE.PointLight(0x00e5ff, .7, 10); plLight.position.y = 2.2; player.add(plLight);
+
+/* =========================================================
+   音（ピコピコ音。せっていで 消せます）
+========================================================= */
+const SND = {
+  ctx: null,
+  init() { if (this.ctx || !OPT.sound) return; try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} },
+  tone(f, t0, d, type = 'square', v = .06, f2) {
+    const c = this.ctx; const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, c.currentTime + t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, c.currentTime + t0 + d);
+    g.gain.setValueAtTime(v, c.currentTime + t0); g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + t0 + d);
+    o.connect(g).connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + d + .02);
+  },
+  play(n) {
+    if (!OPT.sound) return; this.init(); if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const T = (f, t, d, ty, v, f2) => this.tone(f, t, d, ty, v, f2);
+    if (n === 'star') { T(988, 0, .08); T(1319, .07, .14); }
+    if (n === 'ok') { T(523, 0, .1, 'triangle', .1); T(659, .1, .1, 'triangle', .1); T(784, .2, .22, 'triangle', .1); }
+    if (n === 'ng') { T(220, 0, .25, 'sawtooth', .05, 140); }
+    if (n === 'jump') { T(520, 0, .12, 'sine', .08, 900); }
+    if (n === 'boing') { T(200, 0, .35, 'sine', .12, 900); }
+    if (n === 'pop') { T(700, 0, .06, 'sine', .08); T(1050, .05, .08, 'sine', .06); }
+    if (n === 'chest') { [523, 659, 784, 1047, 1319].forEach((f, i) => T(f, i * .08, .18, 'triangle', .09)); }
+    if (n === 'fan') { [523, 523, 523, 659, 784, 1047].forEach((f, i) => T(f, i * .11, .2, 'square', .06)); }
+    if (n === 'open') { T(330, 0, .08, 'sine', .07); T(495, .06, .12, 'sine', .07); }
+  }
+};
+function say(text, lang = 'ja-JP') {
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/（　）|\(　\)/g, 'なになに')); u.lang = lang; u.rate = lang === 'ja-JP' ? 1 : .85; speechSynthesis.speak(u); } catch (e) {}
+}
+
+/* =========================================================
+   ごほうび
+========================================================= */
+const hud = { lv: document.getElementById('hud-lv'), exp: document.getElementById('hud-exp'), coin: document.getElementById('hud-coin'), star: document.getElementById('hud-star'), gr: document.getElementById('hud-gr') };
+function refreshHUD() {
+  const e = readExp(); lvl = levelOf(e);
+  hud.lv.textContent = `Lv.${lvl} ${rankOf(lvl)}`; hud.exp.textContent = e.toLocaleString(); hud.coin.textContent = readCoins().toLocaleString(); hud.star.textContent = ST.stars.toLocaleString();
+  hud.gr.textContent = (WQ.GRADES.find(g => g.id === GRADE) || { label: '学年？' }).label;
+}
+let ownedBefore = ownedKeys();
+function grant(r, title) {
+  const oldLv = lvl; let gotE = 0, gotC = 0;
+  if (r.star) { ST.stars += r.star; ST.total += r.star; }
+  if (r.exp) {
+    gotE = Math.max(0, Math.min(r.exp, DAILY_CAP.exp - ST.day.exp));
+    if (gotE) { ST.day.exp += gotE; LS.set('mun_exp', String(readExp() + gotE)); const log = J('mun_daily_exp', {}); log[TODAY] = (log[TODAY] || 0) + gotE; SJ('mun_daily_exp', log); }
+  }
+  if (r.coin) {
+    gotC = Math.max(0, Math.min(r.coin, DAILY_CAP.coin - ST.day.coin));
+    if (gotC) { ST.day.coin += gotC; LS.set('mun_coins', String(readCoins() + gotC)); }
+  }
+  saveST(); refreshHUD();
+  const parts = []; if (r.star) parts.push(`⭐+${r.star}`); if (gotC) parts.push(`🪙+${gotC}`); if (gotE) parts.push(`EXP+${gotE}`);
+  if (parts.length) showGain(parts.join('  '), title || '');
+  if (lvl > oldLv) { setTimeout(() => { showGain(`レベルアップ！ Lv.${lvl}`, rankOf(lvl)); SND.play('fan'); burst(player.position, 0xfbbf24, 60); rebuildPlayer(); }, 1300); }
+  // あたらしい きせかえ
+  const now = ownedKeys(); const fresh = now.filter(k => !ownedBefore.includes(k)); ownedBefore = now;
+  if (fresh.length) {
+    const nm = fresh.map(k => { const [c, id] = k.split(':'); return (ITEMS[c].find(x => x.id === id) || {}).name; }).join('・');
+    setTimeout(() => toast(`👕 あたらしい きせかえ：${nm}`, 3200), 2400);
+  }
+  updateDots();
+}
+let gainT; function showGain(t, s) { const g = document.getElementById('gain'); g.innerHTML = `${esc(t)}${s ? `<small>${esc(s)}</small>` : ''}`; g.classList.add('on'); clearTimeout(gainT); gainT = setTimeout(() => g.classList.remove('on'), 1500); }
+function updateDots() {
+  const fresh = ownedKeys().filter(k => !ST.seenItems.includes(k));
+  const d = document.getElementById('dot-closet'); d.classList.toggle('on', fresh.length > 0); d.textContent = fresh.length || '';
+  const m = document.getElementById('dot-mission'); const left = MISSIONS.filter(x => x.v() < x.n).length; m.classList.toggle('on', left > 0 && !ST.day.missionDone); m.textContent = left || '';
+}
+
+/* ---- キラキラ（パーティクル） ---- */
+const BURSTS = [];
+function burst(pos, color, n = 30) {
+  const g = new THREE.BufferGeometry(); const p = new Float32Array(n * 3), v = [];
+  for (let i = 0; i < n; i++) { p[i * 3] = pos.x; p[i * 3 + 1] = pos.y + 1.5; p[i * 3 + 2] = pos.z; v.push(new THREE.Vector3((Math.random() - .5) * 8, Math.random() * 8 + 2, (Math.random() - .5) * 8)); }
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  const pts = new THREE.Points(g, dotMat(color, .5));
+  scene.add(pts); BURSTS.push({ pts, v, t: 0 });
+}
+
+/* =========================================================
+   きょうのミッション（毎日 3つ。1つめは いつも「学ぶ」もの）
+========================================================= */
+const MISSION_POOL = [
+  { id: 'star10', t: 'スターを 10こ ひろう', n: 10, v: () => ST.day.picked.length },
+  { id: 'visit2', t: 'たてものを 2つ たずねる', n: 2, v: () => ST.day.visits.length },
+  { id: 'chest1', t: '宝箱を 1こ 見つける', n: 1, v: () => ST.day.chests.length },
+  { id: 'tower', t: 'チャレンジタワーに ちょうせん', n: 1, v: () => ST.day.towerTry ? 1 : 0 },
+  { id: 'deck', t: '空のデッキに のぼる', n: 1, v: () => ST.day.deck ? 1 : 0 },
+  { id: 'talk2', t: 'なかまと 2回 話す', n: 2, v: () => ST.day.talks },
+  { id: 'emote3', t: 'エモートを 3回 する', n: 3, v: () => ST.day.emotes }
+];
+const MISSIONS = (() => {
+  const r = seedRand('mission' + TODAY), pool = MISSION_POOL.slice(), out = [{ id: 'quiz3', t: 'クイズ石で 3もん 正解する', n: 3, v: () => ST.day.quizOk }];
+  while (out.length < 3) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  return out;
+})();
+const missionsAllDone = () => MISSIONS.every(m => m.v() >= m.n);
+function checkMissions() {
+  updateDots();
+  if (!ST.day.missionDone && missionsAllDone()) {
+    ST.day.missionDone = true; saveST();
+    setTimeout(() => { SND.play('fan'); burst(player.position, 0xa855f7, 70); grant(REWARD.mission, 'きょうのミッション ぜんぶクリア！'); }, 900);
+  }
+}
+function missionHTML() {
+  return MISSIONS.map(m => { const v = Math.min(m.n, m.v()), d = v >= m.n; return `<div class="ms ${d ? 'done' : ''}"><span class="ck">${d ? '✔' : ''}</span><div style="flex:1"><b>${esc(m.t)}</b><small>${v} / ${m.n}</small><div class="bar"><i style="width:${v / m.n * 100}%"></i></div></div></div>`; }).join('')
+    + `<p class="note">${ST.day.missionDone ? '🎉 きょうは ぜんぶ クリア！ また あした ちょうせんしてね。' : `ぜんぶ クリアすると ⭐${REWARD.mission.star}・${REWARD.mission.coin}コイン・EXP${REWARD.mission.exp}！`}</p>`;
+}
+
+/* =========================================================
+   入力
+========================================================= */
+const keys = {};
+let panelOpen = false, closetOpen = false, photoMode = false;
+addEventListener('keydown', e => {
+  if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  keys[e.code] = true;
+  if (e.code === 'Enter' && !panelOpen && started) act();
+  if (e.code === 'Escape') { if (photoMode) endPhoto(); else closePanel(); }
+  if (['ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) e.preventDefault();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+
+let camYaw = 0, camPitch = .42, camDist = innerWidth < innerHeight ? 16 : 11;
+let dragging = false, lastX = 0, lastY = 0, dragMoved = 0, dragId = null;
+canvas.addEventListener('pointerdown', e => { SND.init(); if (e.pointerType === 'touch' && e.clientX < 180 && e.clientY > innerHeight - 180) return; dragging = true; dragId = e.pointerId; lastX = e.clientX; lastY = e.clientY; dragMoved = 0; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => { if (!dragging || e.pointerId !== dragId) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; dragMoved += Math.abs(dx) + Math.abs(dy); camYaw -= dx * .006; camPitch = Math.max(.05, Math.min(1.2, camPitch + dy * .004)); });
+canvas.addEventListener('pointerup', e => { if (e.pointerId !== dragId) return; dragging = false; if (dragMoved < 8) onTap(e.clientX, e.clientY); });
+canvas.addEventListener('wheel', e => { camDist = Math.max(4, Math.min(24, camDist + e.deltaY * .01)); }, { passive: true });
+
+const joy = document.getElementById('joy'), knob = joy.querySelector('.knob'); let joyVec = { x: 0, y: 0 }, joyId = null;
+joy.addEventListener('pointerdown', e => { SND.init(); joyId = e.pointerId; joy.setPointerCapture(e.pointerId); moveJoy(e); });
+joy.addEventListener('pointermove', e => { if (e.pointerId === joyId) moveJoy(e); });
+const endJoy = e => { if (e.pointerId !== joyId) return; joyId = null; joyVec = { x: 0, y: 0 }; knob.style.transform = ''; };
+joy.addEventListener('pointerup', endJoy); joy.addEventListener('pointercancel', endJoy);
+function moveJoy(e) { const r = joy.getBoundingClientRect(); let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2); const max = r.width / 2 - 10; const len = Math.hypot(dx, dy); if (len > max) { dx *= max / len; dy *= max / len; } joyVec = { x: dx / max, y: dy / max }; knob.style.transform = `translate(${dx}px,${dy}px)`; }
+let wantJump = false, dashOn = false;
+document.getElementById('jump').addEventListener('pointerdown', e => { e.preventDefault(); wantJump = true; });
+const dashBtn = document.getElementById('dash');
+dashBtn.addEventListener('pointerdown', e => { e.preventDefault(); dashOn = !dashOn; dashBtn.classList.toggle('on', dashOn); });
+
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let autoTarget = null;
+function walkTo(x, z, stopR = 1.2, label) { autoTarget = { x, z, r: stopR }; if (label) toast(`${label} へ 向かいます`); }
+function onTap(x, y) {
+  if (panelOpen || photoMode) return;
+  ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
+  const hits = ray.intersectObjects(clickables, false);
+  const hit = hits.find(h => h.object.visible);
+  if (!hit) return;
+  const u = hit.object.userData;
+  if (u.place) {
+    const p = u.place, portal = portals.find(q => q.place === p);
+    if (near && near.place === p) { openPlace(p); return; }
+    walkTo(portal.pos.x, portal.pos.z, 1.2, p.name);
+  } else if (u.inter) {
+    const it = u.inter;
+    if (near && near.inter === it) { it.act(); return; }
+    const dx = player.position.x - it.x, dz = player.position.z - it.z, d = Math.hypot(dx, dz) || 1;
+    walkTo(it.x + dx / d * (it.r * .6), it.z + dz / d * (it.r * .6), .8, it.name());
+  }
+}
+document.getElementById('prompt').addEventListener('click', () => act());
+function act() { if (!near) return; if (near.place) openPlace(near.place); else near.inter.act(); }
+
+/* エモート */
+let emote = null;
+const emoBox = document.getElementById('emo');
+document.getElementById('btn-emo').addEventListener('click', () => { const r = document.getElementById('btn-emo').getBoundingClientRect(); emoBox.style.top = r.top + 'px'; emoBox.classList.toggle('on'); });
+emoBox.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  emote = { type: b.dataset.emo, t: 0 }; emoBox.classList.remove('on');
+  ST.day.emotes++; saveST(); SND.play('pop'); checkMissions();
+  if (b.dataset.emo === 'cheer') burst(player.position, 0xfbbf24, 24);
+}));
+
+/* =========================================================
+   パネル（共通）
+========================================================= */
+const ov = document.getElementById('ov'), panel = document.getElementById('panel');
+let cooldownPlace = null, onPanelClose = null;
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function showPanel({ color = '#00e5ff', icon = 'fa-solid fa-star', iconHTML, title, sub = '', body = '', foot = '', one = false, dock = false, tabs = '' }) {
+  panelOpen = true; emoBox.classList.remove('on');
+  panel.style.setProperty('--pc', color);
+  panel.classList.toggle('dock', dock); ov.classList.toggle('dockmode', dock);
+  panel.innerHTML = `<div class="ph"><div class="pi">${iconHTML || `<i class="${esc(icon)}"></i>`}</div><div><h2>${esc(title)}</h2><p>${sub}</p></div><button class="x" type="button" aria-label="とじる">✕</button></div>${tabs}<div class="pb${one ? ' one' : ''}">${body}</div>${foot ? `<div class="pf">${foot}</div>` : ''}`;
+  panel.querySelector('.x').onclick = closePanel;
+  ov.classList.add('on'); SND.play('open');
+}
+function closePanel() {
+  if (!panelOpen) return;
+  panelOpen = false; ov.classList.remove('on', 'dockmode'); panel.classList.remove('dock');
+  try { speechSynthesis.cancel(); } catch (e) {}
+  const f = onPanelClose; onPanelClose = null; if (f) f();
+}
+ov.addEventListener('click', e => { if (e.target === ov) closePanel(); });
+
+function openPlace(p) {
+  cooldownPlace = p;
+  if (!ST.day.visits.includes(p.id)) { ST.day.visits.push(p.id); saveST(); checkMissions(); }
+  try { LS.set('mun_world_last', p.id); } catch (e) {}
+  if (p.type === 'cat') {
+    const body = p.cat.apps.map((a, i) => `<a class="qa" href="${esc(a.h)}"><span class="qi"><i class="${esc(a.i || 'fa-solid fa-star')}"></i></span><span><span class="no">QUEST ${String(i + 1).padStart(2, '0')}${FAVS.includes(a.id) ? ' ⭐' : ''}</span><b>${esc(a.t)}</b><span>${esc(a.d)}</span></span></a>`).join('');
+    showPanel({ color: p.color, icon: p.cat.icon, title: p.name, sub: esc(p.cat.desc), body, foot: `<span>${p.cat.apps.length}このクエストがあります</span><a href="./guide.html#guide-${esc(p.id)}"><i class="fa-solid fa-book-open"></i> 学習ガイドを読む</a>` });
+  } else {
+    const body = `<a class="qa" href="${esc(p.link)}" style="grid-column:1/-1"><span class="qi"><i class="fa-solid fa-door-open"></i></span><span><span class="no">ENTER</span><b>${esc(p.name)} に入る</b><span>${esc(p.sub)}</span></span></a>`;
+    showPanel({ color: p.color, icon: 'fa-solid fa-building', title: p.name, sub: esc(p.sub), body, foot: `<span>${p.type === 'park' ? '学習でためたコインで遊べる むんパークの施設です' : ''}</span><a class="go" href="${esc(p.link)}">入る <i class="fa-solid fa-arrow-right"></i></a>` });
+  }
+}
+
+/* ---- 案内図 ---- */
+function openMap() {
+  const rec = REC[GRADE] || [];
+  const items = [
+    { id: 'teacher', name: 'むん先生', sub: 'ミッション・おすすめ', e: '🧑‍🏫', c: '#fbbf24', x: 5.5, z: 12.3 },
+    { id: 'tower', name: 'チャレンジタワー', sub: '5もん 正解で クリア', e: '🗼', c: '#a855f7', x: TOWER.front.x, z: TOWER.front.z },
+    { id: 'deck', name: '空の道', sub: 'のぼって 大きな スターを ゲット', e: '☁️', c: '#00e5ff', x: PLATS[0].x + 2.5, z: PLATS[0].z },
+    ...STONES.map(s => ({ id: s.id, name: `${WQ.SUBJ[s.subj].name}の クイズ石`, sub: ST.day.stones[s.id] ? 'クリアずみ' : 'まだ', e: WQ.SUBJ[s.subj].emoji, c: ST.day.stones[s.id] ? '#fbbf24' : WQ.SUBJ[s.subj].color, x: s.x, z: s.z + 2.6 })),
+    ...PLACES.slice().sort((a, b) => (rec.includes(b.id) ? 1 : 0) - (rec.includes(a.id) ? 1 : 0)).map(p => { const q = portals.find(x => x.place === p); return { id: p.id, name: p.name + (rec.includes(p.id) ? '（おすすめ）' : ''), sub: p.sub, e: p.emoji, c: p.color, x: q.pos.x, z: q.pos.z }; })
+  ];
+  const list = items.map((p, i) => `<a class="qa" href="#" data-i="${i}" style="--pc:${esc(p.c)}"><span class="qi">${p.e}</span><span><b>${esc(p.name)}</b><span>${esc(p.sub)}</span></span></a>`).join('');
+  showPanel({ color: '#fbbf24', icon: 'fa-solid fa-map', title: 'むんワールド 案内図', sub: '行きたい場所をえらぶと、キャラクターが自動で歩いていきます。', body: list, foot: `<span>${items.length}か所</span><a href="./index.html"><i class="fa-solid fa-house"></i> いつものトップページ</a>` });
+  panel.querySelectorAll('[data-i]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); const p = items[+a.dataset.i]; closePanel(); walkTo(p.x, p.z, 1.2, p.name.replace('（おすすめ）', '')); }));
+}
+document.getElementById('btn-map').addEventListener('click', openMap);
+document.getElementById('mm').addEventListener('click', openMap);
+
+/* =========================================================
+   クイズ（クイズ石・チャレンジタワー）
+========================================================= */
+let QZ = null;
+function openQuiz(src) {
+  const tower = src.kind === 'tower';
+  if (tower && !ST.day.towerTry) { ST.day.towerTry = true; saveST(); checkMissions(); }
+  QZ = { src, ok: 0, miss: 0, tower, subj: tower ? null : src.stone.subj };
+  nextQuestion();
+}
+function nextQuestion() {
+  const subs = WQ.SUBJ_OF[GRADE] || WQ.SUBJ_OF.g3;
+  const subj = QZ.tower ? subs[Math.floor(Math.random() * subs.length)] : QZ.subj;
+  const o = WQ.make(GRADE || 'g3', subj); QZ.cur = o;
+  const S = WQ.SUBJ[o.subj];
+  const head = QZ.tower ? `<div class="hp">${'❤️'.repeat(3 - QZ.miss)}${'🖤'.repeat(QZ.miss)}　<b>${QZ.ok}</b> / 5</div>` : '';
+  const done = !QZ.tower && ST.day.stones[QZ.src.stone.id];
+  const body = `<div class="qz">${head}<div style="margin-top:4px"><button class="sp" type="button" id="qz-say">🔊 読みあげ</button></div><div class="qs">${esc(o.q)}</div><div class="ch">${o.c.map((c, i) => `<button type="button" data-i="${i}">${esc(c)}</button>`).join('')}</div><div class="res" id="qz-res"></div><div class="why" id="qz-why"></div><div id="qz-next" style="margin-top:12px"></div></div>`;
+  showPanel({ color: QZ.tower ? '#a855f7' : S.color, iconHTML: `<span style="font-size:26px">${QZ.tower ? '🗼' : S.emoji}</span>`, title: QZ.tower ? 'チャレンジタワー' : `${S.name}の クイズ石`, sub: QZ.tower ? '5もん 正解で クリア！ 3回 まちがえると おしまい' : (done ? 'きょうの ごほうびは もらったよ。れんしゅうは 何回でも できる！' : `正解すると ⭐${REWARD.quiz.star} と ${REWARD.quiz.coin}コイン`), body, one: true });
+  panel.querySelector('#qz-say').onclick = () => { say(o.q); if (o.say) setTimeout(() => say(o.say, 'en-US'), 50 + o.q.length * 120); };
+  panel.querySelectorAll('.ch button').forEach(b => b.addEventListener('click', () => answer(b)));
+}
+function answer(btn) {
+  const o = QZ.cur; const pick = o.c[+btn.dataset.i], ok = pick === o.a;
+  panel.querySelectorAll('.ch button').forEach(b => { b.disabled = true; if (o.c[+b.dataset.i] === o.a) b.classList.add('ok'); });
+  if (!ok) btn.classList.add('ng');
+  const res = panel.querySelector('#qz-res'), why = panel.querySelector('#qz-why'), nx = panel.querySelector('#qz-next');
+  const qs = ST.quiz[o.subj] || (ST.quiz[o.subj] = { ok: 0, n: 0 }); qs.n++; if (ok) qs.ok++; ST.quizTotal++;
+  why.textContent = o.why || '';
+  if (ok) { res.innerHTML = '⭕ 正解！'; res.style.color = '#4ade80'; SND.play('ok'); }
+  else { res.innerHTML = `❌ おしい！ こたえは「${esc(o.a)}」`; res.style.color = '#f87171'; SND.play('ng'); }
+  if (QZ.tower) {
+    if (ok) QZ.ok++; else QZ.miss++;
+    saveST();
+    if (QZ.ok >= 5) {
+      const first = !ST.day.tower; ST.day.tower = true; ST.towerClears++; saveST();
+      nx.innerHTML = `<div class="res" style="color:#fbbf24">🏆 タワー クリア！</div><button class="btn" type="button" id="qz-end">やったね！</button>`;
+      SND.play('fan'); burst(TOWER.front, 0xa855f7, 80);
+      if (first) setTimeout(() => grant(REWARD.tower, 'チャレンジタワー クリア！'), 400); else showGain('クリア！', 'ごほうびは 1日1回だよ');
+      panel.querySelector('#qz-end').onclick = closePanel; return;
+    }
+    if (QZ.miss >= 3) { nx.innerHTML = `<div class="res" style="color:#f87171">ざんねん… ${QZ.ok}もん 正解でした</div><button class="btn" type="button" id="qz-re">もういちど ちょうせん</button> <button class="btn sub" type="button" id="qz-end">やめる</button>`; panel.querySelector('#qz-re').onclick = () => { QZ.ok = 0; QZ.miss = 0; nextQuestion(); }; panel.querySelector('#qz-end').onclick = closePanel; return; }
+    nx.innerHTML = `<button class="btn" type="button" id="qz-nx">つぎの もんだい ▶</button>`; panel.querySelector('#qz-nx').onclick = nextQuestion; return;
+  }
+  // クイズ石
+  const s = QZ.src.stone;
+  if (ok) {
+    ST.day.quizOk++; saveST();
+    if (!ST.day.stones[s.id]) { ST.day.stones[s.id] = true; saveST(); setupStones(); burst(new THREE.Vector3(s.x, 2, s.z), 0xfbbf24, 40); setTimeout(() => grant(REWARD.quiz, `${WQ.SUBJ[s.subj].name}の クイズ石 クリア！`), 300); }
+    checkMissions();
+    nx.innerHTML = `<button class="btn" type="button" id="qz-nx">もう1もん れんしゅう</button> <button class="btn sub" type="button" id="qz-end">とじる</button>`;
+  } else {
+    saveST();
+    nx.innerHTML = `<button class="btn" type="button" id="qz-nx">べつの もんだいで もういちど</button> <button class="btn sub" type="button" id="qz-end">とじる</button>`;
+  }
+  panel.querySelector('#qz-nx').onclick = nextQuestion; panel.querySelector('#qz-end').onclick = closePanel;
+}
+
+/* =========================================================
+   むん先生
+========================================================= */
+function openTeacher() {
+  ST.day.talks++; ST.talksTotal++; saveST(); checkMissions();
+  const h = NOW.getHours(); const hello = h < 10 ? 'おはよう' : h < 17 ? 'こんにちは' : 'こんばんは';
+  const nm = AV.name ? `${esc(AV.name)}さん` : '';
+  const rec = (REC[GRADE] || []).map(id => PLACES.find(p => p.id === id)).filter(Boolean);
+  const la = J('mun_last_app', null);
+  let cont = '';
+  if (la && la.path) { const path = String(la.path).replace('/tyuugakueigokisobunnpou/', '/tyuugakuseieigo/'); cont = `<div class="sec"><h3>▶ つづきから</h3><a class="qa" href="${esc(path.startsWith('/') ? '.' + path : path)}"><span class="qi"><i class="fa-solid fa-play"></i></span><span><b>${esc(la.title || 'まえに 使ったアプリ')}</b><span>きのうの つづきを やってみよう</span></span></a></div>`; }
+  const weak = weakSubject();
+  const body = `<div class="sec"><p style="margin:0;font-size:1rem;line-height:1.7"><b>${hello}${nm ? '、' + nm : ''}！</b> むんワールドへ ようこそ。<br>${weak ? `「${WQ.SUBJ[weak].name}」が すこし にがてみたい。クイズ石で れんしゅうしてみよう！` : 'クイズ石で 学んで、⭐スターを あつめよう！'}</p></div>
+    <div class="sec"><h3>📋 きょうのミッション</h3>${missionHTML()}</div>
+    ${cont}
+    ${rec.length ? `<div class="sec"><h3>⭐ ${esc((WQ.GRADES.find(g => g.id === GRADE) || {}).label || '')}の おすすめ</h3><div class="row">${rec.map(p => `<button class="btn sub" type="button" data-go="${esc(p.id)}">${p.emoji} ${esc(p.name)}へ行く</button>`).join('')}</div></div>` : ''}`;
+  showPanel({ color: '#fbbf24', iconHTML: '<span style="font-size:26px">🧑‍🏫</span>', title: 'むん先生', sub: 'わからないことが あったら、いつでも 話しかけてね', body, one: true });
+  panel.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const p = PLACES.find(x => x.id === b.dataset.go), q = portals.find(x => x.place === p); closePanel(); walkTo(q.pos.x, q.pos.z, 1.2, p.name); }));
+}
+function weakSubject() {
+  let w = null, wr = 1;
+  for (const [k, v] of Object.entries(ST.quiz)) { if (v.n >= 3 && WQ.SUBJ_OF[GRADE || 'g3'].includes(k)) { const r = v.ok / v.n; if (r < .7 && r < wr) { wr = r; w = k; } } }
+  return w;
+}
+document.getElementById('btn-mission').addEventListener('click', () => showPanel({ color: '#a855f7', iconHTML: '<span style="font-size:26px">📋</span>', title: 'きょうのミッション', sub: '毎日 かわるよ。むん先生にも 話しかけてみよう', body: missionHTML(), one: true }));
+
+/* =========================================================
+   きろく・にがてチェック
+========================================================= */
+document.getElementById('btn-rec').addEventListener('click', () => {
+  const subs = WQ.SUBJ_OF[GRADE || 'g3'];
+  const rows = subs.map(k => { const v = ST.quiz[k] || { ok: 0, n: 0 }; const r = v.n ? Math.round(v.ok / v.n * 100) : 0; return `<div class="sj"><span>${WQ.SUBJ[k].emoji} ${WQ.SUBJ[k].name}</span><div class="bar"><i style="width:${r}%;background:${v.n >= 3 && r < 70 ? 'linear-gradient(90deg,#ec4899,#f97316)' : ''}"></i></div><span>${v.n ? `${r}%（${v.n}もん）` : 'まだ'}</span></div>`; }).join('');
+  const weak = weakSubject();
+  const owned = ownedKeys().length, all = Object.entries(ITEMS).reduce((a, [, l]) => a + l.filter(i => i.need).length, 0);
+  const body = `<div class="sec"><div class="stats">
+      <div><b>⭐ ${ST.stars}</b><small>いまの スター</small></div><div><b>${ST.total}</b><small>これまでに あつめた⭐</small></div>
+      <div><b>${ST.quizTotal}</b><small>といた もんだい</small></div><div><b>${Object.keys(ST.day.stones).length} / ${STONES.length}</b><small>きょうの クイズ石</small></div>
+      <div><b>${ST.towerClears}</b><small>タワー クリア</small></div><div><b>${ST.chestsTotal}</b><small>見つけた 宝箱</small></div>
+      <div><b>${owned} / ${all}</b><small>ふえた きせかえ</small></div><div><b>🪙 ${ST.day.coin}</b><small>きょう ワールドで（上限 ${DAILY_CAP.coin}）</small></div></div></div>
+    <div class="sec"><h3>📊 きょうかべつ 正解りつ</h3>${rows}</div>
+    ${weak ? `<div class="weak">💡 <b>${WQ.SUBJ[weak].name}</b>が にがてかも。クイズ石や、学習アプリで れんしゅうしてみよう！</div>` : `<p class="note">3もん いじょう といた きょうかの、正解りつが 出ます。70%より ひくい きょうかは ピンク色に なります。</p>`}`;
+  showPanel({ color: '#10b981', iconHTML: '<span style="font-size:26px">📊</span>', title: 'きろく・にがてチェック', sub: 'この きろくは、この たんまつの 中だけに ほぞんされます', body, one: true });
+});
+
+/* =========================================================
+   せってい
+========================================================= */
+document.getElementById('btn-set').addEventListener('click', openSettings);
+function openSettings() {
+  const o = (k, v, t) => `<button class="opt ${OPT[k] === v ? 'on' : ''}" type="button" data-k="${k}" data-v="${v}">${t}</button>`;
+  const body = `<div class="sec"><h3>🎓 学年（クイズの むずかしさ）</h3><div class="row">${WQ.GRADES.map(g => `<button class="opt ${GRADE === g.id ? 'on' : ''}" type="button" data-g="${g.id}">${g.label}</button>`).join('')}</div></div>
+    <div class="sec"><h3>🔊 音</h3><div class="row">${o('sound', true, 'あり')}${o('sound', false, 'なし')}</div></div>
+    <div class="sec"><h3>🌙 空の色</h3><div class="row">${o('sky', 'auto', 'じっさいの 時こく')}${o('sky', 'night', 'いつも 夜')}</div></div>
+    <div class="sec"><h3>🖥️ がしつ</h3><div class="row">${o('q', 'auto', 'じどう')}${o('q', 'high', 'きれい')}${o('q', 'low', 'かるい')}</div><p class="note">うごきが おそいときは「かるい」に してください。がしつを かえると ページを よみなおします（きろくは 消えません）。</p></div>`;
+  showPanel({ color: '#94a3b8', iconHTML: '<span style="font-size:26px">⚙️</span>', title: 'せってい', body, one: true });
+  panel.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { setGrade(b.dataset.g); openSettings(); }));
+  panel.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k; let v = b.dataset.v; if (v === 'true') v = true; if (v === 'false') v = false;
+    const old = OPT[k]; OPT[k] = v; saveOPT();
+    if (k === 'q' && old !== v) { location.reload(); return; }
+    if (k === 'sky') applySky();
+    if (k === 'sound' && v) SND.init();
+    openSettings();
+  }));
+}
+function setGrade(g) { GRADE = g; LS.set('mun_world_grade', g); setupStones(); updateRec(); refreshHUD(); }
+
+/* =========================================================
+   きせかえ
+========================================================= */
+let closetTab = 'type', camSave = null;
+document.getElementById('btn-closet').addEventListener('click', openCloset);
+function openCloset() {
+  if (!closetOpen) { camSave = { camYaw, camPitch, camDist }; closetOpen = true; autoTarget = null; }
+  // 見た しな物は「あたらしい」の しるしを 消す
+  ST.seenItems = Array.from(new Set([...ST.seenItems, ...ownedKeys()])); saveST(); updateDots();
+  const TABS = [['type', 'からだ'], ['color', 'いろ'], ['face', 'かお'], ['hat', 'ぼうし'], ['acc', 'アクセ'], ['pet', 'ペット'], ['aura', 'オーラ'], ['name', 'なまえ']];
+  const tabs = `<div class="tabs">${TABS.map(([k, t]) => `<button class="tab ${closetTab === k ? 'on' : ''}" type="button" data-tab="${k}">${t}</button>`).join('')}</div>`;
+  const grid = cat => `<div class="row">${ITEMS[cat].map(it => { const ok = itemOK(cat, it); return `<button class="opt ${AV[cat] === it.id ? 'on' : ''} ${ok ? '' : 'lock'}" type="button" data-c="${cat}" data-id="${it.id}" ${ok ? '' : 'aria-disabled="true"'}><span class="e">${it.e}</span>${esc(it.name)}${ok ? '' : `<span class="need">${needText(it.need)}</span>`}</button>`; }).join('')}</div>`;
+  const sw = key => `<div class="row">${COLORS.map(c => `<button class="sw ${AV[key] === c ? 'on' : ''}" type="button" data-sw="${key}" data-col="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}</div>`;
+  let body = '';
+  if (closetTab === 'type') body = `<div class="sec"><h3>からだの しゅるい</h3>${grid('type')}</div>${AV.type === 'hito' ? `<div class="sec"><h3>かみがた</h3>${grid('hairStyle')}</div>` : ''}`;
+  if (closetTab === 'color') body = `<div class="sec"><h3>ふくの いろ</h3>${sw('body')}</div><div class="sec"><h3>${AV.type === 'hito' ? 'はだの いろ' : (AV.type === 'robot' ? 'ライトの いろ' : 'けの いろ')}</h3>${sw('fur')}</div>${AV.type === 'hito' ? `<div class="sec"><h3>かみの いろ</h3>${sw('hair')}</div>` : ''}`;
+  if (closetTab === 'face') body = `<div class="sec"><h3>め</h3>${grid('eye')}</div><div class="sec"><h3>ほっぺ</h3><div class="row"><button class="opt ${AV.cheek ? 'on' : ''}" type="button" data-cheek="1"><span class="e">😊</span>あり</button><button class="opt ${AV.cheek ? '' : 'on'}" type="button" data-cheek="0"><span class="e">🙂</span>なし</button></div></div>`;
+  if (['hat', 'acc', 'pet', 'aura'].includes(closetTab)) body = `<div class="sec">${grid(closetTab)}</div><p class="note">🔒の しな物は、⭐スターを あつめたり、レベルを 上げたり、宝箱を 見つけたりすると ふえます。いま ⭐${ST.total}こ（これまでの合計）</p>`;
+  if (closetTab === 'name') body = `<div class="sec"><h3>あたまの上の なまえ</h3><input class="inp" id="nm" maxlength="10" value="${esc(AV.name)}" placeholder="ニックネーム（10文字まで）"><p class="note">ほんとうの なまえは 入れないでね。なまえは この たんまつの 中だけに ほぞんされます。</p><button class="btn" type="button" id="nm-ok" style="margin-top:8px">けってい</button></div>`;
+  showPanel({ color: '#ec4899', iconHTML: '<span style="font-size:26px">👕</span>', title: 'きせかえ', sub: 'えらぶと すぐに かわるよ', body, one: true, dock: true, tabs });
+  onPanelClose = () => { closetOpen = false; if (camSave) ({ camYaw, camPitch, camDist } = camSave); };
+  panel.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { closetTab = b.dataset.tab; onPanelClose = null; openCloset(); }));
+  panel.querySelectorAll('[data-c]').forEach(b => b.addEventListener('click', () => {
+    const c = b.dataset.c, it = ITEMS[c].find(x => x.id === b.dataset.id);
+    if (!itemOK(c, it)) { toast(`🔒 ${needText(it.need)} ふえるよ`); return; }
+    AV[c] = it.id; changed();
+  }));
+  panel.querySelectorAll('[data-sw]').forEach(b => b.addEventListener('click', () => { AV[b.dataset.sw] = b.dataset.col; changed(); }));
+  panel.querySelectorAll('[data-cheek]').forEach(b => b.addEventListener('click', () => { AV.cheek = b.dataset.cheek === '1'; changed(); }));
+  const nm = panel.querySelector('#nm-ok'); if (nm) nm.onclick = () => { AV.name = panel.querySelector('#nm').value.trim().slice(0, 10); changed(); toast('なまえを かえたよ'); };
+  function changed() { saveAV(); rebuildPlayer(); if (!ST.day.dress) { ST.day.dress = true; saveST(); } SND.play('pop'); onPanelClose = null; openCloset(); }
+}
+
+/* =========================================================
+   写真モード
+========================================================= */
+document.getElementById('btn-photo').addEventListener('click', () => { photoMode = true; document.body.classList.add('photo'); toast('ドラッグで 角度を きめて「とる」を おしてね'); });
+function endPhoto() { photoMode = false; document.body.classList.remove('photo'); }
+document.getElementById('photo-x').addEventListener('click', endPhoto);
+document.getElementById('shutter').addEventListener('click', () => {
+  renderer.render(scene, camera);
+  const src = canvas;
+  const out = document.createElement('canvas'); out.width = src.width; out.height = src.height; const g = out.getContext('2d');
+  g.drawImage(src, 0, 0);
+  const s = out.height / 900, d = new Date();
+  g.fillStyle = 'rgba(5,9,20,.7)'; roundRect(g, 20 * s, out.height - 90 * s, 520 * s, 70 * s, 20 * s); g.fill();
+  g.fillStyle = '#fff'; g.font = `900 ${30 * s}px ${FONT}`; g.textBaseline = 'middle';
+  g.fillText(`むんワールド  ${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`, 40 * s, out.height - 55 * s);
+  const a = document.createElement('a'); a.download = `munworld_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${d.getHours()}${d.getMinutes()}.png`;
+  a.href = out.toDataURL('image/png'); a.click();
+  const f = document.getElementById('flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 60); SND.play('pop');
+});
+
+let toastT; function toast(s, ms = 2200) { const t = document.getElementById('toast'); t.textContent = s; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
+
+/* =========================================================
+   ミニマップ
+========================================================= */
+const mm = document.getElementById('mm'), mg = mm.getContext('2d');
+function drawMinimap() {
+  const S = mm.width, cx = S / 2, k = S / 2 / (ISLAND_R + 4);
+  mg.clearRect(0, 0, S, S);
+  mg.fillStyle = 'rgba(21,33,63,.9)'; mg.beginPath(); mg.arc(cx, cx, ISLAND_R * k, 0, Math.PI * 2); mg.fill();
+  mg.fillStyle = 'rgba(251,191,36,.35)'; mg.beginPath(); mg.arc(cx, cx, 14 * k, 0, Math.PI * 2); mg.fill();
+  const rec = REC[GRADE] || [];
+  for (const p of PLACES) { mg.fillStyle = p.color; mg.beginPath(); mg.arc(cx + p.x * k, cx + p.z * k, 7, 0, Math.PI * 2); mg.fill(); if (rec.includes(p.id)) { mg.strokeStyle = '#fbbf24'; mg.lineWidth = 3; mg.beginPath(); mg.arc(cx + p.x * k, cx + p.z * k, 11, 0, Math.PI * 2); mg.stroke(); } }
+  for (const s of STONES) { mg.fillStyle = ST.day.stones[s.id] ? '#fbbf24' : WQ.SUBJ[s.subj].color; mg.fillRect(cx + s.x * k - 4, cx + s.z * k - 4, 8, 8); }
+  mg.fillStyle = '#a855f7'; mg.beginPath(); mg.moveTo(cx + TOWER.x * k, cx + TOWER.z * k - 9); mg.lineTo(cx + TOWER.x * k + 7, cx + TOWER.z * k + 6); mg.lineTo(cx + TOWER.x * k - 7, cx + TOWER.z * k + 6); mg.fill();
+  mg.strokeStyle = '#00e5ff'; mg.lineWidth = 2; mg.beginPath(); mg.arc(cx + DECK.x * k, cx + DECK.z * k, 9, 0, Math.PI * 2); mg.stroke();
+  mg.fillStyle = '#fde68a'; mg.font = 'bold 18px sans-serif'; mg.textAlign = 'center'; mg.textBaseline = 'middle'; mg.fillText('★', cx + 5.5 * k, cx + 9.5 * k);
+  mg.save(); mg.translate(cx + player.position.x * k, cx + player.position.z * k); mg.rotate(player.rotation.y * -1 + Math.PI);
+  mg.fillStyle = '#fff'; mg.beginPath(); mg.moveTo(0, -9); mg.lineTo(6, 7); mg.lineTo(-6, 7); mg.closePath(); mg.fill(); mg.restore();
+}
+
+/* =========================================================
+   ループ
+========================================================= */
+const promptEl = document.getElementById('prompt'), promptT = document.getElementById('prompt-t'), promptS = document.getElementById('prompt-s'), placeEl = document.querySelector('#place span');
+let near = null, vy = 0, walkT = 0, started = false, grounded = true, frame = 0;
+const clock = new THREE.Clock();
+const tmpV = new THREE.Vector3(), camTarget = new THREE.Vector3();
+function placeNameAt(x, z, y) {
+  if (y > 2) return '空の道';
+  const d = Math.hypot(x, z);
+  if (d < 14) return 'むん広場';
+  if (z < -RING - 6) return 'むんパーク（北の丘）';
+  if (Math.hypot(x - TOWER.x, z - TOWER.z) < 12) return 'チャレンジタワーの まえ';
+  if (z > 40) return '南のゲート';
+  const n = PLACES.reduce((b, p) => { const dd = Math.hypot(p.x - x, p.z - z); return dd < b.d ? { d: dd, p } : b; }, { d: 1e9 });
+  return n.d < 16 ? `${n.p.name} のまえ` : 'クエスト通り';
+}
+let lastPlaceName = '';
+function support(x, z, yPrev) {
+  let s = 0;
+  for (const p of PLATS) if (p.top <= yPrev + .35 && p.top > s && Math.hypot(x - p.x, z - p.z) < p.r) s = p.top;
+  return s;
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(.05, clock.getDelta()); const t = clock.elapsedTime; frame++;
+  // 演出（はじまる前も うごかす）
+  for (const q of portals) { q.ring.rotation.z = t * .8; q.ring.material.opacity = (near && q === near.portal) ? .95 : .55 + Math.sin(t * 3 + q.pos.x) * .2; q.orb.position.y = q.h + 3.2 + Math.sin(t * 2 + q.pos.z) * .25; if (q.recMark && q.recMark.visible) q.recMark.position.y = q.h + 7.4 + Math.sin(t * 3) * .3; }
+  monument.userData.crystal.rotation.y = t; monument.userData.crystal.position.y = 7.2 + Math.sin(t * 1.5) * .3;
+  motes.rotation.y = t * .02;
+  for (const s of STONES) { s.top.rotation.y = t * 1.5; s.top.position.y = 3.9 + Math.sin(t * 2 + s.i) * .2; s.ring.rotation.z = -t; }
+  TOWER.gem.rotation.y = t; DECK.big.rotation.y = t * 1.2; DECK.big.visible = !ST.day.deck;
+  for (const s of STARS) { s.m.rotation.y = t * 2 + s.y; s.m.position.y = s.y + Math.sin(t * 2.5 + s.m.position.x) * .15; }
+  for (const p of PADS) p.arrow.position.y = 1.4 + Math.sin(t * 4) * .2;
+  if (snow) { const a = snow.geometry.attributes.position; for (let i = 0; i < a.count; i++) { let y = a.getY(i) - dt * 3; if (y < 0) y = 60; a.setY(i, y); } a.needsUpdate = true; }
+  for (let i = BURSTS.length - 1; i >= 0; i--) { const b = BURSTS[i]; b.t += dt; const a = b.pts.geometry.attributes.position; for (let j = 0; j < b.v.length; j++) { b.v[j].y -= 14 * dt; a.setXYZ(j, a.getX(j) + b.v[j].x * dt, a.getY(j) + b.v[j].y * dt, a.getZ(j) + b.v[j].z * dt); } a.needsUpdate = true; b.pts.material.opacity = Math.max(0, 1 - b.t / 1.2); if (b.t > 1.2) { scene.remove(b.pts); b.pts.geometry.dispose(); BURSTS.splice(i, 1); } }
+  TEACHER.mark.position.y = 3.0 + Math.sin(t * 3) * .15;
+  if (!started) { camera.position.set(Math.sin(t * .05) * 70, 34, Math.cos(t * .05) * 70); camera.lookAt(0, 4, 0); renderer.render(scene, camera); return; }
+
+  // 移動
+  let ix = 0, iz = 0;
+  const canMove = !panelOpen && !photoMode;
+  if (canMove) {
+    if (keys.KeyW || keys.ArrowUp) iz -= 1; if (keys.KeyS || keys.ArrowDown) iz += 1;
+    if (keys.KeyA || keys.ArrowLeft) ix -= 1; if (keys.KeyD || keys.ArrowRight) ix += 1;
+    ix += joyVec.x; iz += joyVec.y;
+  }
+  const len = Math.hypot(ix, iz);
+  let moving = false;
+  const fast = keys.ShiftLeft || keys.ShiftRight || dashOn;
+  if (len > 0.001) { autoTarget = null; emote = null; }
+  else if (autoTarget && canMove) {
+    const dx = autoTarget.x - player.position.x, dz = autoTarget.z - player.position.z, d = Math.hypot(dx, dz);
+    if (d < autoTarget.r) autoTarget = null;
+    else { const sp = 9 * dt; player.position.x += dx / d * sp; player.position.z += dz / d * sp; player.rotation.y = Math.atan2(dx, dz); walkT += dt * 11; moving = true; }
+  }
+  if (len > 0.001) {
+    const s = Math.min(1, len); const fwd = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw)); const right = new THREE.Vector3(fwd.z, 0, -fwd.x);
+    const dir = fwd.multiplyScalar(-iz / len).add(right.multiplyScalar(ix / len));
+    const speed = (fast ? 13 : 8) * s * dt;
+    player.position.x += dir.x * speed; player.position.z += dir.z * speed;
+    { const ta = Math.atan2(dir.x, dir.z); let da = ta - player.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da)); player.rotation.y += da * .25; }
+    walkT += dt * (fast ? 15 : 11) * s; moving = true;
+  }
+  // ぶつかり
+  if (player.position.y < 3) {
+    for (const q of portals) { const p = q.place; const dx = player.position.x - p.x, dz = player.position.z - p.z, d = Math.hypot(dx, dz), min = p.size * 0.72; if (d < min && d > 0.001) { player.position.x = p.x + dx / d * min; player.position.z = p.z + dz / d * min; } }
+    for (const s of STONES) { const dx = player.position.x - s.x, dz = player.position.z - s.z, d = Math.hypot(dx, dz); if (d < 1.6 && d > .001) { player.position.x = s.x + dx / d * 1.6; player.position.z = s.z + dz / d * 1.6; } }
+    { const dx = player.position.x - TOWER.x, dz = player.position.z - TOWER.z, d = Math.hypot(dx, dz); if (d < 4.8 && d > .001) { player.position.x = TOWER.x + dx / d * 4.8; player.position.z = TOWER.z + dz / d * 4.8; } }
+    { const d = Math.hypot(player.position.x, player.position.z); if (d < 2.4 && d > 0.001) { player.position.x *= 2.4 / d; player.position.z *= 2.4 / d; } }
+  }
+  { const cx = player.position.x, cz = player.position.z; const d = Math.hypot(cx, cz); if (d > ISLAND_R - 2) { player.position.x = cx / d * (ISLAND_R - 2); player.position.z = cz / d * (ISLAND_R - 2); } }
+  // ジャンプ・足場
+  const yPrev = player.position.y;
+  if ((keys.Space || wantJump) && grounded && canMove) { vy = 8.6; grounded = false; SND.play('jump'); emote = null; }
+  wantJump = false;
+  if (grounded && yPrev < .25) for (const p of PADS) if (Math.hypot(player.position.x - p.x, player.position.z - p.z) < 1.4) { vy = 16.5; grounded = false; SND.play('boing'); p.mesh.scale.y = .4; }
+  for (const p of PADS) p.mesh.scale.y += (1 - p.mesh.scale.y) * .15;
+  vy -= 22 * dt; let ny = yPrev + vy * dt;
+  const floor = support(player.position.x, player.position.z, yPrev);
+  if (ny <= floor) { ny = floor; vy = 0; grounded = true; } else grounded = false;
+  player.position.y = ny;
+  if (ny > DECK.top - .1 && Math.hypot(player.position.x - DECK.x, player.position.z - DECK.z) < 4.5 && !ST.day.deck) {
+    ST.day.deck = true; saveST(); SND.play('fan'); burst(new THREE.Vector3(DECK.x, DECK.top + 1, DECK.z), 0xfbbf24, 60); grant(REWARD.deck, '空のデッキに とうちゃく！'); checkMissions();
+  }
+
+  if (nameTag) nameTag.visible = !closetOpen;
+  // からだの うごき
+  animateAvatar(avatar, moving, walkT, dt, t, !grounded);
+  // ペット
+  if (pet) {
+    const back = new THREE.Vector3(-Math.sin(player.rotation.y) * 1.6 + Math.cos(player.rotation.y) * 1.1, 0, -Math.cos(player.rotation.y) * 1.6 - Math.sin(player.rotation.y) * 1.1).add(player.position);
+    pet.position.x += (back.x - pet.position.x) * Math.min(1, dt * 4); pet.position.z += (back.z - pet.position.z) * Math.min(1, dt * 4);
+    const fly = pet.userData.fly || 0; const by = player.position.y + (fly ? fly + Math.sin(t * 3) * .2 : Math.abs(Math.sin(t * 6)) * (moving ? .35 : .08));
+    pet.position.y += (by - pet.position.y) * Math.min(1, dt * 6);
+    pet.rotation.y = Math.atan2(player.position.x - pet.position.x, player.position.z - pet.position.z);
+    if (pet.userData.rotors) pet.userData.rotors.forEach((r, i) => r.rotation.y = t * 30 + i);
+    if (pet.userData.blob) pet.userData.blob.scale.y = .75 + Math.sin(t * 8) * .08;
+    if (pet.userData.wings) pet.userData.wings.forEach((w, i) => w.rotation.z = (i ? -1 : 1) * (.5 + Math.sin(t * 10) * .4));
+  }
+  // なかま
+  for (const n of NPCS) {
+    if (n.bubbleT > 0) { n.bubbleT -= dt; if (n.bubbleT <= 0 && n.bubble) { n.grp.remove(n.bubble); n.bubble = null; } }
+    const dx = n.tx - n.grp.position.x, dz = n.tz - n.grp.position.z, d = Math.hypot(dx, dz);
+    let mv = false;
+    if (n.wait > 0) n.wait -= dt;
+    else if (d < .5) { n.wait = 1 + Math.random() * 4; const a = Math.random() * Math.PI * 2, r = 16 + Math.random() * 16; n.tx = Math.cos(a) * r; n.tz = Math.sin(a) * r; }
+    else { const sp = 2.2 * dt; n.grp.position.x += dx / d * sp; n.grp.position.z += dz / d * sp; n.grp.rotation.y = Math.atan2(dx, dz); n.walkT += dt * 8; mv = true; }
+    animateAvatar(n.grp, mv, n.walkT, dt, t, false);
+  }
+  // スター
+  for (let i = STARS.length - 1; i >= 0; i--) {
+    const s = STARS[i]; const p = s.m.position;
+    if (Math.hypot(player.position.x - p.x, player.position.z - p.z) < 1.3 && Math.abs(player.position.y + 1 - p.y) < 1.6) {
+      scene.remove(s.m); STARS.splice(i, 1); ST.day.picked.push(s.id); SND.play('star'); burst(p.clone().setY(p.y - 1.5), 0xfbbf24, 14);
+      ST.stars += REWARD.pick.star; ST.total += REWARD.pick.star; saveST(); refreshHUD(); checkMissions();
+      const nw = ownedKeys().filter(k => !ownedBefore.includes(k)); if (nw.length) grant({}, '');
+    }
+  }
+  // 宝箱
+  for (const c of CHESTS) {
+    if (c.open > 0) { c.open += dt; c.lid.rotation.x = -Math.min(1.9, c.open * 4); c.sp.position.y = 2 + c.open; if (c.open > 1.4) { scene.remove(c.g); c.done = true; } continue; }
+    const p = c.g.position;
+    if (Math.hypot(player.position.x - p.x, player.position.z - p.z) < 1.9 && Math.abs(player.position.y - p.y) < 1.2) openChest(c);
+  }
+  // 近くのもの
+  let best = null, bd = 1e9;
+  for (const q of portals) { const d = Math.hypot(player.position.x - q.pos.x, player.position.z - q.pos.z); if (d < 4.2 && d < bd && player.position.y < 1) { bd = d; best = { place: q.place, portal: q, d }; } }
+  for (const it of INTER) { const d = Math.hypot(player.position.x - it.x, player.position.z - it.z); if (d < it.r && d < bd && player.position.y < 1.5) { bd = d; best = { inter: it, d }; } }
+  const key = best ? (best.place ? best.place.id : best.inter) : null, oldKey = near ? (near.place ? near.place.id : near.inter) : null;
+  if (key !== oldKey) {
+    near = best;
+    if (near && near.place) { promptT.textContent = near.place.type === 'cat' ? `${near.place.name} のクエストを見る` : `${near.place.name} に入る`; promptS.textContent = near.place.sub; }
+    else if (near) { promptT.textContent = near.inter.name(); promptS.textContent = near.inter.sub(); }
+  }
+  promptEl.classList.toggle('on', !!near && !panelOpen && !photoMode);
+  if (near && near.place && cooldownPlace !== near.place && !panelOpen && !photoMode && bd < 3.0) openPlace(near.place);
+  if (!near || !near.place) cooldownPlace = null;
+
+  // カメラ
+  if (closetOpen) {
+    const narrow = innerWidth < 700;
+    camYaw += (player.rotation.y + (narrow ? 0 : .5) - camYaw) * .1; camPitch += (.12 - camPitch) * .1; camDist += ((narrow ? 6 : 5.5) - camDist) * .1;
+  }
+  camTarget.set(player.position.x, player.position.y + (closetOpen ? (innerWidth < 700 ? .2 : 1.4) : 1.8), player.position.z);
+  if (closetOpen && innerWidth >= 700) { const side = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw)).multiplyScalar(1.6); camTarget.add(side); }
+  tmpV.set(Math.sin(camYaw) * Math.cos(camPitch), Math.sin(camPitch), Math.cos(camYaw) * Math.cos(camPitch)).multiplyScalar(camDist).add(camTarget);
+  if (tmpV.y < .8) tmpV.y = .8;
+  camera.position.lerp(tmpV, 1 - Math.pow(.001, dt));
+  camera.lookAt(camTarget);
+
+  const pn = placeNameAt(player.position.x, player.position.z, player.position.y); if (pn !== lastPlaceName) { lastPlaceName = pn; placeEl.textContent = pn; }
+  if (frame % 2 === 0) drawMinimap();
+  renderer.render(scene, camera);
+}
+
+function animateAvatar(av, moving, wt, dt, t, air) {
+  const P = av.userData.P; if (!P) return;
+  const sw = moving ? Math.sin(wt) * .7 : 0;
+  let legL = sw, legR = -sw, armL = -sw * .8, armR = sw * .8, bob = moving ? Math.abs(Math.sin(wt)) * .12 : Math.sin(t * 2) * .02, rotY = 0, armRz = -.18, armLz = .18, lower = 0;
+  if (air) { legL = -.5; legR = .3; armL = armR = -2.4; }
+  if (av === avatar && emote) {
+    emote.t += dt; const e = emote, k = e.t;
+    if (e.type === 'wave') { armR = 0; armRz = -2.6 + Math.sin(k * 10) * .35; if (k > 2.2) emote = null; }
+    if (e.type === 'cheer') { armR = armL = 0; armRz = -2.8; armLz = 2.8; bob = Math.abs(Math.sin(k * 8)) * .4; if (k > 1.8) emote = null; }
+    if (e.type === 'dance') { rotY = Math.sin(k * 5) * .6; armR = Math.sin(k * 8) * 1.2; armL = -armR; armRz = -1.2; armLz = 1.2; bob = Math.abs(Math.sin(k * 8)) * .25; legL = Math.sin(k * 8) * .4; legR = -legL; if (k > 4) emote = null; }
+    if (e.type === 'sit') { legL = legR = -1.5; lower = -.5; armL = armR = -.4; }
+    if (e.type === 'spin') { rotY = k * 12; bob = Math.sin(Math.min(1, k) * Math.PI) * .8; if (k > 1) emote = null; }
+  }
+  P.legL.rotation.x = legL; P.legR.rotation.x = legR;
+  P.armL.rotation.x = armL; P.armR.rotation.x = armR; P.armL.rotation.z = armLz; P.armR.rotation.z = armRz;
+  av.children.forEach(c => { if (c.userData.baseY === undefined) c.userData.baseY = c.position.y; });
+  P.body.position.y = P.body.userData.baseY + bob + lower; P.head.position.y = P.head.userData.baseY + bob + lower;
+  P.armL.position.y = P.armL.userData.baseY + bob + lower; P.armR.position.y = P.armR.userData.baseY + bob + lower;
+  if (av === avatar) av.rotation.y = rotY;
+  if (P.tail) P.tail.rotation.z = Math.sin(t * 4) * .15;
+  if (P.cape) P.cape.rotation.x = .12 + (moving ? .5 + Math.sin(t * 12) * .08 : Math.sin(t * 2) * .04);
+  if (P.wingL) { const f = Math.sin(t * (air ? 18 : 3)) * (air ? .6 : .15); P.wingL.rotation.y = f + .3; P.wingR.rotation.y = -f - .3; }
+  if (P.flames) P.flames.forEach(f => { f.scale.y = air ? 1.6 + Math.random() * .6 : .5 + Math.random() * .2; });
+  if (P.halo) P.halo.rotation.z = t;
+  if (P.aura) { P.aura.rotation.z = t; if (P.rainbow) P.aura.material.color.setHSL((t * .25) % 1, .9, .6); }
+}
+
+function openChest(c) {
+  c.open = .001; ST.day.chests.push(c.id); ST.chestsTotal++; saveST(); SND.play('chest'); burst(c.g.position, 0xfde68a, 50);
+  // まだ もっていない「宝箱だけ」の しな物が あれば、それが出る
+  const locked = Object.entries(ITEMS).flatMap(([cat, l]) => l.filter(it => it.need && it.need.chest && !ST.unlocked.includes(cat + ':' + it.id)).map(it => [cat, it]));
+  if (locked.length && Math.random() < .55) {
+    const [cat, it] = locked[Math.floor(Math.random() * locked.length)];
+    ST.unlocked.push(cat + ':' + it.id); saveST();
+    setTimeout(() => { showGain(`${it.e} ${it.name} を 手に入れた！`, 'きせかえで つかえるよ'); updateDots(); }, 500);
+    setTimeout(() => grant({ star: 5 }, '宝箱'), 2100);
+  } else setTimeout(() => grant({ star: 10 + Math.floor(Math.random() * 16) }, '宝箱を 見つけた！'), 500);
+  checkMissions();
+}
+
+addEventListener('resize', () => { camera.fov = innerWidth < innerHeight ? 72 : 60; camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+/* =========================================================
+   はじめの画面
+========================================================= */
+const gradesEl = document.getElementById('grades');
+gradesEl.innerHTML = WQ.GRADES.map(g => `<button type="button" data-g="${g.id}" class="${GRADE === g.id ? 'on' : ''}">${g.label}</button>`).join('');
+gradesEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { gradesEl.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); setGrade(b.dataset.g); }));
+setupStones(); updateRec(); refreshHUD(); updateDots();
+loop();
+document.getElementById('ld').textContent = 'じゅんびOK！';
+document.getElementById('start').addEventListener('click', () => {
+  if (!GRADE) { setGrade('g3'); gradesEl.querySelector('[data-g="g3"]').classList.add('on'); toast('学年は「せってい ⚙️」で かえられるよ', 3000); }
+  SND.init(); SND.play('open');
+  document.getElementById('intro').style.display = 'none'; started = true; canvas.focus();
+  camera.position.set(0, 10, 60);
+  const last = LS.get('mun_world_last'); const p = PLACES.find(q => q.id === last);
+  setTimeout(() => toast(p ? `ようこそ！ 前回は「${p.name}」に行ったね` : 'ようこそ むんワールドへ！ まずは むん先生に 話しかけてみよう', 3200), 300);
+});
+window.addEventListener('error', e => { const el = document.getElementById('err'); el.style.display = 'block'; el.textContent = '3Dの読み込みでエラーが出ました: ' + e.message; });
+</script>
+<noscript><div style="padding:20px">このページはJavaScriptが必要です。<a href="./index.html">トップページへ</a></div></noscript>
+</body>
+</html>
