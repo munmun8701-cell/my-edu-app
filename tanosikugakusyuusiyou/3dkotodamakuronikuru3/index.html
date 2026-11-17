@@ -437,6 +437,14 @@ body.d3 #pad #pl,body.d3 #pad #pr{visibility:hidden}
 @media (max-aspect-ratio:1/1){ body.d3[data-mode=field] #stage::after{content:'👆 ここを ドラッグして あるくよ\A📱 よこむきに すると 大きく あそべるよ';white-space:pre;position:fixed;left:0;right:0;top:52%;text-align:center;color:rgba(200,220,255,.5);font-size:4vw;line-height:1.8;pointer-events:none} }
 body:has(#dlg:not([hidden])) #stage::after,body:has(#ov:not([hidden])) #stage::after{display:none!important}
 
+#pad #pg,#pad #pc{display:none}
+body.d3 #pad #pg{display:block;width:calc(var(--u)*6);height:calc(var(--u)*6);font-size:calc(var(--u)*2.6);margin-bottom:calc(var(--u)*1);border-color:#ffb84a;color:#ffd49a}
+body.d3 #pad #pc{display:block;width:calc(var(--u)*5.4);height:calc(var(--u)*5.4);font-size:calc(var(--u)*2.2);margin-bottom:calc(var(--u)*10)}
+#photo3{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:3vh}
+#photo3 img{max-width:94vw;max-height:72vh;border:6px solid #fff;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+#photo3 .row{display:flex;gap:3vw}#photo3 .row a,#photo3 .row button{font:900 2.6vh var(--font,sans-serif);padding:1.2vh 3vw;border-radius:99px;border:none;background:#FFE27A;color:#3a2a00;text-decoration:none}
+#photo3 p{color:#fff;font-weight:700;font-size:2.2vh;margin:0;text-align:center}
+
 </style>
 </head>
 <body data-mode="title">
@@ -445,7 +453,7 @@ body:has(#dlg:not([hidden])) #stage::after,body:has(#ov:not([hidden])) #stage::a
     <canvas id="cv"></canvas>
     <div id="hud" class="off"><div id="hud-area"></div><span class="spacer"></span><span class="hpill">💧<b id="hud-ink">0</b></span><span class="hpill" id="hud-pet">Lv1</span><button id="hud-clock" aria-label="とけい" hidden>🕰️</button><button id="hud-map" aria-label="マップ">🗺️</button><button id="hud-menu" aria-label="メニュー">☰</button></div>
     <button id="prompt"></button>
-    <div id="pad" hidden><div class="pg"><button id="pl" aria-label="ひだりへ">◀</button><button id="pr" aria-label="みぎへ">▶</button></div><div class="pg"><button id="pd" aria-label="ダッシュ">💨</button><button id="ps" aria-label="ふでショット">✍️</button><button id="pj" aria-label="ジャンプ">⤴</button></div></div>
+    <div id="pad" hidden><div class="pg"><button id="pl" aria-label="ひだりへ">◀</button><button id="pr" aria-label="みぎへ">▶</button><button id="pc" aria-label="しゃしん">📷</button></div><div class="pg"><button id="pg" aria-label="ドスン">⤓</button><button id="pd" aria-label="ダッシュ">💨</button><button id="ps" aria-label="ふでショット">✍️</button><button id="pj" aria-label="ジャンプ">⤴</button></div></div>
     <div id="mapui" hidden></div>
     <div id="card" hidden></div>
     <div id="toast" role="status"></div>
@@ -1986,7 +1994,7 @@ function drawVignette(a = .5) {
    ========================================================= */
 const F = { a: null, x: 200, y: 432, vx: 0, vy: 0, ground: true, face: 1, walk: 0, moving: false, camX: 0, ens: [], friends: [], actors: {}, lock: 0, inv: 0, near: null, keys: {}, yOff: 0, weather: 'clear', cast: 0, lv: null, mobs: [], shots: [], eshots: [], pick: [], jumps: 0, coyote: 0, jbuf: 0, dashT: 0, dashCD: 0, charge: 0, shotCD: 0, safeX: 200, onPlat: null, hurtT: 0, air: 0 };
 /* ボタンの じょうたい（キー・タッチ・パッド ぜんぶ ここに あつまる） */
-const INP = { l: 0, r: 0, up: 0, down: 0, jump: 0, shot: 0, dash: 0, jumpP: 0, shotP: 0, shotR: 0, dashP: 0, act: 0 };
+const INP = { l: 0, r: 0, up: 0, down: 0, jump: 0, shot: 0, dash: 0, jumpP: 0, shotP: 0, shotR: 0, dashP: 0, act: 0, pound: 0 };
 /* 学年ごとの むずかしさ（3年=0 … 6年=3） */
 const DIF = (() => { const g = Math.max(0, Math.min(3, (APP.grade || 3) - 3)); return {
   g, hole: g * 14, mob: 1 + g * .2, mobDens: 1 - g * .1, shoot: 1 - g * .16, cage: .42 + g * .06, cageHp: 3 + (g >= 2 ? 1 : 0), flee: 1 + g * .15,
@@ -3505,7 +3513,7 @@ function init3D() {
   D3.cam = new THREE.PerspectiveCamera(55, 16 / 9, .1, 600);
   D3.hemi = new THREE.HemisphereLight(0xdff2ff, 0x8a7a5a, .75); D3.scene.add(D3.hemi);
   D3.sun = new THREE.DirectionalLight(0xfff4e0, .95); D3.sun.position.set(30, 60, 20); D3.scene.add(D3.sun); D3.scene.add(D3.sun.target);
-  const sc = D3.sun.shadow; sc.mapSize.set(1024, 1024); sc.camera.left = -30; sc.camera.right = 30; sc.camera.top = 30; sc.camera.bottom = -30; sc.camera.near = 1; sc.camera.far = 160; sc.bias = -.0006; sc.normalBias = .03;
+  const sc = D3.sun.shadow; sc.mapSize.set(1024, 1024); sc.camera.left = -30; sc.camera.right = 30; sc.camera.top = 30; sc.camera.bottom = -30; sc.camera.near = 1; sc.camera.far = 160; sc.bias = -.0006; sc.normalBias = .03; sc.camera.layers.enable(1); D3.hemi.layers.enable(1); D3.sun.layers.enable(1);
   D3.pr = Math.min(devicePixelRatio || 1, coarse ? 1.25 : 1.5);
   D3.fit = () => { const r = cv.getBoundingClientRect(); if (!r.width) return; D3.R.setPixelRatio(D3.pr); D3.R.setSize(r.width, r.height, false); D3.cam.aspect = r.width / r.height; D3.cam.updateProjectionMatrix(); };
   new ResizeObserver(D3.fit).observe(cv); D3.fit();
@@ -3816,6 +3824,7 @@ function build3D(a) {
     const cnt = Math.round((1.6 + P.i * .7) * DIF.mob * DIF.mobDens + (P.i === 0 ? -.6 : 0));
     for (let k = 0; k < cnt; k++) { const [x, z] = slot3(P, 1.2, R, { min: 4, near: [L.start.x, L.start.z], far: 8 }); addMob3(types[(k + P.i) % types.length], x, P.h, z, P); }
   }
+  fun3Build(R);
   for (const P of L.pl) decorate3(P, R);
   buildSkyWater(R);
   inkIM();
@@ -4184,7 +4193,7 @@ function mkHero() {
   H.eyes = head.children.filter(c => c.scale.y === .1);
   compact(head, H.eyes); compact(body); [H.legL, H.legR, H.armL, H.armR, tail].forEach(q => compact(q));
   H.g = g; H.body = body; H.pivot = pivot;
-  g.traverse(m => { if (m.isMesh && !m.material.isMeshBasicMaterial) { m.castShadow = true; } });
+  g.traverse(m => { if (m.isMesh && !m.material.isMeshBasicMaterial) { m.castShadow = true; } m.layers.set(1); });
   return H;
 }
 /* ---------- つぶつぶ（パーティクル） ---------- */
@@ -4234,7 +4243,7 @@ function update3D(dt) {
   for (const mv of L3.movers) { const k = (Math.sin(L3.t * .55 + mv.ph) + 1) / 2, nx = mv.ax + (mv.bx - mv.ax) * k, nz = mv.az + (mv.bz - mv.az) * k; mv.dx = nx - mv.x; mv.dz = nz - mv.z; mv.x = nx; mv.z = nz; mv.col.x = nx; mv.col.z = nz; mv.m.position.x = nx; mv.m.position.z = nz; }
   if (P3.fly) updFly(s); else upd3Player(s, lock);
   if (L3.blocks) updBlocks3(s, lock);
-  upd3Shots(s); upd3Mobs(s, lock); upd3Ens(s, lock); upd3Pick(s); updParts(s);
+  upd3Shots(s); upd3Mobs(s, lock); upd3Ens(s, lock); upd3Pick(s); fun3Update(s, lock); updParts(s);
   upd3Cam(s);
   if (F.inv > 0) F.inv -= dt;
   const Pn = L3.pl[P3.pl]; F.x = Pn ? Pn.x2 : 200; F.camX = clamp(F.x - VW * .4, 0, Math.max(0, F.a.len - VW)); F.ground = !!P3.gc; F.face = P3.face;
@@ -4269,9 +4278,12 @@ function upd3Player(s, lock) {
   if (!lock && INP.dashP && P3.dashCD <= 0) { P3.dashT = .24; P3.dashCD = .62; P3.vy = Math.max(P3.vy, 0) * .2 + (P3.gc ? 0 : 2); sfx('select'); C.st.dash = (C.st.dash || 0) + 1; if (dl > .1) P3.ang = Math.atan2(dx, dz); D3.fov = 64; puff(P3.x, P3.y + .8, P3.z, '#7CF7FF', 8, { speed: 2, up: 1, size: .6 }); }
   INP.dashP = 0;
   const gnd = !!P3.gc;
+  if (!lock && INP.pound && !gnd && !P3.pound && !P3.fly) { P3.pound = { t: 0 }; P3.dashT = 0; P3.vx *= .1; P3.vz *= .1; sfx('select'); }
+  INP.pound = 0;
+  if (P3.pound) { P3.pound.t += s; if (P3.pound.t < .18) { P3.vy = 0; P3.vx = P3.vz = 0; } else P3.vy = -28; }
   if (P3.dashT > 0) { P3.dashT -= s; P3.vx = Math.sin(P3.ang) * DASH3; P3.vz = Math.cos(P3.ang) * DASH3; P3.vy = Math.min(P3.vy, 2); if (Math.random() < .6) puff(P3.x, P3.y + .9, P3.z, '#bff7ff', 1, { speed: .3, up: 0, grav: 0, life: .35, size: .7 }); }
-  else {
-    const tvx = dx * RUN3 * mag, tvz = dz * RUN3 * mag, ac = gnd ? 14 : 8;
+  else if (!P3.pound) {
+    const tvx = dx * RUN3 * mag, tvz = dz * RUN3 * mag, ac = gnd ? 14 : P3.kickT > 0 ? 1.5 : 8;
     P3.vx += (tvx - P3.vx) * Math.min(1, ac * s); P3.vz += (tvz - P3.vz) * Math.min(1, ac * s);
     if (mag > .1) { const ta = Math.atan2(dx, dz); let d = ta - P3.ang; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; P3.ang += d * Math.min(1, 14 * s); }
   }
@@ -4279,6 +4291,12 @@ function upd3Player(s, lock) {
   // ジャンプ（つづけて おすと 3だんジャンプ）
   if (gnd) { P3.coyote = .11; P3.jumps = 0; P3.landT += s; } else P3.coyote -= s;
   if (!lock && INP.jumpP) P3.jbuf = .14; INP.jumpP = 0;
+  if (P3.wall && P3.wall.t > 0) P3.wall.t -= s;
+  if (P3.jbuf > 0 && !lock && !gnd && P3.coyote <= 0 && P3.wall && P3.wall.t > 0 && !P3.pound) {
+    P3.vy = 12.5; P3.vx = P3.wall.nx * 8; P3.vz = P3.wall.nz * 8; P3.ang = Math.atan2(P3.wall.nx, P3.wall.nz); P3.jbuf = 0; P3.wall.t = 0; P3.jc = 1; P3.flip = 0; P3.kickT = .3;
+    sfx('jmp2'); puff(P3.x - P3.wall.nx * .4, P3.y + 1, P3.z - P3.wall.nz * .4, '#ffffff', 8, { speed: 2, up: .5, add: false, size: .45 }); const pp = project3(P3.x, P3.y + 2.4, P3.z); if (pp) popText(pp[0], pp[1], 'かべキック！', '#7CF7FF', 20); C.st.wkick = (C.st.wkick || 0) + 1;
+  }
+  if (P3.kickT > 0) P3.kickT -= s;
   if (P3.jbuf > 0) {
     P3.jbuf -= s;
     if (!lock && (gnd || P3.coyote > 0)) {
@@ -4304,17 +4322,21 @@ function upd3Player(s, lock) {
   const mvx = P3.vx * s, mvz = P3.vz * s, steps = Math.max(1, Math.ceil(Math.max(Math.abs(mvx), Math.abs(mvz)) / .25));
   for (let k = 0; k < steps; k++) {
     const nx = P3.x + mvx / steps, nz = P3.z + mvz / steps;
-    if (!blocked3(nx, nz, P3.y)) { P3.x = nx; P3.z = nz; }
+    const cb = blocked3(nx, nz, P3.y);
+    if (!cb) { P3.x = nx; P3.z = nz; }
+    else if ((!gnd && Math.hypot(P3.vx, P3.vz) > 2 && wallOf(cb)) || 0) { }
     else if (!blocked3(nx, P3.z, P3.y)) { P3.x = nx; P3.vz *= .5; }
     else if (!blocked3(P3.x, nz, P3.y)) { P3.z = nz; P3.vx *= .5; }
     else { if (P3.dashT > 0) P3.dashT = 0; break; }
   }
+  depen3();
   const prevY = P3.y, prevVy = P3.vy; let ny = P3.y + P3.vy * s;
   if (P3.vy <= 0) {
     const [g, gc] = ground3(P3.x, P3.z, prevY, gnd ? STEP3 : .05);
     if (gnd && gc && prevY - g < .6 && g <= prevY + STEP3) ny = Math.min(ny, g);
     if (gc && ny <= g) {
       ny = g; P3.vy = 0; P3.gc = gc;
+      if (!gnd && P3.pound) { P3.pound = null; poundLand(gc); }
       if (!gnd) { P3.landT = 0; P3.flip = 0; const hard = P3.air > .45; P3.squash = hard ? .18 : .1; if (hard) { sfx('land'); puff(P3.x, g + .1, P3.z, '#ffffff', 7, { speed: 2.6, up: .4, add: false, size: .55, grav: 1 }); } }
     }
     else P3.gc = null;
@@ -4327,8 +4349,10 @@ function upd3Player(s, lock) {
   }
   P3.y = ny; P3.air = P3.gc ? 0 : P3.air + s;
   const gc = P3.gc;
-  if (gc && gc.spr) { P3.vy = SPRING3; P3.gc = null; P3.springT = 1; P3.flip = 1; gc.spr.t = .3; sfx('kira'); sfx('jmp3'); C.st.spring = (C.st.spring || 0) + 1; puff(P3.x, P3.y, P3.z, CONF, 14, { speed: 3, up: 3 }); }
+  if (gc && gc.spr) { P3.vy = SPRING3 * (P3.superSpr ? 1.3 : 1); P3.superSpr = 0; P3.gc = null; P3.springT = 1; P3.flip = 1; gc.spr.t = .3; sfx('kira'); sfx('jmp3'); C.st.spring = (C.st.spring || 0) + 1; puff(P3.x, P3.y, P3.z, CONF, 14, { speed: 3, up: 3 }); }
   if (gc && gc.mv) { P3.x += gc.mv.dx; P3.z += gc.mv.dz; }
+  if (P3.gc && P3.gc.boost && !lock) boost3(P3.gc.boost);
+  if (P3.gc && P3.gc.bounce) { const b = P3.gc.bounce; P3.vy = b.v * (P3.superSpr ? 1.35 : 1); P3.superSpr = 0; P3.gc = null; P3.springT = .6; b.t = .3; sfx('jmp2'); puff(P3.x, P3.y, P3.z, '#ffffff', 8, { speed: 2, up: 1, add: false, size: .6 }); }
   const sp = Math.hypot(P3.vx, P3.vz); F.moving = sp > .8; if (P3.gc && F.moving) { P3.walk = (P3.walk + sp * s * .28) % 1; if (sp > 6 && Math.random() < .12) puff(P3.x, P3.y + .1, P3.z, '#ffffff', 1, { speed: .5, up: .5, add: false, size: .4, grav: 0, life: .4 }); }
   let bi = 0, bd = 1e9; L3.pl.forEach((P, i) => { const d = Math.hypot(P3.x - P.x, P3.z - P.z) - P.r; if (d < bd) { bd = d; bi = i; } }); P3.pl = bi;
   if (P3.y < L3.killY) fall3();
@@ -4424,7 +4448,7 @@ function upd3Shots(s) {
 function kill3(m, how) {
   m.alive = 0; sfx('hit'); C.st.mobs = (C.st.mobs || 0) + 1; m.g.visible = false; m.sh.visible = false; D3.shake = .15;
   puff(m.x, m.y + .5, m.z, ['#c9a8ff', '#ffffff', '#ff8ad8'], 18, { speed: 4, up: 3 });
-  const sp = project3(m.x, m.y + 1.4, m.z); if (sp) popText(sp[0], sp[1], how === 'stomp' ? 'ふみつけ！' : how === 'dash' ? 'ダッシュアタック！' : 'ヒット！', '#FFE27A', 22);
+  const sp = project3(m.x, m.y + 1.4, m.z); if (sp) popText(sp[0], sp[1], how === 'stomp' ? 'ふみつけ！' : how === 'pound' ? 'ドスン！' : how === 'dash' ? 'ダッシュアタック！' : 'ヒット！', '#FFE27A', 22);
   const n = m.type === 'kumo' ? 5 : 3; for (let i = 0; i < n; i++) pop3('ink', m.x, m.y + .8, m.z);
   if (Math.random() < .15) pop3('heart', m.x, m.y + 1, m.z);
 }
@@ -4575,6 +4599,7 @@ function near3() {
     else if (L3.bossP) add(L3.bossP.x, L3.bossP.y - 1, L3.bossP.z, 5.5, { kind: 'boss', key: 'boss', label: '⚔️ たたかう' });
   }
   if (G.cleared[a.id] && L3.exitR) add(L3.exitR.x, L3.exitR.y - 1, L3.exitR.z, 3.5, { kind: 'exitR', key: 'exitR', label: 'つぎへ（マップ）' });
+  fun3Near(add);
   out.sort((p, q) => p[0] - q[0]);
   return out.length ? out[0][1] : null;
 }
@@ -4600,7 +4625,8 @@ const _v1 = typeof THREE !== 'undefined' ? new THREE.Vector3() : null, _v2 = typ
 function place3Cam() {
   const c = D3.cam, cp = Math.cos(D3.pitch);
   const inside = (x, y, z) => { for (const q of L3.cols) { if (q.ow || q.r > 8 || q.ramp || !colOn(q)) continue; const t = colTop(q, x, z, .35); if (t != null && t > y - .3 && q.bot < y) return true; } return false; };
-  let dist = D3.dist; for (let d = 1.5; d <= D3.dist; d += .5) { const xx = D3.tgt.x + Math.sin(D3.yaw) * cp * d, zz = D3.tgt.z + Math.cos(D3.yaw) * cp * d, yy = D3.tgt.y + Math.sin(D3.pitch) * d; if (inside(xx, yy, zz)) { dist = Math.max(1.5, d - .5); break; } }
+  let dist = D3.dist; const lx = Math.cos(D3.yaw), lz = -Math.sin(D3.yaw);
+  for (const [o, oy] of [[0, 0], [.5, -.6], [-.5, -.6], [0, -1.1]]) for (let d = 1.5; d <= dist; d += .5) { const xx = D3.tgt.x + Math.sin(D3.yaw) * cp * d + lx * o * (1 - d / D3.dist), zz = D3.tgt.z + Math.cos(D3.yaw) * cp * d + lz * o * (1 - d / D3.dist), yy = D3.tgt.y + oy * (1 - d / D3.dist) + Math.sin(D3.pitch) * d; if (inside(xx, yy, zz)) { if (d - .5 >= 2.6) dist = d - .5; break; } }
   D3.cd = D3.cd == null ? dist : (dist < D3.cd ? dist : D3.cd + (dist - D3.cd) * .08); dist = D3.cd;
   let x = D3.tgt.x + Math.sin(D3.yaw) * cp * dist, z = D3.tgt.z + Math.cos(D3.yaw) * cp * dist, y = D3.tgt.y + Math.sin(D3.pitch) * dist;
   const [g] = ground3(x, z, 999, 0); if (y < g + 1) y = g + 1;
@@ -4631,7 +4657,8 @@ function animHero(t, s) {
   H.g.position.set(P3.x, P3.y, P3.z); H.g.rotation.y = P3.ang;
   H.g.visible = !(F.inv > 0 && Math.floor(t / 90) % 2) && !(P3.fly && P3.fly.t < 0);
   let lL = 0, lR = 0, aL = 0, aR = 0, azL = .15, azR = -.15, lean = 0, by = 0, rx = 0;
-  if (P3.cheer > 0) { azL = 2.6; azR = -2.6; by = Math.abs(Math.sin(t / 120)) * .25; }
+  if (P3.pound) { lL = -1.6; lR = -1.6; azL = .9; azR = -.9; rx = P3.pound.t < .18 ? P3.pound.t / .18 * Math.PI * 2 : 0; }
+  else if (P3.cheer > 0) { azL = 2.6; azR = -2.6; by = Math.abs(Math.sin(t / 120)) * .25; }
   else if (P3.dashT > 0) { lean = .55; aL = aR = 1.2; lL = -.6; lR = .5; }
   else if (!gnd) { if (P3.vy > 0) { lL = -1.3; lR = .3; aL = -.4; aR = .6; azL = 1.1; azR = -1.1; } else { lL = -.4; lR = .2; azL = 1.5; azR = -1.5; } }
   else if (sp > .5) { const ph = P3.walk * Math.PI * 2, sw = Math.sin(ph) * Math.min(1, sp / 5) * 1.0; lL = sw; lR = -sw; aL = -sw * .9; aR = sw * .9; by = Math.abs(Math.cos(ph)) * .07 * Math.min(1, sp / 4); lean = sp / RUN3 * .2; }
@@ -4688,7 +4715,7 @@ function draw3D(t, still) {
   for (const gu of L3.gulls) { const a = L3.t * gu.sp + gu.ph; gu.g.position.set(gu.c.x + Math.cos(a) * gu.r, gu.c.h + gu.h + Math.sin(a * 2) * .6, gu.c.z + Math.sin(a) * gu.r); gu.g.rotation.y = -a; const f = Math.sin(t / 110 + gu.ph) * .5; gu.wl.rotation.z = f; gu.wr.rotation.z = -f; }
   for (const f of L3.anim) f(t);
   place3Cam();
-  D3.R.render(D3.scene, D3.cam);
+  render3Pass();
   // うえに かさねる 2D
   ctx.clearRect(0, 0, VW, VH);
   if (P3.dashT > 0 || P3.fly) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; for (let i = 0; i < 18; i++) { const a = Math.random() * 6.28, r0 = 260 + Math.random() * 120; ctx.beginPath(); ctx.moveTo(VW / 2 + Math.cos(a) * r0, VH / 2 + Math.sin(a) * r0 * .7); ctx.lineTo(VW / 2 + Math.cos(a) * (r0 + 120), VH / 2 + Math.sin(a) * (r0 + 120) * .7); ctx.stroke(); } ctx.restore(); }
@@ -4704,6 +4731,7 @@ function draw3D(t, still) {
   if (L3.banner) { const b = L3.banner, k = b.t, sc = k < .25 ? .5 + k * 2 : 1, al = Math.min(1, (3 - k) * 2); ctx.save(); ctx.globalAlpha = al; ctx.translate(VW / 2, VH * .3); ctx.scale(sc, sc); ctx.textAlign = 'center'; ctx.font = `900 40px ${FONT_R}`; ctx.lineWidth = 9; ctx.strokeStyle = '#1a1030'; ctx.strokeText(b.txt, 0, 0); ctx.fillStyle = '#FFE27A'; ctx.fillText(b.txt, 0, 0); if (b.sub) { ctx.font = `900 22px ${FONT_R}`; ctx.lineWidth = 6; ctx.strokeText(b.sub, 0, 36); ctx.fillStyle = '#ffffff'; ctx.fillText(b.sub, 0, 36); } ctx.restore(); }
   if (P3.charge > 150) { const sp = project3(P3.x, P3.y + 1.2, P3.z); if (sp) { const c = Math.min(1, P3.charge / 700); ctx.save(); ctx.strokeStyle = c >= 1 ? '#FFE27A' : '#7CF7FF'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sp[0], sp[1] - 60, 18, -Math.PI / 2, -Math.PI / 2 + c * 6.28); ctx.stroke(); ctx.restore(); } }
   if (D3.joy && D3.joy.on && !D3.joy.ext) { const j = D3.joy; ctx.save(); ctx.globalAlpha = .5; ctx.strokeStyle = '#7CF7FF'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(j.vx, j.vy, 54, 0, 7); ctx.stroke(); ctx.fillStyle = '#7CF7FF'; ctx.beginPath(); ctx.arc(j.vx + j.dx * 46, j.vy + j.dy * 46, 22, 0, 7); ctx.fill(); ctx.restore(); }
+  fun3Draw(t);
   for (const id in F.actors) drawActor(F.actors[id], F.camX, t);
 }
 function drawCoins3(t) {
@@ -4720,6 +4748,7 @@ function drawMini3(t) {
   for (const g of L3.gates) if (!gateSolved(g.g)) { const [x, y] = tr(g.gx, g.gz); ctx.fillStyle = '#ff4a5a'; ctx.fillRect(x - 4, y - 4, 8, 8); }
   for (const st of L3.stars) if (!st.got) { const [x, y] = tr(st.x, st.z); ctx.fillStyle = '#FFE27A'; ctx.font = '900 13px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('★', x, y); }
   for (const e of F.ens) { const q = e.p3; if (!q) continue; const [x, y] = tr(q.x, q.z); ctx.fillStyle = e.kind === 'kira' ? '#FFD23F' : e.kind === 'cloud' ? '#bfe4ff' : '#c98aff'; ctx.beginPath(); ctx.arc(x, y, 3.6, 0, 7); ctx.fill(); }
+  if (L3.gold && !L3.gold.got) { const [x, y] = tr(L3.gold.x, L3.gold.z); ctx.fillStyle = '#FFD23F'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); }
   if (L3.bossP && !G.cleared[F.a.id]) { const [x, y] = tr(L3.bossP.x, L3.bossP.z); ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('⚔️', x, y); }
   ctx.restore();
   ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke();
@@ -4836,6 +4865,231 @@ async function blkMerge3(A, B, k) {
     await runScript(['：ブロックの とびらが、ゴゴゴ…と ひらいた！', `{P}：ぶひんを くっつけて [字|じ]を つくる…… [字|じ]の パズルだね！`]);
     updateHud(); checkMedals();
   } finally { F.blkBusy = 0; F.lock = Math.max(0, F.lock - 1); }
+}
+
+/* =========================================================
+   3D の たのしい きのう（あとから たしたもの）
+   ①ヒップドロップ ②かべキック ③ダッシュパネル ④くもトランポリン ⑤リングチャレンジ
+   ⑥ワープホール ⑦おとも字 ⑧ゴールデン字 ⑨しゃしんモード ⑩はなび・てんき
+   ＋ かべに めりこまない しゅうせい・かげに かくれたら シルエット
+   ========================================================= */
+/* かべの むき（かべキック用） */
+function wallOf(c) {
+  let nx, nz;
+  if (c.k === 'c') { nx = P3.x - c.x; nz = P3.z - c.z; }
+  else { const dx = P3.x - c.x, dz = P3.z - c.z, lx = dx * c.cs + dz * c.sn, lz = -dx * c.sn + dz * c.cs; const px = c.hx - Math.abs(lx), pz = c.hz - Math.abs(lz); let a = 0, b = 0; if (px < pz) a = Math.sign(lx) || 1; else b = Math.sign(lz) || 1; nx = a * c.cs - b * c.sn; nz = a * c.sn + b * c.cs; }
+  const l = Math.hypot(nx, nz) || 1; P3.wall = { nx: nx / l, nz: nz / l, t: .22 };
+}
+/* めりこんだら そとへ おしだす */
+function depen3() {
+  for (let it = 0; it < 2; it++) for (const c of L3.cols) {
+    if (c.ow || !colOn(c) || c.pl != null || c.ramp) continue;
+    const t = colTop(c, P3.x, P3.z, PR3 - .06); if (t == null || !(t > P3.y + STEP3 && c.bot < P3.y + PH3)) continue;
+    if (c.k === 'c') { const dx = P3.x - c.x, dz = P3.z - c.z, d = Math.hypot(dx, dz) || 1, R = c.r + PR3 + .01; P3.x = c.x + (d < .01 ? 1 : dx / d) * R; P3.z = c.z + (d < .01 ? 0 : dz / d) * R; }
+    else { const dx = P3.x - c.x, dz = P3.z - c.z; let lx = dx * c.cs + dz * c.sn, lz = -dx * c.sn + dz * c.cs; const px = c.hx + PR3 - Math.abs(lx), pz = c.hz + PR3 - Math.abs(lz); if (px < pz) lx = (Math.sign(lx) || 1) * (c.hx + PR3 + .01); else lz = (Math.sign(lz) || 1) * (c.hz + PR3 + .01); P3.x = c.x + lx * c.cs - lz * c.sn; P3.z = c.z + lx * c.sn + lz * c.cs; }
+  }
+}
+/* かくれたら シルエット（3かいに わけて えがく） */
+const SIL3 = typeof THREE !== 'undefined' ? new THREE.MeshBasicMaterial({ color: '#7CF7FF', transparent: true, opacity: .55, depthFunc: THREE.GreaterDepth, depthWrite: false, fog: false }) : null;
+function render3Pass() {
+  const r = D3.R, c = D3.cam, sc = D3.scene;
+  r.shadowMap.autoUpdate = false; r.shadowMap.needsUpdate = true;
+  c.layers.set(0); r.render(sc, c);
+  r.autoClear = false; c.layers.set(1);
+  sc.overrideMaterial = SIL3; r.render(sc, c); sc.overrideMaterial = null;
+  r.render(sc, c);
+  r.autoClear = true; c.layers.set(0);
+}
+/* ① ヒップドロップ */
+function poundLand(gc) {
+  sfx('boom'); D3.shake = .4; shake(10, 260); C.st.pound = (C.st.pound || 0) + 1;
+  for (let k = 0; k < 16; k++) { const a = k / 16 * 6.28; puff(P3.x + Math.cos(a) * .5, P3.y + .2, P3.z + Math.sin(a) * .5, '#ffffff', 1, { speed: 0, up: .3, add: false, size: .7, grav: 0, life: .45 }); const p = L3.parts[L3.parts.length - 1]; if (p) { p.vx = Math.cos(a) * 7; p.vz = Math.sin(a) * 7; } }
+  const ring = new THREE.Mesh(geo3('pring', () => new THREE.TorusGeometry(1, .12, 6, 32)), new THREE.MeshBasicMaterial({ color: '#FFE27A', transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false }));
+  ring.rotation.x = Math.PI / 2; ring.position.set(P3.x, P3.y + .15, P3.z); DY().add(ring); L3.fx3 = (L3.fx3 || []).concat({ m: ring, t: 0 });
+  for (const m of L3.mobs) if (m.alive && Math.hypot(m.x - P3.x, m.z - P3.z) < 3.8 && Math.abs(m.y - P3.y) < 2.5) { m.hp -= 2; m.hurt = .3; if (m.hp <= 0) kill3(m, 'pound'); }
+  for (const r of L3.rocks) if (r.hp > 0 && Math.hypot(r.x - P3.x, r.z - P3.z) < 2.8) { r.hp = 0; break3(r); }
+  for (const e of F.ens) if (e.cage > 0 && e.p3 && Math.hypot(e.p3.x - P3.x, e.p3.z - P3.z) < 3.2) { e.cage = Math.max(0, e.cage - 2); puff(e.p3.x, e.p3.y + 1.2, e.p3.z, '#c9b8ff', 12); if (!e.cage) { e.mood = 900; C.st.cages = (C.st.cages || 0) + 1; } }
+  for (const q of L3.qb) if (!q.hit && Math.hypot(q.x - P3.x, q.z - P3.z) < 1.2 && q.y + 1 <= P3.y + .1 && q.y + 1 >= P3.y - .3) hitQB3(q);
+  if (gc && (gc.spr || gc.bounce)) { P3.superSpr = 1; if (gc.bounce) gc.bounce.v2 = 1; }
+  P3.squash = .22;
+}
+/* ③ ダッシュパネル */
+function boost3(a) {
+  if (P3.boostCD > 0) return; P3.boostCD = .5;
+  P3.ang = a; P3.dashT = .5; P3.dashCD = 0; D3.fov = 68; sfx('jmp3'); C.st.boost = (C.st.boost || 0) + 1;
+  puff(P3.x, P3.y + .3, P3.z, ['#FFE27A', '#ff9a3a'], 10, { speed: 2, up: 1.5 });
+}
+function arrowTex() { return L3.arT || (L3.arT = ctex(64, 64, X => { X.fillStyle = '#ffb02a'; X.fillRect(0, 0, 64, 64); X.fillStyle = '#fff6b0'; for (let k = 0; k < 2; k++) { const y = 10 + k * 24; X.beginPath(); X.moveTo(32, y); X.lineTo(56, y + 20); X.lineTo(46, y + 20); X.lineTo(32, y + 8); X.lineTo(18, y + 20); X.lineTo(8, y + 20); X.closePath(); X.fill(); } }, 1), L3.arT.t.wrapS = L3.arT.t.wrapT = THREE.RepeatWrapping, L3.arT); }
+function addPanel(x, y, z, a, tilt = 0) {
+  const g = new THREE.Group(); g.position.set(x, y + .04, z); g.rotation.order = 'YXZ'; g.rotation.y = a; g.rotation.x = tilt; DY().add(g);
+  const m = mesh3(new THREE.PlaneGeometry(2, 2.2), new THREE.MeshBasicMaterial({ map: arrowTex().t, transparent: true }), 0, 0, 0, g); m.rotation.x = -Math.PI / 2; m.rotation.z = Math.PI;
+  L3.panels.push({ x, y, z, a, m });
+}
+/* ④ くもトランポリン */
+function addCloudPad(x, y, z) {
+  const g = new THREE.Group(); g.position.set(x, y, z); DY().add(g);
+  for (let k = 0; k < 5; k++) { const s = sphM(Math.cos(k * 1.26) * .7, -.15 + (k % 2) * .12, Math.sin(k * 1.26) * .7, .6, '#ffffff', g); s.scale.y *= .55; }
+  const c = sphM(0, .05, 0, .8, '#f4fbff', g); c.scale.y *= .5; compact(g);
+  const b = { v: 15.5, t: 0, g, y };
+  cCyl(x, z, 1.3, y + .3, y - .3, { ow: 1, bounce: b });
+  L3.cpads.push(b);
+}
+/* ⑥ ワープホール */
+function addWarpHole(P, R, id) {
+  const [x, z] = slot3(P, 1.8, R, { min: P.r * .5 });
+  const ring = mesh3(geo3('whole', () => new THREE.TorusGeometry(1.2, .18, 8, 30)), M3('#a070ff', { emissive: '#5a2aaa' }), x, P.h + 1.5, z, DY());
+  const sw = ctex(64, 64, X => { const g = X.createRadialGradient(32, 32, 2, 32, 32, 30); g.addColorStop(0, '#ffffff'); g.addColorStop(.4, '#c9a8ff'); g.addColorStop(1, 'rgba(90,40,170,0)'); X.fillStyle = g; X.fillRect(0, 0, 64, 64); X.strokeStyle = 'rgba(255,255,255,.7)'; X.lineWidth = 3; for (let k = 0; k < 3; k++) { X.beginPath(); X.arc(32, 32, 8 + k * 7, k, k + 3); X.stroke(); } }, 1);
+  const s = bill(sw, 2.3, .5, { alphaTest: 0, depthWrite: false }); s.position.set(x, P.h + 1.5, z);
+  const lb = bill(textT('🌀 ワープ'), .55, 0); lb.position.set(x, P.h + 3.1, z);
+  const w = { id, x, z, y: P.h, ring, s, P }; L3.holes.push(w); return w;
+}
+/* ⑦ おとも字 ⑧ ゴールデン字 ⑤ リング */
+const today3 = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+function fun3Build(R) {
+  const a = F.a, Z = a.zones || [];
+  Object.assign(L3, { panels: [], cpads: [], holes: [], rings: null, gold: null, buddy: null, fx3: [], wx: null, fw: null, wasClr: !!G.cleared[a.id] });
+  // ダッシュパネル（はしの まんなか）
+  for (const rp of L3.ramps) if (rp) {
+    let s = rp.len * .62; if (L3.gates.some(g => g.rp === rp && Math.abs(Math.hypot(g.gx - rp.sx, g.gz - rp.sz) - s) < 2.4)) s = rp.len * .8;
+    const [x, z, h] = rp.at(s); addPanel(x, h, z, Math.atan2(rp.ux, rp.uz), -Math.atan2(rp.h1 - rp.h0, rp.len));
+  }
+  const zp = L3.pl.filter(P => !P.boss);
+  for (const P of zp) {
+    // くもトランポリン（3だん）と てっぺんの インク
+    const [x, z] = slot3(P, 2.4, R, { min: P.r * .45 });
+    const a2 = R() * 6.28;
+    for (let k = 0; k < 3; k++) addCloudPad(x + Math.sin(a2 + k * 2.1) * 1.9 * (k ? 1 : 0), P.h + 1.2 + k * 2.6, z + Math.cos(a2 + k * 2.1) * 1.9 * (k ? 1 : 0));
+    for (let q = 0; q < 6; q++) addInk(x + Math.cos(q) * 1.2, P.h + 9.6, z + Math.sin(q) * 1.2);
+    // ひろばの ダッシュパネル（つぎの はしへ）
+    const nr = L3.ramps[P.i + 1]; if (nr) { const [px, pz] = slot3(P, 1.4, R, { min: P.r * .35 }); addPanel(px, P.h, pz, Math.atan2(nr.sx - px, nr.sz - pz)); }
+  }
+  // ワープホール（さいしょの ひろば ⇔ さいごの ひろば）
+  if (zp.length > 1) { const A = addWarpHole(zp[0], R, 'w0'), B = addWarpHole(zp[zp.length - 1], R, 'w1'); A.to = B; B.to = A; }
+  // リングチャレンジ（さいしょの ひろば）
+  { const P = zp[0]; const [x, z] = slot3(P, 1.6, R, { min: 4 }); cylM(x, P.h + 1.3, z, .1, 2.6, '#ffffff'); const fl = boxM(x + .55, P.h + 2.3, z, 1, .6, .05, '#ff4a7a'); const lb = bill(textT('⭕ リング チャレンジ'), .55, 0); lb.position.set(x, P.h + 3.2, z); cCyl(x, z, .2, P.h + 2.6, P.h - 1);
+    const rings = []; for (let k = 0; k < 6; k++) { const an = k / 6 * 6.28 + .4, rr = P.r * .62; rings.push({ x: P.x + Math.sin(an) * rr, z: P.z + Math.cos(an) * rr, y: P.h + (k % 2 ? 3.4 : 1.5), a: an }); }
+    L3.rings = { P, x, z, y: P.h, list: rings, on: 0, t: 0, got: 0, meshes: [] }; }
+  // ゴールデン字（1日 1かい）
+  if (G.flags['gold_' + a.id] !== today3()) {
+    const ks = [...Z.map(z => z.k).join('')]; const ch = ks.length ? ks[Math.floor(R() * ks.length)] : '金';
+    const P = zp[Math.floor(R() * zp.length)]; const [x, z] = slot3(P, 1, R, { min: 3 });
+    const g = thick(glyphT(ch, 'kira'), 1.9, 6, '#8a6000', .02); const gl = glowS('#FFD23F', 3.4);
+    L3.gold = { ch, P, x, z, y: P.h, g, gl, run: 0, rest: 0, got: 0, hx: x, hz: z };
+  }
+  // てんき
+  const th = a.theme3d || a.theme;
+  L3.wx = ['snow'].includes(th) ? 'snow' : ['temple', 'shrine', 'market'].includes(th) ? 'petal' : th === 'tears' ? 'rain' : ['forest', 'valley', 'farm', 'river', 'village'].includes(th) ? 'leaf' : th === 'void' || th === 'clock' || th === 'castle' ? 'spark' : null;
+  if (L3.wx) {
+    const N = L3.wx === 'rain' ? 220 : 110, pos = new Float32Array(N * 3); for (let k = 0; k < N; k++) { pos[k * 3] = (Math.random() - .5) * 40; pos[k * 3 + 1] = Math.random() * 18; pos[k * 3 + 2] = (Math.random() - .5) * 40; }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); L3.geos.push(geo);
+    const col = { snow: '#ffffff', petal: '#ffb0d0', rain: '#a8d0ff', leaf: '#ffd27a', spark: '#d8c0ff' }[L3.wx];
+    const pm = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowT(col).t, size: L3.wx === 'rain' ? .25 : .45, transparent: true, depthWrite: false, color: '#ffffff', blending: L3.wx === 'spark' ? THREE.AdditiveBlending : THREE.NormalBlending }));
+    pm.frustumCulled = false; DY().add(pm); L3.wxP = pm;
+  }
+}
+function fun3Near(add) {
+  for (const w of L3.holes) add(w.x, w.y, w.z, 2.2, { kind: 'warp3', key: 'hole' + w.id, label: '🌀 ワープで とぶ', run: () => warpTo(w.to) });
+  const R3 = L3.rings; if (R3 && !R3.on) add(R3.x, R3.y, R3.z, 2.2, { kind: 'ring3', key: 'ringgo', label: '⭕ リング チャレンジに ちょうせん！', run: ringStart });
+}
+function warpTo(w) {
+  sfx('kira'); flash('#c9a8ff', .5); puff(P3.x, P3.y + 1, P3.z, ['#c9a8ff', '#ffffff'], 24, { speed: 4, up: 3 });
+  Object.assign(P3, { x: w.x + 2.2, y: w.y + .05, z: w.z, vx: 0, vz: 0, vy: 0 }); D3.tgt.set(P3.x, P3.y + 1.5, P3.z);
+  puff(P3.x, P3.y + 1, P3.z, ['#c9a8ff', '#ffffff'], 24, { speed: 4, up: 3 }); C.st.warp = (C.st.warp || 0) + 1;
+}
+function ringStart() {
+  const R3 = L3.rings; if (R3.on) return;
+  R3.on = 1; R3.t = APP.grade <= 1 ? 26 : APP.grade === 2 ? 22 : APP.grade <= 4 ? 18 : 15; R3.got = 0;
+  R3.meshes = R3.list.map(r => { const m = mesh3(geo3('chring', () => new THREE.TorusGeometry(1.15, .14, 8, 28)), M3('#ff4a7a', { emissive: '#8a1030' }), r.x, r.y, r.z, DY()); m.rotation.y = r.a + Math.PI / 2; r.got = 0; return m; });
+  sfx('fanfare'); L3.banner = { t: 0, txt: '⭕ リングを ぜんぶ くぐれ！', sub: `${R3.t}びょう いないに 6こ` };
+}
+function ringEnd(ok) {
+  const R3 = L3.rings; R3.on = 0; R3.meshes.forEach(m => DY().remove(m)); R3.meshes = [];
+  if (ok) {
+    const first = !G.flags['ring_' + F.a.id]; G.flags['ring_' + F.a.id] = 1; C.st.ring = (C.st.ring || 0) + 1;
+    giveReward(first ? { ink: 50, exp: 20 } : { ink: 15 }); sfx('fanfare');
+    L3.banner = { t: 0, txt: '⭕ リング チャレンジ クリア！', sub: first ? 'ごほうび：💧インク 50・⭐けいけん 20' : 'ごほうび：💧インク 15' };
+    puff(P3.x, P3.y + 2, P3.z, CONF, 40, { speed: 6, up: 7, size: .7, life: 1.3 });
+  } else { sfx('miss'); L3.banner = { t: 0, txt: 'じかん ぎれ！', sub: 'はしらで もう いちど ちょうせん できるよ' }; }
+  save();
+}
+function fun3Update(s, lock) {
+  const t = performance.now();
+  if (P3.boostCD > 0) P3.boostCD -= s;
+  // ダッシュパネル
+  if (P3.gc && !lock) for (const p of L3.panels) if (Math.hypot(p.x - P3.x, p.z - P3.z) < 1.15 && Math.abs(p.y - P3.y) < .7) boost3(p.a);
+  for (const p of L3.panels) p.m.material.map.offset.y = -(t / 600 % 1);
+  // くもトランポリン
+  for (const b of L3.cpads) { if (b.t > 0) b.t -= s; const k = b.t > 0 ? Math.sin(b.t / .3 * Math.PI) * .35 : 0; b.g.scale.set(1 + k * .5, 1 - k, 1 + k * .5); b.g.position.y = b.y + Math.sin(t / 900 + b.y) * .06; if (b.v2) { b.v2 = 0; } }
+  // ドスンの わ
+  for (const f of L3.fx3) { f.t += s; const k = f.t / .45; f.m.scale.setScalar(1 + k * 4); f.m.material.opacity = Math.max(0, .9 - k); if (k >= 1) { DY().remove(f.m); f.m.material.dispose(); f.dead = 1; } }
+  L3.fx3 = L3.fx3.filter(f => !f.dead);
+  // ワープ
+  for (const w of L3.holes) { w.ring.rotation.y = t / 700; w.s.material.rotation = -t / 300; if (Math.random() < .1) puff(w.x, w.y + 1.5, w.z, '#c9a8ff', 1, { speed: 1, up: .5, grav: 0, size: .4, life: .6 }); }
+  // リング
+  const R3 = L3.rings;
+  if (R3 && R3.on && !lock) {
+    R3.t -= s;
+    R3.list.forEach((r, i) => { const m = R3.meshes[i]; if (!m) return; m.rotation.z = t / 400; if (!r.got && Math.hypot(r.x - P3.x, r.y - (P3.y + .9), r.z - P3.z) < 1.25) { r.got = 1; R3.got++; m.visible = false; sfx('rcoin'); puff(r.x, r.y, r.z, CONF, 16, { speed: 3, up: 2 }); const pp = project3(r.x, r.y + 1, r.z); if (pp) popText(pp[0], pp[1], `${R3.got} / 6`, '#ff8aa8', 28); } });
+    if (R3.got >= 6) ringEnd(true); else if (R3.t <= 0) ringEnd(false);
+  }
+  // おとも字（さいごに たすけた 字が ついてきて インクを あつめる）
+  const last = F.friends[F.friends.length - 1];
+  if (last && (!L3.buddy || L3.buddy.ch !== last.ch)) { if (L3.buddy) DY().remove(L3.buddy.g); const g = thick(glyphT(last.ch, 'happy'), 1.05, 4, GLY.happy[2], .02); g.position.set(P3.x, P3.y + 1, P3.z); L3.buddy = { ch: last.ch, g }; puff(P3.x, P3.y + 1, P3.z, CONF, 12); }
+  if (L3.buddy) {
+    const b = L3.buddy.g, cy = Math.cos(D3.yaw), sy = Math.sin(D3.yaw);
+    const wx = P3.x + sy * 1.4 + cy * 1.2, wz = P3.z + cy * 1.4 - sy * 1.2, wy = P3.y + .5 + Math.abs(Math.sin(t / 220)) * .35;
+    b.position.x += (wx - b.position.x) * Math.min(1, 5 * s); b.position.z += (wz - b.position.z) * Math.min(1, 5 * s); b.position.y += (wy - b.position.y) * Math.min(1, 8 * s); faceCam(b);
+    for (const p of L3.ink) if (!p.got && Math.hypot(p.x - P3.x, p.y - (P3.y + .8), p.z - P3.z) < 3) { p.got = 1; C.ink += 1; F.inkGot = (F.inkGot || 0) + 1; sfx('coin'); hudSoon(); puff(p.x, p.y, p.z, '#7CF7FF', 4, { speed: 1.5, up: 1.5, size: .35, life: .4 }); C.st.buddyInk = (C.st.buddyInk || 0) + 1; }
+  }
+  // ゴールデン字
+  const gd = L3.gold;
+  if (gd && !gd.got) {
+    const P = gd.P, dx = gd.x - P3.x, dz = gd.z - P3.z, d = Math.hypot(dx, dz);
+    if (gd.rest > 0) gd.rest -= s;
+    else if (!lock && d < 9) { gd.run += s; const sp = 5.6; let nx = gd.x + dx / (d || 1) * sp * s, nz = gd.z + dz / (d || 1) * sp * s; const pd = Math.hypot(nx - P.x, nz - P.z), lim = P.r - 1.6; if (pd > lim) { const tx = -(nz - P.z) / pd, tz = (nx - P.x) / pd, sg = Math.sign(tx * dx + tz * dz) || 1; nx = P.x + (nx - P.x) / pd * lim + tx * sg * sp * s * .7; nz = P.z + (nz - P.z) / pd * lim + tz * sg * sp * s * .7; } if (!blocked3(nx, nz, gd.y)) { gd.x = nx; gd.z = nz; } if (gd.run > 3.2) { gd.run = 0; gd.rest = 1.8; } }
+    const hop = gd.rest > 0 ? 0 : Math.abs(Math.sin(t / 110)) * .4;
+    gd.g.position.set(gd.x, gd.y + .3 + hop, gd.z); gd.gl.position.set(gd.x, gd.y + 1.3 + hop, gd.z); faceCam(gd.g);
+    if (Math.random() < .25) puff(gd.x, gd.y + 1.2, gd.z, '#FFE27A', 1, { speed: 1, up: 1.5, size: .35, life: .5 });
+    if (!lock && d < 1.3 && Math.abs(P3.y - gd.y) < 2) {
+      gd.got = 1; DY().remove(gd.g); DY().remove(gd.gl); G.flags['gold_' + F.a.id] = today3(); C.st.gold = (C.st.gold || 0) + 1;
+      giveReward({ ink: 50, exp: 25 }); sfx('fanfare'); flash('#FFE27A', .5);
+      puff(gd.x, gd.y + 1.5, gd.z, ['#FFE27A', '#FFD23F', '#ffffff'], 50, { speed: 7, up: 8, size: .7, life: 1.4 });
+      L3.banner = { t: 0, txt: `✨ ゴールデン「${gd.ch}」を つかまえた！`, sub: 'ごほうび：💧インク 50・⭐けいけん 25（また あした あえるかも）' }; save();
+    }
+  }
+  // てんき
+  if (L3.wxP) {
+    const a = L3.wxP.geometry.attributes.position, arr = a.array, fall = { snow: 1.2, petal: 1.1, rain: 16, leaf: .9, spark: -.4 }[L3.wx];
+    for (let k = 0; k < a.count; k++) { arr[k * 3 + 1] -= fall * s; arr[k * 3] += Math.sin(t / 900 + k) * s * (L3.wx === 'rain' ? 0 : .6); if (arr[k * 3 + 1] < -2) arr[k * 3 + 1] += 18; if (arr[k * 3 + 1] > 18) arr[k * 3 + 1] -= 18; }
+    a.needsUpdate = true; L3.wxP.position.set(P3.x, P3.y - 2, P3.z);
+  }
+  // ⑩ ボスに かったら はなび
+  if (!L3.wasClr && G.cleared[F.a.id]) { L3.wasClr = 1; L3.fw = 9; }
+  if (L3.fw > 0 && mode === 'field') { L3.fw -= s; if (Math.random() < 3 * s) { const B = L3.bossP || P3, x = B.x + (Math.random() - .5) * 26, z = B.z + (Math.random() - .5) * 26, y = (B.y || P3.y) + 14 + Math.random() * 10, col = CONF[Math.floor(Math.random() * CONF.length)]; puff(x, y, z, [col, '#ffffff'], 36, { speed: 9, up: 2, grav: 3, size: .8, life: 1.4 }); sfx('boom'); } }
+}
+function fun3Draw(t) {
+  const R3 = L3.rings;
+  if (R3 && R3.on) { ctx.save(); ctx.fillStyle = 'rgba(10,14,40,.75)'; roundRect(VW / 2 - 110, 58, 220, 46, 23); ctx.fill(); ctx.fillStyle = R3.t < 5 ? '#ff6a7a' : '#ffffff'; ctx.font = `900 26px ${FONT_R}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`⭕ ${R3.got}/6　⏱ ${Math.max(0, R3.t).toFixed(1)}`, VW / 2, 82); ctx.restore(); }
+  const gd = L3.gold; if (gd && !gd.got) { const p = project3(gd.x, gd.y + 2.6, gd.z); if (p) drawSpeechMark(p[0], p[1], t, '#FFD23F', gd.rest > 0 ? '💦' : '✨'); }
+}
+/* ⑨ しゃしんモード */
+function photo3() {
+  if (!F.d3 || !L3 || mode !== 'field' || $('#photo3')) return;
+  sfx('select'); render3Pass();
+  let url;
+  try {
+    const src = D3.R.domElement, W = 1280, H = Math.round(W * src.height / src.width), c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    x.drawImage(src, 0, 0, W, H);
+    x.fillStyle = 'rgba(10,14,40,.6)'; x.fillRect(0, H - 64, W, 64); x.fillStyle = '#FFE27A'; x.font = `900 30px ${FONT_R}`; x.textBaseline = 'middle'; x.fillText(`📷 ${F.a.name}`, 24, H - 32);
+    x.fillStyle = '#ffffff'; x.textAlign = 'right'; x.font = `700 22px ${FONT_R}`; x.fillText(`${C.name || ''}　${new Date().toLocaleDateString('ja-JP')}　コトダマ・クロニクル`, W - 24, H - 32);
+    x.strokeStyle = '#ffffff'; x.lineWidth = 14; x.strokeRect(0, 0, W, H);
+    url = c.toDataURL('image/png');
+  } catch (e) { console.error(e); return; }
+  flash('#ffffff', .8); C.st.photo = (C.st.photo || 0) + 1;
+  const d = document.createElement('div'); d.id = 'photo3';
+  d.innerHTML = `<p>📷 しゃしんを とったよ！</p><img alt="しゃしん" src="${url}"><p>がぞうを ながおし（みぎクリック）すると ほぞん できるよ</p><div class="row"><a download="kotodama-${Date.now()}.png" href="${url}">💾 ほぞん</a><button type="button">とじる</button></div>`;
+  d.querySelector('button').onclick = () => d.remove();
+  document.body.appendChild(d);
 }
 
 /* =========================================================
@@ -6665,6 +6919,7 @@ function setupInput() {
     if (JUMP.includes(e.key) && !((mode === 'sail' || (mode === 'field' && F.d3)) && /^(ArrowUp|w|W)$/.test(e.key))) { if (!e.repeat) INP.jumpP = 1; INP.jump = 1; if (live() && !$('#dlg').offsetParent) e.preventDefault(); }
     if (SHOT.includes(e.key)) { if (!e.repeat) { INP.shotP = 1; INP.shot = 1; if (mode === 'fish') fishPress(1); } }
     if (DASH.includes(e.key) && !e.repeat) INP.dashP = 1;
+    if (mode === 'field' && F.d3 && !e.repeat) { if (/^[cC]$/.test(e.key) || ((e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') && typeof P3 !== 'undefined' && !P3.gc)) INP.pound = 1; if (/^[pP]$/.test(e.key) && typeof photo3 === 'function') photo3(); }
     if (ACT.includes(e.key) && mode === 'field' && !F.lock && F.near) { e.preventDefault(); INP.act = 1; }
     if (ACT.includes(e.key) && mode === 'world' && W.near && $('#ov').hidden) { e.preventDefault(); INP.act = 1; }
     if ((e.key === 'm' || e.key === 'M' || e.key === 'Escape') && (mode === 'field' || mode === 'map' || mode === 'world') && $('#ov').hidden) openMenu();
@@ -6683,6 +6938,8 @@ function setupInput() {
   hold('#pj', () => { INP.jumpP = 1; INP.jump = 1; }, () => { INP.jump = 0; });
   hold('#ps', () => { INP.shotP = 1; INP.shot = 1; if (mode === 'fish') fishPress(1); }, () => { INP.shot = 0; INP.shotR = 1; if (mode === 'fish') fishPress(0); });
   hold('#pd', () => { INP.dashP = 1; }, () => { });
+  hold('#pg', () => { INP.pound = 1; }, () => { });
+  $('#pc') && $('#pc').addEventListener('click', () => { if (typeof photo3 === 'function') photo3(); });
   $('#hud-menu').addEventListener('click', () => openMenu());
   $('#hud-map').addEventListener('click', () => { if (mode === 'world') { W.mm = !W.mm; sfx('select'); return; } if (!F.lock) goMap(); });
   $('#hud-clock').addEventListener('click', () => clockMenu());
