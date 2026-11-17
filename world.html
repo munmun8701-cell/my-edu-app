@@ -202,6 +202,10 @@
   #gain small{display:block;font-size:.5em;color:#e2e8f0}
   #mm{cursor:pointer}
   @media (max-width:700px){ #toast{white-space:normal;width:max-content;max-width:calc(100vw - 24px);text-align:center;line-height:1.5} }
+  #rush-hud{position:fixed;left:50%;top:calc(58px + var(--sat));transform:translateX(-50%);z-index:7;display:none;background:rgba(8,47,73,.9);border:2px solid #22d3ee;border-radius:999px;padding:8px 18px;font-weight:900;font-size:1.05rem;box-shadow:0 0 24px rgba(34,211,238,.5);white-space:nowrap}
+  #rush-hud.on{display:block}
+  #rush-hud b{color:#fde68a;font-size:1.3rem}
+  @media (max-width:700px){ #rush-hud{top:calc(112px + var(--sat));font-size:.9rem} }
 </style>
 </head>
 <body>
@@ -239,7 +243,7 @@
 <div id="joy"><div class="knob"></div></div>
 <button id="jump" type="button"><i class="fa-solid fa-arrow-up"></i><br>JUMP</button>
 <button id="dash" type="button"><i class="fa-solid fa-person-running"></i><br>ダッシュ</button>
-<div id="help">W A S D / 矢印キーで歩く ・ Shift でダッシュ ・ Space でジャンプ ・ ドラッグで見回す ・ Enter で入る・話す</div>
+<div id="help">W A S D / 矢印キーで歩く ・ Shift でダッシュ ・ Space でジャンプ ・ B でホバーボード ・ ドラッグで見回す ・ Enter で入る・話す</div>
 <div id="toast"></div>
 <div id="gain"></div>
 <div id="flash"></div>
@@ -595,6 +599,7 @@ const ST = Object.assign({ stars: 0, total: 0, quiz: {}, chestsTotal: 0, towerCl
 if (!ST.day || ST.day.date !== TODAY) {
   ST.day = { date: TODAY, exp: 0, coin: 0, picked: [], chests: [], stones: {}, tower: false, towerTry: false, deck: false, visits: [], talks: 0, emotes: 0, dress: false, quizOk: 0, missionDone: false };
 }
+ST.day = Object.assign({ bossTry: false, boss: false, rushTry: false, rushDone: false, rushMax: 0, meteors: 0, warps: 0, board: false }, ST.day);
 const saveST = () => SJ('mun_world_state', ST);
 saveST();
 
@@ -1438,7 +1443,12 @@ const MISSION_POOL = [
   { id: 'tower', t: 'チャレンジタワーに ちょうせん', n: 1, v: () => ST.day.towerTry ? 1 : 0 },
   { id: 'deck', t: '空のデッキに のぼる', n: 1, v: () => ST.day.deck ? 1 : 0 },
   { id: 'talk2', t: 'なかまと 2回 話す', n: 2, v: () => ST.day.talks },
-  { id: 'emote3', t: 'エモートを 3回 する', n: 3, v: () => ST.day.emotes }
+  { id: 'emote3', t: 'エモートを 3回 する', n: 3, v: () => ST.day.emotes },
+  { id: 'boss', t: 'ナゾナゾドラゴンに ちょうせん', n: 1, v: () => ST.day.bossTry ? 1 : 0 },
+  { id: 'rush', t: 'スターラッシュで 10こ あつめる', n: 10, v: () => ST.day.rushMax || 0 },
+  { id: 'meteor', t: 'ながれぼしを キャッチする', n: 1, v: () => ST.day.meteors || 0 },
+  { id: 'warp', t: 'ワープゲートを つかう', n: 1, v: () => ST.day.warps || 0 },
+  { id: 'board', t: 'ホバーボードに のる', n: 1, v: () => ST.day.board ? 1 : 0 }
 ];
 const MISSIONS = (() => {
   const r = seedRand('mission' + TODAY), pool = MISSION_POOL.slice(), out = [{ id: 'quiz3', t: 'クイズ石で 3もん 正解する', n: 3, v: () => ST.day.quizOk }];
@@ -1466,6 +1476,7 @@ let panelOpen = false, closetOpen = false, photoMode = false;
 addEventListener('keydown', e => {
   if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   keys[e.code] = true;
+  if (e.code === 'Space' && !e.repeat) wantJump = true;
   if (e.code === 'Enter' && !panelOpen && started) act();
   if (e.code === 'Escape') { if (photoMode) endPhoto(); else closePanel(); }
   if (['ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) e.preventDefault();
@@ -1566,6 +1577,9 @@ function openMap() {
     { id: 'teacher', name: 'むん先生', sub: 'ミッション・おすすめ', e: '🧑‍🏫', c: '#fbbf24', x: 5.5, z: 12.3 },
     { id: 'tower', name: 'チャレンジタワー', sub: '5もん 正解で クリア', e: '🗼', c: '#a855f7', x: TOWER.front.x, z: TOWER.front.z },
     { id: 'deck', name: '空の道', sub: 'のぼって 大きな スターを ゲット', e: '☁️', c: '#00e5ff', x: PLATS[0].x + 2.5, z: PLATS[0].z },
+    { id: 'boss', name: 'ナゾナゾドラゴン', sub: 'クイズで ボスを たおそう', e: '🐉', c: '#ef4444', x: FX.bossObj.x, z: FX.bossObj.z + 7 },
+    { id: 'rush', name: 'スターラッシュ', sub: `60びょう タイムアタック（ベスト ${ST.rushBest || 0}こ）`, e: '⏱️', c: '#22d3ee', x: FX.rushGate.x, z: FX.rushGate.z + 2 },
+    ...GATES.map(g => ({ id: 'gate-' + g.id, name: `ワープゲート（${g.name}）`, sub: 'ほかの ゲートへ いどう', e: '🌀', c: g.col, x: g.x, z: g.z + 2 })),
     ...STONES.map(s => ({ id: s.id, name: `${WQ.SUBJ[s.subj].name}の クイズ石`, sub: ST.day.stones[s.id] ? 'クリアずみ' : 'まだ', e: WQ.SUBJ[s.subj].emoji, c: ST.day.stones[s.id] ? '#fbbf24' : WQ.SUBJ[s.subj].color, x: s.x, z: s.z + 2.6 })),
     ...PLACES.slice().sort((a, b) => (rec.includes(b.id) ? 1 : 0) - (rec.includes(a.id) ? 1 : 0)).map(p => { const q = portals.find(x => x.place === p); return { id: p.id, name: p.name + (rec.includes(p.id) ? '（おすすめ）' : ''), sub: p.sub, e: p.emoji, c: p.color, x: q.pos.x, z: q.pos.z }; })
   ];
@@ -1671,7 +1685,7 @@ document.getElementById('btn-rec').addEventListener('click', () => {
   const body = `<div class="sec"><div class="stats">
       <div><b>⭐ ${ST.stars}</b><small>いまの スター</small></div><div><b>${ST.total}</b><small>これまでに あつめた⭐</small></div>
       <div><b>${ST.quizTotal}</b><small>といた もんだい</small></div><div><b>${Object.keys(ST.day.stones).length} / ${STONES.length}</b><small>きょうの クイズ石</small></div>
-      <div><b>${ST.towerClears}</b><small>タワー クリア</small></div><div><b>${ST.chestsTotal}</b><small>見つけた 宝箱</small></div>
+      <div><b>${ST.towerClears}</b><small>タワー クリア</small></div><div><b>${ST.bossWins || 0}</b><small>ドラゴンを たおした</small></div><div><b>${ST.rushBest || 0}こ</b><small>スターラッシュ ベスト</small></div><div><b>${ST.meteorsTotal || 0}</b><small>ながれぼし キャッチ</small></div><div><b>${ST.chestsTotal}</b><small>見つけた 宝箱</small></div>
       <div><b>${owned} / ${all}</b><small>ふえた きせかえ</small></div><div><b>🪙 ${ST.day.coin}</b><small>きょう ワールドで（上限 ${DAILY_CAP.coin}）</small></div></div></div>
     <div class="sec"><h3>📊 きょうかべつ 正解りつ</h3>${rows}</div>
     ${weak ? `<div class="weak">💡 <b>${WQ.SUBJ[weak].name}</b>が にがてかも。クイズ石や、学習アプリで れんしゅうしてみよう！</div>` : `<p class="note">3もん いじょう といた きょうかの、正解りつが 出ます。70%より ひくい きょうかは ピンク色に なります。</p>`}`;
@@ -1771,6 +1785,7 @@ function drawMinimap() {
   mg.fillStyle = '#a855f7'; mg.beginPath(); mg.moveTo(cx + TOWER.x * k, cx + TOWER.z * k - 9); mg.lineTo(cx + TOWER.x * k + 7, cx + TOWER.z * k + 6); mg.lineTo(cx + TOWER.x * k - 7, cx + TOWER.z * k + 6); mg.fill();
   mg.strokeStyle = '#00e5ff'; mg.lineWidth = 2; mg.beginPath(); mg.arc(cx + DECK.x * k, cx + DECK.z * k, 9, 0, Math.PI * 2); mg.stroke();
   mg.fillStyle = '#fde68a'; mg.font = 'bold 18px sans-serif'; mg.textAlign = 'center'; mg.textBaseline = 'middle'; mg.fillText('★', cx + 5.5 * k, cx + 9.5 * k);
+  featuresMinimap(cx, k);
   mg.save(); mg.translate(cx + player.position.x * k, cx + player.position.z * k); mg.rotate(player.rotation.y * -1 + Math.PI);
   mg.fillStyle = '#fff'; mg.beginPath(); mg.moveTo(0, -9); mg.lineTo(6, 7); mg.lineTo(-6, 7); mg.closePath(); mg.fill(); mg.restore();
 }
@@ -1813,6 +1828,7 @@ function loop() {
   if (snow) { const a = snow.geometry.attributes.position; for (let i = 0; i < a.count; i++) { let y = a.getY(i) - dt * 3; if (y < 0) y = 60; a.setY(i, y); } a.needsUpdate = true; }
   for (let i = BURSTS.length - 1; i >= 0; i--) { const b = BURSTS[i]; b.t += dt; const a = b.pts.geometry.attributes.position; for (let j = 0; j < b.v.length; j++) { b.v[j].y -= 14 * dt; a.setXYZ(j, a.getX(j) + b.v[j].x * dt, a.getY(j) + b.v[j].y * dt, a.getZ(j) + b.v[j].z * dt); } a.needsUpdate = true; b.pts.material.opacity = Math.max(0, 1 - b.t / 1.2); if (b.t > 1.2) { scene.remove(b.pts); b.pts.geometry.dispose(); BURSTS.splice(i, 1); } }
   TEACHER.mark.position.y = 3.0 + Math.sin(t * 3) * .15;
+  featuresAnim(t, dt);
   if (!started) { camera.position.set(Math.sin(t * .05) * 70, 34, Math.cos(t * .05) * 70); camera.lookAt(0, 4, 0); renderer.render(scene, camera); return; }
 
   // 移動
@@ -1833,9 +1849,9 @@ function loop() {
     else { const sp = 9 * dt; player.position.x += dx / d * sp; player.position.z += dz / d * sp; player.rotation.y = Math.atan2(dx, dz); walkT += dt * 11; moving = true; }
   }
   if (len > 0.001) {
-    const s = Math.min(1, len); const fwd = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw)); const right = new THREE.Vector3(fwd.z, 0, -fwd.x);
+    const s = Math.min(1, len); const fwd = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw)); const right = new THREE.Vector3(-fwd.z, 0, fwd.x);  // カメラから見て 右（2026-11-17 左右が逆だったのを修正）
     const dir = fwd.multiplyScalar(-iz / len).add(right.multiplyScalar(ix / len));
-    const speed = (fast ? 13 : 8) * s * dt;
+    const speed = (FX.board ? (fast ? 18 : 13) : (fast ? 13 : 8)) * s * dt;
     player.position.x += dir.x * speed; player.position.z += dir.z * speed;
     { const ta = Math.atan2(dir.x, dir.z); let da = ta - player.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da)); player.rotation.y += da * .25; }
     walkT += dt * (fast ? 15 : 11) * s; moving = true;
@@ -1850,7 +1866,9 @@ function loop() {
   { const cx = player.position.x, cz = player.position.z; const d = Math.hypot(cx, cz); if (d > ISLAND_R - 2) { player.position.x = cx / d * (ISLAND_R - 2); player.position.z = cz / d * (ISLAND_R - 2); } }
   // ジャンプ・足場
   const yPrev = player.position.y;
+  if (grounded) FX.airJump = 1;
   if ((keys.Space || wantJump) && grounded && canMove) { vy = 8.6; grounded = false; SND.play('jump'); emote = null; }
+  else if (wantJump && !grounded && FX.board && FX.airJump > 0 && canMove) { vy = 9.5; FX.airJump = 0; SND.play('boing'); burst(player.position, 0x00e5ff, 16); }  // ボードの 2だんジャンプ
   wantJump = false;
   if (grounded && yPrev < .25) for (const p of PADS) if (Math.hypot(player.position.x - p.x, player.position.z - p.z) < 1.4) { vy = 16.5; grounded = false; SND.play('boing'); p.mesh.scale.y = .4; }
   for (const p of PADS) p.mesh.scale.y += (1 - p.mesh.scale.y) * .15;
@@ -1901,6 +1919,7 @@ function loop() {
     const p = c.g.position;
     if (Math.hypot(player.position.x - p.x, player.position.z - p.z) < 1.9 && Math.abs(player.position.y - p.y) < 1.2) openChest(c);
   }
+  featuresTick(t, dt, moving);
   // 近くのもの
   let best = null, bd = 1e9;
   for (const q of portals) { const d = Math.hypot(player.position.x - q.pos.x, player.position.z - q.pos.z); if (d < 4.2 && d < bd && player.position.y < 1) { bd = d; best = { place: q.place, portal: q, d }; } }
@@ -1912,7 +1931,7 @@ function loop() {
     else if (near) { promptT.textContent = near.inter.name(); promptS.textContent = near.inter.sub(); }
   }
   promptEl.classList.toggle('on', !!near && !panelOpen && !photoMode);
-  if (near && near.place && cooldownPlace !== near.place && !panelOpen && !photoMode && bd < 3.0) openPlace(near.place);
+  if (near && near.place && cooldownPlace !== near.place && !panelOpen && !photoMode && !FX.rush && bd < 3.0) openPlace(near.place);  // スターラッシュ中は 自動で ひらかない
   if (!near || !near.place) cooldownPlace = null;
 
   // カメラ
@@ -1973,6 +1992,278 @@ function openChest(c) {
 }
 
 addEventListener('resize', () => { camera.fov = innerWidth < innerHeight ? 72 : 60; camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+
+/* =========================================================
+   2026-11-17 追加：ワクワク機能 5つ
+   ① ワールドボス「ナゾナゾドラゴン」  ② スターラッシュ（60秒タイムアタック）
+   ③ ホバーボード（のりもの）          ④ ワープゲート
+   ⑤ ながれぼし（ときどき 空から おちてくる）
+========================================================= */
+const FX = { boss: null, rush: null, board: false, airJump: 0, meteor: null, meteorNext: 25 };
+REWARD.boss = { star: 40, exp: 20, coin: 150 };   // ボスをたおす（1日1回）
+REWARD.meteor = { star: 5 };                      // ながれぼしを キャッチ
+
+/* ---------- ① ワールドボス ---------- */
+{
+  const sp = findSpot([[-62, 4], [62, 24], [-64, 24], [-58, -30], [58, -30], [-50, 50], [50, 50], [34, 62]], 10) || { x: -62, z: 4 };
+  const g = new THREE.Group(); g.position.set(sp.x, 0, sp.z);
+  // 魔法陣（アリーナ）
+  const ring = new THREE.Mesh(new THREE.RingGeometry(7.5, 8.2, 64), basic('#ef4444', { transparent: true, opacity: .7, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .06; g.add(ring);
+  const inner = new THREE.Mesh(new THREE.CircleGeometry(7.5, 64), basic('#7f1d1d', { transparent: true, opacity: .25 })); inner.rotation.x = -Math.PI / 2; inner.position.y = .05; g.add(inner);
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; const pl = new THREE.Mesh(new THREE.CylinderGeometry(.35, .45, 3, 6), mat('#1f2937', { emissive: '#7f1d1d' })); pl.position.set(Math.cos(a) * 8.6, 1.5, Math.sin(a) * 8.6); g.add(pl); const fl = makeEmoji('🔥', 1.1); fl.position.set(Math.cos(a) * 8.6, 3.4, Math.sin(a) * 8.6); g.add(fl); }
+  // ドラゴン
+  const d = new THREE.Group(); d.position.y = 4.5; g.add(d);
+  const bm = mat('#7c3aed', { emissive: '#3b0764', roughness: .4 }), bl = mat('#c4b5fd'), horn = mat('#fde68a', { emissive: '#78350f' });
+  mesh(G.sph(1.6), bm, 0, 0, 0, d).scale.set(1, .9, 1.2);
+  mesh(G.sph(1.0), bl, 0, -.2, .95, d).scale.set(1, 1, .6);
+  const head = new THREE.Group(); head.position.set(0, 1.7, 1.3); d.add(head);
+  mesh(G.sph(1.05), bm, 0, 0, 0, head);
+  mesh(G.sph(.6), bm, 0, -.25, .85, head).scale.set(1, .75, 1);
+  for (const s of [-1, 1]) { mesh(G.sph(.22), basic('#fde047'), s * .42, .25, .8, head); mesh(G.sph(.1), basic('#111827'), s * .42, .25, 1.0, head); const h = mesh(G.cone(.18, .8, 8), horn, s * .5, .95, -.1, head); h.rotation.z = -s * .4; }
+  const wings = [];
+  for (const s of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(s * 1.1, .6, -.4); d.add(pv); const w = mesh(G.sph(1.6), mat('#a78bfa', { emissive: '#4c1d95', side: THREE.DoubleSide }), s * 1.6, .3, 0, pv); w.scale.set(1.2, .8, .06); wings.push(pv); }
+  const tail = mesh(G.cone(.5, 2.6, 10), bm, 0, -.7, -2.2, d); tail.rotation.x = -1.9;
+  const hpCanvas = document.createElement('canvas'); hpCanvas.width = 512; hpCanvas.height = 96;
+  const hpTex = new THREE.CanvasTexture(hpCanvas); hpTex.colorSpace = THREE.SRGBColorSpace;
+  const hpSp = new THREE.Sprite(new THREE.SpriteMaterial({ map: hpTex, transparent: true, depthWrite: false })); hpSp.scale.set(8, 1.5, 1); hpSp.position.y = 9.6; g.add(hpSp);
+  const lb = makeLabel('ナゾナゾドラゴン', 'クイズで たおそう！', '#ef4444', .8); lb.position.y = 11.6; g.add(lb);
+  scene.add(g);
+  FX.bossObj = { x: sp.x, z: sp.z, grp: g, dragon: d, head, wings, hpCanvas, hpTex, ring, hp: 5 };
+  drawBossHP(5);
+  addInter({ kind: 'boss', x: sp.x, z: sp.z, r: 8.5, obj: g, name: () => 'ナゾナゾドラゴンに ちょうせん', sub: () => ST.day.boss ? 'きょうは たおした！（また ちょうせんできる）' : `たおすと ⭐${REWARD.boss.star}・${REWARD.boss.coin}コイン`, act: () => openBoss() });
+}
+function drawBossHP(hp) {
+  const b = FX.bossObj, c = b.hpCanvas.getContext('2d'); c.clearRect(0, 0, 512, 96);
+  c.fillStyle = 'rgba(5,9,20,.85)'; roundRect(c, 4, 20, 504, 56, 28); c.fill();
+  c.fillStyle = '#3f1d1d'; roundRect(c, 20, 34, 472, 28, 14); c.fill();
+  const w = 472 * hp / 5; if (w > 0) { const gr = c.createLinearGradient(20, 0, 492, 0); gr.addColorStop(0, '#ef4444'); gr.addColorStop(1, '#f97316'); c.fillStyle = gr; roundRect(c, 20, 34, Math.max(28, w), 28, 14); c.fill(); }
+  c.fillStyle = '#fff'; c.font = `900 26px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(`HP ${hp} / 5`, 256, 49);
+  b.hpTex.needsUpdate = true;
+}
+function openBoss() {
+  if (!ST.day.bossTry) { ST.day.bossTry = true; saveST(); checkMissions(); }
+  FX.boss = { ok: 0, miss: 0 }; FX.bossObj.hp = 5; drawBossHP(5);
+  // ボスの方を むく
+  player.rotation.y = Math.atan2(FX.bossObj.x - player.position.x, FX.bossObj.z - player.position.z);
+  camYaw = player.rotation.y + Math.PI; camPitch = .3; camDist = 13;
+  bossQuestion();
+}
+function bossQuestion() {
+  const B = FX.boss, subs = WQ.SUBJ_OF[GRADE] || WQ.SUBJ_OF.g3;
+  const o = WQ.make(GRADE || 'g3', subs[Math.floor(Math.random() * subs.length)]); B.cur = o;
+  const body = `<div class="qz"><div class="hp">🐉 HP ${'🟥'.repeat(5 - B.ok)}${'⬛'.repeat(B.ok)}　あなた ${'❤️'.repeat(3 - B.miss)}${'🖤'.repeat(B.miss)}</div><div style="margin-top:4px"><button class="sp" type="button" id="qz-say">🔊 読みあげ</button> <span class="sp" style="cursor:default">${WQ.SUBJ[o.subj].emoji} ${WQ.SUBJ[o.subj].name}</span></div><div class="qs">${esc(o.q)}</div><div class="ch">${o.c.map((c, i) => `<button type="button" data-i="${i}">${esc(c)}</button>`).join('')}</div><div class="res" id="qz-res"></div><div class="why" id="qz-why"></div><div id="qz-next" style="margin-top:12px"></div></div>`;
+  showPanel({ color: '#ef4444', iconHTML: '<span style="font-size:26px">🐉</span>', title: 'ナゾナゾドラゴン', sub: '正解で こうげき！ 5回 当てると たおせる。3回 まちがえると まけ', body, one: true, dock: true });
+  onPanelClose = () => { FX.boss = null; };
+  panel.querySelector('#qz-say').onclick = () => { say(o.q); if (o.say) setTimeout(() => say(o.say, 'en-US'), 50 + o.q.length * 120); };
+  panel.querySelectorAll('.ch button').forEach(b => b.addEventListener('click', () => bossAnswer(b)));
+}
+function bossAnswer(btn) {
+  const B = FX.boss; if (!B) return; const o = B.cur, ok = o.c[+btn.dataset.i] === o.a;
+  panel.querySelectorAll('.ch button').forEach(b => { b.disabled = true; if (o.c[+b.dataset.i] === o.a) b.classList.add('ok'); });
+  if (!ok) btn.classList.add('ng');
+  const qs = ST.quiz[o.subj] || (ST.quiz[o.subj] = { ok: 0, n: 0 }); qs.n++; if (ok) qs.ok++; ST.quizTotal++; saveST();
+  const res = panel.querySelector('#qz-res'), nx = panel.querySelector('#qz-next');
+  panel.querySelector('#qz-why').textContent = o.why || '';
+  const bo = FX.bossObj;
+  if (ok) {
+    B.ok++; bo.hp = 5 - B.ok; drawBossHP(bo.hp); res.innerHTML = '⚡ 正解！ こうげき せいこう！'; res.style.color = '#4ade80'; SND.play('ok');
+    beam(player.position, new THREE.Vector3(bo.x, 4.5, bo.z)); FX.bossHit = .5;
+  } else {
+    B.miss++; res.innerHTML = `🔥 ドラゴンの はんげき！ こたえは「${esc(o.a)}」`; res.style.color = '#f87171'; SND.play('ng');
+    burst(player.position, 0xf97316, 40); FX.playerHit = .5;
+  }
+  if (B.ok >= 5) {
+    const first = !ST.day.boss; ST.day.boss = true; ST.bossWins = (ST.bossWins || 0) + 1; saveST();
+    nx.innerHTML = `<div class="res" style="color:#fbbf24">🏆 ナゾナゾドラゴンを たおした！</div><button class="btn" type="button" id="qz-end">やったね！</button>`;
+    SND.play('fan'); FX.bossDown = 2.5; burst(new THREE.Vector3(bo.x, 4, bo.z), 0xfbbf24, 120);
+    if (first) setTimeout(() => grant(REWARD.boss, 'ナゾナゾドラゴンを たおした！'), 600); else showGain('しょうり！', 'ごほうびは 1日1回だよ');
+    checkMissions();
+    panel.querySelector('#qz-end').onclick = closePanel; return;
+  }
+  if (B.miss >= 3) {
+    nx.innerHTML = `<div class="res" style="color:#f87171">まけちゃった… でも ${B.ok}回 こうげきできたよ！</div><button class="btn" type="button" id="qz-re">もういちど</button> <button class="btn sub" type="button" id="qz-end">やめる</button>`;
+    panel.querySelector('#qz-re').onclick = () => { onPanelClose = null; openBoss(); }; panel.querySelector('#qz-end').onclick = closePanel; return;
+  }
+  nx.innerHTML = `<button class="btn" type="button" id="qz-nx">つぎの もんだい ▶</button>`;
+  panel.querySelector('#qz-nx').onclick = () => { onPanelClose = null; bossQuestion(); };
+}
+const BEAMS = [];
+function beam(from, to) {
+  const a = new THREE.Vector3(from.x, from.y + 1.6, from.z), len = a.distanceTo(to);
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, len, 8, 1, true), basic('#00e5ff', { transparent: true, opacity: .9 }));
+  m.position.copy(a).lerp(to, .5); m.lookAt(to); m.rotateX(Math.PI / 2); scene.add(m); BEAMS.push({ m, t: 0 });
+  burst(to.clone().setY(to.y - 1.5), 0x00e5ff, 30); SND.play('boing');
+}
+
+/* ---------- ② スターラッシュ ---------- */
+{
+  const sp = findSpot([[-12, 14], [12, 14], [-15, 8], [15, 8], [-14, -6], [14, -6]], 2) || { x: -12, z: 14 };
+  const g = new THREE.Group(); g.position.set(sp.x, 0, sp.z); g.lookAt(0, 0, 0);
+  const arch = new THREE.Mesh(new THREE.TorusGeometry(2.4, .25, 10, 40, Math.PI), mat('#22d3ee', { emissive: '#0891b2' })); arch.position.y = .1; g.add(arch);
+  const pad = new THREE.Mesh(new THREE.CircleGeometry(2.2, 32), basic('#22d3ee', { transparent: true, opacity: .25 })); pad.rotation.x = -Math.PI / 2; pad.position.y = .05; g.add(pad);
+  const lb = makeLabel('スターラッシュ', '60びょうで いくつ あつめられる？', '#22d3ee', .6); lb.position.y = 4.3; g.add(lb);
+  scene.add(g);
+  FX.rushGate = { x: sp.x, z: sp.z, grp: g, arch };
+  addInter({ kind: 'rush', x: sp.x, z: sp.z, r: 3, obj: g, name: () => 'スターラッシュを はじめる', sub: () => `じこベスト ${ST.rushBest || 0}こ`, act: () => startRush() });
+}
+const rushHud = document.createElement('div'); rushHud.id = 'rush-hud'; document.body.appendChild(rushHud);
+function startRush() {
+  if (FX.rush) return;
+  const stars = []; let tries = 0;
+  while (stars.length < 25 && tries < 3000) {
+    tries++; const r = 16 + Math.random() * 30, a = Math.random() * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (PLACES.some(p => Math.hypot(p.x - x, p.z - z) < p.size * .8 + 2)) continue;
+    if (STONES.some(s => Math.hypot(s.x - x, s.z - z) < 2.5)) continue;
+    if (stars.some(s => Math.hypot(s.x - x, s.z - z) < 4)) continue;
+    const m = new THREE.Mesh(starGeo, rushMat); m.position.set(x, 1.3, z); m.scale.setScalar(1.3); scene.add(m);
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 8, 6), basic('#22d3ee', { transparent: true, opacity: .35 })); col.position.set(x, 4, z); scene.add(col);
+    stars.push({ x, z, m, col });
+  }
+  FX.rush = { t: 60, n: 0, stars };
+  ST.day.rushTry = true; saveST(); checkMissions();
+  showGain('スターラッシュ スタート！', '水色の スターを あつめよう'); SND.play('fan');
+  dashOn = true; dashBtn.classList.add('on');
+}
+const rushMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 1 });
+function endRush() {
+  const R = FX.rush; FX.rush = null; rushHud.classList.remove('on');
+  for (const s of R.stars) { scene.remove(s.m); scene.remove(s.col); }
+  const best = Math.max(ST.rushBest || 0, R.n), isBest = R.n > (ST.rushBest || 0); ST.rushBest = best;
+  const first = !ST.day.rushDone; ST.day.rushDone = true; ST.day.rushMax = Math.max(ST.day.rushMax || 0, R.n); saveST(); checkMissions();
+  SND.play(R.n >= 10 ? 'fan' : 'chest');
+  showPanel({ color: '#22d3ee', iconHTML: '<span style="font-size:26px">⏱️</span>', title: 'スターラッシュ けっか', body: `<div class="qz"><div class="qs">${R.n}こ あつめた！${isBest ? '<br>🎉 じこベスト こうしん！' : ''}</div><p class="note" style="text-align:center">じこベスト：${best}こ ${first ? `／ きょう はじめての ちょうせんなので ⭐${R.n} もらえるよ` : '／ ⭐のごほうびは 1日1回'}</p><button class="btn" type="button" id="rr-again">もういちど</button> <button class="btn sub" type="button" id="rr-x">とじる</button></div>`, one: true });
+  panel.querySelector('#rr-x').onclick = closePanel;
+  panel.querySelector('#rr-again').onclick = () => { closePanel(); player.position.set(FX.rushGate.x, 0, FX.rushGate.z); startRush(); };
+  if (first && R.n > 0) setTimeout(() => grant({ star: R.n }, 'スターラッシュ'), 500);
+}
+
+/* ---------- ③ ホバーボード ---------- */
+const boardBtn = document.createElement('button'); boardBtn.className = 'tb'; boardBtn.type = 'button'; boardBtn.id = 'btn-board'; boardBtn.setAttribute('aria-label', 'ホバーボード'); boardBtn.innerHTML = '🛹<span class="tl">ホバーボード（B）</span>';
+document.querySelector('.tools').insertBefore(boardBtn, document.getElementById('btn-emo'));
+const board = new THREE.Group();
+{
+  const deck = new THREE.Mesh(new THREE.CapsuleGeometry(.45, 1.2, 4, 12), mat('#1e293b', { metalness: .6, roughness: .3 })); deck.rotation.x = Math.PI / 2; deck.scale.set(1.3, 1, .25); board.add(deck);
+  const glow = new THREE.Mesh(new THREE.CapsuleGeometry(.47, 1.2, 4, 12), basic('#00e5ff', { transparent: true, opacity: .5 })); glow.rotation.x = Math.PI / 2; glow.scale.set(1.35, 1.02, .08); glow.position.y = -.08; board.add(glow);
+  for (const z of [-.6, .6]) { const j = new THREE.Mesh(new THREE.CircleGeometry(.22, 16), basic('#f97316')); j.rotation.x = Math.PI / 2; j.position.set(0, -.12, z); board.add(j); }
+  board.position.y = .3; board.visible = false; player.add(board);
+}
+function toggleBoard() {
+  FX.board = !FX.board; board.visible = FX.board; boardBtn.style.borderColor = FX.board ? 'var(--cyan)' : '';
+  SND.play(FX.board ? 'boing' : 'pop'); toast(FX.board ? '🛹 ホバーボードに のった！ はやく走れて、空中で もう1回 ジャンプできるよ' : 'ホバーボードから おりた', 2600);
+  if (FX.board && !ST.day.board) { ST.day.board = true; saveST(); checkMissions(); }
+}
+boardBtn.addEventListener('click', toggleBoard);
+addEventListener('keydown', e => { if (e.code === 'KeyB' && started && !panelOpen && !(e.target && /INPUT/.test(e.target.tagName))) toggleBoard(); });
+const TRAIL = [];
+
+/* ---------- ④ ワープゲート ---------- */
+const GATES = [];
+{
+  const defs = [
+    { id: 'plaza', name: '広場', x: -8, z: -8 },
+    { id: 'tower', name: 'チャレンジタワー', near: [TOWER.front.x, TOWER.front.z] },
+    { id: 'sky', name: '空の道', near: [PLATS[0].x, PLATS[0].z] },
+    { id: 'boss', name: 'ドラゴンの アリーナ', near: [FX.bossObj.x, FX.bossObj.z] },
+    { id: 'park', name: 'むんパーク', near: [0, -56] }
+  ];
+  const cols = ['#a855f7', '#ec4899', '#00e5ff', '#ef4444', '#10b981'];
+  defs.forEach((d, i) => {
+    let p = d.x !== undefined ? { x: d.x, z: d.z } : null;
+    if (!p) { const [cx, cz] = d.near; const c = []; for (let r = 8; r <= 16; r += 2) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; c.push([cx + Math.cos(a) * r, cz + Math.sin(a) * r]); } p = findSpot(c, 1.6); }
+    if (!p) return;
+    const g = new THREE.Group(); g.position.set(p.x, 0, p.z);
+    const col = cols[i];
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, .14, 8, 40), basic(col)); ring.position.y = 1.8; g.add(ring);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(1.4, 32), basic(col, { transparent: true, opacity: .35, side: THREE.DoubleSide })); disc.position.y = 1.8; g.add(disc);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, .2, 24), mat('#1e293b', { emissive: col })); base.position.y = .1; g.add(base);
+    const lb = makeLabel(`ワープ：${d.name}`, '', col, .38); lb.position.y = 4; g.add(lb);
+    scene.add(g);
+    const gate = { ...d, x: p.x, z: p.z, grp: g, ring, disc, col };
+    GATES.push(gate);
+    addInter({ kind: 'gate', x: p.x, z: p.z, r: 2.4, obj: g, name: () => `ワープゲート（${d.name}）`, sub: () => 'ほかの ゲートへ 一しゅんで いどう', act: () => openGates(gate) });
+  });
+}
+function openGates(from) {
+  const list = GATES.filter(g => g !== from).map(g => `<a class="qa" href="#" data-g="${g.id}" style="--pc:${g.col}"><span class="qi">🌀</span><span><b>${esc(g.name)}</b><span>ここへ ワープする</span></span></a>`).join('');
+  showPanel({ color: from.col, iconHTML: '<span style="font-size:26px">🌀</span>', title: 'ワープゲート', sub: 'どこへ ワープする？', body: list });
+  panel.querySelectorAll('[data-g]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); const g = GATES.find(x => x.id === a.dataset.g); closePanel();
+    const f = document.getElementById('flash'); f.style.background = g.col; f.classList.add('on'); SND.play('boing');
+    setTimeout(() => { player.position.set(g.x, 0, g.z + 2.6); autoTarget = null; f.classList.remove('on'); setTimeout(() => f.style.background = '', 400); burst(player.position, new THREE.Color(g.col).getHex(), 50); }, 120);
+    ST.day.warps = (ST.day.warps || 0) + 1; saveST(); checkMissions();
+  }));
+}
+
+/* ---------- ⑤ ながれぼし ---------- */
+function spawnMeteor() {
+  let x, z, tries = 0;
+  do { const r = 20 + Math.random() * 55, a = Math.random() * Math.PI * 2; x = Math.cos(a) * r; z = Math.sin(a) * r; tries++; }
+  while (tries < 200 && (PLACES.some(p => Math.hypot(p.x - x, p.z - z) < p.size * .8 + 2) || Math.hypot(x - FX.bossObj.x, z - FX.bossObj.z) < 10 || Math.hypot(x - TOWER.x, z - TOWER.z) < 7));
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const st = new THREE.Mesh(starShape(.9), new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfde047, emissiveIntensity: 1.4 })); st.position.y = 1.6; g.add(st);
+  const pillar = new THREE.Mesh(new THREE.CylinderGeometry(.9, .9, 60, 16, 1, true), basic('#fde047', { transparent: true, opacity: .22, side: THREE.DoubleSide, depthWrite: false })); pillar.position.y = 30; g.add(pillar);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.8, 12, 12), basic('#fffbeb')); g.add(head);
+  scene.add(g);
+  FX.meteor = { x, z, g, st, pillar, head, fall: 0, life: 40 };
+  SND.play('star'); toast('🌠 ながれぼしが おちた！ 黄色い 光の柱を さがそう（40びょう）', 3600);
+}
+
+/* ---------- 毎フレームの うごき ---------- */
+function featuresAnim(t, dt) {
+  const b = FX.bossObj;
+  if (b) {
+    b.dragon.position.y = 4.5 + Math.sin(t * 1.6) * .5; b.wings.forEach((w, i) => w.rotation.z = (i ? 1 : -1) * Math.sin(t * 3) * .45); b.ring.rotation.z = t * .5;
+    if (FX.bossHit > 0) { FX.bossHit -= dt; b.dragon.position.x = Math.sin(t * 60) * .3; } else b.dragon.position.x = 0;
+    if (FX.bossDown > 0) { FX.bossDown -= dt; b.dragon.rotation.z = Math.min(1.2, (2.5 - FX.bossDown) * 1.5); b.dragon.position.y -= Math.min(3, (2.5 - FX.bossDown) * 1.5); if (FX.bossDown <= 0) { b.dragon.rotation.z = 0; } }
+    if (started) b.dragon.rotation.y = Math.atan2(player.position.x - b.x, player.position.z - b.z) * .9;
+  }
+  if (FX.rushGate) FX.rushGate.arch.material.emissiveIntensity = 1 + Math.sin(t * 4) * .5;
+  for (const g of GATES) { g.ring.rotation.z = t * 1.5; g.disc.material.opacity = .25 + Math.sin(t * 3 + g.x) * .12; }
+  for (let i = BEAMS.length - 1; i >= 0; i--) { const bm = BEAMS[i]; bm.t += dt; bm.m.material.opacity = Math.max(0, .9 - bm.t * 2); if (bm.t > .5) { scene.remove(bm.m); bm.m.geometry.dispose(); BEAMS.splice(i, 1); } }
+}
+function featuresTick(t, dt, moving) {
+  // ホバーボード
+  if (avatar) avatar.position.y = FX.board ? .38 + Math.sin(t * 4) * .05 : 0;
+  if (FX.board) {
+    board.rotation.z = Math.sin(t * 3) * .05;
+    if (moving && frame % 3 === 0) { const p = new THREE.Mesh(G.sph(.12), basic('#00e5ff', { transparent: true, opacity: .7 })); p.position.set(player.position.x, player.position.y + .25, player.position.z); scene.add(p); TRAIL.push({ m: p, t: 0 }); }
+  }
+  for (let i = TRAIL.length - 1; i >= 0; i--) { const p = TRAIL[i]; p.t += dt; p.m.material.opacity = .7 * (1 - p.t / .6); p.m.scale.setScalar(1 - p.t); if (p.t > .6) { scene.remove(p.m); p.m.material.dispose(); TRAIL.splice(i, 1); } }
+  // スターラッシュ
+  const R = FX.rush;
+  if (R) {
+    R.t -= dt;
+    rushHud.innerHTML = `⏱️ <b>${Math.max(0, Math.ceil(R.t))}</b> びょう　⭐ <b>${R.n}</b> / ${R.stars.length + R.n}`; rushHud.classList.add('on');
+    for (let i = R.stars.length - 1; i >= 0; i--) {
+      const s = R.stars[i]; s.m.rotation.y = t * 3;
+      if (Math.hypot(player.position.x - s.x, player.position.z - s.z) < 1.6 && player.position.y < 3) { scene.remove(s.m); scene.remove(s.col); R.stars.splice(i, 1); R.n++; SND.play('star'); burst(s.m.position.clone().setY(0), 0x22d3ee, 12); }
+    }
+    if (R.t <= 0 || R.stars.length === 0) endRush();
+  }
+  // ながれぼし
+  const M = FX.meteor;
+  if (!M) { if (!panelOpen) FX.meteorNext -= dt; if (FX.meteorNext <= 0) { FX.meteorNext = 70 + Math.random() * 60; spawnMeteor(); } }
+  else {
+    if (M.fall < 1) { M.fall = Math.min(1, M.fall + dt * .9); const k = M.fall; M.head.position.set((1 - k) * -40, 1.6 + (1 - k) * 70, (1 - k) * 25); M.st.visible = k >= 1; M.head.visible = k < 1; if (k >= 1) burst(new THREE.Vector3(M.x, 0, M.z), 0xfde047, 50); }
+    else {
+      M.life -= dt; M.st.rotation.y = t * 3; M.st.position.y = 1.6 + Math.sin(t * 4) * .2; M.pillar.material.opacity = .22 * Math.min(1, M.life / 5);
+      if (Math.hypot(player.position.x - M.x, player.position.z - M.z) < 1.8 && player.position.y < 3) {
+        scene.remove(M.g); FX.meteor = null; ST.day.meteors = (ST.day.meteors || 0) + 1; ST.meteorsTotal = (ST.meteorsTotal || 0) + 1; saveST();
+        SND.play('fan'); burst(player.position, 0xfde047, 70); grant(REWARD.meteor, '🌠 ながれぼしを キャッチ！'); checkMissions();
+      } else if (M.life <= 0) { scene.remove(M.g); FX.meteor = null; toast('ながれぼしは きえてしまった… また おちてくるよ'); }
+    }
+  }
+  if (FX.playerHit > 0) { FX.playerHit -= dt; if (avatar) avatar.position.x = Math.sin(t * 50) * .15; } else if (avatar) avatar.position.x = 0;
+}
+// ミニマップに書きたす
+function featuresMinimap(cx, k) {
+  const b = FX.bossObj; mg.font = 'bold 20px sans-serif'; mg.textAlign = 'center'; mg.textBaseline = 'middle';
+  if (b) mg.fillText('🐉', cx + b.x * k, cx + b.z * k);
+  for (const g of GATES) { mg.strokeStyle = g.col; mg.lineWidth = 3; mg.beginPath(); mg.arc(cx + g.x * k, cx + g.z * k, 5, 0, Math.PI * 2); mg.stroke(); }
+  if (FX.meteor && FX.meteor.fall >= 1 && (frame >> 4) % 2) { mg.fillStyle = '#fde047'; mg.beginPath(); mg.arc(cx + FX.meteor.x * k, cx + FX.meteor.z * k, 8, 0, Math.PI * 2); mg.fill(); }
+  if (FX.rush) { mg.fillStyle = '#22d3ee'; for (const s of FX.rush.stars) mg.fillRect(cx + s.x * k - 2, cx + s.z * k - 2, 4, 4); }
+}
 
 /* =========================================================
    はじめの画面
