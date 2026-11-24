@@ -1,10 +1,12 @@
-﻿むんのひみつ基地 を追加するファイル（2026年11月22日）
+﻿2026年11月24日の 更新ファイル
 
-■ サイトのフォルダ（my-edu-app）に、そのまま上書きしてください
-  koinn/kichi/index.html … ひみつ基地（あたらしいフォルダ kichi ができます）
-  index.html        … むんパークの「？？？じゅんびちゅう」を、ひみつ基地に変更。お知らせを更新
-  world.html        … むんワールドの むんパークにも、ひみつ基地の建物を追加
-  koushin.html / feed.xml / search-index.json / sitemap.xml … 更新履歴・検索・サイトマップ
-  js/three.module.min.js … 3Dの部品（今あるものと同じです）
+■ 手順
+  1. この中身を、サイトのフォルダ（my-edu-app）に上書きします。
+  2. modoru_button_tsuika.bat をダブルクリックします（新しいアプリに もどるボタン などが入ります）。
+  3. アップロードします。
 
-■ 子どもの記録は消えません。家具を買ったときだけ、サイトのコインが へります。
+■ 入っているもの
+  index.html / world.html / lab/lab-cards.js / search-index.json / sitemap.xml / koushin.html / feed.xml / add_back_button.ps1
+
+■ エイサー隊形移動のカードは、トップページ・むんワールド・検索・サイトマップから消しました。
+  フォルダ kurasuyou/eisataikeiidou は、サーバーからも消してかまいません。
