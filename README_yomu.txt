@@ -1,12 +1,11 @@
-﻿2026年11月24日の 更新ファイル
+﻿2026年11月24日（2回目）の 更新ファイル
 
 ■ 手順
   1. この中身を、サイトのフォルダ（my-edu-app）に上書きします。
-  2. modoru_button_tsuika.bat をダブルクリックします（新しいアプリに もどるボタン などが入ります）。
+  2. modoru_button_tsuika.bat をダブルクリックします。
   3. アップロードします。
 
-■ 入っているもの
-  index.html / world.html / lab/lab-cards.js / search-index.json / sitemap.xml / koushin.html / feed.xml / add_back_button.ps1
-
-■ エイサー隊形移動のカードは、トップページ・むんワールド・検索・サイトマップから消しました。
-  フォルダ kurasuyou/eisataikeiidou は、サーバーからも消してかまいません。
+■ 中身
+  ・中学英語・受験に「中3 英単語」を追加
+  ・先生用に「工程プランナー」を追加
+  ・先生用から、フォルダのない5つ（クラスお知らせボード・簡易出欠シート・座席表メーカー・クラスポイント帳・提出物管理）を消しました

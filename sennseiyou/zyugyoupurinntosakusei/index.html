@@ -30,8 +30,8 @@ button.on{background:#fff59d;border-color:#c9a800}
 .sp{flex:1}
 #main{flex:1;display:flex;min-height:0}
 #side{width:370px;min-width:370px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column}
-#tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
-#tabs button{border:0;border-radius:0;padding:8px 2px;white-space:nowrap;background:#f4f7f4;font-weight:bold;font-size:13px;border-bottom:3px solid transparent}
+#tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+#tabs button{flex:1;border:0;border-radius:0;padding:9px 2px;background:#f4f7f4;font-weight:bold;font-size:13px;border-bottom:3px solid transparent}
 #tabs button.act{background:#fff;border-bottom-color:var(--acc);color:var(--pri2)}
 #panels{flex:1;overflow:auto;padding:10px}
 .panel{display:none}.panel.act{display:block}
@@ -76,20 +76,37 @@ textarea.big{width:100%;border:2px solid var(--pri);border-radius:8px;padding:8p
 #loading{position:fixed;inset:0;background:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center;font-size:20px;z-index:98;font-weight:bold}
 details.fold{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:4px 8px}
 details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4px 0}
+@media print{body *{visibility:hidden}#printimg,#printimg *{visibility:visible}#printimg{position:absolute;left:0;top:0}#printimg img{width:100%;page-break-after:always}}
 #printimg{display:none}
-@media print{body{height:auto;overflow:visible;display:block;background:#fff}body>*:not(#printimg){display:none!important}#printimg{display:block!important}#printimg img{display:block;width:100%;height:100vh;object-fit:contain;break-after:page;page-break-after:always}#printimg img:last-child{break-after:auto;page-break-after:auto}}
-#saveState{font-size:12px;color:#888;min-width:70px}
-#saveState.dirty{color:#e65100;font-weight:bold}
+#lessonbar{display:flex;align-items:center;gap:6px;padding:5px 10px;background:#e8f5e9;border-bottom:2px solid #a5d6a7;flex-wrap:nowrap;overflow:hidden}
+#ltabs{display:flex;gap:4px;overflow-x:auto;flex:0 1 auto;max-width:46vw;padding:2px}
+.ltab{border-radius:16px 16px 4px 4px;padding:6px 14px;font-weight:bold;white-space:nowrap;border:2px solid #9aa79a;background:#fff}
+.ltab.act{color:#fff}
+#lessonMemo{flex:1;min-width:120px;padding:6px 8px;border:1px solid #9aa79a;border-radius:8px}
+#crumb{white-space:nowrap}
+.subjtag{display:inline-block;color:#fff;font-weight:bold;border-radius:12px;padding:2px 10px;font-size:13px;margin-right:4px}
+#saveState{font-size:12px;white-space:nowrap}
+#popmenu{background:#fff;border:1px solid #888;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);padding:6px;display:flex;flex-direction:column;gap:3px;min-width:230px}
+#popmenu button{text-align:left;border:0;background:#fff;padding:8px 10px}
+#popmenu button:hover{background:#e8f5e9}#popmenu hr{width:100%;border:0;border-top:1px solid #ddd;margin:2px 0}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:6px}
+.ucard{border:1px solid var(--line);border-top:6px solid #888;border-radius:10px;padding:10px;background:#fafcfa}
+.ucard .uh{display:flex;align-items:center;gap:4px}.ucard .un{font-size:17px}
+.ucard .mt,.rcard .mt{font-size:12px;color:#666}
+.uth{display:flex;gap:4px;margin:6px 0;height:92px}.uth img{height:92px;border:1px solid #ccc;background:#fff;object-fit:contain;flex:1;min-width:0}
+.nothumb{display:flex;align-items:center;justify-content:center;background:#eee;color:#999;font-size:12px;flex:1;height:92px}
+.ucard .bt{display:flex;gap:4px;flex-wrap:wrap}.ucard .bt button{padding:4px 8px;font-size:12.5px}
+.recent{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.rcard{flex:0 0 150px;border:1px solid var(--line);border-top:5px solid #888;border-radius:8px;padding:6px;cursor:pointer;background:#fafcfa}
+.rcard:hover{background:#fff8e1}.rcard img,.rcard .nothumb{width:100%;height:110px;object-fit:contain;background:#eee;display:flex}.rcard .nm{font-weight:bold;margin-top:3px;font-size:13px}
 </style>
 </head>
 <body>
 <div id="top">
   <h1>🖨 プリントメーカー v5</h1>
-  <input id="docTitle" placeholder="プリントの名前" value="新しいプリント"><span id="saveState">保存済み</span>
-  <button id="bNew">📄 新規</button>
-  <button id="bSave" class="pri">💾 保存</button>
-  <button id="bSaveAs">📑 別名で保存</button>
-  <button id="bLib">📚 保存一覧</button>
+  <button id="bBinder" class="pri big">📁 授業ファイル（教科・単元・時間）</button>
+  <input id="docTitle" placeholder="この時間の名前" value="新しいプリント" title="この時間の名前（上のタブにも反映されます）">
+  <button id="bSave">💾 保存</button>
   <span class="sp"></span>
   <button id="bUndo">↶ 元に戻す</button>
   <button id="bRedo">↷ やり直し</button>
@@ -108,10 +125,19 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
   <button id="bPrint">🖨 印刷</button>
   <button id="bHelp">❓ 使い方</button>
 </div>
+<div id="lessonbar">
+  <span id="crumb"></span>
+  <div id="ltabs"></div>
+  <button id="lPrev" title="前の時間 (Alt+←)">◀</button><button id="lNext" title="次の時間 (Alt+→)">▶</button>
+  <button id="lAdd" class="pri">＋ 時間を追加</button>
+  <input id="lessonMemo" placeholder="この時間のめあて・メモ（例：九九の5のだんを言える）" disabled>
+  <button id="lMenu">⋯ この時間の操作 ▾</button>
+  <span id="saveState"></span>
+</div>
 <div id="main">
  <div id="side">
   <div id="tabs">
-   <button data-t="tpl" class="act">⭐ひな型</button><button data-t="calc">🔢計算・問題</button><button data-t="kanji">✏️漢字</button><button data-t="kuku">✖九九</button><button data-t="parts">🧩部品</button><button data-t="drill">🕒ドリル</button><button data-t="tools">🧰道具</button><button data-t="page">📐用紙</button>
+   <button data-t="tpl" class="act">⭐ひな型</button><button data-t="calc">🔢計算・問題</button><button data-t="kanji">✏️漢字</button><button data-t="kuku">✖九九</button><button data-t="parts">🧩部品</button><button data-t="tools">🧰道具</button><button data-t="page">📐用紙</button>
   </div>
   <div id="panels">
 
@@ -130,14 +156,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
       <button data-tpl="kanji20"><b>漢字書き取り</b>20問 2列</button>
       <button data-tpl="kanjiNote"><b>漢字練習ノート</b>お手本つき</button>
       <button data-tpl="genkou"><b>作文用紙</b>原稿用紙</button>
-      <button data-tpl="hyaku"><b>百ます計算</b>たし算 10×10</button>
-      <button data-tpl="tokei"><b>時計の読み方</b>何時何分 12問</button>
-      <button data-tpl="ana"><b>□を求める</b>穴あき計算 20問</button>
-      <button data-tpl="dec"><b>小数の計算</b>たし算・ひき算 20問</button>
     </div>
-    <h3>🎲 同じ形で別の問題（類題）</h3>
-    <div class="hint">できたページを元に、<b>数字だけちがう</b>プリントを何枚でも作れます（テストの追試・宿題用に）。</div>
-    <div class="row"><label>枚数</label><input type="number" id="varN" value="1" min="1" max="20"><button id="bVarPage" class="warn">📄 このページの類題を作る</button></div>
     <h3>つかい方（かんたん3ステップ）</h3>
     <div class="hint">① 上のひな型か、「計算・問題」「漢字」「九九」タブで問題を作る。<br>② 問題は<b>ひとかたまり</b>で動きます。ドラッグで移動、角で拡大縮小。<br>③ 「⬇出力する」でPDF/Word、または「💾保存」。</div>
   </div>
@@ -149,7 +168,7 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <div class="hint">「＝」や「=」で終わる式は、答えの四角がつきます。文章題もそのまま書けます。<br>＋ − × ÷ は <b>+ - * /</b> でも打てます。答えは自動で計算して「答え」に入ります。</div>
     <details class="fold" open><summary>🎲 条件を決めて自動で問題を作る（上の欄に入ります）</summary>
       <div class="row"><label>種類</label>
-        <select id="g_type"><option value="add">たし算</option><option value="sub">ひき算</option><option value="mul">かけ算</option><option value="div">わり算</option><option value="kuku">九九（かけ算）</option><option value="kukudiv">九九のわり算</option><option value="mix">たし算・ひき算まぜ</option><option value="mix4">四則まぜ</option><option value="ana">□を求める（たし算・ひき算）</option><option value="anam">□を求める（九九）</option><option value="dec">小数のたし算・ひき算</option></select>
+        <select id="g_type"><option value="add">たし算</option><option value="sub">ひき算</option><option value="mul">かけ算</option><option value="div">わり算</option><option value="kuku">九九（かけ算）</option><option value="kukudiv">九九のわり算</option><option value="mix">たし算・ひき算まぜ</option><option value="mix4">四則まぜ</option></select>
         <label>問題数</label><input type="number" id="g_n" value="20" min="1" max="60"></div>
       <div class="row"><label>左の数の桁</label><input type="number" id="g_da" value="2" min="1" max="4"><label>右の数の桁</label><input type="number" id="g_db" value="2" min="1" max="4"></div>
       <div class="row"><label>くり上がり/くり下がり</label><select id="g_carry"><option value="any">どちらでも</option><option value="yes">ありだけ</option><option value="no">なしだけ</option></select></div>
@@ -158,7 +177,6 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
         <label>やり方</label><select id="g_mode"><option value="replace">置き換える</option><option value="append">あとに足す</option></select></div>
       <button id="gGen" class="warn">🎲 問題を自動で入れる</button>
     </details>
-    <div class="row"><button id="cVar" title="式の形・桁・くり上がりはそのままで、数字だけ入れかえます">🎲 数字だけ入れかえる</button><button id="cShuf">🔀 順番をまぜる</button><button id="cClear">🧹 欄を空に</button></div>
     <h3>② 見た目</h3>
     <div class="row"><label>列の数</label><select data-k="cols"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
       <label>番号</label><select data-k="num"><option value="p">（1）</option><option value="c">①</option><option value="n">1.</option><option value="no">なし</option></select></div>
@@ -236,24 +254,6 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <button class="warn big" id="bKukuUpd">🔄 選んでいる表を作り直す</button>
   </div>
 
-  <!-- ドリル（百ます・時計） -->
-  <div class="panel" id="p-drill">
-    <h3>💯 百ます計算</h3>
-    <div class="row"><label>計算</label><select data-k="hy_op"><option value="+">たし算</option><option value="-">ひき算</option><option value="×">かけ算</option></select>
-      <label>ますの数</label><select data-k="hy_n"><option value="10">100ます(10×10)</option><option value="5">25ます(5×5)</option><option value="7">49ます(7×7)</option></select></div>
-    <div class="row"><label><input type="checkbox" data-k="hy_time" checked> 「かかった時間」欄</label><label><input type="checkbox" data-k="hy_big"> ますを大きく</label></div>
-    <div class="hint">ひき算は「10〜19 − 0〜9」、たし算・かけ算は「0〜9」の数がバラバラに並びます。</div>
-    <button class="pri big" id="bHyakuAdd">➕ ページに追加</button>
-    <button class="warn big" id="bHyakuUpd">🔄 作り直す（数字も入れかえ）</button>
-    <h3>🕒 時計の読み方プリント</h3>
-    <div class="row"><label>問題数</label><input type="number" data-k="ck_n" value="12" min="1" max="30"><label>列</label><select data-k="ck_cols"><option>2</option><option selected>3</option><option>4</option></select></div>
-    <div class="row"><label>むずかしさ</label><select data-k="ck_step"><option value="60">○時ちょうど</option><option value="30">○時半まで</option><option value="5" selected>5分きざみ</option><option value="1">1分きざみ</option></select></div>
-    <div class="row"><label>問題のタイプ</label><select data-k="ck_mode"><option value="read">時計を見て時こくを書く</option><option value="draw">時こくを見て針をかく</option></select></div>
-    <div class="row"><label><input type="checkbox" data-k="ck_min" checked> 分の目もり(1分ごと)をかく</label><label><input type="checkbox" data-k="ck_num" checked> 数字をかく</label></div>
-    <button class="pri big" id="bClockAdd">➕ ページに追加</button>
-    <button class="warn big" id="bClockUpd">🔄 作り直す（時こくも入れかえ）</button>
-  </div>
-
   <!-- 部品 -->
   <div class="panel" id="p-parts">
     <h3>ヘッダー（タイトル・名前・点数）</h3>
@@ -261,9 +261,10 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <div class="row"><label>名前欄 幅</label><input type="range" id="h_nw" min="200" max="560" value="400"><span id="v_nw">400</span></div>
     <div class="row"><label>名前欄 高さ</label><input type="range" id="h_nh" min="40" max="110" value="62"><span id="v_nh">62</span></div>
     <div class="row"><label><input type="checkbox" id="h_score" checked> 点数欄</label><label><input type="checkbox" id="h_date" checked> 日付欄</label><label><input type="checkbox" id="h_class" checked> 年・組</label></div>
+    <div class="row"><label><input type="checkbox" id="h_goalOn"> めあてをプリントに書く</label></div><div class="row"><input id="h_goal" placeholder="めあて（上の時間バーの欄と同じ）" style="flex:1"></div>
     <button class="pri" id="bHeader">➕ ヘッダーをページの上に入れる</button><button id="bHeaderUpd">🔄 作り直す</button>
     <h3>文字・図形</h3>
-    <div class="row"><button data-add="text">Ａ 文字</button><button data-add="title">大きな見出し</button><button data-add="para">¶ 説明文(折り返し)</button><button data-add="rect">□ 四角</button><button data-add="circle">○ 丸</button><button data-add="line">─ 線</button><button data-add="dline">┄ 点線</button><button data-add="arrow">→ 矢印</button></div>
+    <div class="row"><button data-add="text">Ａ 文字</button><button data-add="title">大きな見出し</button><button data-add="rect">□ 四角</button><button data-add="circle">○ 丸</button><button data-add="line">─ 線</button><button data-add="dline">┄ 点線</button><button data-add="arrow">→ 矢印</button></div>
     <h3>罫線・方眼・数直線</h3>
     <div class="row"><label>幅</label><input type="number" id="r_w" value="680" step="10"><label>高さ</label><input type="number" id="r_h" value="300" step="10"></div>
     <div class="row"><label>間隔</label><input type="number" id="r_g" value="40" min="10"></div>
@@ -313,13 +314,12 @@ details.fold summary{cursor:pointer;font-weight:bold;color:var(--pri2);padding:4
     <div class="hint">「2面」にすると、いま作っているページの内容を<b>同じものを並べて</b>印刷（出力）します。半分サイズのプリントを作りたいときに使います。</div>
     <div class="row"><label><input type="checkbox" id="s_name"> 各面の上に「名前欄」を入れて出力</label></div>
     <div class="row"><input id="s_nametext" value="____年____組____番 名前:______________________" style="flex:1"><label>大きさ</label><input type="number" id="s_namefs" value="30" min="14" max="60"></div>
-    <div class="row"><label><input type="checkbox" id="s_split" checked> 問題が入りきらないときは、次のページに続ける（名前欄もコピー）</label></div>
     <h3>ページ</h3>
     <div class="row"><button id="pgAdd">➕ ページ追加</button><button id="pgDup">📋 このページを複製</button><button id="pgDel" class="danger">🗑 このページを削除</button></div>
     <div class="row"><button id="pgL">◀ 前へ移動</button><button id="pgR">▶ 後ろへ移動</button><button id="pgClear" class="danger">このページを白紙に</button></div>
     <h3>その他</h3>
     <div class="row"><label>書き出しの精細さ</label><select id="s_dpi"><option value="150">ふつう(150dpi)</option><option value="200" selected>きれい(200dpi)</option><option value="300">とてもきれい(300dpi)</option></select></div>
-    <div class="row"><label>科目</label><input id="m_subj" placeholder="算数" style="width:70px"><label>単元</label><input id="m_unit" placeholder="かけ算" style="width:100px"></div>
+    <input id="m_subj" type="hidden"><input id="m_unit" type="hidden"><div class="hint">教科・単元・時間は、上の「📁 授業ファイル」で管理します。</div>
   </div>
   </div>
  </div>
@@ -403,14 +403,13 @@ function saveHist(now) {
   const f = () => {
     const j = canvasJSON();
     if (S.hist[S.hi] === j) return;
-    if (S.hi >= 0 && !S.noDirty) setDirty(true);
     S.hist = S.hist.slice(0, S.hi + 1); S.hist.push(j); if (S.hist.length > 50) S.hist.shift(); S.hi = S.hist.length - 1;
   };
   clearTimeout(histTimer); if (now) f(); else histTimer = setTimeout(f, 250);
 }
 async function restoreHist(i) {
   if (i < 0 || i >= S.hist.length) return;
-  S.hi = i; S.loading = true; await loadJSON(canvas, S.hist[i]); setAns(S.showAns); S.loading = false; setDirty(true); ctxUpdate();
+  S.hi = i; S.loading = true; await loadJSON(canvas, S.hist[i]); setAns(S.showAns); S.loading = false; ctxUpdate();
 }
 /* ===== ページ管理 ===== */
 function savePageState() { S.pages[S.idx].json = canvasJSON(); }
@@ -442,12 +441,12 @@ async function pgDel() {
 }
 async function pgMove(d) {
   const j = S.idx + d; if (j < 0 || j >= S.pages.length) return;
-  savePageState(); const t = S.pages[S.idx]; S.pages[S.idx] = S.pages[j]; S.pages[j] = t; S.idx = j; renderPageBar(); setDirty(true); draftSoon();
+  savePageState(); const t = S.pages[S.idx]; S.pages[S.idx] = S.pages[j]; S.pages[j] = t; S.idx = j; renderPageBar();
 }
 async function newDoc(noconfirm) {
   if (!noconfirm && canvas.getObjects().length && !confirm('今の内容は消えます（保存していない場合）。新規作成しますか？')) return;
   S.pages = [{ json: null }]; S.idx = 0; S.recId = null; $('docTitle').value = '新しいプリント';
-  S.loading = true; await loadJSON(canvas, null); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); setDirty(false); ctxUpdate();
+  S.loading = true; await loadJSON(canvas, null); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); ctxUpdate();
 }
 /* ===== 部品作成の共通 ===== */
 function tw(str, size, font, bold) {
@@ -551,7 +550,7 @@ function ctxUpdate() {
   const mk = (txt, fn, cls, title) => { const b = document.createElement('button'); b.textContent = txt; if (cls) b.className = cls; if (title) b.title = title; b.onclick = fn; return b; };
   const grp = () => { const d = document.createElement('div'); d.className = 'grp'; el.appendChild(d); return d; };
   const a = canvas.getActiveObject();
-  if (!a) { el.innerHTML = '<span style="color:#666">👆 ページの上の物をクリックすると、ここで直したり、動かしたり、消したりできます。Shift+クリックで複数選んで「そろえる」こともできます。</span>'; return; }
+  if (!a) { el.innerHTML = '<span style="color:#666">👆 ページの上の物をクリックすると、ここで直したり、動かしたり、消したりできます。問題は1つのかたまりで動きます。</span>'; return; }
   const g1 = grp();
   g1.appendChild(mk('📋 複製', dupSel)); g1.appendChild(mk('🗑 削除', delSel, 'danger'));
   g1.appendChild(mk('⬆前面', () => { canvas.bringForward(a); saveHist(true); })); g1.appendChild(mk('⬇背面', () => { canvas.sendBackwards(a); saveHist(true); }));
@@ -563,14 +562,9 @@ function ctxUpdate() {
   if (a.pmSource) {
     const g3 = grp();
     g3.appendChild(mk('✏ この問題の設定を開く', () => openSource(a), 'pri'));
-    if (VARIABLE.includes(a.pmSource.kind)) g3.appendChild(mk('🎲 数字を入れかえ', variantSel, 'warn', '同じ形・同じむずかしさで、数字だけ変えます'));
     g3.appendChild(mk('✂ バラバラにして細かく直す', ungroupSel, 'warn', 'グループをばらします（元の「作り直す」はできなくなります）'));
   } else if (a.type === 'group') g1.appendChild(mk('✂ ばらす', ungroupSel));
-  if (a.type === 'activeSelection') {
-    const g = grp(); g.appendChild(mk('🔗 ひとかたまりにする', () => { const gr = a.toGroup(); canvas.setActiveObject(gr); saveHist(true); ctxUpdate(); }));
-    const g4 = grp(); g4.appendChild(mk('⇤左そろえ', () => alignSel('left'))); g4.appendChild(mk('↔中央そろえ', () => alignSel('center'))); g4.appendChild(mk('⤒上そろえ', () => alignSel('top')));
-    g4.appendChild(mk('☰ たて等間隔', () => alignSel('vdist'))); g4.appendChild(mk('⇡ 上につめる', () => alignSel('pack')));
-  }
+  if (a.type === 'activeSelection') { const g = grp(); g.appendChild(mk('🔗 ひとかたまりにする', () => { const gr = a.toGroup(); canvas.setActiveObject(gr); saveHist(true); ctxUpdate(); })); }
   const isT = o => o && ['i-text', 'textbox', 'text'].includes(o.type);
   if (isT(a)) {
     const g = grp();
@@ -590,7 +584,7 @@ function ctxUpdate() {
 function toHex(c) { if (typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)) return c; if (typeof c === 'string' && /^#[0-9a-f]{3}$/i.test(c)) return '#' + c.slice(1).split('').map(x => x + x).join(''); return '#000000'; }
 function dupSel() {
   const a = canvas.getActiveObject(); if (!a) return;
-  a.clone(c => { if (a.pmSource) c.pmSource = JSON.parse(JSON.stringify(a.pmSource)); c.isAnswer = a.isAnswer; addCloned(c, 24); }, EXTRA);
+  a.clone(c => { c.set({ left: a.left + 24, top: a.top + 24 }); if (a.pmSource) c.pmSource = JSON.parse(JSON.stringify(a.pmSource)); c.isAnswer = a.isAnswer; canvas.discardActiveObject(); canvas.add(c); canvas.setActiveObject(c); saveHist(true); ctxUpdate(); }, EXTRA);
 }
 function delSel() {
   const a = canvas.getActiveObject(); if (!a) return;
@@ -607,9 +601,8 @@ function ungroupSel() {
 }
 function openSource(a) {
   const s = a.pmSource; if (!s) return;
-  const map = { calc: 'p-calc', kanji: 'p-kanji', note: 'p-kanji', kuku: 'p-kuku', header: 'p-parts', hyaku: 'p-drill', clock: 'p-drill' };
-  if (s.kind === 'hyaku' || s.kind === 'clock') { writeForm('p-drill', s.p); showTab('drill'); return; }
-  if (s.kind === 'header') { $('h_title').value = s.title || ''; $('h_nw').value = s.nw; $('h_nh').value = s.nh; $('h_score').checked = s.score; $('h_date').checked = s.date; $('h_class').checked = s.cls; syncLabels(); showTab('parts'); return; }
+  const map = { calc: 'p-calc', kanji: 'p-kanji', note: 'p-kanji', kuku: 'p-kuku', header: 'p-parts' };
+  if (s.kind === 'header') { $('h_title').value = s.title || ''; $('h_nw').value = s.nw; $('h_nh').value = s.nh; $('h_score').checked = s.score; $('h_date').checked = s.date; $('h_class').checked = s.cls; $('h_goal').value = s.goal || $('h_goal').value; $('h_goalOn').checked = !!s.goalOn; syncLabels(); showTab('parts'); return; }
   if (s.kind === 'note') { writeForm('p-kanji', Object.assign({}, s.p)); showTab('kanji'); return; }
   writeForm(map[s.kind], s.p); showTab(s.kind === 'calc' ? 'calc' : s.kind === 'kanji' ? 'kanji' : 'kuku');
   if (s.kind === 'kanji') kChips();
@@ -648,20 +641,6 @@ function genProblems(o) {
       const d = o.db === 1 ? rnd(2, 9) : rndDigits(o.db), q = rndDigits(Math.max(1, o.da - o.db + 1) || 1), r = o.rem === 'yes' ? rnd(1, d - 1) : 0;
       if (d < 2 || (o.rem === 'yes' && d < 3)) continue; s = `${d * q + r}÷${d}=`;
     }
-    else if (t === 'ana') {
-      const add = o.anaop ? o.anaop === '+' : Math.random() < 0.5;
-      let a = rndDigits(o.da), b = rndDigits(o.db); if (!add && a < b) [a, b] = [b, a]; if (!add && a === b) continue;
-      const c = add ? a + b : a - b; if (o.dc && String(c).length !== o.dc) continue;
-      const v = [a, b, c], pos = o.anapos != null ? o.anapos : rnd(0, 2); v[pos] = '□';
-      s = `${v[0]}${add ? '+' : '-'}${v[1]}=${v[2]}`;
-    } else if (t === 'anam') {
-      const a = o.anaa || dans[rnd(0, dans.length - 1)], b = rnd(1, 9), v = [a, b, a * b], pos = o.anapos != null ? o.anapos : rnd(0, 2); v[pos] = '□';
-      s = `${v[0]}×${v[1]}=${v[2]}`;
-    } else if (t === 'dec') {
-      const add = o.anaop ? o.anaop === '+' : Math.random() < 0.5, mk = d => (rndDigits(d) * 10 + rnd(1, 9)) / 10;
-      let a = mk(o.da), b = mk(o.db); if (!add && a < b) [a, b] = [b, a]; if (!add && a === b) continue;
-      s = `${a.toFixed(1)}${add ? '+' : '-'}${b.toFixed(1)}=`;
-    }
     if (!s || seen.has(s) && tries < 3000) continue; seen.add(s); out.push(s);
   }
   return out;
@@ -683,22 +662,11 @@ function answerText(e) {
   const v = evalMath(e); if (v === null) return null;
   return String(Math.round(v * 1000) / 1000);
 }
-/* □を求める問題の答え（□は1つだけ） */
-function solveBlank(e) {
-  const N = '(\\d+(?:\\.\\d+)?|□)', m = e.match(new RegExp('^' + N + '([+\\-×÷])' + N + '=' + N + '$'));
-  if (!m) return null; const [, a, op, b, c] = m;
-  if ([a, b, c].filter(x => x === '□').length !== 1) return null;
-  const A = +a, B = +b, C = +c; let v;
-  if (c === '□') v = op === '+' ? A + B : op === '-' ? A - B : op === '×' ? A * B : A / B;
-  else if (a === '□') v = op === '+' ? C - B : op === '-' ? C + B : op === '×' ? C / B : C * B;
-  else v = op === '+' ? C - A : op === '-' ? A - C : op === '×' ? C / A : A / C;
-  return isFinite(v) ? String(Math.round(v * 1000) / 1000) : null;
-}
 function dispMath(e) { return e.replace(/\+/g, '＋').replace(/-/g, '－').replace(/=/g, '＝'); }
 function calcItem(P) {
   const font = FONTS[P.font] || FONTS.g, ansF = +P.answ || 1.6;
   return (col, x, y, w, i, raw) => {
-    const fs0 = +P.fs, lab = ordinal(i + (+P.start || 0), P.num);
+    const fs0 = +P.fs, lab = ordinal(i, P.num);
     const mathy = isMathLine(raw); let e = mathy ? normExpr(raw) : null;
     let h = 0;
     const boxW = f => f * (0.9 + 0.8 * ansF), boxH = f => f * 1.7;
@@ -708,19 +676,6 @@ function calcItem(P) {
       const m = e.replace(/=$/, '').match(/^(\d+)([+\-×÷])(\d+)$/);
       const wantBox = !given && !blankIn && P.ans !== 'none', ans = given || blankIn ? null : answerText(e);
       if (P.hissan && m && m[2] !== '÷' && !given) return hissanItem(col, x, y, w, i, m, ans, P, font, lab);
-      const sol = blankIn ? solveBlank(e) : null;
-      if (sol !== null) {
-        const parts = dispMath(e).split('□'), bwB = boxW(fs0) * 0.8;
-        const needB = f => tw(lab, f, font) + 8 + tw(parts[0], f, font) + tw(parts[1], f, font) + bwB * f / fs0 + 12;
-        const fs = needB(fs0) > w ? fs0 * w / needB(fs0) : fs0, bh = boxH(fs), cy = y + bh / 2, bw = bwB * fs / fs0;
-        col.add(T(lab, x, cy, fs, { font })); let cx = x + tw(lab, fs, font) + 8;
-        if (parts[0]) { col.add(T(parts[0], cx, cy, fs, { font })); cx += tw(parts[0], fs, font); }
-        cx += 6; col.rect('ans', cx, cy - bh / 2, bw, bh, { stroke: '#222', w: 2 });
-        col.add(T(sol, cx + bw / 2, cy, fs, { font, center: true, ans: true, fill: '#e53935' })); cx += bw + 6;
-        if (parts[1]) col.add(T(parts[1], cx, cy, fs, { font }));
-        if (P.dot) col.line('sep', x, y + bh + (+P.gap) / 2, x + w, y + bh + (+P.gap) / 2, { stroke: '#aaa', w: 1, dash: [4, 4] });
-        return bh;
-      }
       const text = dispMath(e);
       const rem = !!(ans && ans.includes('あまり')), bwf = f => rem ? boxW(f) * 0.85 * 2 + tw('あまり', f * 0.7, font) + 16 : boxW(f);
       let k = 1; const need = f => tw(lab, f, font) + 8 + tw(text, f, font) + (wantBox ? 14 + bwf(f) : (P.ans === 'none' && ans ? 14 + tw(ans, f, font) : 0));
@@ -809,7 +764,7 @@ function kanjiItem(P) {
   const font = FONTS[P.font] || FONTS.k, fs = +P.fs, B = +P.box, hs = +P.hs;
   const st = { bcol: P.bcol, gcol: P.gcol, bw: +P.bw, bstyle: P.bstyle };
   return (col, x, y, w, i, line) => {
-    const lab = ordinal(i + (+P.start || 0), P.num), lw = lab ? tw(lab, fs, font) + 8 : 0, avail = w - lw;
+    const lab = ordinal(i, P.num), lw = lab ? tw(lab, fs, font) + 8 : 0, avail = w - lw;
     const segs = parseKanji(line);
     // トークン化： {k:'c',ch} / {k:'b',ch,hint,gi,first} / {k:'t',s} (読み問題の本文)
     const toks = [];
@@ -998,7 +953,8 @@ function buildHeader(h) {
   col.add(T('名前', x + lw / 2, y + nh / 2, nh * 0.42, { font, center: true, bold: true }));
   x += nw + 14;
   if (h.score) { col.rect('sb', x, y, sw, nh, { stroke: '#222', w: 3 }); col.add(T('点', x + sw - 12, y + nh * 0.72, nh * 0.34, { font, right: true })); }
-  return col.group({ kind: 'header', title: h.title, nw: h.nw, nh: h.nh, score: h.score, date: h.date, cls: h.cls });
+  if (h.goalOn && h.goal) { let gf = 24; while (gf > 12 && tw('めあて：' + h.goal, gf, font) > W) gf -= 2; col.add(T('めあて：' + h.goal, 0, y + nh + 24, gf, { font, fill: '#333' })); }
+  return col.group({ kind: 'header', title: h.title, nw: h.nw, nh: h.nh, score: h.score, date: h.date, cls: h.cls, goal: h.goal, goalOn: h.goalOn });
 }
 
     async function buildPDF(pages) {
@@ -1129,14 +1085,15 @@ async function composeSheet(img, c, dpi) {
   }
   return cv;
 }
-async function renderPage(i, showAns) {
-  const c = cfg(), json = i === S.idx ? canvasJSON() : S.pages[i].json, [w, h] = canvasPx();
-  const sc = new fabric.StaticCanvas(null, { width: w, height: h, backgroundColor: '#ffffff' });
+async function renderPageFrom(json, c, showAns) {
+  const [cwm, chm] = cellMM(c), w = Math.round(cwm * MM), hh = Math.round(chm * MM);
+  const sc = new fabric.StaticCanvas(null, { width: w, height: hh, backgroundColor: '#ffffff' });
   await loadJSON(sc, json); setAns(showAns, sc);
   const url = sc.toDataURL({ format: 'png', multiplier: c.dpi / 96 }); sc.dispose && sc.dispose();
   const cv = await composeSheet(await loadImg(url), c, c.dpi), [pw, ph] = pageMM(c);
   return { canvas: cv, w: pw, h: ph };
 }
+async function renderPage(i, showAns) { return renderPageFrom(i === S.idx ? canvasJSON() : S.pages[i].json, cfg(), showAns); }
 async function renderAll(mode) { // 'q' | 'a' | 'qa'
   savePageState(); const out = [];
   if (mode === 'q' || mode === 'qa') for (let i = 0; i < S.pages.length; i++) out.push(await renderPage(i, false));
@@ -1154,11 +1111,10 @@ function textParas() {
       const s = o.pmSource;
       if (s && s.kind === 'header') P(s.title || '', { bold: true, sz: 40, align: 'center' });
       else if (s && s.kind === 'calc') {
-        String(s.p.lines).split('\n').filter(l => l.trim()).forEach((l, i) => P(ordinal(i + (+s.p.start || 0), s.p.num) + ' ' + l.trim(), { sz: 28 }));
+        String(s.p.lines).split('\n').filter(l => l.trim()).forEach((l, i) => P(ordinal(i, s.p.num) + ' ' + l.trim(), { sz: 28 }));
       } else if (s && s.kind === 'kanji') {
-        normKanjiLines(s.p).forEach((l, i) => P(ordinal(i + (+s.p.start || 0), s.p.num) + ' ' + l.replace(/「([^」|｜]*)[^」]*」/g, (m, w) => '（' + '　'.repeat(Math.max(1, [...w].length)) + '）'), { sz: 28 }));
-      } else if (s && (s.kind === 'hyaku' || s.kind === 'clock')) P('（百ます・時計は「見たまま」のWordを使ってください）', { color: '888888' });
-      else if (s && s.kind === 'kuku') P('（九九の表・図は「見たまま」のWordを使ってください）', { color: '888888' });
+        normKanjiLines(s.p).forEach((l, i) => P(ordinal(i, s.p.num) + ' ' + l.replace(/「([^」|｜]*)[^」]*」/g, (m, w) => '（' + '　'.repeat(Math.max(1, [...w].length)) + '）'), { sz: 28 }));
+      } else if (s && s.kind === 'kuku') P('（九九の表・図は「見たまま」のWordを使ってください）', { color: '888888' });
       else if (['i-text', 'textbox', 'text'].includes(o.type) && o.text) P(o.text, { bold: o.fontWeight === 'bold', sz: Math.max(18, Math.round(o.fontSize * (o.scaleY || 1) * 0.75 * 2)), align: o.textAlign === 'center' ? 'center' : 'left' });
     });
   });
@@ -1197,72 +1153,15 @@ function projectObj() { return { app: 'pm4', title: $('docTitle').value, cfg: cf
 async function loadProject(o) {
   applyCfg(o.cfg); $('m_subj').value = o.subj || ''; $('m_unit').value = o.unit || ''; $('docTitle').value = o.title || o.name || '無題';
   S.pages = (o.pages && o.pages.length ? o.pages : [null]).map(j => ({ json: j })); S.idx = 0; S.loading = true; applySize();
-  await loadJSON(canvas, S.pages[0].json); setAns(S.showAns); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); setDirty(false); ctxUpdate();
+  await loadJSON(canvas, S.pages[0].json); setAns(S.showAns); S.loading = false; S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); ctxUpdate();
 }
 function newId() { return 'p' + Date.now().toString(36) + rnd(100, 999); }
-async function saveDoc(asNew) {
-  savePageState();
-  let title = $('docTitle').value.trim() || '無題のプリント';
-  if (asNew) { const n = prompt('保存する名前を入力してください', title); if (!n) return; title = n; $('docTitle').value = n; S.recId = null; }
-  const db = await getDB(); let rec = db.find(r => r.id === S.recId);
-  if (!rec) { rec = { id: newId(), created: Date.now() }; db.unshift(rec); S.recId = rec.id; }
-  Object.assign(rec, Object.assign(projectObj(), { id: rec.id, created: rec.created, title, updated: Date.now(), thumb: canvas.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.35 / S.zoom }) }));
-  await setDB(db); setDirty(false); toast('「' + title + '」を保存しました（📚保存一覧にあります）');
-}
-async function openLib(tab) {
-  tab = tab || 'saved'; const m = $('modal'); $('modalbg').classList.add('show');
-  const db = tab === 'saved' ? await getDB() : await getTrash();
-  m.innerHTML = `<header><b style="font-size:17px">${tab === 'saved' ? '📚 保存したプリント' : '🗑 ごみ箱'}</b>
-    <button id="lbS" class="${tab === 'saved' ? 'on' : ''}">保存一覧</button><button id="lbT" class="${tab === 'trash' ? 'on' : ''}">ごみ箱</button>
-    <input id="lbQ" placeholder="🔍 さがす" style="padding:5px 8px;border:1px solid #9aa79a;border-radius:8px">
-    <span class="sp"></span><button id="lbExp">全部バックアップ</button><label class="pf" style="cursor:pointer;border:1px solid #9aa79a;border-radius:8px;padding:5px 10px">読み込み<input type="file" id="lbImp" accept=".json" style="display:none"></label>
-    ${tab === 'trash' ? '<button id="lbEmpty" class="danger">ごみ箱を空にする</button>' : ''}<button id="lbX">✕ 閉じる</button></header><div class="body" id="lbBody"></div>`;
-  const body = $('lbBody');
-  const draw = (q) => {
-    body.innerHTML = '';
-    const items = db.filter(r => !q || (r.title + (r.subj || '') + (r.unit || '')).includes(q));
-    if (!items.length) body.innerHTML = '<div style="padding:30px;color:#777;grid-column:1/-1">ここには まだ何もありません。</div>';
-    items.forEach(r => {
-      const d = document.createElement('div'); d.className = 'lib';
-      d.innerHTML = `<img src="${r.thumb || ''}"><div class="nm"></div><div class="mt">${[r.subj, r.unit].filter(Boolean).join(' / ')}　${r.pages ? r.pages.length : 1}ページ<br>${new Date(r.updated || r.created).toLocaleString('ja-JP')}</div><div class="bt"></div>`;
-      d.querySelector('.nm').textContent = r.title;
-      const bt = d.querySelector('.bt'), add = (t, f, c) => { const b = document.createElement('button'); b.textContent = t; if (c) b.className = c; b.onclick = f; bt.appendChild(b); };
-      if (tab === 'saved') {
-        add('開く', async () => { $('modalbg').classList.remove('show'); await loadProject(r); S.recId = r.id; toast('開きました'); }, 'pri');
-        add('複製', async () => { const c = JSON.parse(JSON.stringify(r)); c.id = newId(); c.title = r.title + ' のコピー'; c.updated = Date.now(); db.unshift(c); await setDB(db); openLib('saved'); toast('複製しました'); });
-        add('名前変更', async () => { const n = prompt('新しい名前', r.title); if (n) { r.title = n; await setDB(db); openLib('saved'); } });
-        add('PDF', async () => { await openThen(r, 'pdf'); }); add('Word', async () => { await openThen(r, 'docx'); });
-        add('削除', async () => { if (!confirm('「' + r.title + '」をごみ箱に移しますか？')) return; const t = await getTrash(); t.unshift(r); await setTrash(t); await setDB(db.filter(x => x !== r)); if (S.recId === r.id) S.recId = null; openLib('saved'); toast('ごみ箱に移しました（元に戻せます）'); }, 'danger');
-      } else {
-        add('復元', async () => { const dbs = await getDB(); dbs.unshift(r); await setDB(dbs); await setTrash(db.filter(x => x !== r)); openLib('trash'); toast('復元しました'); }, 'pri');
-        add('完全に削除', async () => { if (!confirm('完全に削除します。元に戻せません。よろしいですか？')) return; await setTrash(db.filter(x => x !== r)); openLib('trash'); }, 'danger');
-      }
-      body.appendChild(d);
-    });
-  };
-  draw('');
-  $('lbQ').oninput = e => draw(e.target.value.trim());
-  $('lbX').onclick = () => $('modalbg').classList.remove('show'); $('lbS').onclick = () => openLib('saved'); $('lbT').onclick = () => openLib('trash');
-  $('lbExp').onclick = async () => download(new Blob([JSON.stringify({ app: 'pm4-backup', items: await getDB() })], { type: 'application/json' }), 'プリントバックアップ.json');
-  $('lbImp').onchange = async e => { const f = e.target.files[0]; if (f) { await importJSON(await f.text()); openLib('saved'); } };
-  if ($('lbEmpty')) $('lbEmpty').onclick = async () => { if (confirm('ごみ箱を空にします。よろしいですか？')) { await setTrash([]); openLib('trash'); } };
-}
-async function openThen(r, kind) {
-  $('modalbg').classList.remove('show'); await loadProject(r); S.recId = r.id; await doExport(kind);
-}
-async function importJSON(text) {
-  const o = JSON.parse(text);
-  if (o.app === 'pm4-backup') { const db = await getDB(); (o.items || []).forEach(r => { r.id = newId(); db.unshift(r); }); await setDB(db); toast('バックアップを読み込みました'); }
-  else if (o.pages) { await loadProject(o); S.recId = null; toast('ファイルを開きました'); }
-  else toast('このファイルは読み込めません');
-}
 /* ================= 部品 ================= */
 function placeObj(o) { o.set({ left: o.left ?? 80, top: o.top ?? 80 }); canvas.add(o); canvas.setActiveObject(o); canvas.requestRenderAll(); saveHist(true); ctxUpdate(); }
 function addPart(kind) {
   const pos = { left: 70 + rnd(0, 30), top: Math.min(canvas.height - 120, contentBottom() + 20) };
   if (kind === 'text') placeObj(new fabric.IText('ここに文字を入力', Object.assign({ fontSize: 28, fontFamily: FONTS.g, fill: '#111' }, pos)));
   else if (kind === 'title') placeObj(new fabric.IText('見出し', Object.assign({ fontSize: 44, fontWeight: 'bold', fontFamily: FONTS.m, fill: '#1b5e20' }, pos)));
-  else if (kind === 'para') placeObj(new fabric.Textbox('ここに説明文を書きます。長い文は自動で折り返されます。右はしをドラッグすると幅を変えられます。', Object.assign({ width: canvas.width - 2 * PAD - 80, fontSize: 24, lineHeight: 1.4, fontFamily: FONTS.m, fill: '#111', splitByGrapheme: true }, pos)));
   else if (kind === 'rect') placeObj(new fabric.Rect(Object.assign({ width: 220, height: 120, fill: '', stroke: '#222', strokeWidth: 3 }, pos)));
   else if (kind === 'circle') placeObj(new fabric.Circle(Object.assign({ radius: 60, fill: '', stroke: '#222', strokeWidth: 3 }, pos)));
   else if (kind === 'line') placeObj(new fabric.Line([0, 0, 320, 0], Object.assign({ stroke: '#222', strokeWidth: 3 }, pos)));
@@ -1355,7 +1254,7 @@ function kUnwrap() {
 /* ================= ひな型 ================= */
 const SENT10 = ['「学校」へ行く', '「先生」に会う', '算数を「勉強」する', '「友達」と遊ぶ', '「花」がさく', '「空」が青い', '「森」の中を歩く', '「本」を読む', '「電車」に乗る', '「毎日」運動する'];
 const SENT20 = SENT10.concat(['「時間」を守る', '「家族」で食事をする', '「天気」がよい', '「公園」で走る', '「音楽」を聞く', '「教室」に入る', '「名前」を書く', '「手紙」を出す', '「春」が来た', '「海」で泳ぐ']);
-const readHeader = () => ({ title: $('h_title').value, nw: +$('h_nw').value, nh: +$('h_nh').value, score: $('h_score').checked, date: $('h_date').checked, cls: $('h_class').checked });
+const readHeader = () => ({ title: $('h_title').value, nw: +$('h_nw').value, nh: +$('h_nh').value, score: $('h_score').checked, date: $('h_date').checked, cls: $('h_class').checked, goal: $('h_goal').value, goalOn: $('h_goalOn').checked });
 async function tpl(name) {
   const os = canvas.getObjects();
   if (os.length === 1 && os[0].pmSource && os[0].pmSource.kind === 'header') canvas.remove(os[0]); else if (os.length) await pgAdd(false);
@@ -1382,18 +1281,15 @@ async function tpl(name) {
     hdr('漢字れんしゅうノート'); writeForm('p-kanji', { nlist: '学 校 先 生 友 空', nper: 8, nrows: 1, nbox: 84, nmodel: 'gray', nyomi: 'がく,こう,せん,せい,とも,そら' });
     g = buildNote(readForm('p-kanji')); addSheet(g);
   } else if (name === 'genkou') { hdr('作文'); addGenkou(); }
-  else if (name === 'ana') { hdr('□にあてはまる数'); g = calc({ cols: 2, fs: 30, gap: 30 }, G('ana', 10, { da: 2, db: 2, dc: 2 }).concat(G('anam', 10))); }
-  else if (name === 'dec') { hdr('小数のたし算・ひき算'); g = calc({ cols: 2 }, G('dec', 20, { da: 1, db: 1 })); }
-  else if (name === 'hyaku') { hdr('百ます計算'); writeForm('p-drill', { hy_op: '+', hy_n: 10, hy_time: true, hy_big: false }); g = buildHyaku(readForm('p-drill')); addSheet(g); }
-  else if (name === 'tokei') { hdr('とけいの よみかた'); writeForm('p-drill', { ck_n: 12, ck_cols: 3, ck_step: 5, ck_mode: 'read', ck_min: true, ck_num: true }); g = buildClocks(readForm('p-drill')); addSheet(g); }
   if (g) { canvas.discardActiveObject(); canvas.requestRenderAll(); }
-  if (/^kanji[12]/.test(name)) { showTab('kanji'); } else if (/^(calc|hissan|mul|kuku-test|ana|dec)/.test(name)) showTab('calc'); else if (/^(hyaku|tokei)/.test(name)) showTab('drill'); else if (/^kuku/.test(name)) showTab('kuku');
+  if (/^kanji[12]/.test(name)) { showTab('kanji'); } else if (/^(calc|hissan|mul|kuku-test)/.test(name)) showTab('calc'); else if (/^kuku/.test(name)) showTab('kuku');
   toast('できました。文字や問題を直したいときは、右のタブで書き直して「作り直す」を押してください');
 }
 function helpModal() {
   $('modalbg').classList.add('show');
   $('modal').innerHTML = `<header><b style="font-size:17px">❓ 使い方</b><span class="sp"></span><button id="hx">✕ 閉じる</button></header>
   <div style="padding:16px 20px;overflow:auto;line-height:1.8;font-size:14.5px">
+  <h3>■ 授業ファイル（教科 → 単元 → 時間）</h3><p>左上の「📁 授業ファイル」で、<b>教科・単元ごとにファイル</b>を作ります。たとえば「算数／かけ算／5時間」で作ると、その中に<b>1時間目〜5時間目</b>のタブが並びます。タブを押すだけで時間を切り替えられ、<b>変更は自動で保存</b>されます。<br>・「＋時間を追加」…白紙／いまの時間のコピー／ひな型から作れます。<br>・「⋯この時間の操作」…名前変更、コピーして次の時間を作る、並べかえ、別の単元へ移す、全時間をまとめてPDF/Word出力、削除（ごみ箱から戻せます）。<br>・時間バーの「めあて」欄にねらいを書けます（「部品」タブでプリントにも書けます）。<br>・Alt+←／Alt+→ で前後の時間に移動できます。<br>・「📁授業ファイル」の画面で、単元ごと複製（学年が変わったときに便利）、検索、バックアップができます。</p>
   <h3>■ 基本の流れ</h3>
   <p>① 左の「⭐ひな型」でボタンを押す → 名前欄つきのプリントが1枚できます。<br>② 問題をかえたいときは、ページの上の問題を<b>クリック</b>→ 上の「✏この問題の設定を開く」→ 文字を書きかえて「🔄作り直す」。<br>③ 「⬇出力する」からPDF／Word、または「💾保存」。</p>
   <h3>■ 問題は ひとかたまり</h3><p>つくった問題・九九表・漢字マスは1つの部品です。ドラッグで全体が動き、四隅で大きさが変わります。1つずつ直したいときだけ「✂バラバラにして…」を押します。</p>
@@ -1401,12 +1297,7 @@ function helpModal() {
   <h3>■ 漢字の□マス</h3><p>「✏️漢字」タブで「算数を「勉強」する」のように<b>「　」で囲った部分</b>が、点線入り（田の字）の四角マスになります。囲む手間は、①ドラッグして「「」で囲む」ボタン、②下に出る漢字ボタンをタップ、③「漢字を全部マスにする」チェック、のどれでもOK。読みのヒントは「勉強|べんきょう」と書きます。マスの大きさ・線の色・点線のしゅるいも変えられます。</p>
   <h3>■ 答えページ</h3><p>「✅答え」ボタンで赤い答えを表示/非表示。出力の「問題＋答え」で2部いっぺんに作れます。</p>
   <h3>■ 保存したものを消す・コピーする</h3><p>「📚保存一覧」で、開く／複製／名前変更／削除（ごみ箱から戻せます）ができます。</p>
-  <h3>■ 類題（数字だけちがうプリント）</h3><p>問題をクリック →「🎲数字を入れかえ」で、同じ形・同じむずかしさ（桁・くり上がり・九九の段）のまま数字だけ変わります。「⭐ひな型」タブの「📄このページの類題を作る」なら、ページごと何枚でも作れます。</p>
-  <h3>■ たくさんの問題</h3><p>計算・漢字の問題がページに入りきらないときは、<b>自動で次のページに続きます</b>（名前欄もコピー、番号も続き番号）。小さくして1ページに入れたいときは「📐用紙」タブのチェックを外します。</p>
-  <h3>■ □を求める・小数</h3><p>「□+25=60」「7×□=56」のように書くと、□が答えの四角になり、答えも自動で計算されます。「1.2+3.5=」のような小数もOKです。</p>
-  <h3>■ 百ます計算・時計</h3><p>「🕒ドリル」タブで作れます。「作り直す」を押すたびに数字・時こくが入れかわります。</p>
-  <h3>■ きれいに並べる</h3><p>ドラッグすると、ページの中央・左右の余白にピタッと合います（赤い点線）。Altキーを押しながらだと合わせません。Shift+クリックで複数選ぶと「左そろえ」「たて等間隔」「上につめる」が使えます。</p>
-  <h3>■ 便利なキー</h3><p>Ctrl+Z 元に戻す / Ctrl+Y やり直し / Ctrl+S 保存 / Ctrl+C・Ctrl+V コピー・貼り付け（別のページにも貼れます）/ Ctrl+D 複製 / Delete 削除 / 矢印キー 少し動かす（Shiftで大きく）/ Ctrl+マウスホイール 拡大縮小 / PageUp・PageDown ページ移動</p></div>`;
+  <h3>■ 便利なキー</h3><p>Ctrl+Z 元に戻す / Ctrl+Y やり直し / Ctrl+S 保存 / Alt+←→ 前後の時間 / Ctrl+D 複製 / Delete 削除 / 矢印キー 少し動かす</p></div>`;
   $('hx').onclick = () => $('modalbg').classList.remove('show');
 }
 
@@ -1499,219 +1390,414 @@ async function addFurigana() {
   });
 }
 
-/* ================= 百ます計算 ================= */
-function shuffled(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function buildHyaku(P) {
-  const n = +P.hy_n || 10, op = P.hy_op || '+', W = canvas.width - 2 * PAD, font = FONTS.m, col = new Col();
-  const cell = Math.min(P.hy_big ? 80 : 62, W / (n + 1)), fs = cell * 0.5;
-  const tops = shuffled([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, n);
-  const lefts = shuffled(op === '-' ? [10, 11, 12, 13, 14, 15, 16, 17, 18, 19] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, n);
-  let y0 = 0; const x0 = 0;
-  if (P.hy_time) { col.add(T('かかった時間　　　分　　　秒', cell * (n + 1), 16, 22, { font, right: true })); y0 = 40; }
-  col.rect('hd', x0, y0, cell, cell, { fill: '#2e7d32', stroke: '#222', w: 2 });
-  col.add(T(op === '-' ? '－' : op === '+' ? '＋' : '×', x0 + cell / 2, y0 + cell / 2, fs, { font, center: true, bold: true, fill: '#fff' }));
-  tops.forEach((v, k) => { col.rect('hh', x0 + cell * (k + 1), y0, cell, cell, { fill: '#e8f5e9', stroke: '#222', w: 2 }); col.add(T(v, x0 + cell * (k + 1.5), y0 + cell / 2, fs, { font, center: true, bold: true })); });
-  lefts.forEach((a, r) => {
-    const yy = y0 + cell * (r + 1);
-    col.rect('hh', x0, yy, cell, cell, { fill: '#e8f5e9', stroke: '#222', w: 2 }); col.add(T(a, x0 + cell / 2, yy + cell / 2, fs, { font, center: true, bold: true }));
-    tops.forEach((b, k) => {
-      col.rect('cl', x0 + cell * (k + 1), yy, cell, cell, { stroke: '#444', w: (k % 5 === 4 || r % 5 === 4) ? 2.4 : 1.2 });
-      const v = op === '+' ? a + b : op === '-' ? a - b : a * b;
-      col.add(T(v, x0 + cell * (k + 1.5), yy + cell / 2, fs * 0.9, { font, center: true, ans: true, fill: '#e53935' }));
-    });
-  });
-  col.rect('frm', x0, y0, cell * (n + 1), cell * (n + 1), { stroke: '#222', w: 3 });
-  return reorderFills(col).group({ kind: 'hyaku', p: P });
-}
-/* ================= 時計の読み方 ================= */
-function clockTimes(n, step) {
-  const out = [], seen = new Set(); let tries = 0;
-  while (out.length < n && tries++ < 500) {
-    const h = rnd(1, 12), m = step === 60 ? 0 : step === 30 ? rnd(0, 1) * 30 : step === 5 ? rnd(0, 11) * 5 : rnd(0, 59);
-    const k = h * 60 + m; if (seen.has(k) && tries < 300) continue; seen.add(k); out.push([h, m]);
-  }
-  return out;
-}
-function buildClocks(P) {
-  const n = Math.max(1, +P.ck_n || 12), cols = +P.ck_cols || 3, step = +P.ck_step || 5, draw = P.ck_mode === 'draw';
-  const W = canvas.width - 2 * PAD, font = FONTS.m, times = clockTimes(n, step);
-  const r = gridLayout(times, cols, W, 24, 26, (col, x, y, w, i, t) => {
-    const [h, m] = t, lab = ordinal(i, 'p'), lfs = 20, R = Math.min(w / 2 - 14, 120), cx = x + w / 2, cy = y + 14 + R;
-    col.add(T(lab, x, y + 10, lfs, { font }));
-    col.add(new fabric.Circle({ left: cx - R, top: cy - R, radius: R, fill: '#fff', stroke: '#222', strokeWidth: 3, objectCaching: false }));
-    for (let k = 0; k < 60; k++) {
-      const a = k * Math.PI / 30, big = k % 5 === 0; if (!big && !P.ck_min) continue;
-      const r1 = R * (big ? 0.86 : 0.92), r2 = R * 0.98;
-      col.line(big ? 'tb' : 'ts', cx + r1 * Math.sin(a), cy - r1 * Math.cos(a), cx + r2 * Math.sin(a), cy - r2 * Math.cos(a), { stroke: '#222', w: big ? 2.6 : 1.2 });
-    }
-    if (P.ck_num) for (let k = 1; k <= 12; k++) { const a = k * Math.PI / 6; col.add(T(k, cx + R * 0.7 * Math.sin(a), cy - R * 0.7 * Math.cos(a), R * 0.2, { font, center: true, bold: true })); }
-    const hand = (deg, len, wd, ans) => { const a = deg * Math.PI / 180; const l = new fabric.Line([cx, cy, cx + len * Math.sin(a), cy - len * Math.cos(a)], { stroke: ans ? '#e53935' : '#111', strokeWidth: wd, strokeLineCap: 'round', objectCaching: false }); if (ans) { l.isAnswer = true; l.visible = S.showAns; } col.add(l); };
-    hand((h % 12) * 30 + m * 0.5, R * 0.5, Math.max(4, R * 0.07), draw); hand(m * 6, R * 0.8, Math.max(2.5, R * 0.04), draw);
-    col.add(new fabric.Circle({ left: cx - 4, top: cy - 4, radius: 4, fill: '#111', objectCaching: false }));
-    const by = cy + R + 14, fs = Math.min(26, w / 8), bh = fs * 1.6;
-    if (draw) { col.add(T(`${h}時${m ? m + '分' : ''}`, cx, by + bh / 2, fs * 1.1, { font, center: true, bold: true })); }
-    else {
-      const bw = fs * 2.2, gap = tw('時', fs, font) + 6, tot = step === 60 ? bw + gap : bw * 2 + gap * 2 + 6;
-      let bx = cx - tot / 2;
-      col.rect('ab', bx, by, bw, bh, { stroke: '#222', w: 2 }); col.add(T(h, bx + bw / 2, by + bh / 2, fs, { font, center: true, ans: true, fill: '#e53935' }));
-      bx += bw + 3; col.add(T('時', bx, by + bh / 2, fs, { font })); bx += gap + 3;
-      if (step !== 60) { col.rect('ab', bx, by, bw, bh, { stroke: '#222', w: 2 }); col.add(T(m, bx + bw / 2, by + bh / 2, fs, { font, center: true, ans: true, fill: '#e53935' })); bx += bw + 3; col.add(T('分', bx, by + bh / 2, fs, { font })); }
-    }
-    return by + bh - y;
-  });
-  return r.col.group({ kind: 'clock', p: P });
-}
-/* ================= 類題（数字だけ入れかえ） ================= */
-function variantLine(raw) {
-  if (!raw.trim() || !isMathLine(raw)) return raw;
-  const e = normExpr(raw), one = o => genProblems(Object.assign({ n: 1, dan: '1-9', carry: 'any', rem: 'no' }, o))[0];
-  let m = e.match(/^(\d+|□)([+\-×])(\d+|□)=(\d+|□)$/);
-  if (m && /□/.test(e)) {
-    const pos = [m[1], m[3], m[4]].indexOf('□'), num = [m[1], m[3], m[4]].filter(x => x !== '□');
-    if (m[2] === '×') { const a = m[1] !== '□' ? +m[1] : null; return one({ type: 'anam', anapos: pos, anaa: a && a <= 9 ? a : null }) || raw; }
-    const da = String(pos === 0 ? (m[2] === '+' ? +m[4] - +m[3] : +m[4] + +m[3]) : m[1]).length;
-    const db = String(pos === 1 ? Math.abs(+m[4] - +m[1]) : m[3]).length;
-    const dc = String(pos === 2 ? (m[2] === '+' ? +m[1] + +m[3] : +m[1] - +m[3]) : m[4]).length;
-    return one({ type: 'ana', anaop: m[2], anapos: pos, da: Math.max(1, da), db: Math.max(1, db), dc }) || one({ type: 'ana', anaop: m[2], anapos: pos, da: Math.max(1, da), db: Math.max(1, db) }) || raw;
-  }
-  m = e.match(/^(\d+\.\d+)([+\-])(\d+\.\d+)=$/);
-  if (m) return one({ type: 'dec', anaop: m[2], da: String(Math.floor(+m[1])).length, db: String(Math.floor(+m[3])).length }) || raw;
-  m = e.match(/^(\d+)([+\-×÷])(\d+)=$/); if (!m) return raw;
-  const a = +m[1], b = +m[3], da = m[1].length, db = m[3].length;
-  if (m[2] === '+') return one({ type: 'add', da, db, carry: hasCarry(a, b) ? 'yes' : 'no' }) || raw;
-  if (m[2] === '-') return one({ type: 'sub', da, db, carry: hasBorrow(a, b) ? 'yes' : 'no' }) || raw;
-  if (m[2] === '×') return da === 1 && db === 1 ? `${a}×${rnd(1, 9)}=` : one({ type: 'mul', da, db }) || raw;
-  if (b >= 1 && b <= 9 && a % b === 0 && a / b <= 9) return `${b * rnd(1, 9)}÷${b}=`;
-  for (let t = 0; t < 300; t++) { // 割られる数の桁をそろえる
-    const d = db === 1 ? rnd(2, 9) : rndDigits(db), r = a % b ? rnd(1, d - 1) : 0;
-    if (a % b && d < 3) continue;
-    const qmin = Math.max(1, Math.ceil((Math.pow(10, da - 1) - r) / d)), qmax = Math.floor((Math.pow(10, da) - 1 - r) / d);
-    if (qmax < qmin) continue; const q = rnd(qmin, qmax); return `${d * q + r}÷${d}=`;
-  }
-  return raw;
-}
-function variantText(t) { return String(t || '').split('\n').map(variantLine).join('\n'); }
-const REBUILD = { calc: buildCalc, kanji: buildKanji, note: buildNote, kuku: buildKuku, hyaku: buildHyaku, clock: buildClocks };
-const VARIABLE = ['calc', 'kuku', 'hyaku', 'clock'];
-function replaceKeep(old, g) {
-  const idx = canvas.getObjects().indexOf(old);
-  g.set({ left: old.left, top: old.top, scaleX: old.scaleX, scaleY: old.scaleY, angle: old.angle || 0 });
-  if (old.lockedCustom) { g.lockedCustom = true; g.set({ lockMovementX: true, lockMovementY: true, lockScalingX: true, lockScalingY: true, lockRotation: true, hasControls: false }); }
-  canvas.remove(old); canvas.add(g); if (idx >= 0) canvas.moveTo(g, idx); g.setCoords(); return g;
-}
-function variantObj(o) {
-  const s = o.pmSource; if (!s || !VARIABLE.includes(s.kind)) return null;
-  const p = JSON.parse(JSON.stringify(s.p)); if (s.kind === 'calc') p.lines = variantText(p.lines);
-  return replaceKeep(o, REBUILD[s.kind](p));
-}
-function variantSel() {
-  const a = canvas.getActiveObject(); if (!a) return;
-  const g = variantObj(a); if (!g) return; canvas.setActiveObject(g); silentLoadSource(g); canvas.requestRenderAll(); saveHist(true); ctxUpdate(); toast('数字を入れかえました');
-}
-async function variantPages(n) {
-  n = Math.max(1, Math.min(20, +n || 1)); let cnt = 0;
-  for (let t = 0; t < n; t++) {
-    await pgAdd(true);
-    canvas.getObjects().slice().forEach(o => { if (variantObj(o)) cnt++; });
-    canvas.discardActiveObject(); canvas.requestRenderAll(); saveHist(true);
-  }
-  ctxUpdate(); toast(cnt ? `類題ページを${n}枚作りました（数字だけちがいます）` : 'ページを複製しました（数字を入れかえられる問題がありませんでした）', 4000);
-}
-/* ================= 入りきらない問題を次のページへ ================= */
-async function newPageWithHeader() {
-  const h = canvas.getObjects().find(o => o.pmSource && o.pmSource.kind === 'header'), hj = h ? h.toObject(EXTRA) : null;
-  await pgAdd(false);
-  if (hj) await new Promise(res => fabric.util.enlivenObjects([hj], objs => { canvas.add(objs[0]); canvas.discardActiveObject(); res(); }));
-}
-async function addSplit(builder, P) {
-  let rest = String(P.lines || '').split('\n').filter(s => s.trim()), start = 0, pages = 0;
-  if (!rest.length) throw new Error('問題が入力されていません');
-  while (rest.length) {
-    const top = canvas.getObjects().length ? contentBottom() + 14 : PAD, aw = canvas.width - 2 * PAD, ah = canvas.height - top - PAD;
-    const tryK = k => { const g = builder(Object.assign({}, P, { lines: rest.slice(0, k).join('\n'), start })); return { g, ok: g.height * Math.min(1, aw / g.width) <= ah + 0.5 }; };
-    let best = tryK(rest.length), k = rest.length;
-    if (!best.ok) {
-      let lo = 0, hi = rest.length - 1;
-      while (lo < hi) { const mid = Math.ceil((lo + hi) / 2); if (tryK(mid).ok) lo = mid; else hi = mid - 1; }
-      k = lo; const cols = +P.cols || 1; if (k > cols) k -= k % cols;
-      if (k === 0) {
-        if (canvas.getObjects().length > 1 || (canvas.getObjects().length === 1 && pages === 0 && !canvas.getObjects()[0].pmSource)) { await newPageWithHeader(); pages++; continue; }
-        k = 1;
-      }
-      best = tryK(k);
-    }
-    addSheet(best.g); rest = rest.slice(k); start += k;
-    if (rest.length) { await newPageWithHeader(); pages++; }
-  }
-  if (pages) toast(`入りきらない分を、次のページに続けました（${pages + 1}ページ分）`, 4500);
-}
-/* ================= コピー・貼り付け・整列 ================= */
-function addCloned(c, dx) {
-  canvas.discardActiveObject();
-  c.set({ left: c.left + dx, top: c.top + dx });
-  if (c.type === 'activeSelection') { c.canvas = canvas; c.forEachObject(o => canvas.add(o)); c.setCoords(); }
-  else canvas.add(c);
-  canvas.setActiveObject(c); canvas.requestRenderAll(); saveHist(true); ctxUpdate();
-}
-function copySel() { const a = canvas.getActiveObject(); if (!a) return false; a.clone(c => { S.clip = c; S.clipN = 0; }, EXTRA); toast('コピーしました（Ctrl+V で貼り付け。ほかのページにも貼れます）', 1800); return true; }
-function pasteClip() { if (!S.clip) return false; S.clipN = (S.clipN || 0) + 1; const n = S.clipN; S.clip.clone(c => addCloned(c, 20 * n), EXTRA); return true; }
-function alignSel(mode) {
-  const a = canvas.getActiveObject(); if (!a || a.type !== 'activeSelection') return;
-  const objs = a.getObjects().slice(); canvas.discardActiveObject();
-  const rs = objs.map(o => o.getBoundingRect(true, true)), W = canvas.width;
-  if (mode === 'left') { const m = Math.min(...rs.map(r => r.left)); objs.forEach((o, i) => o.left += m - rs[i].left); }
-  if (mode === 'center') objs.forEach((o, i) => o.left += W / 2 - (rs[i].left + rs[i].width / 2));
-  if (mode === 'top') { const m = Math.min(...rs.map(r => r.top)); objs.forEach((o, i) => o.top += m - rs[i].top); }
-  if (mode === 'vdist' && objs.length > 2) {
-    const ord = objs.map((o, i) => i).sort((p, q) => rs[p].top - rs[q].top), f = rs[ord[0]], l = rs[ord[ord.length - 1]];
-    const sumH = ord.reduce((s, i) => s + rs[i].height, 0), gap = (l.top + l.height - f.top - sumH) / (ord.length - 1);
-    let y = f.top; ord.forEach(i => { objs[i].top += y - rs[i].top; y += rs[i].height + gap; });
-  }
-  if (mode === 'pack') { // 上につめる
-    const ord = objs.map((o, i) => i).sort((p, q) => rs[p].top - rs[q].top); let y = rs[ord[0]].top;
-    ord.forEach(i => { objs[i].top += y - rs[i].top; y += rs[i].height + 14; });
-  }
-  objs.forEach(o => o.setCoords());
-  const sel = new fabric.ActiveSelection(objs, { canvas }); canvas.setActiveObject(sel); canvas.requestRenderAll(); saveHist(true); ctxUpdate();
-}
-/* ガイド線（ページの中央・左右の余白にピタッと合わせる） */
-const SNAP = 8; let guides = [];
-function snapMove(e) {
-  const o = e.target; guides = []; if (!o || (e.e && e.e.altKey)) return;
-  const W = canvas.width, H = canvas.height, r = o.getBoundingRect(true, true);
-  const tryX = (cur, target) => { if (Math.abs(cur - target) < SNAP) { o.left += target - cur; guides.push({ x: target }); return true; } return false; };
-  tryX(r.left + r.width / 2, W / 2) || tryX(r.left, PAD) || tryX(r.left + r.width, W - PAD);
-  if (Math.abs(r.top - PAD) < SNAP) { o.top += PAD - r.top; guides.push({ y: PAD }); }
-  else if (Math.abs(r.top + r.height / 2 - H / 2) < SNAP) { o.top += H / 2 - (r.top + r.height / 2); guides.push({ y: H / 2 }); }
-  o.setCoords();
-}
-function drawGuides() {
-  if (!guides.length) return; const x = canvas.getContext();
-  x.save(); x.strokeStyle = '#e91e63'; x.lineWidth = 1.5; x.setLineDash([6, 4]);
-  guides.forEach(g => { x.beginPath(); if (g.x != null) { x.moveTo(g.x, 0); x.lineTo(g.x, canvas.height); } else { x.moveTo(0, g.y); x.lineTo(canvas.width, g.y); } x.stroke(); });
-  x.restore();
-}
-/* 保存状態の表示 */
-function setDirty(v) { S.dirty = v; const e = $('saveState'); if (!e) return; e.textContent = v ? '● 未保存' : '保存済み'; e.classList.toggle('dirty', v); }
-
 /* ================= 初期化 ================= */
-async function doBuild(builder, panel, kind, upd) {
+function doBuild(builder, panel, kind, upd) {
   try {
-    const P = readForm(panel);
-    if (upd) {
-      const t = selGroup(kind); if (!t) { toast('先にページ上の問題（作り直したいもの）をクリックして選んでください', 4000); return; }
-      if (t.pmSource.p && t.pmSource.p.start) P.start = t.pmSource.p.start;
-      addSheet(builder(P), t);
-    } else if ((kind === 'calc' || kind === 'kanji') && $('s_split').checked) await addSplit(builder, P);
-    else addSheet(builder(P));
+    const P = readForm(panel), g = builder(P);
+    if (upd) { const t = selGroup(kind); if (!t) { toast('先にページ上の問題（作り直したいもの）をクリックして選んでください', 4000); return; } addSheet(g, t); }
+    else addSheet(g);
   } catch (e) { console.error(e); toast(e.message || String(e), 5000); }
 }
 function silentLoadSource(a) {
   const s = a && a.pmSource; if (!s) return;
-  if (s.kind === 'hyaku' || s.kind === 'clock') writeForm('p-drill', s.p); else if (s.kind === 'calc') writeForm('p-calc', s.p); else if (s.kind === 'kanji' || s.kind === 'note') { writeForm('p-kanji', s.p); kChips(); } else if (s.kind === 'kuku') writeForm('p-kuku', s.p);
+  if (s.kind === 'calc') writeForm('p-calc', s.p); else if (s.kind === 'kanji' || s.kind === 'note') { writeForm('p-kanji', s.p); kChips(); } else if (s.kind === 'kuku') writeForm('p-kuku', s.p);
 }
+/* ================= 授業ファイル（教科 → 単元 → 時間） ================= */
+const SUBJECTS = [['国語', '#e53935'], ['算数', '#1e88e5'], ['理科', '#43a047'], ['社会', '#fb8c00'], ['英語', '#8e24aa'], ['生活', '#00acc1'], ['音楽', '#d81b60'], ['図工', '#6d4c41'], ['体育', '#3949ab'], ['道徳', '#7cb342'], ['総合', '#00897b'], ['学級', '#5d4037'], ['その他', '#757575']];
+const subjColor = n => (SUBJECTS.find(s => s[0] === n) || [0, '#607d8b'])[1];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const TPLS = [['calc20', 'たし算・ひき算 20問'], ['hissan', 'ひっ算 12問'], ['mul', 'かけ算・わり算 20問'], ['kuku-table', '九九表'], ['kuku-test', '九九テスト 30問'], ['kuku-yomi', '九九の読み方（3枚）'], ['kanji10', '漢字書き取り 10問'], ['kanji20', '漢字書き取り 20問'], ['kanjiNote', '漢字練習ノート'], ['genkou', '作文用紙']];
+const B = { idx: null, cur: null, lastJSON: '', switching: false, timer: null, view: null };
+const bodyKey = id => 'pm5L_' + id;
+const getBody = id => localforage.getItem(bodyKey(id));
+const saveIndex = () => localforage.setItem('pm5Index', B.idx);
+const findUnit = id => B.idx && B.idx.units.find(u => u.id === id);
+const live = a => a.filter(x => !x.del);
+const curUnit = () => B.cur && findUnit(B.cur.uid);
+const curLesson = () => { const u = curUnit(); return u && u.lessons.find(l => l.id === B.cur.lid); };
+const newUnit = (subject, name) => ({ id: newId(), subject, name, created: Date.now(), updated: Date.now(), lessons: [] });
+const newLesson = title => ({ id: newId(), title, memo: '', updated: Date.now(), thumb: '' });
+const fmtDate = t => { const d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+function openMdl(html) { $('modal').innerHTML = html; $('modalbg').classList.add('show'); }
+function closeMdl() { $('modalbg').classList.remove('show'); }
+
+async function loadIndex() {
+  let idx = await localforage.getItem('pm5Index');
+  if (!idx) {
+    idx = { v: 1, units: [], last: null };
+    let u = null; const ensureU = () => u || (u = newUnit('その他', 'これまでのプリント'));
+    try {
+      for (const r of await getDB()) {
+        const l = newLesson(r.title || '無題'); l.updated = r.updated || r.created || Date.now(); l.thumb = r.thumb || '';
+        ensureU().lessons.push(l);
+        await localforage.setItem(bodyKey(l.id), { app: 'pm4', title: l.title, cfg: r.cfg, subj: '', unit: '', pages: r.pages });
+      }
+      const dr = await localforage.getItem('pm4Draft');
+      if (dr && dr.pages && dr.pages.some(j => j && JSON.parse(j).objects && JSON.parse(j).objects.length)) {
+        const l = newLesson('前回の作業（自動保存）'); ensureU().lessons.push(l); await localforage.setItem(bodyKey(l.id), dr);
+      }
+    } catch (e) { console.error(e); }
+    if (u) idx.units.push(u);
+    await localforage.setItem('pm5Index', idx);
+  }
+  B.idx = idx;
+}
+
+/* ---------- 保存 ---------- */
+function setSaveState(s) { const e = $('saveState'); if (!e) return; e.textContent = s === 'saving' ? '保存中…' : s === 'none' ? '' : '✓ 自動保存済み ' + fmtDate(Date.now()).split(' ')[1]; e.style.color = s === 'saving' ? '#c77700' : '#2e7d32'; }
+function autosaveSoon() {
+  if (S.loading || B.switching) return;
+  if (!B.cur) { clearTimeout(draftTimer); draftTimer = setTimeout(async () => { try { savePageState(); await localforage.setItem('pm4Draft', projectObj()); } catch (e) { } }, 1500); return; }
+  setSaveState('saving'); clearTimeout(B.timer); B.timer = setTimeout(() => saveCurrent(false), 1000);
+}
+async function saveCurrent(force) {
+  if (!B.cur || S.loading || B.switching) return;
+  clearTimeout(B.timer); savePageState();
+  const u = curUnit(), l = curLesson(); if (!l) return;
+  const proj = projectObj(); proj.app = 'pm5'; proj.title = l.title; proj.subj = u.subject; proj.unit = u.name;
+  const js = JSON.stringify(proj);
+  if (!force && js === B.lastJSON) { setSaveState('saved'); return; }
+  B.lastJSON = js;
+  l.updated = Date.now(); u.updated = l.updated; u.lastLid = l.id; B.idx.last = { uid: u.id, lid: l.id };
+  try { l.thumb = canvas.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.3 }); } catch (e) { }
+  await localforage.setItem(bodyKey(l.id), proj); await saveIndex(); setSaveState('saved');
+}
+async function flushSave() { if (B.cur && !S.loading) await saveCurrent(false); }
+
+/* ---------- 開く ---------- */
+async function openLesson(uid, lid, o) {
+  o = o || {}; const u = findUnit(uid), l = u && u.lessons.find(x => x.id === lid); if (!u || !l) return;
+  if (B.cur && !(B.cur.uid === uid && B.cur.lid === lid && !o.force)) await saveCurrent(false);
+  B.switching = true; clearTimeout(B.timer);
+  const body = await getBody(l.id);
+  S.showAns = false; $('bAns').textContent = '✅ 答え：なし'; $('bAns').classList.remove('on');
+  if (body && body.pages) {
+    await loadProject(body);
+  } else {
+    S.pages = [{ json: null }]; S.idx = 0; S.recId = null; applyCfg({ paper: 'A4', orient: 'p', margin: 8, layout: '1', cut: true, dpi: 200 }); applySize();
+    S.loading = true; await loadJSON(canvas, null); S.loading = false;
+    if (o.tpl) { B.cur = { uid, lid }; await tpl(o.tpl); }
+    else { $('h_title').value = u.name + '　' + l.title; addSheet(buildHeader(readHeader())); canvas.discardActiveObject(); }
+    S.hist = []; S.hi = -1; saveHist(true); renderPageBar(); ctxUpdate();
+  }
+  B.cur = { uid, lid }; u.lastLid = lid; B.idx.last = { uid, lid };
+  $('docTitle').value = l.title; $('m_subj').value = u.subject; $('m_unit').value = u.name; $('lessonMemo').value = l.memo || '';
+  $('h_goal').value = l.memo || '';
+  B.switching = false; B.lastJSON = '';
+  if (!body || o.tpl) await saveCurrent(true); else { savePageState(); const p = projectObj(); p.app = 'pm5'; p.title = l.title; p.subj = u.subject; p.unit = u.name; B.lastJSON = JSON.stringify(p); await saveIndex(); }
+  renderLessonBar(); setSaveState('saved'); $('stage').scrollTop = 0; setTimeout(() => { if (S.fit) setZoom(null); }, 50);
+  if (!o.quiet) toast('「' + u.name + '」' + l.title + ' を開きました');
+}
+async function openUnit(uid) {
+  const u = findUnit(uid); if (!u) return; const ls = live(u.lessons); if (!ls.length) { toast('この単元には「時間」がありません'); return; }
+  const l = ls.find(x => x.id === u.lastLid) || ls[0]; closeMdl(); await openLesson(uid, l.id);
+}
+
+/* ---------- 時間バー ---------- */
+function renderLessonBar() {
+  const u = curUnit(), bar = $('ltabs'); bar.innerHTML = '';
+  const cr = $('crumb');
+  if (!u) { cr.innerHTML = '<span style="color:#c75a00;font-weight:bold">⚠ まだ授業ファイルに入っていません（このままだと保存されません）</span>'; $('lessonMemo').disabled = true; $('lMenu').disabled = true; $('lAdd').disabled = true; $('lessonMemo').value = ''; return; }
+  $('lessonMemo').disabled = false; $('lMenu').disabled = false; $('lAdd').disabled = false;
+  cr.innerHTML = `<span class="subjtag" style="background:${subjColor(u.subject)}">${esc(u.subject)}</span> <b>${esc(u.name)}</b>`;
+  const col = subjColor(u.subject);
+  live(u.lessons).forEach(l => {
+    const b = document.createElement('button'); b.className = 'ltab' + (l.id === B.cur.lid ? ' act' : ''); b.textContent = l.title; b.title = 'クリックで切り替え／ダブルクリックで名前を変える';
+    if (l.id === B.cur.lid) { b.style.background = col; b.style.borderColor = col; }
+    b.onclick = () => { if (l.id !== B.cur.lid) openLesson(u.id, l.id, { quiet: true }); };
+    b.ondblclick = () => renameLesson(u.id, l.id);
+    bar.appendChild(b);
+  });
+  const act = bar.querySelector('.act'); if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  document.title = (u.name + ' ' + (curLesson() || {}).title + '｜プリントメーカー');
+}
+function stepLesson(d) {
+  const u = curUnit(); if (!u) return; const ls = live(u.lessons), i = ls.findIndex(l => l.id === B.cur.lid), j = i + d;
+  if (j < 0 || j >= ls.length) { toast(d > 0 ? 'これが最後の時間です' : 'これが最初の時間です'); return; }
+  openLesson(u.id, ls[j].id, { quiet: true });
+}
+async function renameLesson(uid, lid) {
+  const u = findUnit(uid), l = u.lessons.find(x => x.id === lid), n = prompt('この時間の名前', l.title); if (!n) return;
+  l.title = n.trim(); await saveIndex();
+  if (B.cur && B.cur.lid === lid) { $('docTitle').value = l.title; autosaveSoon(); renderLessonBar(); }
+}
+async function addLessonDialog() {
+  const u = curUnit(); if (!u) { newUnitDialog(); return; }
+  const n = live(u.lessons).length + 1;
+  openMdl(`<header><b style="font-size:17px">＋ 新しい「時間」を作る（${esc(u.name)}）</b><span class="sp"></span><button id="mx">✕ 閉じる</button></header>
+  <div style="padding:16px 20px;line-height:2">
+   <div class="row"><label>名前</label><input id="nl_title" value="${n}時間目" style="width:220px;font-size:16px"></div>
+   <div><label><input type="radio" name="nl_mode" value="blank" checked> 白紙（名前欄つき）からはじめる</label></div>
+   <div><label><input type="radio" name="nl_mode" value="copy"> いまの時間をコピーして作る（少しだけ変えたいとき便利）</label></div>
+   <div><label><input type="radio" name="nl_mode" value="tpl"> ひな型から作る：</label> <select id="nl_tpl">${TPLS.map(t => `<option value="${t[0]}">${t[1]}</option>`).join('')}</select></div>
+   <div style="margin-top:12px"><button class="pri big" id="nl_ok">作って開く</button></div></div>`);
+  $('mx').onclick = closeMdl;
+  $('nl_ok').onclick = async () => {
+    const mode = document.querySelector('input[name=nl_mode]:checked').value, title = $('nl_title').value.trim() || n + '時間目';
+    await flushSave(); const l = newLesson(title); closeMdl();
+    if (mode === 'copy') { const b = JSON.parse(JSON.stringify(await getBody(curLesson().id) || projectObj())); b.title = title; await localforage.setItem(bodyKey(l.id), b); const i = u.lessons.findIndex(x => x.id === B.cur.lid); u.lessons.splice(i + 1, 0, l); }
+    else u.lessons.push(l);
+    await saveIndex(); await openLesson(u.id, l.id, { tpl: mode === 'tpl' ? $('nl_tpl').value : null, quiet: true, force: true }); toast('「' + title + '」を作りました');
+  };
+}
+async function copyNext() {
+  const u = curUnit(); if (!u) return; await flushSave();
+  const cl = curLesson(), l = newLesson(cl.title + ' のコピー'); l.memo = cl.memo || '';
+  const b = JSON.parse(JSON.stringify(await getBody(cl.id) || projectObj())); b.title = l.title; await localforage.setItem(bodyKey(l.id), b);
+  const i = u.lessons.findIndex(x => x.id === cl.id); u.lessons.splice(i + 1, 0, l); await saveIndex();
+  await openLesson(u.id, l.id, { quiet: true }); toast('いまの時間をコピーして「' + l.title + '」を作りました。名前は上のタブをダブルクリックで直せます');
+}
+async function moveLesson(uid, lid, d) {
+  const u = findUnit(uid), ls = u.lessons, i = ls.findIndex(l => l.id === lid), live_ = ls.map((l, k) => [l, k]).filter(x => !x[0].del), p = live_.findIndex(x => x[1] === i), q = p + d;
+  if (q < 0 || q >= live_.length) return; const j = live_[q][1]; [ls[i], ls[j]] = [ls[j], ls[i]]; await saveIndex(); renderLessonBar();
+}
+async function deleteLesson(uid, lid, fromBinder) {
+  const u = findUnit(uid), l = u.lessons.find(x => x.id === lid);
+  if (live(u.lessons).length < 2) { toast('最後の1つの「時間」は消せません。単元ごと消す場合は「保存した授業ファイル」から消してください', 5000); return; }
+  if (!confirm('「' + l.title + '」をごみ箱に移しますか？（あとで戻せます）')) return;
+  const wasCur = B.cur && B.cur.lid === lid; l.del = true; l.delAt = Date.now(); await saveIndex();
+  if (wasCur) { const ls = live(u.lessons); B.cur = null; await openLesson(uid, (ls.find(x => x.id === u.lastLid) || ls[0]).id, { quiet: true, force: true }); }
+  renderLessonBar(); if (fromBinder) binderUnit(uid); toast('ごみ箱に移しました');
+}
+function showMenu(anchor, items) {
+  const old = $('popmenu'); if (old) old.remove();
+  const m = document.createElement('div'); m.id = 'popmenu'; const r = anchor.getBoundingClientRect();
+  m.style.cssText = `position:fixed;left:${Math.min(r.left, innerWidth - 250)}px;top:${r.bottom + 4}px;z-index:60`;
+  items.forEach(it => { if (it === '-') { const h = document.createElement('hr'); m.appendChild(h); return; } const b = document.createElement('button'); b.textContent = it[0]; if (it[2]) b.className = it[2]; b.onclick = () => { m.remove(); it[1](); }; m.appendChild(b); });
+  document.body.appendChild(m); setTimeout(() => document.addEventListener('click', function f() { m.remove(); document.removeEventListener('click', f); }, { once: true }), 0);
+}
+function lessonMenu(e) {
+  const u = curUnit(); if (!u) return; const cl = curLesson();
+  showMenu(e.currentTarget, [
+    ['✏ この時間の名前を変える', () => renameLesson(u.id, cl.id)],
+    ['📋 コピーして次の時間を作る', copyNext],
+    ['◀ 前へ並べかえ', () => moveLesson(u.id, cl.id, -1)], ['▶ 後ろへ並べかえ', () => moveLesson(u.id, cl.id, 1)],
+    ['📁 他の授業ファイルへ移す', () => moveToUnitDialog(u.id, cl.id)], '-',
+    ['⬇ この単元の全時間をまとめて出力', () => unitExportDialog(u.id)],
+    '-', ['🗑 この時間を消す（ごみ箱へ）', () => deleteLesson(u.id, cl.id, false), 'danger']]);
+}
+async function moveToUnitDialog(uid, lid) {
+  const us = live(B.idx.units).filter(x => x.id !== uid);
+  if (!us.length) { toast('移す先の授業ファイルがありません。先に新しい単元を作ってください'); return; }
+  openMdl(`<header><b style="font-size:17px">どの授業ファイルへ移しますか？</b><span class="sp"></span><button id="mx">✕ 閉じる</button></header><div style="padding:14px;display:grid;gap:8px" id="mvl"></div>`);
+  $('mx').onclick = closeMdl; const box = $('mvl');
+  us.forEach(x => { const b = document.createElement('button'); b.className = 'big'; b.innerHTML = `<span class="subjtag" style="background:${subjColor(x.subject)}">${esc(x.subject)}</span> ${esc(x.name)}`; b.onclick = async () => { await moveLessonTo(uid, lid, x.id); closeMdl(); }; box.appendChild(b); });
+}
+async function moveLessonTo(uid, lid, toId) {
+  const u = findUnit(uid), t = findUnit(toId), i = u.lessons.findIndex(l => l.id === lid); if (i < 0 || !t) return;
+  if (live(u.lessons).length < 2) { toast('最後の1つは移せません'); return; }
+  await flushSave(); const l = u.lessons.splice(i, 1)[0]; t.lessons.push(l); t.updated = Date.now(); await saveIndex();
+  if (B.cur && B.cur.lid === lid) { B.cur = null; const ls = live(u.lessons); await openLesson(u.id, ls[0].id, { quiet: true, force: true }); }
+  renderLessonBar(); toast('「' + t.name + '」へ移しました');
+}
+
+/* ---------- 授業ファイル（一覧） ---------- */
+async function newUnitDialog() {
+  const adopt = !B.cur && canvas.getObjects().length > 0;
+  openMdl(`<header><b style="font-size:17px">📁 新しい授業ファイルを作る（教科 → 単元）</b><span class="sp"></span><button id="mx">✕ 閉じる</button></header>
+  <div style="padding:16px 20px;line-height:2.1">
+   <div class="hint">例：教科「算数」・単元「かけ算」・5時間 → 「1時間目〜5時間目」が入ったファイルができます。あとから時間は増やせます。</div>
+   <div class="row"><label style="width:70px">教科</label><select id="nu_subj" style="font-size:16px">${SUBJECTS.map(s => `<option>${s[0]}</option>`).join('')}<option value="__o">（自分で入力）</option></select><input id="nu_subj2" placeholder="教科名" style="display:none;width:120px"></div>
+   <div class="row"><label style="width:70px">単元名</label><input id="nu_name" placeholder="例：かけ算、ごんぎつね、ものの溶け方" style="width:300px;font-size:16px"></div>
+   <div class="row"><label style="width:70px">時間数</label><input type="number" id="nu_n" value="5" min="1" max="30" style="width:70px;font-size:16px"><span style="color:#666">時間（あとで増減できます）</span></div>
+   <div class="row"><label style="width:70px">名前</label><input id="nu_pre" value="" placeholder="空なら「1時間目」「2時間目」…" style="width:300px"></div>
+   ${adopt ? '<div><label><input type="checkbox" id="nu_adopt" checked> いま作っている内容を「1時間目」に入れる</label></div>' : ''}
+   <div style="margin-top:10px"><button class="pri big" id="nu_ok">作って1時間目を開く</button></div></div>`);
+  $('mx').onclick = closeMdl; $('nu_subj').onchange = e => { $('nu_subj2').style.display = e.target.value === '__o' ? '' : 'none'; };
+  setTimeout(() => $('nu_name').focus(), 50);
+  $('nu_ok').onclick = async () => {
+    let sj = $('nu_subj').value; if (sj === '__o') sj = $('nu_subj2').value.trim() || 'その他';
+    const name = $('nu_name').value.trim(); if (!name) { toast('単元名を入れてください'); return; }
+    const n = Math.max(1, Math.min(30, +$('nu_n').value || 1)), pre = $('nu_pre').value.trim(), u = newUnit(sj, name);
+    for (let i = 1; i <= n; i++) u.lessons.push(newLesson(pre ? pre + i : i + '時間目'));
+    const adoptOn = $('nu_adopt') && $('nu_adopt').checked;
+    if (adoptOn) { savePageState(); const p = projectObj(); p.app = 'pm5'; p.title = u.lessons[0].title; await localforage.setItem(bodyKey(u.lessons[0].id), p); }
+    B.idx.units.unshift(u); await saveIndex(); closeMdl();
+    if (B.cur) await saveCurrent(false); B.cur = adoptOn ? null : B.cur;
+    await openLesson(u.id, u.lessons[0].id, { quiet: true, force: true }); toast('「' + sj + '／' + name + '」を作りました（' + n + '時間）');
+  };
+}
+function unitCardThumbs(u) { return live(u.lessons).slice(0, 4).map(l => l.thumb ? `<img src="${l.thumb}">` : '<span class="nothumb">白紙</span>').join(''); }
+function binderHome(filter, q) {
+  B.view = { t: 'home', filter, q };
+  const units = live(B.idx.units).filter(u => (!filter || u.subject === filter) && (!q || (u.name + u.subject + u.lessons.map(l => l.title + (l.memo || '')).join('')).includes(q)));
+  const subs = [...new Set(live(B.idx.units).map(u => u.subject))];
+  const recent = []; live(B.idx.units).forEach(u => live(u.lessons).forEach(l => { if (l.thumb || l.updated) recent.push({ u, l }); }));
+  recent.sort((a, b) => b.l.updated - a.l.updated);
+  openMdl(`<header><b style="font-size:17px">📁 授業ファイル</b>
+    <input id="bq" placeholder="🔍 さがす（単元・めあて）" value="${esc(q || '')}" style="padding:6px 8px;border:1px solid #9aa79a;border-radius:8px;width:200px">
+    <button id="bnu" class="pri">＋ 新しい単元ファイル</button><span class="sp"></span>
+    <button id="btr">🗑 ごみ箱</button><button id="bbk">💾 バックアップ</button><label style="cursor:pointer;border:1px solid #9aa79a;border-radius:8px;padding:5px 10px;background:#fff">📥 読み込み<input type="file" id="bim" accept=".json" style="display:none"></label><button id="mx">✕ 閉じる</button></header>
+    <div style="padding:8px 14px;border-bottom:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap" id="bsubs"></div>
+    <div class="body" id="bbody" style="display:block"></div>`);
+  const sb = $('bsubs'), chip = (t, f) => { const b = document.createElement('button'); b.textContent = t; if ((filter || '') === (f || '')) b.className = 'on'; b.onclick = () => binderHome(f, $('bq').value.trim()); sb.appendChild(b); };
+  chip('すべて', ''); subs.forEach(s => chip(s, s));
+  const body = $('bbody');
+  if (!live(B.idx.units).length) body.innerHTML = '<div style="padding:30px;text-align:center;line-height:2"><div style="font-size:20px;font-weight:bold;color:var(--pri2)">はじめに、授業ファイルを作りましょう</div><div style="color:#555">教科・単元ごとにファイルを作ると、その中に「1時間目」「2時間目」…と並べて作れます。</div><button class="pri big" id="bnu2" style="margin-top:12px">＋ 新しい単元ファイルを作る</button></div>';
+  else {
+    if (!filter && !q && recent.length) {
+      const rs = document.createElement('div'); rs.innerHTML = '<h3 style="margin:4px 0 6px;color:var(--pri2)">⏱ つづきから（最近の時間）</h3>'; const row = document.createElement('div'); row.className = 'recent';
+      recent.slice(0, 6).forEach(({ u, l }) => { const c = document.createElement('div'); c.className = 'rcard'; c.style.borderTopColor = subjColor(u.subject); c.innerHTML = (l.thumb ? `<img src="${l.thumb}">` : '<div class="nothumb">白紙</div>') + `<div class="nm">${esc(u.name)}</div><div class="mt">${esc(l.title)}・${fmtDate(l.updated)}</div>`; c.onclick = () => { closeMdl(); openLesson(u.id, l.id); }; row.appendChild(c); });
+      rs.appendChild(row); body.appendChild(rs);
+    }
+    const grid = document.createElement('div'); grid.className = 'ugrid';
+    if (!units.length) grid.innerHTML = '<div style="padding:20px;color:#777">見つかりません</div>';
+    units.forEach(u => {
+      const n = live(u.lessons).length, c = document.createElement('div'); c.className = 'ucard'; c.style.borderTopColor = subjColor(u.subject);
+      c.innerHTML = `<div class="uh"><span class="subjtag" style="background:${subjColor(u.subject)}">${esc(u.subject)}</span><b class="un">${esc(u.name)}</b></div><div class="mt">${n}時間　更新 ${fmtDate(u.updated)}</div><div class="uth">${unitCardThumbs(u)}</div><div class="bt"></div>`;
+      const bt = c.querySelector('.bt'), add = (t, f, cl) => { const b = document.createElement('button'); b.textContent = t; if (cl) b.className = cl; b.onclick = f; bt.appendChild(b); };
+      add('開く', () => openUnit(u.id), 'pri'); add('時間の一覧', () => binderUnit(u.id)); add('名前・教科', () => editUnit(u.id));
+      add('複製', () => dupUnit(u.id)); add('まとめて出力', () => unitExportDialog(u.id)); add('削除', () => delUnit(u.id), 'danger');
+      grid.appendChild(c);
+    });
+    body.appendChild(grid);
+  }
+  $('mx').onclick = closeMdl; $('bnu').onclick = newUnitDialog; if ($('bnu2')) $('bnu2').onclick = newUnitDialog;
+  $('bq').oninput = e => { clearTimeout(binderHome._t); binderHome._t = setTimeout(() => { binderHome(filter, e.target.value.trim()); const i = $('bq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
+  $('btr').onclick = binderTrash; $('bbk').onclick = () => backupAll(); $('bim').onchange = async e => { const f = e.target.files[0]; if (f) { await importJSON(await f.text()); binderHome(filter, q); } };
+}
+function binderUnit(uid) {
+  const u = findUnit(uid); if (!u) return; B.view = { t: 'unit', uid };
+  openMdl(`<header><button id="bback">◀ 一覧へ</button><span class="subjtag" style="background:${subjColor(u.subject)}">${esc(u.subject)}</span><b style="font-size:17px">${esc(u.name)}</b><span class="sp"></span>
+    <button id="bxp">⬇ 全時間をまとめて出力</button><button id="bad" class="pri">＋ 時間を追加</button><button id="mx">✕ 閉じる</button></header><div class="body" id="lbody"></div>`);
+  const body = $('lbody'), ls = live(u.lessons);
+  ls.forEach((l, i) => {
+    const d = document.createElement('div'); d.className = 'lib'; d.innerHTML = `<img src="${l.thumb || ''}" alt="白紙"><div class="nm">${i + 1}. ${esc(l.title)}</div><div class="mt">${l.memo ? 'めあて：' + esc(l.memo) + '<br>' : ''}${fmtDate(l.updated)}</div><div class="bt"></div>`;
+    const bt = d.querySelector('.bt'), add = (t, f, c) => { const b = document.createElement('button'); b.textContent = t; if (c) b.className = c; b.onclick = f; bt.appendChild(b); };
+    add('開く', () => { closeMdl(); openLesson(uid, l.id); }, 'pri'); add('名前', async () => { await renameLesson(uid, l.id); binderUnit(uid); });
+    add('◀', async () => { await moveLesson(uid, l.id, -1); binderUnit(uid); }); add('▶', async () => { await moveLesson(uid, l.id, 1); binderUnit(uid); });
+    add('複製', async () => { await dupLesson(uid, l.id); binderUnit(uid); }); add('移す', () => moveToUnitDialog(uid, l.id)); add('削除', () => deleteLesson(uid, l.id, true), 'danger');
+    body.appendChild(d);
+  });
+  $('bback').onclick = () => binderHome(); $('mx').onclick = closeMdl; $('bxp').onclick = () => unitExportDialog(uid);
+  $('bad').onclick = async () => { const l = newLesson(live(u.lessons).length + 1 + '時間目'); u.lessons.push(l); await saveIndex(); renderLessonBar(); binderUnit(uid); };
+}
+async function dupLesson(uid, lid) {
+  await flushSave(); const u = findUnit(uid), l = u.lessons.find(x => x.id === lid), n = newLesson(l.title + ' のコピー'); n.memo = l.memo; n.thumb = l.thumb;
+  const b = await getBody(l.id); if (b) { const c = JSON.parse(JSON.stringify(b)); c.title = n.title; await localforage.setItem(bodyKey(n.id), c); }
+  u.lessons.splice(u.lessons.findIndex(x => x.id === lid) + 1, 0, n); await saveIndex(); renderLessonBar(); toast('複製しました');
+}
+async function dupUnit(uid) {
+  await flushSave(); const u = findUnit(uid), n = newUnit(u.subject, u.name + ' のコピー');
+  for (const l of live(u.lessons)) { const nl = newLesson(l.title); nl.memo = l.memo; nl.thumb = l.thumb; const b = await getBody(l.id); if (b) await localforage.setItem(bodyKey(nl.id), JSON.parse(JSON.stringify(b))); n.lessons.push(nl); }
+  B.idx.units.unshift(n); await saveIndex(); binderHome(B.view && B.view.filter, B.view && B.view.q); toast('単元ごと複製しました（学年が変わったときなどに便利です）');
+}
+function editUnit(uid) {
+  const u = findUnit(uid);
+  openMdl(`<header><b style="font-size:17px">名前・教科を変える</b><span class="sp"></span><button id="mx">✕ 閉じる</button></header><div style="padding:16px 20px;line-height:2.2">
+   <div class="row"><label style="width:70px">教科</label><select id="eu_s">${SUBJECTS.map(s => `<option ${s[0] === u.subject ? 'selected' : ''}>${s[0]}</option>`).join('')}${SUBJECTS.some(s => s[0] === u.subject) ? '' : `<option selected>${esc(u.subject)}</option>`}<option value="__o">（自分で入力）</option></select><input id="eu_s2" style="display:none;width:120px" placeholder="教科名"></div>
+   <div class="row"><label style="width:70px">単元名</label><input id="eu_n" value="${esc(u.name)}" style="width:300px;font-size:16px"></div><button class="pri big" id="eu_ok">変える</button></div>`);
+  $('mx').onclick = () => binderHome(); $('eu_s').onchange = e => { $('eu_s2').style.display = e.target.value === '__o' ? '' : 'none'; };
+  $('eu_ok').onclick = async () => { let s = $('eu_s').value; if (s === '__o') s = $('eu_s2').value.trim() || 'その他'; u.subject = s; u.name = $('eu_n').value.trim() || u.name; await saveIndex(); renderLessonBar(); binderHome(); };
+}
+async function delUnit(uid) {
+  const u = findUnit(uid); if (!confirm('「' + u.subject + '／' + u.name + '」を、' + live(u.lessons).length + '時間ぶんまとめてごみ箱に移しますか？（あとで戻せます）')) return;
+  u.del = true; u.delAt = Date.now(); await saveIndex();
+  if (B.cur && B.cur.uid === uid) { B.cur = null; const o = live(B.idx.units)[0]; if (o) await openUnit(o.id); else renderLessonBar(); }
+  binderHome(); toast('ごみ箱に移しました');
+}
+function binderTrash() {
+  B.view = { t: 'trash' }; const items = [];
+  B.idx.units.forEach(u => { if (u.del) items.push({ kind: 'unit', u, t: u.delAt || 0 }); else u.lessons.forEach(l => { if (l.del) items.push({ kind: 'lesson', u, l, t: l.delAt || 0 }); }); });
+  items.sort((a, b) => b.t - a.t);
+  openMdl(`<header><button id="bback">◀ 一覧へ</button><b style="font-size:17px">🗑 ごみ箱</b><span class="sp"></span>${items.length ? '<button id="bem" class="danger">ごみ箱を空にする</button>' : ''}<button id="mx">✕ 閉じる</button></header><div class="body" id="tbody"></div>`);
+  const body = $('tbody'); if (!items.length) body.innerHTML = '<div style="padding:30px;color:#777;grid-column:1/-1">ごみ箱は空です。</div>';
+  items.forEach(it => {
+    const d = document.createElement('div'); d.className = 'lib';
+    d.innerHTML = `<div class="nm">${it.kind === 'unit' ? '📁 単元：' + esc(it.u.subject + '／' + it.u.name) : '📄 ' + esc(it.u.name) + ' ／ ' + esc(it.l.title)}</div><div class="mt">${it.kind === 'unit' ? live(it.u.lessons).length + '時間' : ''} 削除 ${it.t ? fmtDate(it.t) : ''}</div><div class="bt"></div>`;
+    const bt = d.querySelector('.bt'), add = (t, f, c) => { const b = document.createElement('button'); b.textContent = t; if (c) b.className = c; b.onclick = f; bt.appendChild(b); };
+    add('復元', async () => { if (it.kind === 'unit') { delete it.u.del; } else { delete it.l.del; if (it.u.del) { delete it.u.del; } } await saveIndex(); renderLessonBar(); binderTrash(); toast('元に戻しました'); }, 'pri');
+    add('完全に削除', async () => { if (!confirm('完全に削除します。元に戻せません。')) return; await purge(it); binderTrash(); }, 'danger');
+    body.appendChild(d);
+  });
+  $('bback').onclick = () => binderHome(); $('mx').onclick = closeMdl;
+  if ($('bem')) $('bem').onclick = async () => { if (!confirm('ごみ箱を空にします（元に戻せません）。')) return; for (const it of items) await purge(it); binderTrash(); };
+}
+async function purge(it) {
+  if (it.kind === 'unit') { for (const l of it.u.lessons) await localforage.removeItem(bodyKey(l.id)); B.idx.units = B.idx.units.filter(x => x !== it.u); }
+  else { await localforage.removeItem(bodyKey(it.l.id)); it.u.lessons = it.u.lessons.filter(x => x !== it.l); }
+  await saveIndex();
+}
+
+/* ---------- バックアップ・読み込み ---------- */
+async function packUnits(units) {
+  await flushSave(); const bodies = {}; const us = [];
+  for (const u of units) { const c = JSON.parse(JSON.stringify(u)); c.lessons = live(c.lessons); us.push(c); for (const l of c.lessons) bodies[l.id] = await getBody(l.id) || null; }
+  return { app: 'pm5-backup', date: Date.now(), units: us, bodies };
+}
+async function backupAll(units) { await withBusy('バックアップを作っています…', async () => { const o = await packUnits(units || live(B.idx.units)); download(new Blob([JSON.stringify(o)], { type: 'application/json' }), (units && units.length === 1 ? units[0].subject + '_' + units[0].name : 'プリントメーカー全データ') + '_' + new Date().toISOString().slice(0, 10) + '.json'); toast('保存しました（ダウンロードを確認してください）'); }); }
+async function importBackup(o) {
+  let n = 0;
+  for (const su of o.units || []) {
+    const u = newUnit(su.subject || 'その他', su.name || '読み込んだ単元'); u.name += findUnit && live(B.idx.units).some(x => x.name === u.name && x.subject === u.subject) ? '（読み込み）' : '';
+    for (const sl of su.lessons || []) { const l = newLesson(sl.title); l.memo = sl.memo || ''; l.thumb = sl.thumb || ''; const b = (o.bodies || {})[sl.id]; if (b) await localforage.setItem(bodyKey(l.id), b); u.lessons.push(l); n++; }
+    B.idx.units.unshift(u);
+  }
+  await saveIndex(); toast(n + '時間ぶんを読み込みました');
+}
+async function importJSON(text) {
+  let o; try { o = JSON.parse(text); } catch (e) { toast('このファイルは読み込めません'); return; }
+  if (o.app === 'pm5-backup') { await importBackup(o); return; }
+  if (o.app === 'pm4-backup') {
+    let u = live(B.idx.units).find(x => x.name === 'これまでのプリント') || (B.idx.units.unshift(newUnit('その他', 'これまでのプリント')), B.idx.units[0]);
+    for (const r of o.items || []) { const l = newLesson(r.title || '無題'); l.thumb = r.thumb || ''; await localforage.setItem(bodyKey(l.id), r); u.lessons.push(l); }
+    await saveIndex(); toast('読み込みました'); return;
+  }
+  if (o.pages) {
+    const u = curUnit() || live(B.idx.units)[0];
+    if (!u) { toast('先に授業ファイル（単元）を作ってください'); return; }
+    const l = newLesson(o.title || o.name || '読み込んだプリント'); await localforage.setItem(bodyKey(l.id), o); u.lessons.push(l); await saveIndex();
+    await openLesson(u.id, l.id, { quiet: true }); toast('「' + u.name + '」に新しい時間として読み込みました'); return;
+  }
+  toast('このファイルは読み込めません');
+}
+
+/* ---------- 単元ぜんぶの出力 ---------- */
+function unitExportDialog(uid) {
+  const u = findUnit(uid), n = live(u.lessons).length;
+  openMdl(`<header><b style="font-size:17px">⬇ 「${esc(u.name)}」の全${n}時間をまとめて出力</b><span class="sp"></span><button id="mx">✕ 閉じる</button></header><div style="padding:16px 20px;line-height:2.2">
+   <div class="hint">1時間目 → 2時間目 → … の順に、1つのファイルにまとめます（印刷のしやすさ重視）。</div>
+   <div class="row"><label style="width:80px">内容</label><select id="ux_k" style="font-size:15px"><option value="q">問題だけ</option><option value="qa">問題と答え（各時間ごとに「問題→答え」）</option><option value="a">答えだけ</option></select></div>
+   <div class="row"><label style="width:80px">形式</label><select id="ux_f" style="font-size:15px"><option value="pdf">PDF</option><option value="docx">Word（見たまま・画像）</option></select></div>
+   <div style="margin-top:8px"><button class="pri big" id="ux_ok">出力する</button> <button id="ux_bk">この単元を .json で書き出す（共有・バックアップ）</button></div></div>`);
+  $('mx').onclick = closeMdl; $('ux_bk').onclick = () => backupAll([u]);
+  $('ux_ok').onclick = () => { const k = $('ux_k').value, f = $('ux_f').value; closeMdl(); exportUnit(u, k, f); };
+}
+async function exportUnit(u, kind, fmt) {
+  await withBusy('全時間のファイルを作っています…（時間がかかります）', async () => {
+    await flushSave(); const pages = []; let skipped = 0;
+    for (const l of live(u.lessons)) {
+      const b = await getBody(l.id); if (!b || !b.pages) { skipped++; continue; }
+      const c = b.cfg || cfg();
+      if (kind !== 'a') for (const j of b.pages) pages.push(await renderPageFrom(j, c, false));
+      if (kind !== 'q') for (const j of b.pages) pages.push(await renderPageFrom(j, c, true));
+    }
+    if (!pages.length) { toast('出力できるプリントがまだありません'); return; }
+    const base = (u.subject + '_' + u.name + '_全' + live(u.lessons).length + '時間' + (kind === 'a' ? '_答え' : kind === 'qa' ? '_問題と答え' : '')).replace(/[\\/:*?"<>|]/g, '');
+    download(fmt === 'pdf' ? await buildPDF(pages) : await buildDocxImages(pages), base + (fmt === 'pdf' ? '.pdf' : '.docx'));
+    toast('出力しました' + (skipped ? '（白紙の' + skipped + '時間は除きました）' : ''), 4500);
+  });
+}
+
+/* ---------- 起動 ---------- */
+async function binderStart() {
+  applySize(); syncLabels(); renderPageBar(); await loadIndex();
+  const last = B.idx.last; let ok = false;
+  if (last) { const u = findUnit(last.uid); if (u && !u.del && u.lessons.some(l => l.id === last.lid && !l.del)) { await openLesson(last.uid, last.lid, { quiet: true }); ok = true; } }
+  if (!ok) {
+    const us = live(B.idx.units).filter(u => live(u.lessons).length);
+    if (us.length) { await openUnit(us[0].id); ok = true; }
+  }
+  if (!ok) {
+    S.loading = true; await loadJSON(canvas, null); S.loading = false; $('h_title').value = '新しいプリント'; addSheet(buildHeader(readHeader())); canvas.discardActiveObject(); saveHist(true); renderLessonBar();
+    binderHome();
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveCurrent(false); });
+  window.addEventListener('pagehide', () => { saveCurrent(false); });
+}
+
 let draftTimer = null;
-function draftSoon() { clearTimeout(draftTimer); draftTimer = setTimeout(async () => { try { savePageState(); await localforage.setItem('pm4Draft', projectObj()); } catch (e) { } }, 1500); }
+function draftSoon() { autosaveSoon(); }
 
 document.addEventListener('DOMContentLoaded', async () => {
   canvas = new fabric.Canvas('c', { backgroundColor: '#ffffff', preserveObjectStacking: true, stopContextMenu: true, fireRightClick: true });
@@ -1748,13 +1834,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('bHeaderUpd').onclick = () => { const t = selGroup('header') || canvas.getObjects().find(o => o.pmSource && o.pmSource.kind === 'header'); if (!t) { toast('ヘッダーがまだありません'); return; } addSheet(buildHeader(readHeader()), t); };
   $('bNL').onclick = addNumberLine; $('bGenkou').onclick = addGenkou;
   $('fileImg').onchange = e => { importFile(e.target.files[0]); e.target.value = ''; };
-  $('bNew').onclick = () => newDoc(); $('bSave').onclick = () => saveDoc(false); $('bSaveAs').onclick = () => saveDoc(true);
-  $('bLib').onclick = () => openLib('saved'); $('bHelp').onclick = helpModal; $('bPrint').onclick = doPrint;
+  $('bBinder').onclick = () => binderHome(); $('bSave').onclick = async () => { if (!B.cur) { newUnitDialog(); return; } await saveCurrent(true); toast('保存しました（自動でも保存されています）'); };
+  $('lAdd').onclick = addLessonDialog; $('lMenu').onclick = lessonMenu; $('lPrev').onclick = () => stepLesson(-1); $('lNext').onclick = () => stepLesson(1);
+  let memoT = null; $('lessonMemo').oninput = e => { const l = curLesson(); if (!l) return; l.memo = e.target.value; $('h_goal').value = l.memo; clearTimeout(memoT); memoT = setTimeout(saveIndex, 500); };
+  $('docTitle').oninput = e => { const l = curLesson(); if (!l) return; l.title = e.target.value.trim() || '無題'; renderLessonBar(); clearTimeout(memoT); memoT = setTimeout(saveIndex, 500); autosaveSoon(); };
+  $('bHelp').onclick = helpModal; $('bPrint').onclick = doPrint;
   $('bUndo').onclick = () => restoreHist(S.hi - 1); $('bRedo').onclick = () => restoreHist(S.hi + 1);
   $('expSel').onchange = e => doExport(e.target.value);
   $('bAns').onclick = () => { S.showAns = !S.showAns; setAns(S.showAns); $('bAns').textContent = S.showAns ? '✅ 答え：あり（赤）' : '✅ 答え：なし'; $('bAns').classList.toggle('on', S.showAns); };
   $('modalbg').onclick = e => { if (e.target === $('modalbg')) $('modalbg').classList.remove('show'); };
-  ['s_paper', 's_orient', 's_margin', 's_layout'].forEach(id => $(id).onchange = () => { applySize(); canvas.requestRenderAll(); saveHist(true); });
+  ['s_paper', 's_orient', 's_margin', 's_layout'].forEach(id => $(id).onchange = () => { applySize(); canvas.requestRenderAll(); saveHist(true); draftSoon(); });
   $('pgAdd').onclick = () => pgAdd(false); $('pgDup').onclick = () => pgAdd(true); $('pgDel').onclick = pgDel; $('pgL').onclick = () => pgMove(-1); $('pgR').onclick = () => pgMove(1);
   $('pgClear').onclick = () => { if (confirm('このページの中身を全部消しますか？')) { canvas.clear(); canvas.backgroundColor = '#fff'; saveHist(true); ctxUpdate(); } };
   $('zIn').onclick = () => { S.fit = false; setZoom(Math.min(2.5, S.zoom + 0.1)); }; $('zOut').onclick = () => { S.fit = false; setZoom(Math.max(0.2, S.zoom - 0.1)); };
@@ -1768,25 +1857,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('bClock').onclick = addClock; $('bFrac').onclick = addFraction;
   $('bPartSave').onclick = savePart; $('bPartIns').onclick = insertPart; $('bPartDel').onclick = delPart; $('bOCR').onclick = runOCR; $('bFuri').onclick = addFurigana; refreshParts();
   ['s_name', 's_nametext', 's_namefs'].forEach(id => $(id).addEventListener('change', draftSoon));
-  window.addEventListener('paste', ev => {
-    if (/^(INPUT|TEXTAREA)$/.test((ev.target.tagName || '')) || (canvas.getActiveObject() && canvas.getActiveObject().isEditing)) return;
-    let img = false;
-    for (const it of (ev.clipboardData || {}).items || []) if (it.type.indexOf('image') === 0) { img = true; const r = new FileReader(); r.onload = () => addImageFromURL(r.result); r.readAsDataURL(it.getAsFile()); }
-    if (!img && S.clip) { ev.preventDefault(); pasteClip(); }
-  });
-  // 新機能のボタン
-  $('bHyakuAdd').onclick = () => doBuild(buildHyaku, 'p-drill', 'hyaku', false); $('bHyakuUpd').onclick = () => doBuild(buildHyaku, 'p-drill', 'hyaku', true);
-  $('bClockAdd').onclick = () => doBuild(buildClocks, 'p-drill', 'clock', false); $('bClockUpd').onclick = () => doBuild(buildClocks, 'p-drill', 'clock', true);
-  $('bVarPage').onclick = () => variantPages($('varN').value);
-  $('cVar').onclick = () => { const ta = $('c_lines'); if (!ta.value.trim()) { toast('先に問題を入れてください'); return; } ta.value = variantText(ta.value); toast('数字を入れかえました。「作り直す」でページに反映します'); };
-  $('cShuf').onclick = () => { const ta = $('c_lines'); ta.value = shuffled(ta.value.split('\n').filter(s => s.trim())).join('\n'); };
-  $('cClear').onclick = () => { if (!$('c_lines').value.trim() || confirm('入力欄を空にしますか？')) $('c_lines').value = ''; };
-  canvas.on('object:moving', snapMove);
-  canvas.on('after:render', drawGuides);
-  canvas.on('mouse:up', () => { if (guides.length) { guides = []; canvas.requestRenderAll(); } });
-  $('stage').addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); S.fit = false; setZoom(Math.max(0.2, Math.min(2.5, S.zoom * (e.deltaY < 0 ? 1.1 : 0.9)))); }, { passive: false });
-  window.addEventListener('beforeunload', e => { if (S.dirty) { try { savePageState(); localforage.setItem('pm4Draft', projectObj()); } catch (x) { } e.preventDefault(); e.returnValue = ''; } });
-  $('docTitle').addEventListener('input', () => { setDirty(true); draftSoon(); });
+  window.addEventListener('paste', ev => { if (/^(INPUT|TEXTAREA)$/.test((ev.target.tagName || ''))) return; for (const it of (ev.clipboardData || {}).items || []) if (it.type.indexOf('image') === 0) { const r = new FileReader(); r.onload = () => addImageFromURL(r.result); r.readAsDataURL(it.getAsFile()); } });
   canvas.on('path:created', () => saveHist(true));
   // キャンバスのイベント
   canvas.on('object:modified', () => { saveHist(); draftSoon(); }); canvas.on('object:added', () => { saveHist(); draftSoon(); }); canvas.on('object:removed', () => { saveHist(); draftSoon(); });
@@ -1794,21 +1865,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   canvas.on('selection:created', e => { ctxUpdate(); const a = canvas.getActiveObject(); if (a && a.pmSource) { silentLoadSource(a); } });
   canvas.on('selection:updated', () => { ctxUpdate(); const a = canvas.getActiveObject(); if (a && a.pmSource) silentLoadSource(a); });
   canvas.on('selection:cleared', ctxUpdate);
-  canvas.on('mouse:dblclick', () => { const a = canvas.getActiveObject(); if (a && a.pmSource && ['calc', 'kanji', 'kuku', 'note', 'header', 'hyaku', 'clock'].includes(a.pmSource.kind)) openSource(a); });
+  canvas.on('mouse:dblclick', () => { const a = canvas.getActiveObject(); if (a && a.pmSource && ['calc', 'kanji', 'kuku', 'note', 'header'].includes(a.pmSource.kind)) openSource(a); });
   // キーボード
   document.addEventListener('keydown', e => {
     const tg = e.target, typing = tg && (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName) || tg.isContentEditable);
     const a = canvas.getActiveObject(), editing = a && a.isEditing;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveDoc(false); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); (B.cur ? saveCurrent(true).then(() => toast('保存しました')) : newUnitDialog()); return; }
+    if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); stepLesson(-1); return; }
+    if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); stepLesson(1); return; }
     if (typing || editing) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); restoreHist(S.hi + (e.shiftKey ? 1 : -1)); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); restoreHist(S.hi + 1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); dupSel(); }
-    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') { if (a) copySel(); }
-    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); const os = canvas.getObjects().filter(o => o.selectable !== false); if (os.length) { canvas.discardActiveObject(); canvas.setActiveObject(new fabric.ActiveSelection(os, { canvas })); canvas.requestRenderAll(); ctxUpdate(); } }
-    else if (e.key === 'PageDown') { e.preventDefault(); gotoPage(S.idx + 1); }
-    else if (e.key === 'PageUp') { e.preventDefault(); gotoPage(S.idx - 1); }
-    else if (e.key === 'Escape') { if (canvas.isDrawingMode) setPen(false); canvas.discardActiveObject(); canvas.requestRenderAll(); ctxUpdate(); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); delSel(); }
     else if (a && e.key.startsWith('Arrow') && !a.lockedCustom) {
       e.preventDefault(); const d = e.shiftKey ? 10 : 1;
@@ -1817,11 +1885,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   // 初期状態
-  const draft = await localforage.getItem('pm4Draft').catch(() => null);
-  applySize(); syncLabels(); renderPageBar();
-  if (draft && draft.pages && draft.pages.some(j => j && JSON.parse(j).objects && JSON.parse(j).objects.length)) { await loadProject(draft); toast('前回の続きから再開しました', 3500); }
-  else { S.loading = true; await loadJSON(canvas, null); S.loading = false; addSheet(buildHeader(readHeader())); canvas.discardActiveObject(); saveHist(true); }
-  S.hist = []; S.hi = -1; saveHist(true); setDirty(false); ctxUpdate(); kChips(); setTimeout(() => { if (S.fit) setZoom(null); }, 100);
+  await binderStart();
+  S.hist = []; S.hi = -1; saveHist(true); ctxUpdate(); kChips();
   window.__pmReady = true;
 });
 

@@ -59,7 +59,9 @@ $files = @(
   'tanosikugakusyuusiyou/3dkotodamakuronikuru5/index.html',
   'tanosikugakusyuusiyou/3dkotodamakuronikuru6/index.html',
   'tyuugakuseieigo/2nennseinoeitanngo/index.html',
-  'kurasuyou/zinrouge-mu/index.html'
+  'kurasuyou/zinrouge-mu/index.html',
+  'tyuugakuseieigo/3nennseinoeitanngo/index.html',
+  'sennseiyou/kouteipurannna-/index.html'
 )
 $strict = New-Object System.Text.UTF8Encoding($false, $true)
 $added = 0; $skipped = 0; $errors = 0

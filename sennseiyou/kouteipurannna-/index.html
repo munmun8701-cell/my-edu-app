@@ -1,0 +1,1368 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>校庭プランナー v2</title>
+<style>
+:root{--ink:#243c39;--muted:#6d7e77;--accent:#21785e;--accent2:#e4f1e9;--line:#dfe7e1;--bg:#f2f5f1;--warn:#a46c32}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{font:14px/1.55 "Hiragino Sans","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink);background:var(--bg);overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:13px;white-space:nowrap;transition:background .12s,border-color .12s}
+button:hover:not(:disabled){background:#eef6f1;border-color:#a9cdbd}
+button:disabled{opacity:.4;cursor:default}
+button.on{background:var(--accent2);border-color:#9fc9b4;color:var(--accent);font-weight:700}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover:not(:disabled){background:#1a6850}
+button.danger{color:#b84e49}
+button.small{padding:3px 7px;font-size:12px}
+button.wide{width:100%;margin:4px 0}
+input:not([type=checkbox]):not([type=color]),select,textarea{width:100%;border:1px solid var(--line);background:#fbfdfb;border-radius:6px;padding:5px 7px;font-size:13px;min-width:0}
+input[type=color]{width:100%;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;background:#fff}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;margin:0}
+label{display:block;font-size:12px;color:#55695f;margin:7px 0}
+label.row{display:flex;align-items:center;gap:6px;margin:5px 0;color:var(--ink);font-size:13px}
+:focus-visible{outline:3px solid #86c2aa;outline-offset:2px}
+header{height:52px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:.03em}
+.brand small{display:block;font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.04em}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:18px}
+.hd{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.saved{font-size:12px;color:var(--muted);margin-right:6px}
+.app{display:grid;grid-template-columns:300px minmax(0,1fr) 280px;height:calc(100vh - 52px)}
+aside{background:#fff;overflow-y:auto;padding:4px 14px 40px;min-height:0}
+aside.l{border-right:1px solid var(--line)}
+aside.r{border-left:1px solid var(--line);padding-top:12px}
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.tbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 10px;background:#fff;border-bottom:1px solid var(--line)}
+.tbar .sp{flex:1}
+.tbar label.row{margin:0;font-size:12px}
+.tbar select{width:auto}
+.sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+#stage{position:relative;flex:1;min-height:320px;background:#e6ede2;overflow:hidden}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch-action:none}
+#hint{position:absolute;left:12px;top:10px;background:#ffffffee;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;pointer-events:none;max-width:70%}
+#warn{position:absolute;right:12px;bottom:12px;max-width:46%;background:#fff7e8;border:1px solid #f0dcb4;color:#6d5220;border-radius:8px;padding:7px 11px;font-size:12px;line-height:1.6;display:none}
+#warn b{color:#8a4b12}
+.sec{border-top:1px solid var(--line);padding:10px 0}
+.sec>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px;font-size:14px;padding:4px 0}
+.sec>summary::-webkit-details-marker{display:none}
+.num{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:6px;background:var(--accent2);color:var(--accent);font-size:11px;font-weight:800}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.note{font-size:12px;color:var(--muted);margin:5px 0}
+.warnTxt{font-size:12px;color:var(--warn);line-height:1.8}
+.box{background:#f5f8f3;border-radius:8px;padding:9px 10px;margin:8px 0}
+.pal{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.pal button{display:flex;flex-direction:column;align-items:center;padding:6px 2px;font-size:11px;line-height:1.3}
+.pal i{font-style:normal;font-size:17px;line-height:1.3}
+.list{display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto}
+.trow,.mrow{display:flex;gap:4px;margin-bottom:4px}
+.trow .ld,.mrow button:first-child{flex:1;text-align:left;font-size:12px;padding:5px 8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+td,th{padding:4px 5px;border-bottom:1px solid #edf0ea;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.empty{color:var(--muted);font-size:13px;text-align:center;border:1px dashed var(--line);border-radius:8px;padding:18px 10px;margin-top:10px}
+.ins-title{font-weight:800;font-size:15px;margin:2px 0}
+.modal{position:fixed;inset:0;background:#1f302cb3;display:grid;place-items:center;z-index:50;padding:16px}
+.modal .card{background:#fff;border-radius:12px;padding:20px 24px;max-width:640px;width:100%;max-height:86vh;overflow:auto;line-height:1.8}
+.modal h2{margin:0 0 8px;font-size:18px}
+.modal td{font-size:13px}
+kbd{background:#f1f4ef;border:1px solid #d6ddd3;border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:12px;font-family:inherit}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#284c3e;color:#fff;padding:10px 18px;border-radius:9px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:90vw}
+#toast.show{opacity:1}
+#printArea{display:none}
+@media print{
+ @page{size:A4 landscape;margin:8mm}
+ body{overflow:visible;height:auto;background:#fff}
+ body.printing>*:not(#printArea){display:none!important}
+ body.printing #printArea{display:block!important}
+}
+#printArea .pr-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #243c39;padding-bottom:4px;margin-bottom:6px}
+#printArea h1{font-size:20px;margin:0}
+#printArea img{width:100%;max-height:150mm;object-fit:contain}
+#printArea .pr-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;font-size:11px}
+#printArea table{font-size:11px}
+@media (max-width:900px){
+ body{overflow:auto;height:auto}
+ .app{grid-template-columns:1fr;height:auto}
+ aside{overflow:visible}
+ #stage{height:70vh;min-height:360px}
+ aside.l{border-right:0;border-bottom:1px solid var(--line)}
+ aside.r{border-left:0;border-top:1px solid var(--line)}
+ header{height:auto;flex-wrap:wrap;padding:10px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><span class="logo">▧</span><div>校庭プランナー<small>運動会の配置図を、かんたんに</small></div></div>
+ <div class="hd">
+  <span id="saved" class="saved"></span>
+  <button id="undo" title="元に戻す（Ctrl+Z）">↶ 戻す</button>
+  <button id="redo" title="やり直す（Ctrl+Y）">↷ 進む</button>
+  <button id="help">？ 使い方</button>
+  <button id="pngBtn">写真(PNG)で保存</button>
+  <button id="printBtn" class="primary">印刷用ページ</button>
+ </div>
+</header>
+<div class="app">
+<aside class="l">
+ <details class="sec" open>
+  <summary><span class="num">1</span>テンプレート・図面名</summary>
+  <label>図面の名前<input id="title" maxlength="200"></label>
+  <p class="note">運動会の定番配置から始めると、あとは備品を動かすだけです。</p>
+  <div class="btns"><button data-tpl="200">200m標準</button><button data-tpl="400">400m標準</button><button data-tpl="blank">白紙</button></div>
+  <p class="note">テンプレートを選ぶと、今の備品が入れ替わります（「戻す」で元に戻せます）。</p>
+ </details>
+
+ <details class="sec" open>
+  <summary><span class="num">2</span>校庭の形</summary>
+  <div class="btns"><button id="editField">◇ 校庭の角を動かす</button></div>
+  <div id="vBox" hidden>
+   <div class="btns"><button id="addV" class="small">＋ 角を増やす</button><button id="delV" class="small danger">選んだ角を消す</button></div>
+   <div class="grid2"><label>選んだ角：右へ m<input id="vx" type="number" step="0.5"></label><label>上へ m<input id="vy" type="number" step="0.5"></label></div>
+   <p class="note">角は図の上でドラッグしても動かせます。</p>
+  </div>
+  <p class="note" id="fieldInfo"></p>
+ </details>
+
+ <details class="sec" open>
+  <summary><span class="num">3</span>トラック</summary>
+  <div class="btns"><button data-preset="200">＋ 200m</button><button data-preset="400">＋ 400m</button><button data-preset="straight">＋ 直線100m</button></div>
+  <p class="note">作ったトラックは下の一覧で切り替えられます。案を何通りでも比べられます。</p>
+  <div id="trackList"></div>
+  <label>形<select id="kind"><option value="oval">トラック（まるい）</option><option value="straight">直線コース</option></select></label>
+  <div class="grid2">
+   <label>全長 m<input id="lap" type="number" step="0.5" min="1"></label>
+   <label id="straightRow">直線部分 m<input id="straight" type="number" step="0.5" min="1"></label>
+   <label>レーン数<input id="lanes" type="number" step="1" min="1" max="10"></label>
+   <label>レーン幅 m<input id="width" type="number" step="0.05" min="0.5" max="2"></label>
+  </div>
+  <p class="note" id="trackInfo"></p>
+  <details>
+   <summary class="note" style="cursor:pointer">位置・向き（ふだんは変えません）</summary>
+   <div class="grid2"><label>中心 X（右へ）m<input id="tx" type="number" step="0.5"></label><label>中心 Y（下へ）m<input id="ty" type="number" step="0.5"></label></div>
+   <label>回転（°）<input id="tangle" type="number" step="1"></label>
+  </details>
+ </details>
+
+ <details class="sec" open>
+  <summary><span class="num">4</span>徒競走（スタート・ゴール）</summary>
+  <label class="row"><input id="raceMode" type="checkbox"> 徒競走モードを使う</label>
+  <div id="raceBox" hidden>
+   <div class="grid2">
+    <label>走る距離 m<input id="race" type="number" step="1" min="1"></label>
+    <label>走る向き<select id="runDir"><option value="1">時計回り ↻</option><option value="-1">反時計回り ↺</option></select></label>
+   </div>
+   <label>ゴールの位置（0m地点から）m<input id="finish" type="number" step="0.5"></label>
+   <div class="btns"><button data-fstep="-1" class="small">− 1m</button><button data-fstep="1" class="small">＋ 1m</button><button data-fstep="-0.1" class="small">− 0.1m</button><button data-fstep="0.1" class="small">＋ 0.1m</button></div>
+   <p class="note" id="finishInfo"></p>
+   <p class="note">図の青いゴールの線は、ドラッグでも動かせます。</p>
+   <div id="startTable"></div>
+  </div>
+ </details>
+
+ <details class="sec" open>
+  <summary><span class="num">5</span>備品を置く</summary>
+  <p class="note">ボタンを押すと図の真ん中に置かれます。ドラッグで動かしてください。</p>
+  <div class="pal" id="pal"></div>
+  <div class="box">
+   <div class="note" style="color:var(--ink);font-weight:700">同じ備品を等間隔に並べる</div>
+   <div class="grid2">
+    <label>備品<select id="rowType"></select></label>
+    <label>個数<input id="rowN" type="number" value="8" min="2" max="100"></label>
+   </div>
+   <div class="grid2">
+    <label>並べ方<select id="rowPath"><option value="straight">まっすぐ</option><option value="lane">レーンに沿って</option></select></label>
+    <label>向き<select id="dirSel"><option value="forward">走る向き</option><option value="backward">逆向き</option></select></label>
+   </div>
+   <label>レーン（レーンに沿う・距離を測るとき）<select id="laneSel"></select></label>
+   <button id="rowBtn" class="wide primary">図の上で「始め」→「終わり」をクリック</button>
+  </div>
+ </details>
+
+ <details class="sec">
+  <summary><span class="num">6</span>距離を測る</summary>
+  <label>測り方<select id="mMode"><option value="straight">直線（まっすぐ）</option><option value="lane">レーンの内側の白線に沿って</option></select></label>
+  <p class="note">図の上を2回クリックすると、その間の距離が出ます。レーンに沿うときは、クリックした場所のレーンを自動で選びます。</p>
+  <button id="measBtn" class="wide">↔ 距離を測る</button>
+  <p class="note" id="measCount"></p>
+  <div class="list" id="measList"></div>
+  <div class="btns"><button id="measClear" class="small danger">測った線を全部消す</button></div>
+ </details>
+
+ <details class="sec" open>
+  <summary><span class="num">7</span>材料・チェック</summary>
+  <div id="mat"></div>
+  <div id="warnList" class="warnTxt"></div>
+ </details>
+
+ <details class="sec">
+  <summary><span class="num">8</span>置いた備品</summary>
+  <p class="note" style="margin-top:0"><span id="objCount"></span>　名前を押すと、その備品を選べます。</p>
+  <div class="list" id="objList"></div>
+ </details>
+
+ <details class="sec">
+  <summary><span class="num">9</span>ファイル</summary>
+  <div class="btns"><button id="saveFile">図面をファイルに保存</button><button id="openFile">ファイルを開く</button></div>
+  <div class="btns"><button id="clearAll" class="danger">すべて消す</button></div>
+  <p class="note">データはこのブラウザに自動保存されます。別のパソコンで続けるときは、ファイルに保存して開いてください。</p>
+  <input id="file" type="file" accept="application/json,.json" hidden>
+ </details>
+</aside>
+
+<main>
+ <div class="tbar">
+  <button id="tSelect" class="on" title="V キー">↖ 選ぶ・動かす</button>
+  <button id="tMeasure" title="M キー">↔ 距離を測る</button>
+  <button id="tPlace" title="P キー">▦ 等間隔に並べる</button>
+  <span class="sep"></span>
+  <label class="row">スナップ <select id="snapSel"><option value="0.5">0.5m</option><option value="0.1">0.1m</option><option value="off">なし</option></select></label>
+  <label class="row"><input id="rulerOn" type="checkbox"> 目盛り・基準点</label>
+  <label class="row"><input id="labelsOn" type="checkbox" checked> 名前</label>
+  <span class="sp"></span>
+  <button id="zOut" title="縮小">−</button><button id="fit" title="全体が見えるように">全体表示</button><button id="zIn" title="拡大">＋</button>
+ </div>
+ <div id="stage"><canvas id="cv" aria-label="配置図。備品や校庭の角をドラッグして動かせます。"></canvas><div id="hint"></div><div id="warn"></div></div>
+</main>
+
+<aside class="r">
+ <div class="ins-title">備品の設定</div>
+ <div id="insp"></div>
+</aside>
+</div>
+
+<div id="helpModal" class="modal" hidden>
+ <div class="card">
+  <h2>使い方</h2>
+  <p><b>作る順番</b>：①テンプレートを選ぶ → ②校庭とトラックを合わせる → ③備品を置いて動かす → ④徒競走の位置を決める → ⑤距離を測って確かめる → ⑥印刷。</p>
+  <table>
+   <tr><th>図の上で</th><th>操作</th></tr>
+   <tr><td>備品をクリック</td><td>選ぶ（<kbd>Shift</kbd>を押しながらで複数選択）</td></tr>
+   <tr><td>備品をドラッグ</td><td>動かす（近い備品の中心や角に、ぴたっと合います）</td></tr>
+   <tr><td>何もない所をドラッグ</td><td>図を動かす（<kbd>Space</kbd>を押しながらでも可）</td></tr>
+   <tr><td><kbd>Shift</kbd>＋何もない所をドラッグ</td><td>範囲で選ぶ</td></tr>
+   <tr><td>選んだ備品の四隅の□</td><td>ドラッグで大きさを変える</td></tr>
+   <tr><td>青いゴールの線</td><td>ドラッグでゴールを動かす（スタートも自動で動く）</td></tr>
+   <tr><td>ホイール</td><td>拡大・縮小</td></tr>
+  </table>
+  <table style="margin-top:10px">
+   <tr><th>キー</th><th>はたらき</th></tr>
+   <tr><td><kbd>Ctrl</kbd>＋<kbd>Z</kbd> / <kbd>Y</kbd></td><td>戻す / やり直す</td></tr>
+   <tr><td><kbd>Ctrl</kbd>＋<kbd>C</kbd> / <kbd>V</kbd> / <kbd>D</kbd></td><td>コピー / 貼り付け / 複製</td></tr>
+   <tr><td><kbd>Delete</kbd></td><td>選んだ備品を消す</td></tr>
+   <tr><td><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></td><td>選んだ備品を少しずつ動かす（<kbd>Shift</kbd>で大きく）</td></tr>
+   <tr><td><kbd>V</kbd> / <kbd>M</kbd> / <kbd>P</kbd></td><td>選ぶ / 距離を測る / 等間隔に並べる</td></tr>
+   <tr><td><kbd>Esc</kbd></td><td>途中の操作をやめる・選択をはずす</td></tr>
+  </table>
+  <p class="note">0m地点は、トラックの上の直線の右はし（右のカーブの始まり）です。スタート位置は、0m地点から走る向きに測った数字です。距離の測り方は、レーンの内側の白線に沿って測ります。</p>
+  <p class="note">以前のバージョンで保存したデータも、そのまま開けます。</p>
+  <div class="btns"><button id="helpClose" class="primary">閉じる</button></div>
+ </div>
+</div>
+<div id="toast" role="status"></div>
+<div id="printArea"></div>
+
+<script>
+'use strict';
+/* ===================== 共通 ===================== */
+const $=id=>document.getElementById(id);
+const KEY='ground-planner-v1',TAU=Math.PI*2,RAD=Math.PI/180;
+const clone=o=>JSON.parse(JSON.stringify(o));
+const nextId=L=>Math.max(0,...L.map(x=>x.id||0))+1;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const f1=v=>Number(v).toFixed(1),f2=v=>Number(v).toFixed(2);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const norm=a=>((a%360)+360)%360;
+const baseName=n=>String(n).replace(/\d+$/,'')||String(n);
+const sameField=(a,b)=>a.length===b.length&&a.every((p,i)=>p.x===b[i].x&&p.y===b[i].y);
+const polyArea=P=>{let a=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];a+=p.x*q.y-q.x*p.y}return Math.abs(a)/2};
+
+/* ===================== 備品・テンプレート ===================== */
+const PAL=[
+ {k:'cone',s:'コーン',n:'コーン',ic:'▲'},
+ {k:'marker',s:'マーカー',n:'マーカー',ic:'●'},
+ {k:'gate',s:'入場門',n:'入場門',ic:'Π'},
+ {k:'tent',s:'テント',n:'テント',ic:'⌂'},
+ {k:'desk',s:'本部席',n:'本部席',ic:'▤'},
+ {k:'studentSeats',s:'児童席',n:'児童席',ic:'▦'},
+ {k:'parentSeats',s:'保護者席',n:'保護者席',ic:'▦'},
+ {k:'basket',s:'玉入れかご',n:'玉入れかご',ic:'◎'},
+ {k:'lane5',s:'5mレーン',n:'5m直線レーン',ic:'▭'},
+ {k:'lane10',s:'10mレーン',n:'10m直線レーン',ic:'▬'},
+ {k:'circle',s:'円',n:'円',ic:'○'},
+ {k:'zone',s:'区域',n:'区域',ic:'▢'},
+ {k:'school',s:'校舎',n:'校舎',ic:'▥'},
+ {k:'text',s:'文字',n:'テキスト',ic:'T'}
+];
+const DEF={
+ cone:{w:.6,d:.6,h:.8,c:'#f0a050'},
+ marker:{w:.6,d:.6,h:.01,c:'#d9483f'},
+ gate:{w:6,d:1,h:4,c:'#598f84'},
+ tent:{w:6,d:4,h:3,c:'#f3f0df'},
+ desk:{w:4,d:1.5,h:.8,c:'#8c9b7f'},
+ studentSeats:{w:20,d:8,h:.15,c:'#bddce8'},
+ parentSeats:{w:24,d:8,h:.15,c:'#e8d0ae'},
+ basket:{w:2,d:2,h:2,c:'#c59bd6'},
+ lane5:{w:5,d:1,h:.01,c:'#d9c7a4'},
+ circle:{w:5,d:5,h:.01,c:'#ffffff'},
+ zone:{w:10,d:6,h:.01,c:'#78aadc'},
+ school:{w:40,d:12,h:10,c:'#b5c1cc'},
+ text:{w:24,d:8,h:.1,c:'#ffffff'}
+};
+const FIELD200=[{x:-65,y:-42},{x:60,y:-42},{x:68,y:-27},{x:68,y:40},{x:-53,y:44},{x:-67,y:25}];
+const FIELD400=[{x:-91,y:-59},{x:84,y:-59},{x:95,y:-38},{x:95,y:56},{x:-74,y:62},{x:-94,y:35}];
+const PRESET={
+ '200':{kind:'oval',lap:200,straight:50,lanes:6,width:1,race:100},
+ '400':{kind:'oval',lap:400,straight:80,lanes:6,width:1,race:100},
+ 'straight':{kind:'straight',lap:100,straight:0,lanes:6,width:1,race:50}
+};
+const MK=(name,type,x,y,w,d,h)=>({name,type,x,y,w,d,h,a:0});
+const TPL={
+ '200':[MK('本部テント','tent',-9.5,-33,6,4,3),MK('救護テント','tent',9.5,-33,6,4,3),MK('本部席','desk',0,-33,4,1.5,.8),MK('児童席','studentSeats',0,34,24,6,.15),MK('保護者席','parentSeats',-57,0,8,40,.15),MK('入場門','gate',50,-38,6,1,4)],
+ '400':[MK('本部テント','tent',-9.5,-54,6,4,3),MK('救護テント','tent',9.5,-54,6,4,3),MK('本部席','desk',0,-54,4,1.5,.8),MK('児童席','studentSeats',0,53,24,6,.15),MK('保護者席','parentSeats',-89,0,6,40,.15),MK('入場門','gate',60,-54,6,1,4)]
+};
+const mkObjs=L=>L.map((o,i)=>({id:i+1,...clone(o)}));
+const typeOf=kind=>kind==='lane10'?'lane5':kind;
+const stillKind=kind=>['cone','marker','basket','circle','zone','text'].includes(typeOf(kind));
+const typeLabel=o=>o.type==='lane5'?(o.w>=10?'10m直線レーン':'5m直線レーン'):((PAL.find(p=>p.k===o.type)||{n:o.type}).n);
+
+/* ===================== 幾何（トラック） ===================== */
+const rot=(cx_,cy_,a,p)=>{const r=a*RAD,c=Math.cos(r),s=Math.sin(r);return{x:cx_+p.x*c-p.y*s,y:cy_+p.x*s+p.y*c}};
+const unrot=(cx_,cy_,a,p)=>{const r=a*RAD,c=Math.cos(r),s=Math.sin(r),dx=p.x-cx_,dy=p.y-cy_;return{x:dx*c+dy*s,y:-dx*s+dy*c}};
+const toW=(t,p)=>rot(t.x,t.y,t.angle,p);
+const toL=(t,p)=>unrot(t.x,t.y,t.angle,p);
+const laneR=(t,i)=>(t.lap-2*t.straight)/TAU+i*t.width;
+const runDir=t=>t.runDirection===-1?-1:1;
+const laneLen=(t,i)=>t.kind==='straight'?t.lap:2*t.straight+TAU*laneR(t,i);
+const finishPos=t=>(t.finish!=null&&Number.isFinite(t.finish))?t.finish:(t.kind==='straight'&&runDir(t)===1?t.lap:0);
+function ovalPt(s,r,d){
+ const P=2*s+TAU*r;d=((d%P)+P)%P;
+ if(d<=Math.PI*r){const a=-Math.PI/2+d/r;return{x:s/2+r*Math.cos(a),y:r*Math.sin(a)}}
+ d-=Math.PI*r;if(d<=s)return{x:s/2-d,y:r};
+ d-=s;if(d<=Math.PI*r){const a=Math.PI/2+d/r;return{x:-s/2+r*Math.cos(a),y:r*Math.sin(a)}}
+ d-=Math.PI*r;return{x:-s/2+d,y:-r};
+}
+function ovalN(s,r,d){
+ const P=2*s+TAU*r;d=((d%P)+P)%P;
+ if(d<Math.PI*r){const a=-Math.PI/2+d/r;return{x:Math.cos(a),y:Math.sin(a)}}
+ d-=Math.PI*r;if(d<s)return{x:0,y:1};
+ d-=s;if(d<Math.PI*r){const a=Math.PI/2+d/r;return{x:Math.cos(a),y:Math.sin(a)}}
+ return{x:0,y:-1};
+}
+function localPt(t,i,d){
+ if(t.kind==='straight')return{x:-t.lap/2+d,y:i*t.width-t.lanes*t.width/2};
+ return ovalPt(t.straight,laneR(t,i),d);
+}
+const lanePt=(t,i,u)=>toW(t,localPt(t,i,u*laneLen(t,i)));
+function finishOn(t,i){ // ゴールの位置を、レーンiの上での長さに直す
+ if(t.kind==='straight')return finishPos(t);
+ const d=finishPos(t),r0=laneR(t,0),ri=laneR(t,i),s=t.straight;
+ if(d<=Math.PI*r0)return d/r0*ri;
+ if(d<=Math.PI*r0+s)return Math.PI*ri+(d-Math.PI*r0);
+ if(d<=2*Math.PI*r0+s)return Math.PI*ri+s+(d-Math.PI*r0-s)/r0*ri;
+ return 2*Math.PI*ri+s+(d-2*Math.PI*r0-s);
+}
+function startDist(t,i){
+ const dir=runDir(t),adj=(t.adjust&&t.adjust[i])||0,f=finishOn(t,i)-dir*t.race+dir*adj;
+ if(t.kind==='straight')return f;
+ const P=laneLen(t,i);return((f%P)+P)%P;
+}
+function xRun(t,i,d){ // 0m地点から走る向きに数えた長さ
+ const P=laneLen(t,i),x=runDir(t)===1?d:(P-d);return((x%P)+P)%P;
+}
+function crossLine(t,i,d){ // レーンiの、距離dの位置の横断線（ワールド座標）
+ if(t.kind==='straight'){const x=-t.lap/2+d,y0=i*t.width-t.lanes*t.width/2;return[toW(t,{x,y:y0}),toW(t,{x,y:y0+t.width})]}
+ const r=laneR(t,i),p=ovalPt(t.straight,r,d),n=ovalN(t.straight,r,d);
+ return[toW(t,p),toW(t,{x:p.x+n.x*t.width,y:p.y+n.y*t.width})];
+}
+function ringPts(t,r){const P=2*t.straight+TAU*r;return Array.from({length:241},(_,k)=>toW(t,ovalPt(t.straight,r,P*k/240)))}
+function trackError(t){
+ if(!['oval','straight'].includes(t.kind))return '形を選んでください';
+ if(![t.lap,t.width,t.lanes,t.race,t.x,t.y,t.angle].every(Number.isFinite)||(t.kind==='oval'&&!Number.isFinite(t.straight)))return '数字を入れてください';
+ if(!Number.isInteger(t.lanes)||t.lanes<1||t.lanes>10)return 'レーン数は1〜10にしてください';
+ if(t.width<.5||t.width>2)return 'レーン幅は0.5〜2mにしてください';
+ if(t.lap<1||t.lap>1000)return '全長は1〜1000mにしてください';
+ if(!(t.race>0)||t.race>t.lap)return '走る距離は全長以下にしてください';
+ if(t.kind==='oval'&&(!(t.straight>0)||(t.lap-2*t.straight)/TAU<=1))return '直線が長すぎます（全長を長くするか、直線を短くしてください）';
+ return null;
+}
+function remapFinish(b,a){ // トラックの大きさを変えても、ゴールは同じ場所に残す
+ if(b.kind!==a.kind)return undefined;
+ if(a.kind==='straight')return finishPos(b)/b.lap*a.lap;
+ const r0=laneR(b,0),r1=laneR(a,0),s0=b.straight,s1=a.straight;
+ let d=((finishPos(b)%b.lap)+b.lap)%b.lap;
+ if(d<=Math.PI*r0)return d/r0*r1;
+ d-=Math.PI*r0;if(d<=s0)return Math.PI*r1+d/s0*s1;
+ d-=s0;if(d<=Math.PI*r0)return Math.PI*r1+s1+d/r0*r1;
+ d-=Math.PI*r0;return 2*Math.PI*r1+s1+d/s0*s1;
+}
+function clampFinish(t){
+ const f=t.finish;if(!Number.isFinite(f))return undefined;
+ if(t.kind==='oval')return((f%t.lap)+t.lap)%t.lap;
+ const lo=runDir(t)===1?t.race:0,hi=runDir(t)===1?t.lap:t.lap-t.race;
+ return clamp(f,lo,hi);
+}
+function finishText(t){
+ if(t.kind==='straight')return `コースの左端から ${f2(finishPos(t))} m`;
+ return `0m地点から${runDir(t)===1?'時計回り':'反時計回り'}に ${f2(xRun(t,0,finishPos(t)))} m`;
+}
+function startText(t,i){
+ const d=startDist(t,i);
+ if(t.kind==='straight')return `コースの左端から <b>${f2(d)} m</b>`;
+ return `0m地点から${runDir(t)===1?'時計回り':'反時計回り'}に <b>${f2(xRun(t,i,d))} m</b>`;
+}
+
+/* ===================== 測る・並べる（レーン上の位置） ===================== */
+function nearestU(t,i,p){ // ワールド座標の点を、レーンi上の位置u（0〜1）に直す
+ const q=toL(t,p);
+ if(t.kind==='straight')return clamp((q.x+t.lap/2)/t.lap,0,1);
+ const r=laneR(t,i),s=t.straight,P=laneLen(t,i),c=[];
+ const add=d=>{const e=ovalPt(s,r,d);c.push({d,err:Math.hypot(e.x-q.x,e.y-q.y)})};
+ add(Math.PI*r+clamp(s/2-q.x,0,s));
+ add(2*Math.PI*r+s+clamp(q.x+s/2,0,s));
+ let a=Math.atan2(q.y,q.x-s/2);a=clamp(a,-Math.PI/2,Math.PI/2);add((a+Math.PI/2)*r);
+ a=Math.atan2(q.y,q.x+s/2);if(a<0)a+=TAU;a=clamp(a,Math.PI/2,3*Math.PI/2);add(Math.PI*r+s+(a-Math.PI/2)*r);
+ c.sort((x,y)=>x.err-y.err);
+ return c[0].d/P;
+}
+function laneDelta(t,ua,ub,dir){ // 走る向き（または逆向き）に測ったときの、u方向の差
+ if(t.kind==='straight')return ub-ua;
+ const sg=runDir(t);let f=((((ub-ua)*sg)%1)+1)%1;
+ if(dir==='backward')f-=1;
+ return f*sg;
+}
+function laneAtP(p){
+ const t=S.track,q=toL(t,p);
+ let off;
+ if(t.kind==='straight'){if(Math.abs(q.x)>t.lap/2)return null;off=q.y+t.lanes*t.width/2}
+ else off=(Math.abs(q.x)<=t.straight/2?Math.abs(q.y):Math.hypot(Math.abs(q.x)-t.straight/2,q.y))-laneR(t,0);
+ const i=Math.floor(off/t.width);return i>=0&&i<t.lanes?i:null;
+}
+const laneIdx=()=>clamp(+$('laneSel').value||0,0,S.track.lanes-1);
+function lanePolyU(lane,ua,ub,dir){
+ const t=S.track,du=laneDelta(t,ua,ub,dir),P=laneLen(t,lane),n=clamp(Math.ceil(Math.abs(du)*P/.25),2,900),pts=[];
+ for(let k=0;k<=n;k++)pts.push(lanePt(t,lane,ua+du*k/n));
+ return pts;
+}
+function rowPts(n,a,b,lane,dir){ // 等間隔の点（位置と向き）
+ const out=[],t=S.track;
+ if(lane==null){const ang=Math.atan2(b.y-a.y,b.x-a.x)/RAD;for(let k=0;k<n;k++){const f=n>1?k/(n-1):0;out.push({x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,ang})}return out}
+ const du=laneDelta(t,a,b,dir);
+ for(let k=0;k<n;k++){const f=n>1?k/(n-1):0,u=a+du*f,p=lanePt(t,lane,u),q=lanePt(t,lane,u+Math.sign(du||1)*1e-3);out.push({x:p.x,y:p.y,ang:Math.atan2(q.y-p.y,q.x-p.x)/RAD})}
+ return out;
+}
+function measWorld(m,k){return m.mode==='lane'?lanePt(S.track,m.lane,m[k].u):m[k]}
+function measSpan(m,dir){const t=S.track;return m.mode==='lane'?Math.abs(laneDelta(t,m.a.u,m.b.u,dir||m.direction))*laneLen(t,m.lane):dist(m.a,m.b)}
+
+/* ===================== 状態 ===================== */
+function fresh(){
+ return{version:1,title:'秋の運動会 配置計画',field:clone(FIELD200),track:{...PRESET['200'],x:0,y:0,angle:0,adjust:[]},objects:mkObjs(TPL['200']),measurements:[],raceMode:false,ruler:true,origin:null,trackPresets:[],activeTrack:null};
+}
+function valid(s){
+ if(!s||s.version!==1||!Array.isArray(s.field)||s.field.length<3||!s.track||trackError(s.track)||!Array.isArray(s.objects))return false;
+ const fin=(...v)=>v.every(Number.isFinite);
+ return s.field.every(p=>fin(p.x,p.y))&&s.objects.every(o=>o&&fin(o.x,o.y,o.w,o.d,o.a))
+  &&(s.measurements||[]).every(m=>m&&m.a&&m.b&&(m.mode!=='lane'||(Number.isInteger(m.lane)&&fin(m.a.u,m.b.u))));
+}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(valid(s))return s}}catch(e){}return fresh()}
+let S=null,sel=[],selM=null,undoStack=[],redoStack=[],clip=null;
+let tool='select',editField=false,vIdx=0,drag=null,spaceDown=false,meas=null,place=null,snapHint=null,mouseP=null;
+let W=800,H=600,dpr=1,scale=4,cx=0,cy=0,px=0,py=0;
+const cv=$('cv'),ctx=cv.getContext('2d');
+
+function normalize(){
+ S.trackPresets=(Array.isArray(S.trackPresets)?S.trackPresets:[]).filter(p=>p&&p.track&&!trackError(p.track));
+ S.objects=Array.isArray(S.objects)?S.objects:[];
+ S.measurements=Array.isArray(S.measurements)?S.measurements:[];
+ S.ruler=S.ruler!==false;
+ if(!S.trackPresets.length){S.trackPresets.push({id:1,name:'A',track:clone(S.track),objects:clone(S.objects),measurements:clone(S.measurements)});S.activeTrack=1}
+ if(!S.trackPresets.some(p=>p.id===S.activeTrack)){
+  const id=nextId(S.trackPresets);
+  S.trackPresets.push({id,name:nextName(),track:clone(S.track),objects:clone(S.objects),measurements:clone(S.measurements)});
+  S.activeTrack=id;
+ }
+ S.trackPresets.forEach(p=>{if(!p.name)p.name=nextName()});
+}
+function nextName(){const used=new Set(S.trackPresets.map(p=>p.name));for(let i=0;i<26;i++){const n=String.fromCharCode(65+i);if(!used.has(n))return n}return '?'}
+function storeActive(){const e=S.trackPresets.find(p=>p.id===S.activeTrack);if(e){e.track=clone(S.track);e.objects=clone(S.objects);e.measurements=clone(S.measurements)}}
+function loadEntry(e){S.track=clone(e.track);S.objects=clone(e.objects||[]);S.measurements=clone(e.measurements||[]);S.activeTrack=e.id;sel=[];selM=null;meas=null;place=null}
+function checkpoint(){storeActive();undoStack.push(JSON.stringify(S));if(undoStack.length>80)undoStack.shift();redoStack=[]}
+function undo(){if(!undoStack.length)return;storeActive();redoStack.push(JSON.stringify(S));S=JSON.parse(undoStack.pop());sel=[];selM=null;afterChange()}
+function redo(){if(!redoStack.length)return;storeActive();undoStack.push(JSON.stringify(S));S=JSON.parse(redoStack.pop());sel=[];selM=null;afterChange()}
+function persist(){storeActive();try{localStorage.setItem(KEY,JSON.stringify(S));$('saved').textContent='✓ 自動保存しました'}catch(e){$('saved').textContent='保存できません（ファイルに保存してください）'}}
+function afterChange(){normalize();persist();refreshAll()}
+function toast(m){const el=$('toast');el.textContent=m;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2800)}
+
+/* ===================== 備品の作成・名前 ===================== */
+function uniqueName(base){
+ const used=new Set(S.objects.map(o=>o.name));if(!used.has(base))return base;
+ for(let k=2;;k++){if(!used.has(base+k))return base+k}
+}
+function newObj(kind,x,y){
+ const type=typeOf(kind),pal=PAL.find(p=>p.k===kind)||{n:'備品'},d=DEF[type]||{w:2,d:2,h:1,c:'#dddddd'};
+ const o={id:nextId(S.objects),type,name:uniqueName(pal.n),x,y,w:kind==='lane10'?10:d.w,d:d.d,h:d.h,a:0};
+ if(type==='text'){o.text='ここに入力';o.fontSize=18;o.textColor='#243c39'}
+ return o;
+}
+function corners(o){const hw=o.w/2,hd=o.d/2;return[[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(([x,y])=>rot(o.x,o.y,o.a,{x,y}))}
+function objAt(p){
+ const pad=Math.max(.15,5/scale);let best=null,ba=Infinity;
+ for(const o of S.objects){const l=unrot(o.x,o.y,o.a,p);if(Math.abs(l.x)<=o.w/2+pad&&Math.abs(l.y)<=o.d/2+pad){const a=o.w*o.d;if(a<=ba){ba=a;best=o}}}
+ return best;
+}
+function satOverlap(A,B){
+ for(const P of [A,B])for(let i=0;i<P.length;i++){
+  const p=P[i],q=P[(i+1)%P.length],nx=-(q.y-p.y),ny=q.x-p.x;
+  let a0=Infinity,a1=-Infinity,b0=Infinity,b1=-Infinity;
+  for(const v of A){const d=v.x*nx+v.y*ny;a0=Math.min(a0,d);a1=Math.max(a1,d)}
+  for(const v of B){const d=v.x*nx+v.y*ny;b0=Math.min(b0,d);b1=Math.max(b1,d)}
+  if(a1<b0-1e-9||b1<a0-1e-9)return false;
+ }
+ return true;
+}
+function inPoly(p,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)c=!c}return c}
+function onTrack(o){
+ const t=S.track;
+ return[{x:o.x,y:o.y},...corners(o)].some(p=>{
+  const q=toL(t,p);
+  if(t.kind==='straight')return Math.abs(q.x)<=t.lap/2&&Math.abs(q.y)<=t.lanes*t.width/2;
+  const dd=Math.abs(q.x)<=t.straight/2?Math.abs(q.y):Math.hypot(Math.abs(q.x)-t.straight/2,q.y);
+  return dd>=laneR(t,0)&&dd<=laneR(t,t.lanes);
+ });
+}
+function origin(){
+ if(S.origin)return S.origin;
+ const t=S.track;
+ return t.kind==='oval'?toW(t,{x:0,y:-laneR(t,0)}):toW(t,{x:0,y:-t.lanes*t.width/2});
+}
+const toRel=p=>{const o=origin();return{r:p.x-o.x,u:o.y-p.y}};
+const fromRel=(r,u)=>{const o=origin();return{x:o.x+r,y:o.y-u}};
+const gridStep=()=>{const v=$('snapSel').value;return v==='off'?0:+v};
+function gridSnap(p){const g=gridStep();if(!g)return{x:p.x,y:p.y};const o=origin();return{x:o.x+Math.round((p.x-o.x)/g)*g,y:o.y+Math.round((p.y-o.y)/g)*g}}
+function snapTargets(exId,noOrigin){
+ const L=[],t=S.track;
+ S.field.forEach((p,i)=>L.push({x:p.x,y:p.y,label:`校庭の角${i+1}`}));
+ if(S.ruler&&!noOrigin){const o=origin();L.push({x:o.x,y:o.y,label:'基準点'})}
+ for(const i of [0,t.lanes]){
+  if(t.kind==='oval'){const r=laneR(t,i);[0,Math.PI*r,Math.PI*r+t.straight,2*Math.PI*r+t.straight].forEach(d=>L.push({...toW(t,ovalPt(t.straight,r,d)),label:'トラックの境目'}))}
+  else{const y=-t.lanes*t.width/2+i*t.width;[-t.lap/2,t.lap/2].forEach(x=>L.push({...toW(t,{x,y}),label:'トラックの境目'}))}
+ }
+ for(const o of S.objects){
+  if(o.id===exId)continue;
+  L.push({x:o.x,y:o.y,label:o.name+'の中心'});
+  if(o.type!=='cone'&&o.type!=='marker')corners(o).forEach(p=>L.push({...p,label:o.name+'の角'}));
+ }
+ return L;
+}
+function snapPoint(p,free,exId,noOrigin){
+ snapHint=null;
+ if(free)return{x:p.x,y:p.y};
+ const q=P2S(p);let best=null,bd=11;
+ for(const c of snapTargets(exId,noOrigin)){const d=dist(P2S(c),q);if(d<bd){bd=d;best=c}}
+ if(best){snapHint={x:best.x,y:best.y,label:best.label};return{x:best.x,y:best.y}}
+ return gridSnap(p);
+}
+function finishFromP(p,alt){
+ const t=S.track;
+ if(t.kind==='oval'){let d=nearestU(t,0,p)*laneLen(t,0);if(!alt)d=Math.round(d*2)/2;return d}
+ const lo=runDir(t)===1?t.race:0,hi=runDir(t)===1?t.lap:t.lap-t.race;
+ let d=toL(t,p).x+t.lap/2;if(!alt)d=Math.round(d*2)/2;
+ return clamp(d,lo,hi);
+}
+
+/* ===================== 画面（キャンバス） ===================== */
+function P2S(p){return{x:W/2+(p.x-cx)*scale+px,y:H/2+(p.y-cy)*scale+py}}
+function S2P(q){return{x:(q.x-W/2-px)/scale+cx,y:(q.y-H/2-py)/scale+cy}}
+const qpos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+function bounds(){
+ const P=[...S.field],t=S.track;
+ if(t.kind==='oval'){const ro=laneR(t,t.lanes),xs=t.straight/2+ro;[[-xs,-ro],[xs,-ro],[xs,ro],[-xs,ro]].forEach(([x,y])=>P.push(toW(t,{x,y})))}
+ else{const h=t.lanes*t.width/2;[[-t.lap/2,-h],[t.lap/2,-h],[t.lap/2,h],[-t.lap/2,h]].forEach(([x,y])=>P.push(toW(t,{x,y})))}
+ S.objects.forEach(o=>P.push(...corners(o)));
+ return{minX:Math.min(...P.map(p=>p.x))-5,maxX:Math.max(...P.map(p=>p.x))+5,minY:Math.min(...P.map(p=>p.y))-5,maxY:Math.max(...P.map(p=>p.y))+5};
+}
+function fit(){
+ if(!W||!H||!S)return;
+ const b=bounds();cx=(b.minX+b.maxX)/2;cy=(b.minY+b.maxY)/2;
+ scale=Math.min(W/(b.maxX-b.minX),H/(b.maxY-b.minY))*0.92;px=0;py=0;draw();
+}
+function zoomAt(q,f){const before=S2P(q);scale=clamp(scale*f,.3,80);px=q.x-W/2-(before.x-cx)*scale;py=q.y-H/2-(before.y-cy)*scale;draw()}
+function polyPath(pts,closed){ctx.beginPath();pts.forEach((p,i)=>{const q=P2S(p);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});if(closed)ctx.closePath()}
+function fillPoly(pts,fill,stroke,lw){polyPath(pts,true);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.setLineDash([]);ctx.stroke()}}
+function strokePts(pts,color,lw,closed,dash){polyPath(pts,closed);ctx.strokeStyle=color;ctx.lineWidth=lw||1;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([])}
+function dot(p,r,fill,stroke){const q=P2S(p);ctx.beginPath();ctx.arc(q.x,q.y,r,0,TAU);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke()}}
+function arrow(a,b,color){
+ const ang=Math.atan2(b.y-a.y,b.x-a.x);
+ ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-8*Math.cos(ang-.45),b.y-8*Math.sin(ang-.45));ctx.lineTo(b.x-8*Math.cos(ang+.45),b.y-8*Math.sin(ang+.45));ctx.closePath();ctx.fill();
+}
+function label(text,q,color,size,bg){
+ size=size||11;
+ ctx.font=`600 ${size}px "Noto Sans JP",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+ const w=ctx.measureText(text).width;
+ if(bg){ctx.fillStyle=bg;ctx.fillRect(q.x-w/2-5,q.y-(size+8)/2,w+10,size+8)}
+ ctx.fillStyle=color;ctx.fillText(text,q.x,q.y);
+}
+function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,L=dx*dx+dy*dy;const k=L?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/L,0,1):0;return Math.hypot(p.x-a.x-k*dx,p.y-a.y-k*dy)}
+
+function drawGrid(){
+ if(scale*5<6)return;
+ const o=origin(),a=S2P({x:0,y:0}),b=S2P({x:W,y:H});
+ ctx.strokeStyle='#d3dccb';ctx.lineWidth=1;ctx.beginPath();
+ const x0=Math.min(a.x,b.x),x1=Math.max(a.x,b.x),y0=Math.min(a.y,b.y),y1=Math.max(a.y,b.y);
+ for(let x=o.x+Math.floor((x0-o.x)/5)*5;x<=x1;x+=5){const sx=P2S({x,y:0}).x;ctx.moveTo(sx,0);ctx.lineTo(sx,H)}
+ for(let y=o.y+Math.floor((y0-o.y)/5)*5;y<=y1;y+=5){const sy=P2S({x:0,y}).y;ctx.moveTo(0,sy);ctx.lineTo(W,sy)}
+ ctx.stroke();
+}
+function drawTrack(){
+ const t=S.track;
+ if(t.kind==='oval'){
+  fillPoly(ringPts(t,laneR(t,t.lanes)),'#d3bd96','#a58f66',1.2);
+  fillPoly(ringPts(t,laneR(t,0)),'#b8d593',null);
+  for(let i=0;i<=t.lanes;i++)strokePts(ringPts(t,laneR(t,i)),'#ffffff',1.2,true);
+ }else{
+  const h=t.lanes*t.width/2;
+  fillPoly([{x:-t.lap/2,y:-h},{x:t.lap/2,y:-h},{x:t.lap/2,y:h},{x:-t.lap/2,y:h}].map(p=>toW(t,p)),'#d3bd96','#a58f66',1.2);
+  for(let i=0;i<=t.lanes;i++){const y=-h+i*t.width;strokePts([{x:-t.lap/2,y},{x:t.lap/2,y}].map(p=>toW(t,p)),'#ffffff',1.2,false)}
+ }
+}
+function drawRace(){
+ const t=S.track;
+ for(let i=0;i<t.lanes;i++){
+  const L=crossLine(t,i,startDist(t,i));
+  strokePts(L,'#c8453e',4,false);
+  const m=P2S({x:(L[0].x+L[1].x)/2,y:(L[0].y+L[1].y)/2});
+  ctx.beginPath();ctx.arc(m.x,m.y,8,0,TAU);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#c8453e';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#a8302a';ctx.font='700 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i+1),m.x,m.y+.5);
+ }
+ const A=crossLine(t,0,finishOn(t,0))[0],B=crossLine(t,t.lanes-1,finishOn(t,t.lanes-1))[1];
+ strokePts([A,B],'#224e88',3.5,false);
+ const q=P2S(B);label('ゴール',{x:q.x,y:q.y-14},'#224e88',11,'#ffffffe6');
+ const s0=P2S(crossLine(t,0,startDist(t,0))[0]);label('スタート',{x:s0.x,y:s0.y-14},'#a8302a',11,'#ffffffe6');
+}
+function drawZeroMark(){
+ const t=S.track,A=crossLine(t,0,0)[0],B=crossLine(t,t.lanes-1,0)[1];
+ strokePts([A,B],'#b07d2a',1.5,false,[5,4]);
+ const q=P2S(A);label('0m',{x:q.x,y:q.y-12},'#8a6a2e',10,'#ffffffe6');
+}
+function drawArrows(){
+ if(scale<1.2)return;
+ const t=S.track,sg=runDir(t),ln=Math.floor(t.lanes/2),L=laneLen(t,ln);
+ const at=d=>t.kind==='straight'?{x:-t.lap/2+((d%t.lap)+t.lap)%t.lap,y:(ln+.5)*t.width-t.lanes*t.width/2}:ovalPt(t.straight,laneR(t,ln)+t.width/2,d);
+ for(const f of [.25,.75]){const d=L*f;arrow(P2S(toW(t,at(d))),P2S(toW(t,at(d+sg*3))),'#2f6f66')}
+}
+function drawObj(o,exp){
+ const isSel=!exp&&sel.includes(o.id),c=P2S(o),cr=corners(o),cs=cr.map(P2S),ty=o.type;
+ ctx.save();
+ if(ty==='cone'){const r=Math.max(5,.28*scale);ctx.beginPath();ctx.moveTo(c.x,c.y-r);ctx.lineTo(c.x+r*.85,c.y+r*.7);ctx.lineTo(c.x-r*.85,c.y+r*.7);ctx.closePath();ctx.fillStyle='#f0a050';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.2;ctx.stroke()}
+ else if(ty==='marker'){const r=Math.max(4,.22*scale);ctx.beginPath();ctx.arc(c.x,c.y,r,0,TAU);ctx.fillStyle='#d9483f';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()}
+ else if(ty==='circle'||ty==='basket'){
+  const el=[];for(let k=0;k<72;k++){const a=k/72*TAU;el.push(rot(o.x,o.y,o.a,{x:o.w/2*Math.cos(a),y:o.d/2*Math.sin(a)}))}
+  if(ty==='circle')fillPoly(el,'rgba(255,255,255,.1)','#ffffff',2.5);
+  else{fillPoly(el,DEF.basket.c,'#7d4f9c',1.5);dot(o,3,'#ffffff',null)}
+ }
+ else if(ty==='lane5'){
+  fillPoly(cr,DEF.lane5.c,'#a58f66',1);
+  strokePts([cr[0],cr[1]],'#ffffff',2,false);strokePts([cr[3],cr[2]],'#ffffff',2,false);
+  strokePts([cr[0],cr[3]],'#d9483f',3,false);strokePts([cr[1],cr[2]],'#224e88',3,false);
+  label(`${f1(o.w)} m`,c,'#6b5a3a',10);
+ }
+ else if(ty==='zone'){fillPoly(cr,'rgba(120,170,220,.22)',null);strokePts(cr,'#4a88af',1.5,true,[6,4])}
+ else if(ty==='text'){fillPoly(cr,'rgba(255,255,255,.7)',null);drawText(o)}
+ else if(ty==='tent'){fillPoly(cr,DEF.tent.c,'#8f8c6c',1.2);strokePts([cr[0],cr[2]],'#b8b9a0',1,false);strokePts([cr[1],cr[3]],'#b8b9a0',1,false)}
+ else if(ty==='studentSeats'||ty==='parentSeats'){
+  const col=ty==='studentSeats'?'#699daf':'#b4905f';
+  fillPoly(cr,DEF[ty].c,col,1.2);
+  const rows=clamp(Math.floor(o.d/1.2),2,12);
+  for(let k=0;k<rows;k++){const ly=-o.d*.4+k/(rows-1)*o.d*.8;strokePts([rot(o.x,o.y,o.a,{x:-o.w*.42,y:ly}),rot(o.x,o.y,o.a,{x:o.w*.42,y:ly})],col,1,false)}
+ }
+ else fillPoly(cr,(DEF[ty]||{c:'#dddddd'}).c,'#829c77',1.2);
+ if(isSel){strokePts(cr,'#167b66',2,true)}
+ if(isSel&&sel.length===1&&ty!=='cone'&&ty!=='marker')cs.forEach(q=>{ctx.fillStyle='#fff';ctx.fillRect(q.x-5,q.y-5,10,10);ctx.strokeStyle='#167b66';ctx.lineWidth=1.8;ctx.strokeRect(q.x-5,q.y-5,10,10)});
+ if($('labelsOn').checked&&ty!=='text'&&(isSel||(ty!=='cone'&&ty!=='marker'))){
+  const bottom=Math.max(...cs.map(q=>q.y));label(o.name,{x:c.x,y:bottom+9},'#3f5249',10,'#ffffffdd');
+ }
+ ctx.restore();
+}
+function drawText(o){
+ const cc=P2S(o),w=o.w*scale,h=o.d*scale,fs=o.fontSize||18;
+ ctx.save();ctx.translate(cc.x,cc.y);ctx.rotate(o.a*RAD);
+ ctx.beginPath();ctx.rect(-w/2,-h/2,w,h);ctx.clip();
+ ctx.font=`500 ${fs}px "Noto Sans JP",sans-serif`;ctx.fillStyle=o.textColor||'#243c39';ctx.textAlign='left';ctx.textBaseline='top';
+ let y=-h/2+4;
+ for(const para of String(o.text||'').split('\n')){
+  let line='';
+  for(const ch of para){if(line&&ctx.measureText(line+ch).width>w-10){ctx.fillText(line,-w/2+5,y);y+=fs*1.35;line=''}line+=ch}
+  ctx.fillText(line,-w/2+5,y);y+=fs*1.35;
+ }
+ ctx.restore();
+}
+function drawMeasures(exp){
+ const items=S.measurements.map(m=>({m,prev:false}));
+ if(meas&&!exp&&mouseP){
+  const pm=meas.mode==='lane'?{id:0,mode:'lane',lane:meas.lane,direction:$('dirSel').value,a:meas.a,b:{u:nearestU(S.track,meas.lane,mouseP)}}:{id:0,mode:'straight',a:meas.a,b:mouseP};
+  items.push({m:pm,prev:true});
+ }
+ for(const {m,prev} of items){
+  const pts=m.mode==='lane'?lanePolyU(m.lane,m.a.u,m.b.u,m.direction):[measWorld(m,'a'),measWorld(m,'b')];
+  const col=prev?'#7aa6cc':(selM===m.id?'#e0712b':'#256da4');
+  strokePts(pts,col,selM===m.id?3.5:2.5,false,m.mode==='lane'?[]:[6,4]);
+  if(!prev){dot(measWorld(m,'a'),4,'#ffffff',col);dot(measWorld(m,'b'),4,'#ffffff',col)}
+  const mid=P2S(pts[Math.floor(pts.length/2)]);
+  label(`${m.mode==='lane'?(m.lane+1)+'レーン ':''}${f2(measSpan(m))} m`,{x:mid.x,y:mid.y-12},col,12,'#ffffffee');
+ }
+}
+function drawPlacePreview(){
+ if(!place||!mouseP)return;
+ const n=clamp(+$('rowN').value||2,2,100),dir=$('dirSel').value;
+ const b=place.lane!=null?nearestU(S.track,place.lane,mouseP):mouseP;
+ if(place.lane!=null)strokePts(lanePolyU(place.lane,place.a,b,dir),'#e69b57',2,false,[5,4]);
+ else{const a=place.a;strokePts([a,mouseP],'#e69b57',2,false,[5,4])}
+ rowPts(n,place.lane!=null?place.a:place.a,b,place.lane,dir).forEach(p=>dot(p,4.5,'#e69b57','#ffffff'));
+}
+function drawRuler(){
+ const o=origin(),T=20,L=34,q=P2S(o);
+ const step=[1,2,5,10,20,50,100].find(v=>v*scale>=45)||100,pp=step*scale;
+ ctx.save();
+ ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(138,79,191,.45)';ctx.lineWidth=1;ctx.beginPath();
+ ctx.moveTo(0,q.y);ctx.lineTo(W,q.y);ctx.moveTo(q.x,0);ctx.lineTo(q.x,H);ctx.stroke();ctx.setLineDash([]);
+ ctx.beginPath();ctx.arc(q.x,q.y,7,0,TAU);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#8a4fbf';ctx.lineWidth=2;ctx.stroke();
+ ctx.beginPath();ctx.moveTo(q.x-11,q.y);ctx.lineTo(q.x+11,q.y);ctx.moveTo(q.x,q.y-11);ctx.lineTo(q.x,q.y+11);ctx.lineWidth=1.5;ctx.stroke();
+ label('基準点',{x:q.x+40,y:q.y-14},'#8a4fbf',11,'#ffffffe6');
+ ctx.fillStyle='rgba(255,255,255,.95)';ctx.fillRect(0,0,W,T);ctx.fillRect(0,0,L,H);
+ ctx.font='10px sans-serif';ctx.fillStyle='#6b7a64';ctx.textAlign='center';ctx.textBaseline='middle';
+ for(let k=Math.ceil((L-q.x)/pp);k<=Math.floor((W-q.x)/pp);k++){const sx=q.x+k*pp;ctx.strokeStyle='#9aa891';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx,T-6);ctx.lineTo(sx,T);ctx.stroke();ctx.fillText(String(k*step),sx,T/2-2)}
+ for(let k=Math.ceil((q.y-H)/pp);k<=Math.floor((q.y-T)/pp);k++){const sy=q.y-k*pp;ctx.strokeStyle='#9aa891';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L-6,sy);ctx.lineTo(L,sy);ctx.stroke();ctx.fillText(String(k*step),L/2,sy)}
+ ctx.fillStyle='#7c8b74';ctx.font='9px sans-serif';ctx.fillText('m',L/2,T/2);
+ ctx.restore();
+}
+function drawScale(){
+ const L=[1,2,5,10,20,50,100].find(v=>v*scale>=70)||100,len=L*scale,x=16,y=H-22;
+ ctx.fillStyle='#243c39';ctx.fillRect(x,y,len,3);ctx.fillRect(x,y-5,1.5,8);ctx.fillRect(x+len-1.5,y-5,1.5,8);
+ ctx.font='600 11px sans-serif';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillStyle='#243c39';ctx.fillText(`${L} m`,x,y-6);
+}
+function setHint(){
+ let t;
+ if(tool==='select')t='備品をドラッグで動かす・何もない所をドラッグで図を動かす・Shift＋ドラッグで範囲選択';
+ else if(tool==='measure')t=meas?'② 終点をクリック（Escでやめる）':'① 始点をクリック → ② 終点をクリック（Escでやめる）';
+ else t=place?'② 終わりをクリック（Escでやめる）':'① 始めをクリック → ② 終わりをクリック（Escでやめる）';
+ $('hint').textContent=t;
+}
+function draw(exp){
+ if(!W||!H||!S)return;
+ if(!exp)setHint();
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ ctx.fillStyle='#e6ede2';ctx.fillRect(0,0,W,H);
+ drawGrid();
+ fillPoly(S.field,'#d8e5c8','#7f9f6c',1.6);
+ if(!exp)S.field.forEach((p,i)=>{const q=S.field[(i+1)%S.field.length],m=P2S({x:(p.x+q.x)/2,y:(p.y+q.y)/2});label(`${f1(dist(p,q))}m`,m,'#5b7050',10,'#ffffffb0')});
+ drawTrack();
+ if(S.raceMode)drawRace();
+ drawZeroMark();
+ if(!exp)drawArrows();
+ for(const o of S.objects)if(o.type==='zone')drawObj(o,exp);
+ for(const o of S.objects)if(o.type!=='zone')drawObj(o,exp);
+ drawMeasures(exp);
+ if(!exp&&editField)S.field.forEach((p,i)=>{dot(p,i===vIdx?7:5.5,i===vIdx?'#21785e':'#ffffff','#21785e');const q=P2S(p);label(String(i+1),{x:q.x,y:q.y-14},'#21785e',10,'#ffffffdd')});
+ if(!exp)drawPlacePreview();
+ if(!exp&&drag&&drag.kind==='box'){const a=drag.q0,b=drag.q1;ctx.setLineDash([4,3]);ctx.strokeStyle='#224e88';ctx.lineWidth=1.2;ctx.strokeRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));ctx.setLineDash([]);ctx.fillStyle='rgba(34,78,136,.08)';ctx.fillRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y))}
+ if(!exp&&snapHint&&(drag||meas||place)){const q=P2S(snapHint);ctx.beginPath();ctx.arc(q.x,q.y,9,0,TAU);ctx.strokeStyle='#e0368c';ctx.lineWidth=2.5;ctx.stroke();label(snapHint.label,{x:q.x,y:q.y-22},'#ffffff',11,'#e0368c')}
+ if(!exp&&S.ruler)drawRuler();
+ if(!exp)drawScale();
+}
+
+/* ===================== 画面の一覧・パネル ===================== */
+function fillTrack(){
+ const t=S.track,ov=t.kind==='oval';
+ $('kind').value=t.kind;$('lap').value=t.lap;$('straight').value=t.straight;$('straightRow').style.display=ov?'':'none';
+ $('lanes').value=t.lanes;$('width').value=t.width;$('race').value=t.race;
+ const ro=$('runDir').options;ro[0].text=ov?'時計回り ↻':'左から右へ →';ro[1].text=ov?'反時計回り ↺':'右から左へ ←';
+ $('runDir').value=String(runDir(t));
+ $('finish').value=Number(finishPos(t).toFixed(2));
+ $('tx').value=t.x;$('ty').value=t.y;$('tangle').value=t.angle;
+ $('finishInfo').textContent='いまのゴール：'+finishText(t);
+ $('trackInfo').textContent=ov?`半径（内側）${f2(laneR(t,0))} m ・ 全体 横${f1(t.straight+2*laneR(t,t.lanes))} m × 縦${f1(2*laneR(t,t.lanes))} m`:`直線コース ${t.lap} m ・ 幅 ${f1(t.lanes*t.width)} m`;
+ const ls=$('laneSel');
+ if(ls.options.length!==t.lanes){const v=Math.min(+ls.value||0,t.lanes-1);ls.innerHTML=Array.from({length:t.lanes},(_,i)=>`<option value="${i}">${i+1}レーン</option>`).join('');ls.value=String(v)}
+}
+function renderTracks(){
+ $('trackList').innerHTML=S.trackPresets.map(p=>{
+  const t=p.id===S.activeTrack?S.track:p.track;
+  const sum=t.kind==='straight'?`直線 ${t.lap}m・${t.lanes}レーン`:`${t.lap}m・${t.lanes}レーン・直線${t.straight}m`;
+  return `<div class="trow"><button class="ld ${p.id===S.activeTrack?'on':''}" data-ld="${p.id}"><b>トラック${esc(p.name)}</b><br><span style="font-size:11px;color:var(--muted)">${sum}</span></button><button class="small" data-dup="${p.id}" title="コピーして新しい案を作る">複製</button><button class="small danger" data-del="${p.id}" ${S.trackPresets.length<=1?'disabled':''}>×</button></div>`;
+ }).join('');
+}
+function startTableHTML(){
+ const t=S.track;let h='<table><tr><th>レーン</th><th>スタート位置</th></tr>';
+ for(let i=0;i<t.lanes;i++)h+=`<tr><td>${i+1}</td><td>${startText(t,i)}</td></tr>`;
+ return h+`</table><p class="note">ゴール：${finishText(t)}</p>`;
+}
+function renderStart(){$('startTable').innerHTML=S.raceMode?startTableHTML():''}
+function fieldInfo(){
+ const P=S.field,xs=P.map(p=>p.x),ys=P.map(p=>p.y);
+ return `校庭：横 ${f1(Math.max(...xs)-Math.min(...xs))} m × 縦 ${f1(Math.max(...ys)-Math.min(...ys))} m ・ 面積 約 ${Math.round(polyArea(P)).toLocaleString('ja-JP')} m²（角 ${P.length}つ）`;
+}
+function materialsHTML(){
+ const t=S.track,cnt=new Map();
+ for(const o of S.objects){const k=typeLabel(o);cnt.set(k,(cnt.get(k)||0)+1)}
+ let line=0;for(let i=0;i<=t.lanes;i++)line+=laneLen(t,i);
+ const rows=[...cnt].map(([k,v])=>`<tr><td>${esc(k)}</td><td style="text-align:right">${v} 個</td></tr>`).join('');
+ return `<table>${rows||'<tr><td colspan="2" class="note">備品はまだありません</td></tr>'}</table>
+ <p class="note">レーンの白線（境目の合計）：約 <b>${Math.round(line)} m</b>（テープの目安。少し多めに用意）</p>
+ ${S.raceMode?`<p class="note">スタート線・ゴール線：<b>${t.lanes*2} 本</b></p>`:''}
+ <p class="note">${esc(fieldInfo())}</p>`;
+}
+function warnings(){
+ const w=[],t=S.track;
+ const outer=t.kind==='oval'?ringPts(t,laneR(t,t.lanes)):[{x:-t.lap/2,y:-t.lanes*t.width/2},{x:t.lap/2,y:-t.lanes*t.width/2},{x:t.lap/2,y:t.lanes*t.width/2},{x:-t.lap/2,y:t.lanes*t.width/2}].map(p=>toW(t,p));
+ if(outer.some(p=>!inPoly(p,S.field)))w.push('トラックの一部が校庭の外にはみ出しています');
+ const out=S.objects.filter(o=>!inPoly({x:o.x,y:o.y},S.field)).map(o=>o.name);
+ if(out.length)w.push(`校庭の外にある備品：${out.slice(0,4).join('、')}${out.length>4?' ほか':''}`);
+ const on=S.objects.filter(o=>!['cone','marker','lane5','text','zone','circle'].includes(o.type)&&onTrack(o)).map(o=>o.name);
+ if(on.length)w.push(`トラックの上にある備品：${on.slice(0,4).join('、')}${on.length>4?' ほか':''}`);
+ const solid=S.objects.filter(o=>!['text','zone','lane5','circle'].includes(o.type));
+ const pairs=[];
+ for(let i=0;i<solid.length;i++)for(let j=i+1;j<solid.length;j++)if(satOverlap(corners(solid[i]),corners(solid[j])))pairs.push(`${solid[i].name}・${solid[j].name}`);
+ if(pairs.length)w.push(`重なっている備品：${pairs.slice(0,3).join('、')}${pairs.length>3?` ほか${pairs.length-3}組`:''}`);
+ return w;
+}
+function renderWarn(){
+ const w=warnings(),box=$('warn');
+ box.style.display=w.length?'block':'none';
+ box.innerHTML=w.length?`<b>⚠ 確認してください</b><br>${w.map(esc).join('<br>')}`:'';
+ $('warnList').innerHTML=w.length?w.map(x=>'⚠ '+esc(x)).join('<br>'):'<span class="note">問題は見つかりません ✓</span>';
+}
+function renderObjList(){
+ const objs=S.objects;
+ $('objCount').textContent=objs.length?`${objs.length}個`:'';
+ $('objList').innerHTML=objs.length?objs.map(o=>`<button data-oid="${o.id}" class="${sel.includes(o.id)?'on':''}" title="${esc(o.name)}">${esc(o.type==='text'?String(o.text||'').split('\n')[0].slice(0,20):o.name)}</button>`).join(''):'<p class="note">まだありません。「備品を置く」から置けます。</p>';
+}
+function renderMeas(){
+ const L=S.measurements;
+ $('measCount').textContent=L.length?`（${L.length}本）`:'';
+ $('measList').innerHTML=L.length?L.map((m,k)=>{
+  let t;
+  if(m.mode==='lane'){
+   const back=m.direction==='backward',alt=measSpan(m,back?'forward':'backward');
+   t=`${m.lane+1}レーン・${back?'逆向き':'走る向き'} ${f2(measSpan(m))} m${S.track.kind==='oval'?`（反対向きなら ${f2(alt)} m）`:''}`;
+  }else t=`直線 ${f2(measSpan(m))} m`;
+  return `<div class="mrow"><button data-m="${m.id}" class="${m.id===selM?'on':''}">${k+1}. ${t}</button><button class="small danger" data-mdel="${m.id}" title="この線を消す">×</button></div>`;
+ }).join(''):'<p class="note">まだありません。</p>';
+}
+function renderInspector(){
+ const box=$('insp'),objs=S.objects.filter(o=>sel.includes(o.id));
+ if(!objs.length){box.innerHTML='<div class="empty">備品をクリックすると、ここで大きさ・向き・位置を変えられます。<br><span class="note">Shift＋クリックで複数選べます。</span></div>';return}
+ if(objs.length>1){
+  const n=objs.length;
+  box.innerHTML=`<div class="ins-title">${n}個 選択中</div>
+  <div class="btns"><button data-act="alignX">左右の中心をそろえる</button><button data-act="alignY">上下の中心をそろえる</button><button data-act="distX" ${n<3?'disabled':''}>横に等間隔</button><button data-act="distY" ${n<3?'disabled':''}>縦に等間隔</button></div>
+  <div class="btns"><button data-act="dup">複製</button><button data-act="del" class="danger">まとめて削除</button><button data-act="none">選択をはずす</button></div>`;
+  return;
+ }
+ const o=objs[0],og=origin(),r=o.x-og.x,u=og.y-o.y,ty=o.type;
+ box.innerHTML=`<div class="ins-title">${esc(o.name)}</div><div class="note">${esc(typeLabel(o))}</div>
+ <label>名前<input data-f="name" value="${esc(o.name)}"></label>
+ ${ty==='text'?`<label>表示する文字（改行できます）<textarea data-f="text" rows="3">${esc(o.text)}</textarea></label><div class="grid2"><label>文字の大きさ<input data-f="fontSize" type="number" min="8" max="96" value="${o.fontSize||18}"></label><label>文字の色<input data-f="textColor" type="color" value="${o.textColor||'#243c39'}"></label></div>`:''}
+ <div class="grid2"><label>右へ m<input data-f="ox" type="number" step="0.5" value="${f1(r)}"></label><label>上へ m<input data-f="oy" type="number" step="0.5" value="${f1(u)}"></label></div>
+ <div class="grid2"><label>幅 m<input data-f="ow" type="number" step="0.5" min="0.2" value="${+o.w.toFixed(2)}"></label><label>奥行 m<input data-f="od" type="number" step="0.5" min="0.2" value="${+o.d.toFixed(2)}"></label></div>
+ ${ty==='circle'?`<label>半径 m<input data-f="radius" type="number" step="0.5" min="0.2" value="${f2(o.w/2)}"></label>`:''}
+ <label>向き（°）<input data-f="oa" type="number" step="1" value="${+o.a.toFixed(1)}"></label>
+ <div class="btns"><button data-act="rot" data-v="-15">↺ 15°</button><button data-act="rot" data-v="15">↻ 15°</button><button data-act="rot" data-v="90">↻ 90°</button></div>
+ <div class="btns"><button data-act="dup">複製</button><button data-act="del" class="danger">削除</button></div>
+ <div class="box"><div class="note" style="color:var(--ink);font-weight:700">この備品を並べる</div>
+ ${ty==='circle'?'<button data-act="circle" class="wide">円に沿って並べる（個数は「備品を置く」の欄）</button>':''}
+ <button data-act="rowFrom" class="wide">同じ備品を等間隔に並べる</button></div>`;
+}
+function refreshSel(){renderObjList();renderInspector();renderMeas();draw()}
+function refreshVertexInputs(){const p=S.field[vIdx];if(!p)return;const r=toRel(p);$('vx').value=f1(r.r);$('vy').value=f1(r.u)}
+function refreshAll(){
+ $('title').value=S.title;
+ $('rulerOn').checked=S.ruler;
+ $('raceMode').checked=!!S.raceMode;$('raceBox').hidden=!S.raceMode;
+ fillTrack();renderTracks();renderStart();renderObjList();renderMeas();
+ $('mat').innerHTML=materialsHTML();
+ renderWarn();renderInspector();
+ $('vBox').hidden=!editField;$('editField').classList.toggle('on',editField);
+ $('fieldInfo').textContent=fieldInfo();refreshVertexInputs();
+ $('tSelect').classList.toggle('on',tool==='select');$('tMeasure').classList.toggle('on',tool==='measure');$('tPlace').classList.toggle('on',tool==='place');
+ $('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;
+ draw();
+}
+function setTool(t){
+ tool=t;if(t!=='measure')meas=null;if(t!=='place')place=null;
+ snapHint=null;
+ cv.style.cursor=t==='select'?'default':'crosshair';
+ refreshAll();
+}
+function resize(){
+ const r=$('stage').getBoundingClientRect();
+ W=Math.max(200,r.width);H=Math.max(200,r.height);dpr=window.devicePixelRatio||1;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+ draw();
+}
+
+/* ===================== 操作：トラック ===================== */
+function readTrack(){
+ const old=S.track,t={...old};
+ t.kind=$('kind').value;
+ t.lap=+$('lap').value;
+ t.straight=t.kind==='oval'?+$('straight').value:(old.straight>0?old.straight:50);
+ t.lanes=+$('lanes').value;t.width=+$('width').value;
+ t.race=+$('race').value;t.runDirection=$('runDir').value==='-1'?-1:1;
+ t.x=+$('tx').value;t.y=+$('ty').value;t.angle=+$('tangle').value;
+ return t;
+}
+function applyTrack(){
+ const old=S.track,t=readTrack(),err=trackError(t);
+ if(err){toast(err);fillTrack();return}
+ const resized=old.kind!==t.kind||old.lap!==t.lap||old.straight!==t.straight;
+ t.finish=resized?remapFinish(old,t):finishPos(old);
+ t.finish=clampFinish(t);
+ checkpoint();S.track=t;afterChange();
+}
+function switchTrack(id){
+ if(id===S.activeTrack)return;
+ const e=S.trackPresets.find(p=>p.id===id);if(!e)return;
+ checkpoint();loadEntry(e);fit();afterChange();toast(`トラック${e.name}に切り替えました`);
+}
+function dupTrack(id){
+ if(S.trackPresets.length>=10){toast('トラックは10個までです。いらないものを×で消してください');return}
+ const e=S.trackPresets.find(p=>p.id===id);if(!e)return;
+ checkpoint();
+ const n={id:nextId(S.trackPresets),name:nextName(),track:clone(e.track),objects:clone(e.objects||[]),measurements:clone(e.measurements||[])};
+ S.trackPresets.push(n);loadEntry(n);fit();afterChange();toast(`トラック${n.name}を複製しました`);
+}
+function delTrack(id){
+ if(S.trackPresets.length<=1)return;
+ checkpoint();
+ S.trackPresets=S.trackPresets.filter(p=>p.id!==id);
+ if(id===S.activeTrack){loadEntry(S.trackPresets[0]);fit()}
+ afterChange();toast('消しました。「戻す」で元にもどせます');
+}
+function newTrack(k){
+ if(S.trackPresets.length>=10){toast('トラックは10個までです。いらないものを×で消してください');return}
+ checkpoint();
+ const tr={...PRESET[k],x:0,y:0,angle:0,adjust:[]};
+ const name=nextName();
+ const entry={id:nextId(S.trackPresets),name,track:tr,objects:mkObjs(k==='straight'?[]:TPL[k]),measurements:[]};
+ S.trackPresets.push(entry);
+ if(k==='400'&&sameField(S.field,FIELD200))S.field=clone(FIELD400);
+ if(k==='200'&&sameField(S.field,FIELD400))S.field=clone(FIELD200);
+ loadEntry(entry);fit();afterChange();toast(`トラック${name}を作りました`);
+}
+function setFinish(f){
+ if(!Number.isFinite(f))return;
+ checkpoint();S.track={...S.track,finish:clampFinish({...S.track,finish:f})};afterChange();
+}
+
+/* ===================== 操作：テンプレート・校庭 ===================== */
+function applyTemplate(k){
+ checkpoint();
+ if(k==='200'||k==='400'){
+  S.field=clone(k==='200'?FIELD200:FIELD400);
+  S.track={...PRESET[k],x:0,y:0,angle:0,adjust:[]};
+  S.objects=mkObjs(TPL[k]);
+ }else S.objects=[];
+ sel=[];selM=null;fit();afterChange();
+ toast(k==='blank'?'備品をすべて外しました。「戻す」で元に戻せます':'テンプレートを置きました。「戻す」で元に戻せます');
+}
+function applyVertexInputs(){
+ const x=+$('vx').value,y=+$('vy').value;
+ if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>1000||Math.abs(y)>1000)return;
+ const p=fromRel(x,y),c=S.field[vIdx];
+ if(Math.abs(p.x-c.x)<1e-9&&Math.abs(p.y-c.y)<1e-9)return;
+ checkpoint();S.field[vIdx]=p;afterChange();
+}
+function vertexAt(q){for(let i=0;i<S.field.length;i++)if(dist(P2S(S.field[i]),q)<10)return i;return -1}
+
+/* ===================== 操作：備品 ===================== */
+function addAtCenter(kind){
+ const c=S2P({x:W/2,y:H/2}),k=S.objects.length%6;
+ checkpoint();
+ const o=newObj(kind,c.x+k*1.5,c.y+k*1.5);
+ S.objects.push(o);sel=[o.id];selM=null;
+ afterChange();toast('図の真ん中に置きました。ドラッグで動かしてください');
+}
+function deleteSel(){
+ if(!sel.length){if(selM){checkpoint();S.measurements=S.measurements.filter(m=>m.id!==selM);selM=null;afterChange()}return}
+ checkpoint();S.objects=S.objects.filter(o=>!sel.includes(o.id));sel=[];afterChange();
+}
+function dupSel(){
+ const src=S.objects.filter(o=>sel.includes(o.id));if(!src.length)return;
+ checkpoint();
+ const ids=[];let id=nextId(S.objects);
+ for(const o of src){const n={...clone(o),id:id++,x:o.x+1.5,y:o.y+1.5};n.name=uniqueName(baseName(o.name));S.objects.push(n);ids.push(n.id)}
+ sel=ids;afterChange();
+}
+function copySel(){const src=S.objects.filter(o=>sel.includes(o.id));if(src.length){clip=src.map(clone);toast(`${src.length}個をコピーしました`)}}
+function pasteClip(){
+ if(!clip||!clip.length)return;
+ checkpoint();
+ let id=nextId(S.objects);const ids=[];
+ for(const o of clip){const n={...clone(o),id:id++,x:o.x+1.5,y:o.y+1.5};n.name=uniqueName(baseName(o.name));S.objects.push(n);ids.push(n.id)}
+ sel=ids;afterChange();
+}
+function nudge(dx,dy){
+ checkpoint();
+ for(const o of S.objects)if(sel.includes(o.id)){o.x+=dx;o.y+=dy}
+ afterChange();
+}
+function circleRow(o){
+ const n=clamp(+$('rowN').value||2,2,100),kind=$('rowType').value,typ=typeOf(kind),rx=o.w/2,ry=o.d/2;
+ if(S.objects.length+n>1000){toast('備品は全部で1000個までです');return}
+ checkpoint();const ids=[];
+ for(let k=0;k<n;k++){
+  const th=-Math.PI/2+TAU*k/n;
+  const p=rot(o.x,o.y,o.a,{x:rx*Math.cos(th),y:ry*Math.sin(th)});
+  const q=rot(o.x,o.y,o.a,{x:rx*Math.cos(th+1e-3),y:ry*Math.sin(th+1e-3)});
+  const ob=newObj(kind,p.x,p.y);
+  ob.a=stillKind(kind)?0:norm(Math.atan2(q.y-p.y,q.x-p.x)/RAD);
+  S.objects.push(ob);ids.push(ob.id);
+ }
+ sel=ids;afterChange();toast(`${typ==='lane5'?'レーン':''}${n}個、円に沿って並べました。まちがえたら「戻す」`);
+}
+function applyInsp(f,v){
+ const o=S.objects.find(x=>x.id===sel[0]);if(!o)return;
+ const num=x=>{const r=Number(x);return Number.isFinite(r)?r:null};
+ const og=origin();let patch=null,r;
+ switch(f){
+  case 'name':patch={name:String(v).slice(0,60)||o.name};break;
+  case 'text':patch={text:String(v).slice(0,2000)};break;
+  case 'fontSize':r=num(v);if(r!=null)patch={fontSize:clamp(r,8,96)};break;
+  case 'textColor':patch={textColor:v};break;
+  case 'ox':r=num(v);if(r!=null)patch={x:og.x+r};break;
+  case 'oy':r=num(v);if(r!=null)patch={y:og.y-r};break;
+  case 'ow':r=num(v);if(r!=null)patch={w:clamp(r,.2,1000)};break;
+  case 'od':r=num(v);if(r!=null)patch={d:clamp(r,.2,1000)};break;
+  case 'radius':r=num(v);if(r!=null){const D=clamp(r*2,.4,1000);patch={w:D,d:D}}break;
+  case 'oa':r=num(v);if(r!=null)patch={a:norm(r)};break;
+ }
+ if(!patch)return;
+ checkpoint();Object.assign(o,patch);afterChange();
+}
+function inspAct(a,v){
+ const o=S.objects.find(x=>x.id===sel[0]),group=S.objects.filter(x=>sel.includes(x.id)),n=group.length;
+ if(a==='none'){sel=[];refreshSel();return}
+ if(a==='dup'){dupSel();return}
+ if(a==='del'){deleteSel();return}
+ if(a==='rot'&&o){checkpoint();o.a=norm(o.a+ +v);afterChange();return}
+ if(a==='rowFrom'&&o){
+  $('rowType').value=o.type==='lane5'?(o.w>=10?'lane10':'lane5'):o.type;
+  setTool('place');toast('図の上で「始め」→「終わり」をクリック（個数は「備品を置く」の欄）');return;
+ }
+ if(a==='circle'&&o){circleRow(o);return}
+ if(n>1){
+  if(a==='alignX'||a==='alignY'){const k=a==='alignX'?'x':'y',avg=group.reduce((s,x)=>s+x[k],0)/n;checkpoint();group.forEach(x=>{x[k]=avg});afterChange();return}
+  if(a==='distX'||a==='distY'){const k=a==='distX'?'x':'y',g=[...group].sort((p,q)=>p[k]-q[k]),lo=g[0][k],hi=g[n-1][k];checkpoint();g.forEach((x,i)=>{x[k]=lo+(hi-lo)*i/(n-1)});afterChange();return}
+ }
+}
+
+/* ===================== 操作：測る・並べる ===================== */
+function measClick(p,e){
+ const t=S.track;
+ if(!meas){
+  if($('mMode').value==='lane'){const ln=laneAtP(p)??laneIdx();meas={mode:'lane',lane:ln,a:{u:nearestU(t,ln,p)}}}
+  else meas={mode:'straight',a:snapPoint(p,e.altKey)};
+  draw();return;
+ }
+ let m;
+ if(meas.mode==='lane')m={id:nextId(S.measurements),mode:'lane',lane:meas.lane,direction:$('dirSel').value,a:meas.a,b:{u:nearestU(t,meas.lane,p)}};
+ else{
+  const b=snapPoint(p,e.altKey);
+  if(dist(b,meas.a)<.05){toast('始点と同じ場所です');return}
+  m={id:nextId(S.measurements),mode:'straight',a:meas.a,b};
+ }
+ meas=null;checkpoint();S.measurements.push(m);selM=m.id;afterChange();
+ toast(`測りました：${f2(measSpan(m))} m`);
+}
+function placeClick(p,e){
+ const t=S.track;
+ if(!place){
+  if($('rowPath').value==='lane'){const ln=laneAtP(p)??laneIdx();place={lane:ln,a:nearestU(t,ln,p)}}
+  else place={lane:null,a:snapPoint(p,e.altKey)};
+  draw();return;
+ }
+ const b=place.lane!=null?nearestU(t,place.lane,p):snapPoint(p,e.altKey);
+ const kind=$('rowType').value,n=clamp(+$('rowN').value||2,2,100),dir=$('dirSel').value;
+ if(S.objects.length+n>1000){toast('備品は全部で1000個までです');return}
+ const pts=rowPts(n,place.a,b,place.lane,dir);
+ const still=stillKind(kind);
+ checkpoint();const ids=[];
+ for(const pt of pts){const ob=newObj(kind,pt.x,pt.y);ob.a=still?0:norm(pt.ang);S.objects.push(ob);ids.push(ob.id)}
+ place=null;sel=ids;setTool('select');afterChange();
+ toast(`${pts.length}個並べました。まちがえたら「戻す」`);
+}
+function finishFromPointer(){return null}
+
+/* ===================== 当たり判定・ドラッグ ===================== */
+function hitFinish(q){
+ const t=S.track;
+ const A=P2S(crossLine(t,0,finishOn(t,0))[0]),B=P2S(crossLine(t,t.lanes-1,finishOn(t,t.lanes-1))[1]);
+ return segDist(q,A,B)<9;
+}
+function resizeHandleAt(q){
+ if(sel.length!==1)return null;
+ const o=S.objects.find(x=>x.id===sel[0]);
+ if(!o||o.type==='cone'||o.type==='marker')return null;
+ const cr=corners(o),SG=[[-1,-1],[1,-1],[1,1],[-1,1]];
+ for(let i=0;i<4;i++)if(dist(P2S(cr[i]),q)<9)return{o,anchor:cr[(i+2)%4],sx:SG[i][0],sy:SG[i][1]};
+ return null;
+}
+function resizeTo(o,dg,p,alt){
+ const r=dg.ang*RAD,c=Math.cos(r),s=Math.sin(r),dx=p.x-dg.anchor.x,dy=p.y-dg.anchor.y;
+ let w=dg.sx*(dx*c+dy*s),d=dg.sy*(-dx*s+dy*c);
+ const g=alt?0:gridStep();
+ if(g){w=Math.round(w/g)*g;d=Math.round(d/g)*g}
+ w=clamp(w,.2,1000);d=clamp(d,.2,1000);
+ const nx=dg.anchor.x+(dg.sx*w/2)*c-(dg.sy*d/2)*s,ny=dg.anchor.y+(dg.sx*w/2)*s+(dg.sy*d/2)*c;
+ Object.assign(o,{w,d,x:nx,y:ny});
+}
+const qDown=e=>{};
+cv.addEventListener('pointerdown',e=>{
+ const q=qpos(e),p=S2P(q);
+ cv.setPointerCapture(e.pointerId);
+ snapHint=null;
+ if(e.button===1||e.button===2||spaceDown){drag={kind:'pan',q0:q,px0:px,py0:py};cv.style.cursor='grabbing';return}
+ if(tool==='measure'){measClick(p,e);return}
+ if(tool==='place'){placeClick(p,e);return}
+ if(S.raceMode&&hitFinish(q)){drag={kind:'finish',q0:q,moved:false};return}
+ if(S.ruler&&dist(q,P2S(origin()))<12){drag={kind:'origin',q0:q,moved:false};return}
+ if(editField){const i=vertexAt(q);if(i>=0){vIdx=i;refreshVertexInputs();drag={kind:'vertex',q0:q,moved:false};draw();return}}
+ const h=resizeHandleAt(q);
+ if(h){drag={kind:'resize',q0:q,moved:false,id:h.o.id,anchor:h.anchor,sx:h.sx,sy:h.sy,ang:h.o.a};return}
+ const o=objAt(p);
+ if(o){
+  if(e.shiftKey)sel=sel.includes(o.id)?sel.filter(x=>x!==o.id):[...sel,o.id];
+  else if(!sel.includes(o.id))sel=[o.id];
+  selM=null;
+  if(sel.includes(o.id))drag={kind:'move',q0:q,p0:p,moved:false,items:S.objects.filter(x=>sel.includes(x.id)).map(x=>({id:x.id,x:x.x,y:x.y}))};
+  refreshSel();return;
+ }
+ if(e.shiftKey){drag={kind:'box',q0:q,q1:q};draw();return}
+ sel=[];selM=null;refreshSel();
+ drag={kind:'pan',q0:q,px0:px,py0:py};cv.style.cursor='grabbing';
+});
+cv.addEventListener('pointermove',e=>{
+ const q=qpos(e),p=S2P(q);
+ mouseP=p;
+ if(!drag){
+  if(tool==='measure'||tool==='place'){if(meas||place)draw()}
+  else cv.style.cursor=objAt(p)?'move':'default';
+  return;
+ }
+ if(drag.kind==='pan'){px=drag.px0+q.x-drag.q0.x;py=drag.py0+q.y-drag.q0.y;draw();return}
+ if(drag.kind==='box'){drag.q1=q;draw();return}
+ if(drag.kind==='finish'){
+  const f=finishFromP(p,e.altKey);
+  if(Math.abs(f-finishPos(S.track))>1e-9){if(!drag.moved){checkpoint();drag.moved=true}S.track={...S.track,finish:clampFinish({...S.track,finish:f})}}
+  draw();return;
+ }
+ if(drag.kind==='origin'){
+  if(!drag.moved){if(dist(q,drag.q0)<3)return;checkpoint();drag.moved=true}
+  S.origin=snapPoint(p,e.altKey,null,true);draw();return;
+ }
+ if(drag.kind==='vertex'){
+  if(!drag.moved){if(dist(q,drag.q0)<3)return;checkpoint();drag.moved=true}
+  S.field[vIdx]=snapPoint(p,e.altKey,null,false);refreshVertexInputs();draw();return;
+ }
+ if(drag.kind==='resize'){
+  if(!drag.moved){if(dist(q,drag.q0)<3)return;checkpoint();drag.moved=true}
+  const o=S.objects.find(x=>x.id===drag.id);if(o){resizeTo(o,drag,p,e.altKey)}
+  draw();return;
+ }
+ if(drag.kind==='move'){
+  if(!drag.moved){if(dist(q,drag.q0)<4)return;checkpoint();drag.moved=true}
+  const raw={x:p.x-drag.p0.x,y:p.y-drag.p0.y};
+  let dx,dy;
+  if(drag.items.length===1){
+   const it=drag.items[0],tp=snapPoint({x:it.x+raw.x,y:it.y+raw.y},e.altKey,it.id,false);
+   dx=tp.x-it.x;dy=tp.y-it.y;
+  }else{
+   const g=e.altKey?0:gridStep();
+   dx=g?Math.round(raw.x/g)*g:raw.x;dy=g?Math.round(raw.y/g)*g:raw.y;
+  }
+  for(const it of drag.items){const o=S.objects.find(x=>x.id===it.id);if(o){o.x=it.x+dx;o.y=it.y+dy}}
+  draw();return;
+ }
+});
+function endDrag(){
+ if(!drag)return;
+ const d=drag;drag=null;snapHint=null;
+ cv.style.cursor=tool==='select'?'default':'crosshair';
+ if(d.kind==='box'){
+  const a=S2P(d.q0),b=S2P(d.q1);
+  const x0=Math.min(a.x,b.x),x1=Math.max(a.x,b.x),y0=Math.min(a.y,b.y),y1=Math.max(a.y,b.y);
+  const ins=S.objects.filter(o=>o.x>=x0&&o.x<=x1&&o.y>=y0&&o.y<=y1).map(o=>o.id);
+  sel=[...new Set([...sel,...ins])];refreshSel();return;
+ }
+ if(d.moved)afterChange();else draw();
+}
+cv.addEventListener('pointerup',endDrag);
+cv.addEventListener('pointercancel',endDrag);
+cv.addEventListener('dblclick',e=>{
+ const o=objAt(S2P(qpos(e)));
+ if(o&&o.type==='text'){sel=[o.id];refreshSel();const ta=$('insp').querySelector('textarea');if(ta)ta.focus()}
+});
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(qpos(e),e.deltaY<0?1.12:1/1.12)},{passive:false});
+
+/* ===================== 保存・印刷・写真 ===================== */
+function trackSummary(){
+ const t=S.track;
+ return t.kind==='straight'?`直線 ${t.lap}m ・ ${t.lanes}レーン（幅${t.width}m）`:`${t.lap}m ・ ${t.lanes}レーン（幅${t.width}m）・直線${t.straight}m`;
+}
+function renderImage(width){
+ const b=bounds(),sw=b.maxX-b.minX,sh=b.maxY-b.minY,TOP=76;
+ const save={W,H,dpr,scale,cx,cy,px,py};
+ const ks=width*0.94/sw,fh=Math.round(TOP+sh*ks+30);
+ W=width;H=fh;dpr=1;cv.width=W;cv.height=H;
+ cx=(b.minX+b.maxX)/2;cy=(b.minY+b.maxY)/2;scale=ks;px=0;py=TOP/2;
+ let url='';
+ try{
+  draw(true);
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,TOP);
+  ctx.fillStyle='#243c39';ctx.font='700 26px "Noto Sans JP",sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(S.title,24,TOP*.38);
+  ctx.font='14px "Noto Sans JP",sans-serif';ctx.fillStyle='#6b7d68';ctx.fillText(`${trackSummary()}　${new Date().toLocaleDateString('ja-JP')}`,24,TOP*.74);
+  url=cv.toDataURL('image/png');
+ }finally{
+  ({W,H,dpr,scale,cx,cy,px,py}=save);
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  draw();
+ }
+ return url;
+}
+function download(href,name){const a=document.createElement('a');a.href=href;a.download=name;document.body.append(a);a.click();a.remove()}
+const safeName=()=>String(S.title||'配置図').replace(/[\\/:*?"<>|]/g,'_').slice(0,60);
+function printSheet(){
+ const url=renderImage(2400);
+ $('printArea').innerHTML=`<div class="pr-head"><h1>${esc(S.title)}</h1><span>${new Date().toLocaleDateString('ja-JP')}　${esc(trackSummary())}</span></div>
+ <img src="${url}" alt="配置図">
+ <div class="pr-cols"><div>${materialsHTML()}</div><div>${S.raceMode?'<b>スタート位置</b>'+startTableHTML():'<p class="note">徒競走モードはオフです</p>'}<p class="note">凡例：赤い線＝スタート、青い線＝ゴール、点線＝0m地点。数字はレーン番号。</p></div></div>`;
+ document.body.classList.add('printing');
+ const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
+ window.addEventListener('afterprint',done);
+ setTimeout(()=>window.print(),400);
+}
+
+/* ===================== ボタン・キーボード ===================== */
+document.querySelectorAll('[data-tpl]').forEach(b=>b.onclick=()=>applyTemplate(b.dataset.tpl));
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>newTrack(b.dataset.preset));
+document.querySelectorAll('[data-fstep]').forEach(b=>b.onclick=()=>setFinish(finishPos(S.track)+Number(b.dataset.fstep)));
+$('trackList').onclick=e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.ld)switchTrack(+b.dataset.ld);
+ else if(b.dataset.dup)dupTrack(+b.dataset.dup);
+ else if(b.dataset.del)delTrack(+b.dataset.del);
+};
+['kind','lap','straight','lanes','width','race','runDir','tx','ty','tangle'].forEach(id=>$(id).addEventListener('change',applyTrack));
+$('finish').onchange=()=>setFinish(+$('finish').value);
+$('raceMode').onchange=()=>{checkpoint();S.raceMode=$('raceMode').checked;afterChange();toast(S.raceMode?'徒競走モード：スタートとゴールを出しました':'徒競走モードをオフにしました')};
+$('title').onchange=()=>{checkpoint();S.title=($('title').value||'運動場 配置図').slice(0,200);afterChange()};
+$('editField').onclick=()=>{editField=!editField;tool='select';if(editField)toast('角をドラッグして動かせます。右の欄で数字でも直せます');refreshAll()};
+$('addV').onclick=()=>{
+ if(S.field.length>=100)return;
+ checkpoint();
+ let bi=0,bl=-1;
+ S.field.forEach((p,i)=>{const q=S.field[(i+1)%S.field.length],L=dist(p,q);if(L>bl){bl=L;bi=i}});
+ const p=S.field[bi],q=S.field[(bi+1)%S.field.length];
+ S.field.splice(bi+1,0,{x:(p.x+q.x)/2,y:(p.y+q.y)/2});vIdx=bi+1;afterChange();
+};
+$('delV').onclick=()=>{
+ if(S.field.length<=3){toast('校庭には3つ以上の角が必要です');return}
+ checkpoint();S.field.splice(vIdx,1);vIdx=0;afterChange();
+};
+$('vx').onchange=applyVertexInputs;$('vy').onchange=applyVertexInputs;
+$('pal').innerHTML=PAL.map(p=>`<button data-add="${p.k}" title="${esc(p.n)}を図の真ん中に置く"><i>${p.ic}</i>${esc(p.s)}</button>`).join('');
+$('pal').onclick=e=>{const b=e.target.closest('[data-add]');if(b)addAtCenter(b.dataset.add)};
+$('rowType').innerHTML=PAL.filter(p=>p.k!=='text').map(p=>`<option value="${p.k}">${esc(p.n)}</option>`).join('');
+$('rowBtn').onclick=()=>{setTool('place');toast('図の上で「始め」→「終わり」をクリック（Escでやめる）')};
+$('measBtn').onclick=()=>{setTool('measure');toast('図の上で2回クリックすると、距離が出ます')};
+$('measClear').onclick=()=>{if(!S.measurements.length)return;checkpoint();S.measurements=[];selM=null;afterChange();toast('測った線を消しました。「戻す」で戻せます')};
+$('measList').onclick=e=>{
+ const d=e.target.closest('[data-mdel]'),b=e.target.closest('[data-m]');
+ if(d){const id=+d.dataset.mdel;checkpoint();S.measurements=S.measurements.filter(m=>m.id!==id);if(selM===id)selM=null;afterChange();return}
+ if(b){selM=+b.dataset.m;sel=[];refreshSel()}
+};
+$('objList').onclick=e=>{const b=e.target.closest('[data-oid]');if(b){sel=[+b.dataset.oid];selM=null;refreshSel()}};
+$('insp').onclick=e=>{const b=e.target.closest('[data-act]');if(b)inspAct(b.dataset.act,b.dataset.v)};
+$('insp').onchange=e=>{const el=e.target.closest('[data-f]');if(el)applyInsp(el.dataset.f,el.value)};
+$('tSelect').onclick=()=>setTool('select');
+$('tMeasure').onclick=()=>setTool('measure');
+$('tPlace').onclick=()=>setTool('place');
+$('rulerOn').onchange=()=>{S.ruler=$('rulerOn').checked;persist();draw()};
+$('labelsOn').onchange=()=>draw();
+$('snapSel').onchange=()=>draw();
+$('zIn').onclick=()=>zoomAt({x:W/2,y:H/2},1.25);
+$('zOut').onclick=()=>zoomAt({x:W/2,y:H/2},1/1.25);
+$('fit').onclick=()=>fit();
+$('undo').onclick=undo;$('redo').onclick=redo;
+$('help').onclick=()=>{$('helpModal').hidden=false};
+$('helpModal').onclick=e=>{if(e.target.id==='helpModal'||e.target.id==='helpClose')$('helpModal').hidden=true};
+$('pngBtn').onclick=()=>{const url=renderImage(2000);download(url,safeName()+'.png');toast('写真（PNG）を保存しました')};
+$('printBtn').onclick=printSheet;
+$('saveFile').onclick=()=>{
+ storeActive();
+ const url=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
+ download(url,safeName()+'.json');setTimeout(()=>URL.revokeObjectURL(url),2000);toast('ファイルに保存しました');
+};
+$('openFile').onclick=()=>$('file').click();
+$('file').onchange=async()=>{
+ const f=$('file').files[0];$('file').value='';if(!f)return;
+ try{
+  if(f.size>3000000)throw new Error('big');
+  const s=JSON.parse(await f.text());
+  if(!valid(s))throw new Error('invalid');
+  checkpoint();S=s;sel=[];selM=null;normalize();fit();afterChange();toast('図面を開きました');
+ }catch(e){toast('このファイルは開けません。この校庭プランナーで保存したファイルを選んでください')}
+};
+let clearArmed=null;
+$('clearAll').onclick=()=>{
+ const b=$('clearAll');
+ if(!clearArmed){b.textContent='もう一度押すと消えます';clearArmed=setTimeout(()=>{clearArmed=null;b.textContent='すべて消す'},3500);return}
+ clearTimeout(clearArmed);clearArmed=null;b.textContent='すべて消す';
+ checkpoint();S=fresh();sel=[];selM=null;editField=false;normalize();fit();afterChange();
+ toast('最初の状態にもどしました。「戻す」で元にもどせます');
+};
+document.addEventListener('keydown',e=>{
+ const tag=(document.activeElement||{}).tagName,typing=['INPUT','TEXTAREA','SELECT'].includes(tag);
+ if(e.key===' '&&!typing){spaceDown=true;e.preventDefault();return}
+ if(e.key==='Escape'){
+  if(!$('helpModal').hidden){$('helpModal').hidden=true;return}
+  if(tool==='measure'||tool==='place'){meas=null;place=null;setTool('select');toast('やめました');return}
+  sel=[];selM=null;refreshSel();return;
+ }
+ if(typing)return;
+ const mod=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
+ if(mod&&k==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
+ if(mod&&k==='y'){e.preventDefault();redo();return}
+ if(mod&&k==='c'){e.preventDefault();copySel();return}
+ if(mod&&k==='v'){e.preventDefault();pasteClip();return}
+ if(mod&&k==='d'){e.preventDefault();dupSel();return}
+ if(e.key==='Delete'||e.key==='Backspace'){if(sel.length||selM){e.preventDefault();deleteSel()}return}
+ if(!mod&&sel.length&&['arrowleft','arrowright','arrowup','arrowdown'].includes(e.key.toLowerCase())){
+  e.preventDefault();
+  const g=(gridStep()||0.5)*(e.shiftKey?4:1);
+  const dx={arrowleft:-g,arrowright:g}[e.key.toLowerCase()]||0,dy={arrowup:-g,arrowdown:g}[e.key.toLowerCase()]||0;
+  nudge(dx,dy);return;
+ }
+ if(!mod&&k==='v')setTool('select');
+ if(!mod&&k==='m')setTool('measure');
+ if(!mod&&k==='p')setTool('place');
+});
+document.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false});
+new ResizeObserver(()=>resize()).observe($('stage'));
+
+/* ===================== 起動 ===================== */
+S=load();normalize();
+resize();fit();refreshAll();
+</script>
+</body>
+</html>
